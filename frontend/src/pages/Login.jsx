@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header.jsx'
-import Footer from '../components/Footer.jsx'
 import GoogleAuthButton from '../components/GoogleAuthButton.jsx'
 import AppleAuthButton from '../components/AppleAuthButton.jsx'
 import FacebookAuthButton from '../components/FacebookAuthButton.jsx'
@@ -64,7 +63,6 @@ function Login() {
             <p className="auth-card__subtitle">Supabase-yhteyttä ei ole määritetty (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).</p>
           </div>
         </main>
-        <Footer />
       </div>
     )
   }
@@ -178,7 +176,6 @@ function Login() {
           )}
         </div>
       </main>
-      <Footer />
     </div>
   )
 }

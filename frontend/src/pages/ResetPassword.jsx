@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Header from '../components/Header.jsx'
-import Footer from '../components/Footer.jsx'
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js'
 import { translateAuthError } from '../lib/authErrors.js'
 import './AuthForm.css'
@@ -54,7 +53,6 @@ function ResetPassword() {
             <p className="auth-card__subtitle">Supabase-yhteyttä ei ole määritetty.</p>
           </div>
         </main>
-        <Footer />
       </div>
     )
   }
@@ -93,7 +91,6 @@ function ResetPassword() {
           )}
         </div>
       </main>
-      <Footer />
     </div>
   )
 }
