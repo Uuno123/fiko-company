@@ -1,0 +1,114 @@
+:root {
+  /* Väliaikainen brändiväri - vaihda tähän logon tarkka HEX kun se on tiedossa. */
+  --fiko-lime: #b6f500;
+  --fiko-black: #14150f;
+
+  --surface: #ffffff;
+  --surface-muted: #f1f3ec;
+  --text-muted: #6c7066;
+  --border: #e2e5db;
+
+  --color-open: #2fae4e;
+  --color-closed: #9a9d94;
+  --color-favorite: #e0455b;
+
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --header-height: 74px;
+
+  --font-display: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--surface-muted);
+  color: var(--fiko-black);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 9px 16px 9px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+  color: var(--fiko-black);
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.back-link svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.back-link:hover {
+  transform: translateX(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--fiko-black);
+  width: fit-content;
+}
+
+.status-badge__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-open);
+}
+
+.status-badge--closed .status-badge__dot {
+  background: var(--color-closed);
+}
+
+.category-tag {
+  align-self: flex-start;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 500;
+}

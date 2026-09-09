@@ -1,0 +1,28 @@
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(155deg, var(--fiko-lime) 0%, color-mix(in srgb, var(--fiko-lime) 80%, black) 100%);
+}
+
+.avatar-placeholder span {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--fiko-black);
+  line-height: 1;
+  user-select: none;
+}
+
+.avatar-placeholder--card span {
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+}
+
+.avatar-placeholder--hero span {
+  font-size: clamp(3.5rem, 12vw, 6rem);
+}
+
+.avatar-placeholder--thumb span {
+  font-size: 1.25rem;
+}

@@ -1,0 +1,180 @@
+.site-header__auth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.account-menu__icon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.account-menu__chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-ghost-btn,
+.auth-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.auth-ghost-btn {
+  color: var(--fiko-black);
+  background: transparent;
+  border: 1.5px solid rgba(20, 21, 15, 0.18);
+}
+
+.auth-ghost-btn:hover {
+  background: rgba(20, 21, 15, 0.08);
+  border-color: rgba(20, 21, 15, 0.28);
+  transform: translateY(-1px);
+}
+
+.auth-ghost-btn:active,
+.auth-pill-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Header renders transparently over a dark photo (RestaurantPage hero) in this mode,
+   so the plain-text/icon ghost button needs to flip to white - see Header.css .site-header--overlay. */
+.auth-ghost-btn--overlay {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.auth-ghost-btn--overlay:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #fff;
+}
+
+.auth-pill-btn {
+  background: var(--fiko-black);
+  color: var(--fiko-lime);
+  border: 1.5px solid var(--fiko-black);
+}
+
+.auth-pill-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 20px -10px rgba(20, 21, 15, 0.55);
+}
+
+.account-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.account-menu__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--fiko-black);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  max-width: 160px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.account-menu__trigger:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px -12px rgba(20, 21, 15, 0.45);
+}
+
+.account-menu__trigger:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--fiko-black);
+}
+
+.account-menu__trigger:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.account-menu__trigger[aria-expanded='true'] .account-menu__chevron {
+  transform: rotate(180deg);
+}
+
+.account-menu__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 170px;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 32px -16px rgba(0, 0, 0, 0.28);
+  padding: 6px;
+  z-index: 20;
+  animation: account-menu-in 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes account-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.account-menu__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--fiko-black);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.account-menu__item:hover {
+  background: var(--surface-muted);
+}
+
+.account-menu__item:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 400px) {
+  .auth-ghost-btn span,
+  .auth-ghost-btn {
+    font-size: 0.85rem;
+    padding: 0 12px;
+  }
+}

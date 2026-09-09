@@ -1,0 +1,39 @@
+.category-filter {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 0 4px;
+  scrollbar-width: none;
+}
+
+.category-filter::-webkit-scrollbar {
+  display: none;
+}
+
+.category-chip {
+  flex-shrink: 0;
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--fiko-black);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.category-chip:hover {
+  border-color: var(--fiko-black);
+}
+
+.category-chip:active {
+  transform: scale(0.96);
+}
+
+.category-chip--active {
+  background: var(--fiko-lime);
+  border-color: var(--fiko-lime);
+}
