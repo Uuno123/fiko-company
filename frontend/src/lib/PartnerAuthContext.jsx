@@ -3,7 +3,7 @@ import { supabase, isSupabaseConfigured } from './supabaseClient.js'
 
 const PartnerAuthContext = createContext(undefined)
 
-async function fetchOwnedRestaurants(ownerId) {
+async function fetchOwnerData(ownerId) {
   const { data, error } = await supabase
     .from('restaurant_owners')
     .select('restaurant_id, restaurants(*)')
@@ -11,15 +11,24 @@ async function fetchOwnedRestaurants(ownerId) {
 
   if (error) {
     console.error('[fiko-frontend] Kumppanin ravintoloiden haku epäonnistui:', error.message)
-    return []
+    return { isOwner: false, restaurants: [] }
   }
 
-  return (data ?? []).map((row) => row.restaurants).filter(Boolean)
+  const rows = data ?? []
+  // isOwner katsotaan rivien määrästä restaurant_owners-taulussa, ei siitä montako
+  // ravintolaa saatiin resolvoitua - näin "tili on kumppani mutta ravintoladataa puuttuu"
+  // (oikea virhetila) erottuu "tämä tili ei ole kumppani ollenkaan" -tilasta (esim. pelkkä
+  // asiakastili samalla Supabase-sessiolla), vaikka molemmissa restaurants päätyisi tyhjäksi.
+  return {
+    isOwner: rows.length > 0,
+    restaurants: rows.map((row) => row.restaurants).filter(Boolean),
+  }
 }
 
 export function PartnerAuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [restaurants, setRestaurants] = useState([])
+  const [isOwner, setIsOwner] = useState(false)
   const [status, setStatus] = useState(isSupabaseConfigured ? 'loading' : 'ready')
 
   useEffect(() => {
@@ -31,9 +40,10 @@ export function PartnerAuthProvider({ children }) {
       if (cancelled) return
       setSession(data.session)
       if (data.session) {
-        const owned = await fetchOwnedRestaurants(data.session.user.id)
+        const owned = await fetchOwnerData(data.session.user.id)
         if (cancelled) return
-        setRestaurants(owned)
+        setIsOwner(owned.isOwner)
+        setRestaurants(owned.restaurants)
       }
       setStatus('ready')
     })
@@ -42,10 +52,12 @@ export function PartnerAuthProvider({ children }) {
       if (cancelled) return
       setSession(nextSession)
       if (nextSession) {
-        const owned = await fetchOwnedRestaurants(nextSession.user.id)
+        const owned = await fetchOwnerData(nextSession.user.id)
         if (cancelled) return
-        setRestaurants(owned)
+        setIsOwner(owned.isOwner)
+        setRestaurants(owned.restaurants)
       } else {
+        setIsOwner(false)
         setRestaurants([])
       }
     })
@@ -58,8 +70,9 @@ export function PartnerAuthProvider({ children }) {
 
   async function refreshRestaurants() {
     if (!session) return
-    const owned = await fetchOwnedRestaurants(session.user.id)
-    setRestaurants(owned)
+    const owned = await fetchOwnerData(session.user.id)
+    setIsOwner(owned.isOwner)
+    setRestaurants(owned.restaurants)
   }
 
   async function signOut() {
@@ -69,7 +82,10 @@ export function PartnerAuthProvider({ children }) {
   const value = {
     session,
     restaurants,
+    // Vain "onko Supabase-sessio olemassa" - EI riitä kumppanipääsyyn, koska sama sessio on
+    // yhteinen asiakas- ja kumppanipuolen kanssa. Käytä isOwner-kenttää pääsynhallintaan.
     isAuthenticated: Boolean(session),
+    isOwner,
     status,
     signOut,
     refreshRestaurants,

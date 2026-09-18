@@ -1,23 +1,32 @@
 import { Link } from 'react-router-dom'
+import { Truck } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { computePriceTier } from '../lib/priceTier.js'
 import './RestaurantCard.css'
 
-function RestaurantCard({ restaurant }) {
+function RestaurantCard({ restaurant, disabled }) {
   const {
     id,
     name,
-    category,
     image_url: imageUrl,
     is_open: isOpen,
     rating,
     menu_items: menuItems,
     free_delivery: freeDelivery,
+    pickup_estimate_minutes: pickupEstimateMinutes,
   } = restaurant
   const priceTier = computePriceTier(menuItems)
 
+  const Wrapper = disabled ? 'div' : Link
+  const wrapperProps = disabled
+    ? { 'aria-disabled': true, tabIndex: -1 }
+    : { to: `/ravintola/${id}` }
+
   return (
-    <Link to={`/ravintola/${id}`} className={`restaurant-card${isOpen ? '' : ' restaurant-card--closed'}`}>
+    <Wrapper
+      {...wrapperProps}
+      className={`restaurant-card${isOpen ? '' : ' restaurant-card--closed'}${disabled ? ' restaurant-card--disabled' : ''}`}
+    >
       <div className="restaurant-card__media">
         {imageUrl ? (
           <img src={imageUrl} alt={name} loading="lazy" />
@@ -39,8 +48,6 @@ function RestaurantCard({ restaurant }) {
         </div>
 
         <div className="restaurant-card__meta">
-          <span className="category-tag">{category}</span>
-          {priceTier && <span className="price-tier">{priceTier}</span>}
           {rating != null && (
             <span className="rating-badge">
               <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -49,13 +56,30 @@ function RestaurantCard({ restaurant }) {
               {Number(rating).toFixed(1)}
             </span>
           )}
+          {isOpen && pickupEstimateMinutes && (
+            <span className="eta-badge">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
+                <path
+                  d="M10 6v4l3 2"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              n. {pickupEstimateMinutes} min
+            </span>
+          )}
+          {priceTier && <span className="price-tier">{priceTier}</span>}
         </div>
 
         <span className={`delivery-note${freeDelivery ? ' delivery-note--free' : ''}`}>
+          <Truck size={13} aria-hidden="true" />
           {freeDelivery ? 'Ilmainen kuljetus' : 'Kuljetus 5,99 €'}
         </span>
       </div>
-    </Link>
+    </Wrapper>
   )
 }
 

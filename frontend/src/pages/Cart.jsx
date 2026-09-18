@@ -1,13 +1,71 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import Header from '../components/Header.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
 import LoginModal from '../components/LoginModal.jsx'
+import AddressMapPicker from '../components/AddressMapPicker.jsx'
+import DeliveryRouteMap, { haversineKm } from '../components/DeliveryRouteMap.jsx'
 import { useCart } from '../lib/CartContext.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
-import { getRestaurantById } from '../lib/api.js'
+import { supabase } from '../lib/supabaseClient.js'
+import { getRestaurantById, createPaymentIntent } from '../lib/api.js'
+import { stripePromise } from '../lib/stripeClient.js'
 import { formatPrice } from '../lib/format.js'
 import './Cart.css'
+
+const STRIPE_APPEARANCE = {
+  theme: 'flat',
+  variables: {
+    colorPrimary: '#14150f',
+    colorBackground: '#ffffff',
+    colorText: '#14150f',
+    colorTextSecondary: '#6c7066',
+    colorTextPlaceholder: '#6c7066',
+    colorDanger: '#9a2828',
+    fontFamily: 'Inter, system-ui, sans-serif',
+    fontSizeBase: '16px',
+    fontWeightNormal: '500',
+    borderRadius: '12px',
+    spacingUnit: '4px',
+    spacingGridRow: '16px',
+  },
+  rules: {
+    '.Input': {
+      border: '1.5px solid #e2e5db',
+      boxShadow: 'none',
+      padding: '12px 14px',
+    },
+    '.Input:focus': {
+      border: '1.5px solid #000000',
+      boxShadow: '0 0 0 4px rgba(0, 0, 0, 0.18)',
+      outline: 'none',
+    },
+    '.Label': {
+      fontWeight: '600',
+      fontSize: '0.85rem',
+      marginBottom: '6px',
+    },
+    '.Tab': {
+      border: '1.5px solid #e2e5db',
+      boxShadow: 'none',
+    },
+    '.Tab:hover': {
+      border: '1.5px solid #14150f',
+    },
+    '.Tab--selected': {
+      border: '1.5px solid #14150f',
+      boxShadow: 'none',
+    },
+    '.TabIcon--selected': {
+      fill: '#14150f',
+    },
+    '.Block': {
+      border: '1.5px solid #e2e5db',
+      boxShadow: 'none',
+    },
+  },
+}
 
 const DELIVERY_FEE_CENTS = 599
 const SERVICE_FEE_CENTS = 49
@@ -23,45 +81,20 @@ const PROMO_CODES = {
   TERVETULOA: { type: 'fixed', value: 300, label: '3,00 € alennus' },
 }
 
-function formatCardNumber(value) {
-  return value
-    .replace(/\D/g, '')
-    .slice(0, 16)
-    .replace(/(.{4})/g, '$1 ')
-    .trim()
-}
-
-function formatExpiry(value) {
-  const digits = value.replace(/\D/g, '').slice(0, 4)
-  if (digits.length <= 2) return digits
-  return `${digits.slice(0, 2)}/${digits.slice(2)}`
-}
-
-function detectCardBrand(number) {
-  const digits = number.replace(/\D/g, '')
-  if (/^4/.test(digits)) return 'visa'
-  if (/^(5[1-5]|2[2-7])/.test(digits)) return 'mastercard'
-  if (/^3[47]/.test(digits)) return 'amex'
-  return null
-}
-
-function generateOrderNumber() {
-  return `FIKO-${Math.floor(1000 + Math.random() * 9000)}`
-}
-
-function estimatedReadyTime() {
-  return new Date(Date.now() + 25 * 60 * 1000).toLocaleTimeString('fi-FI', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+function formatTime(date) {
+  return date.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })
 }
 
 function groupCount(group) {
   return group.lines.reduce((sum, line) => sum + line.quantity, 0)
 }
 
+function lineUnitPriceCents(line) {
+  return line.unitPriceCents ?? line.item.price_cents
+}
+
 function groupTotalCents(group) {
-  return group.lines.reduce((sum, line) => sum + line.quantity * line.item.price_cents, 0)
+  return group.lines.reduce((sum, line) => sum + line.quantity * lineUnitPriceCents(line), 0)
 }
 
 function PromoCode({ promo, promoInput, setPromoInput, promoError, onApply, onRemove }) {
@@ -93,6 +126,87 @@ function PromoCode({ promo, promoInput, setPromoInput, promoError, onApply, onRe
   )
 }
 
+function StripeCardSection({ cardName, setCardName, customerEmail, totalCents, disabled, processing, setProcessing, onSuccess, onError }) {
+  const stripe = useStripe()
+  const elements = useElements()
+  const [nameError, setNameError] = useState('')
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!stripe || !elements || disabled || processing) return
+    if (cardName.trim().length < 2) {
+      setNameError('Anna kortinhaltijan nimi')
+      return
+    }
+    setNameError('')
+    setProcessing(true)
+
+    const { error, paymentIntent } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        payment_method_data: { billing_details: { name: cardName, email: customerEmail || undefined } },
+      },
+      redirect: 'if_required',
+    })
+
+    if (error) {
+      setProcessing(false)
+      onError(error.message || 'Maksu epäonnistui. Yritä uudelleen.')
+      return
+    }
+
+    if (paymentIntent?.status === 'succeeded') {
+      await onSuccess()
+    } else {
+      setProcessing(false)
+      onError('Maksua ei voitu vahvistaa. Yritä uudelleen.')
+    }
+  }
+
+  return (
+    <form className="payment-form" onSubmit={handleSubmit}>
+      <div className="payment-method-card">
+        <span className="payment-method-card__label">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <rect x="2.5" y="5" width="15" height="11" rx="2" stroke="currentColor" strokeWidth="1.5" />
+            <path d="M2.5 8.5h15" stroke="currentColor" strokeWidth="1.5" />
+          </svg>
+          Maksutapa
+        </span>
+
+        <div className="payment-field">
+          <label htmlFor="card-name">Kortinhaltijan nimi</label>
+          <input
+            id="card-name"
+            type="text"
+            autoComplete="cc-name"
+            placeholder="Etunimi Sukunimi"
+            value={cardName}
+            onChange={(e) => setCardName(e.target.value)}
+          />
+          {nameError && <span className="payment-field__error">{nameError}</span>}
+        </div>
+
+        <div className="stripe-payment-element">
+          <PaymentElement options={{ layout: 'tabs' }} />
+        </div>
+      </div>
+
+      <button type="submit" className="payment-submit" disabled={!stripe || processing || disabled}>
+        {processing ? <span className="payment-submit__spinner" /> : `Maksa ${formatPrice(totalCents)}`}
+      </button>
+
+      <p className="payment-secure">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect x="4" y="9" width="12" height="8" rx="2" stroke="currentColor" strokeWidth="1.4" />
+          <path d="M6.5 9V6.5a3.5 3.5 0 0 1 7 0V9" stroke="currentColor" strokeWidth="1.4" />
+        </svg>
+        Maksu käsitellään Stripen kautta - korttitietosi eivät kulje Fikon palvelimien läpi.
+      </p>
+    </form>
+  )
+}
+
 function Cart() {
   const cart = useCart()
   const { customer, isAuthenticated, status: authStatus } = useAuth()
@@ -106,26 +220,44 @@ function Cart() {
     name: '',
     phone: '',
     address: '',
-    postalCode: '',
+    lat: null,
+    lng: null,
+    leaveAtDoor: false,
     notes: '',
   })
+  const [editingAddress, setEditingAddress] = useState(true)
+  const [addressExpanded, setAddressExpanded] = useState(false)
   const [detailsErrors, setDetailsErrors] = useState({})
-  const [card, setCard] = useState({ name: '', number: '', expiry: '', cvc: '' })
-  const [cvcFocused, setCvcFocused] = useState(false)
-  const [errors, setErrors] = useState({})
+  const [cardName, setCardName] = useState('')
+  const [payError, setPayError] = useState('')
   const [order, setOrder] = useState(null)
   const [restaurants, setRestaurants] = useState({})
   const [promoInput, setPromoInput] = useState('')
   const [promo, setPromo] = useState(null)
   const [promoError, setPromoError] = useState('')
+  const [paymentIntent, setPaymentIntent] = useState(null)
+  const [creatingIntent, setCreatingIntent] = useState(false)
   const fetchedRestaurantIds = useRef(new Set())
 
   const activeGroup = cart.groups.find((g) => g.restaurantId === activeRestaurantId) ?? null
+  const activeRestaurant = activeGroup ? restaurants[activeGroup.restaurantId] : null
+  const activeRestaurantClosed = activeRestaurant?.is_open === false
+  const hasDeliveryCoords = Boolean(delivery.lat && delivery.lng)
+  const showAddressPicker = editingAddress || !hasDeliveryCoords
+  const deliveryDistanceKm =
+    activeRestaurant?.lat && activeRestaurant?.lng && delivery.lat && delivery.lng
+      ? haversineKm({ lat: activeRestaurant.lat, lng: activeRestaurant.lng }, { lat: delivery.lat, lng: delivery.lng })
+      : null
+  const deliveryDistanceLabel = deliveryDistanceKm != null ? ` (${deliveryDistanceKm.toFixed(1)} km)` : ''
 
   useEffect(() => {
     if (!customer) return
-    setDelivery((d) => ({ ...d, name: d.name || customer.name || '', phone: d.phone || customer.phone || '' }))
-    setCard((c) => ({ ...c, name: c.name || customer.name || '' }))
+    setDelivery((d) => ({
+      ...d,
+      name: d.name || customer.name || '',
+      phone: d.phone || customer.phone || '',
+    }))
+    setCardName((n) => n || customer.name || '')
   }, [customer])
 
   useEffect(() => {
@@ -142,6 +274,10 @@ function Cart() {
     if ((step === 'details' || step === 'payment') && !activeGroup) setStep('review')
   }, [step, activeGroup])
 
+  useEffect(() => {
+    if ((step === 'payment' || step === 'processing') && !paymentIntent) setStep('details')
+  }, [step, paymentIntent])
+
   const cartItemIds = useMemo(() => new Set(cart.lines.map((line) => line.item.id)), [cart.lines])
   const firstCity = useMemo(() => Object.values(restaurants).find((r) => r?.city)?.city, [restaurants])
 
@@ -150,19 +286,20 @@ function Cart() {
   const serviceFee = activeGroup ? SERVICE_FEE_CENTS : 0
   const discountCents = promo ? Math.min(promo.discountCents, activeSubtotal) : 0
   const totalWithDelivery = activeSubtotal + deliveryFee + serviceFee - discountCents
-  const brand = useMemo(() => detectCardBrand(card.number), [card.number])
 
   function startCheckout(restaurantId) {
+    if (restaurants[restaurantId]?.is_open === false) return
     setActiveRestaurantId(restaurantId)
     setStep('details')
   }
 
   function resumeCheckout(restaurantId) {
-    setCard({ name: customer?.name || '', number: '', expiry: '', cvc: '' })
-    setErrors({})
+    setCardName(customer?.name || '')
+    setPayError('')
     setPromo(null)
     setPromoInput('')
     setPromoError('')
+    setPaymentIntent(null)
     setOrder(null)
     startCheckout(restaurantId)
   }
@@ -201,54 +338,122 @@ function Cart() {
     return Object.keys(next).length === 0
   }
 
-  function handleContinueToPayment(e) {
+  async function handleContinueToPayment(e) {
     e.preventDefault()
-    if (!validateDetails()) return
-    setStep('payment')
-  }
-
-  function updateCard(field, formatter) {
-    return (e) => setCard((c) => ({ ...c, [field]: formatter ? formatter(e.target.value) : e.target.value }))
-  }
-
-  function validate() {
-    const next = {}
-    if (card.name.trim().length < 2) next.name = 'Anna kortinhaltijan nimi'
-    if (card.number.replace(/\s/g, '').length !== 16) next.number = 'Kortin numero on 16 numeroa'
-    const [mm, yy] = card.expiry.split('/')
-    if (!mm || !yy || yy.length !== 2 || Number(mm) < 1 || Number(mm) > 12) {
-      next.expiry = 'Tarkista voimassaoloaika'
-    }
-    if (card.cvc.length < 3) next.cvc = 'CVC on 3 numeroa'
-    setErrors(next)
-    return Object.keys(next).length === 0
-  }
-
-  function handlePay(e) {
-    e.preventDefault()
-    if (!validate() || !activeGroup) return
-    setStep('processing')
-    const { restaurantId, restaurantName, lines } = activeGroup
-    setTimeout(() => {
-      setOrder({
-        number: generateOrderNumber(),
-        readyAt: estimatedReadyTime(),
-        totalCents: totalWithDelivery,
-        restaurantName,
+    if (activeRestaurantClosed || !validateDetails() || !activeGroup) return
+    setCreatingIntent(true)
+    setPayError('')
+    try {
+      const lines = activeGroup.lines.map((line) => ({
+        menuItemId: line.item.id,
+        quantity: line.quantity,
+        optionIds: (line.selectedOptions ?? []).map((o) => o.optionId),
+      }))
+      const intent = await createPaymentIntent({
+        restaurantId: activeGroup.restaurantId,
+        deliveryMethod: delivery.method,
+        promoCode: promo?.code ?? null,
         lines,
-        delivery,
-        promo,
       })
-      cart.clearRestaurant(restaurantId)
-      setActiveRestaurantId(null)
-      setStep('success')
-    }, 1600)
+      setPaymentIntent(intent)
+      setStep('payment')
+    } catch (err) {
+      setPayError(err.message || 'Maksun aloitus epäonnistui. Yritä uudelleen.')
+    } finally {
+      setCreatingIntent(false)
+    }
+  }
+
+  async function handlePaymentSucceeded() {
+    if (!activeGroup || !customer || !paymentIntent) return
+    const { restaurantId, restaurantName, lines } = activeGroup
+
+    const pickupMinutes = restaurants[restaurantId]?.pickup_estimate_minutes ?? 25
+    const estimatedMinutes = delivery.method === 'delivery' ? pickupMinutes + 15 : pickupMinutes
+    const estimatedReadyAt = new Date(Date.now() + estimatedMinutes * 60 * 1000)
+    const deliveryNotes = [
+      delivery.method === 'delivery' && delivery.leaveAtDoor ? 'Jätä ovelle' : null,
+      delivery.notes.trim() || null,
+    ]
+      .filter(Boolean)
+      .join(' - ')
+
+    const { data: orderRow, error: orderError } = await supabase
+      .from('orders')
+      .insert({
+        restaurant_id: restaurantId,
+        customer_id: customer.id,
+        delivery_method: delivery.method,
+        delivery_name: delivery.name.trim(),
+        delivery_phone: delivery.phone.trim(),
+        delivery_address: delivery.method === 'delivery' ? delivery.address.trim() : null,
+        delivery_lat: delivery.method === 'delivery' ? delivery.lat : null,
+        delivery_lng: delivery.method === 'delivery' ? delivery.lng : null,
+        delivery_notes: deliveryNotes || null,
+        subtotal_cents: paymentIntent.subtotalCents,
+        delivery_fee_cents: paymentIntent.deliveryFeeCents,
+        service_fee_cents: paymentIntent.serviceFeeCents,
+        discount_cents: paymentIntent.discountCents,
+        promo_code: paymentIntent.promoCode,
+        total_cents: paymentIntent.totalCents,
+        estimated_ready_at: estimatedReadyAt.toISOString(),
+      })
+      .select()
+      .single()
+
+    if (orderError || !orderRow) {
+      setPayError(
+        'Maksu onnistui, mutta tilauksen tallennus epäonnistui. Älä maksa uudelleen - ota yhteyttä asiakaspalveluun.',
+      )
+      setStep('payment')
+      return
+    }
+
+    const { error: itemsError } = await supabase.from('order_items').insert(
+      lines.map((line) => ({
+        order_id: orderRow.id,
+        menu_item_id: line.item.id,
+        name: line.item.name,
+        price_cents: line.item.price_cents,
+        unit_price_cents: lineUnitPriceCents(line),
+        selected_options: line.selectedOptions ?? [],
+        quantity: line.quantity,
+      })),
+    )
+
+    if (itemsError) {
+      setPayError(
+        'Maksu onnistui, mutta tilauksen tallennus epäonnistui. Älä maksa uudelleen - ota yhteyttä asiakaspalveluun.',
+      )
+      setStep('payment')
+      return
+    }
+
+    setOrder({
+      number: orderRow.order_number,
+      readyAt: formatTime(estimatedReadyAt),
+      totalCents: paymentIntent.totalCents,
+      restaurantName,
+      lines,
+      delivery,
+      promo,
+    })
+    cart.clearRestaurant(restaurantId)
+    setActiveRestaurantId(null)
+    setPaymentIntent(null)
+    setStep('success')
   }
 
   const stepIndex = STEPS.findIndex((s) => s.key === (step === 'processing' ? 'payment' : step))
   const remainingGroups = order ? cart.groups : []
+  const hasMobileFixedCta =
+    (step === 'review' && cart.count > 0 && cart.groups.length === 1) ||
+    step === 'details' ||
+    step === 'payment' ||
+    step === 'processing'
 
   const headerProps = {
+    variant: 'dark',
     search: {
       value: headerSearch,
       onChange: setHeaderSearch,
@@ -298,7 +503,7 @@ function Cart() {
     <div className="page">
       <Header {...headerProps} />
 
-      <main className="cart-page">
+      <main className={`cart-page${hasMobileFixedCta ? ' cart-page--fixed-cta' : ''}`}>
         {step !== 'success' && (
           <div className="checkout-steps">
             {STEPS.map((s, i) => (
@@ -309,7 +514,7 @@ function Cart() {
                 }`}
               >
                 <span className="checkout-steps__dot">{i < stepIndex ? '✓' : i + 1}</span>
-                {s.label}
+                <span className="checkout-steps__label">{s.label}</span>
               </div>
             ))}
           </div>
@@ -351,11 +556,15 @@ function Cart() {
                 const suggestions = (restaurants[group.restaurantId]?.menu_items ?? [])
                   .filter((item) => !cartItemIds.has(item.id))
                   .slice(0, cart.groups.length > 1 ? 4 : 8)
+                const groupClosed = restaurants[group.restaurantId]?.is_open === false
 
                 return (
                   <div className={`cart-group${groupIndex > 0 ? ' cart-group--divider' : ''}`} key={group.restaurantId}>
                     <div className="cart-group__header">
-                      <span className="cart-group__name">{group.restaurantName}</span>
+                      <div className="cart-group__title">
+                        <span className="cart-group__name">{group.restaurantName}</span>
+                        {groupClosed && <span className="cart-group__closed-badge">Kiinni juuri nyt</span>}
+                      </div>
                       <button
                         type="button"
                         className="cart-group__clear"
@@ -367,7 +576,7 @@ function Cart() {
 
                     <ul className="cart-items">
                       {group.lines.map((line) => (
-                        <li className="cart-item" key={line.item.id}>
+                        <li className="cart-item" key={line.item.id + (line.optionsKey ?? '')}>
                           <div className="cart-item__media">
                             {line.item.image_url ? (
                               <img src={line.item.image_url} alt={line.item.name} />
@@ -378,14 +587,21 @@ function Cart() {
 
                           <div className="cart-item__info">
                             <span className="cart-item__name">{line.item.name}</span>
-                            <span className="cart-item__unit-price">{formatPrice(line.item.price_cents)} / kpl</span>
+                            {line.selectedOptions?.length > 0 && (
+                              <span className="cart-item__options">
+                                {line.selectedOptions.map((o) => o.name).join(', ')}
+                              </span>
+                            )}
+                            <span className="cart-item__unit-price">{formatPrice(lineUnitPriceCents(line))} / kpl</span>
                           </div>
 
                           <div className="quantity-stepper quantity-stepper--sm">
                             <button
                               type="button"
                               aria-label={`Vähennä tuotteen ${line.item.name} määrää`}
-                              onClick={() => cart.setQuantity(group.restaurantId, line.item.id, line.quantity - 1)}
+                              onClick={() =>
+                                cart.setQuantity(group.restaurantId, line.item.id, line.quantity - 1, line.optionsKey)
+                              }
                             >
                               −
                             </button>
@@ -393,21 +609,23 @@ function Cart() {
                             <button
                               type="button"
                               aria-label={`Lisää tuotteen ${line.item.name} määrää`}
-                              onClick={() => cart.setQuantity(group.restaurantId, line.item.id, line.quantity + 1)}
+                              onClick={() =>
+                                cart.setQuantity(group.restaurantId, line.item.id, line.quantity + 1, line.optionsKey)
+                              }
                             >
                               +
                             </button>
                           </div>
 
                           <span className="cart-item__line-total">
-                            {formatPrice(line.item.price_cents * line.quantity)}
+                            {formatPrice(lineUnitPriceCents(line) * line.quantity)}
                           </span>
 
                           <button
                             type="button"
                             className="cart-item__remove"
                             aria-label={`Poista ${line.item.name} korista`}
-                            onClick={() => cart.removeItem(group.restaurantId, line.item.id)}
+                            onClick={() => cart.removeItem(group.restaurantId, line.item.id, line.optionsKey)}
                           >
                             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                               <path
@@ -460,11 +678,18 @@ function Cart() {
                         {groupCount(group)} {groupCount(group) === 1 ? 'tuote' : 'tuotetta'} ·{' '}
                         {formatPrice(groupTotalCents(group))}
                       </span>
-                      <button type="button" className="cart-group__checkout" onClick={() => startCheckout(group.restaurantId)}>
-                        Tilaa tästä ravintolasta
-                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                          <path d="M8 5l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                      <button
+                        type="button"
+                        className="cart-group__checkout"
+                        disabled={groupClosed}
+                        onClick={() => startCheckout(group.restaurantId)}
+                      >
+                        {groupClosed ? 'Ravintola on kiinni' : 'Tilaa tästä ravintolasta'}
+                        {!groupClosed && (
+                          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="M8 5l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -511,8 +736,13 @@ function Cart() {
                 </svg>
                 Takaisin ostoskoriin
               </button>
-              <h1 className="cart-panel__title">Toimitustiedot</h1>
-              <p className="cart-panel__subtitle">Tilaus ravintolasta {activeGroup.restaurantName}.</p>
+              <div className={`checkout-hero${activeRestaurant?.image_url ? '' : ' checkout-hero--fallback'}`}>
+                {activeRestaurant?.image_url && <img src={activeRestaurant.image_url} alt="" />}
+                <div className="checkout-hero__overlay">
+                  <span className="checkout-hero__eyebrow">Tilaus</span>
+                  <h1>{activeGroup.restaurantName}</h1>
+                </div>
+              </div>
 
               <div className="delivery-method">
                 <button
@@ -579,31 +809,118 @@ function Cart() {
 
                 {delivery.method === 'delivery' ? (
                   <>
-                    <div className="payment-field-row">
-                      <div className="payment-field payment-field--wide">
-                        <label htmlFor="delivery-address">Osoite</label>
-                        <input
-                          id="delivery-address"
-                          type="text"
-                          autoComplete="street-address"
-                          placeholder="Katuosoite 12"
-                          value={delivery.address}
-                          onChange={updateDelivery('address')}
-                        />
-                        {detailsErrors.address && <span className="payment-field__error">{detailsErrors.address}</span>}
+                    <div className="payment-field payment-field--wide">
+                      <label htmlFor="delivery-address">Osoite</label>
+
+                      <button
+                        type="button"
+                        id="delivery-address"
+                        className={`address-summary-row${addressExpanded ? ' address-summary-row--open' : ''}`}
+                        onClick={() => setAddressExpanded((v) => !v)}
+                      >
+                        <span className="address-summary-row__icon">
+                          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path
+                              d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10Z"
+                              stroke="currentColor"
+                              strokeWidth="1.5"
+                              strokeLinejoin="round"
+                            />
+                            <circle cx="10" cy="8" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+                          </svg>
+                        </span>
+                        <span className="address-summary-row__text">
+                          {delivery.address || 'Valitse toimitusosoite'}
+                        </span>
+                        <svg className="address-summary-row__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                          <path
+                            d="m6 8 4 4 4-4"
+                            stroke="currentColor"
+                            strokeWidth="1.6"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </button>
+
+                      {detailsErrors.address && (
+                        <span className="payment-field__error">{detailsErrors.address}</span>
+                      )}
+
+                      {addressExpanded &&
+                        (showAddressPicker ? (
+                          <div className="address-summary-row__panel">
+                            <AddressMapPicker
+                              value={delivery.address}
+                              onChange={(address, coords, meta) => {
+                                setDelivery((d) => ({
+                                  ...d,
+                                  address,
+                                  lat: coords?.lat ?? d.lat,
+                                  lng: coords?.lng ?? d.lng,
+                                }))
+                                // Vain aito käyttäjän valinta (kartan klikkaus / hakutulos) sulkee
+                                // muokkaustilan - ei passiivinen synkronointi (esim. tämän
+                                // komponentin uudelleenmountautuminen jo tunnetulla osoitteella,
+                                // joka muuten sulkisi muokkaustilan heti takaisin ennen kuin
+                                // käyttäjä ehtii tehdä mitään).
+                                if (coords && meta?.interactive) setEditingAddress(false)
+                              }}
+                            />
+
+                            {customer?.address && (
+                              <button
+                                type="button"
+                                className="use-profile-address-btn"
+                                onClick={() => {
+                                  setDelivery((d) => ({ ...d, address: customer.address }))
+                                  setEditingAddress(false)
+                                }}
+                              >
+                                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                  <path
+                                    d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10Z"
+                                    stroke="currentColor"
+                                    strokeWidth="1.5"
+                                    strokeLinejoin="round"
+                                  />
+                                  <circle cx="10" cy="8" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+                                </svg>
+                                Käytä profiilin sijaintia
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="address-summary-row__panel">
+                            <DeliveryRouteMap
+                              restaurant={
+                                activeRestaurant
+                                  ? { lat: activeRestaurant.lat, lng: activeRestaurant.lng, name: activeGroup.restaurantName }
+                                  : null
+                              }
+                              destination={{ lat: delivery.lat, lng: delivery.lng, address: delivery.address }}
+                            />
+                            <button type="button" className="edit-address-btn" onClick={() => setEditingAddress(true)}>
+                              Muokkaa osoitetta
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+
+                    <div className="toggle-row">
+                      <div className="toggle-row__text">
+                        <span className="toggle-row__label">Jätä tilaus ovelle</span>
+                        <span className="toggle-row__hint">Kuriiri jättää tilauksen ovelle ilman suoraa kontaktia.</span>
                       </div>
-                      <div className="payment-field">
-                        <label htmlFor="delivery-postal">Postinumero</label>
-                        <input
-                          id="delivery-postal"
-                          type="text"
-                          inputMode="numeric"
-                          autoComplete="postal-code"
-                          placeholder="00100"
-                          value={delivery.postalCode}
-                          onChange={updateDelivery('postalCode')}
-                        />
-                      </div>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={delivery.leaveAtDoor}
+                        className={`toggle-switch${delivery.leaveAtDoor ? ' toggle-switch--on' : ''}`}
+                        onClick={() => setDelivery((d) => ({ ...d, leaveAtDoor: !d.leaveAtDoor }))}
+                      >
+                        <span className="toggle-switch__thumb" />
+                      </button>
                     </div>
 
                     <div className="payment-field">
@@ -615,41 +932,6 @@ function Cart() {
                         value={delivery.notes}
                         onChange={updateDelivery('notes')}
                       />
-                    </div>
-
-                    <div className="delivery-map">
-                      <svg className="delivery-map__grid" viewBox="0 0 360 160" preserveAspectRatio="none" aria-hidden="true">
-                        <path d="M0 40 H360" />
-                        <path d="M0 110 H360" />
-                        <path d="M70 0 V160" />
-                        <path d="M180 0 V160" />
-                        <path d="M280 0 V160" />
-                        <path className="delivery-map__route" d="M52 34 C 120 34, 140 90, 210 90 S 280 60, 300 78" />
-                      </svg>
-                      <span className="delivery-map__store" title={activeGroup.restaurantName}>
-                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                          <path
-                            d="M3 6h9l3 4h2v4h-1M3 6v8h1m0 0a2 2 0 1 0 4 0m-4 0h4m6 0a2 2 0 1 0 4 0m-4 0h4"
-                            stroke="currentColor"
-                            strokeWidth="1.6"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      </span>
-                      <span className="delivery-map__pin">
-                        <span className="delivery-map__pin-pulse" />
-                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                          <path
-                            d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10Z"
-                            fill="currentColor"
-                          />
-                        </svg>
-                      </span>
-                      <span className="delivery-map__eta">n. 25-35 min</span>
-                      <span className="delivery-map__label">
-                        {delivery.address.trim() ? delivery.address : 'Syötä osoite nähdäksesi arvion'}
-                      </span>
                     </div>
                   </>
                 ) : (
@@ -672,8 +954,14 @@ function Cart() {
                   </div>
                 )}
 
-                <button type="submit" className="payment-submit">
-                  Jatka maksamaan
+                {(activeRestaurantClosed || payError) && (
+                  <p className="payment-field__error payment-field__error--center">
+                    {payError || `${activeGroup.restaurantName} on juuri nyt kiinni, joten tilausta ei voi jatkaa.`}
+                  </p>
+                )}
+
+                <button type="submit" className="payment-submit" disabled={activeRestaurantClosed || creatingIntent}>
+                  {creatingIntent ? <span className="payment-submit__spinner" /> : 'Jatka maksamaan'}
                 </button>
               </form>
             </section>
@@ -694,7 +982,7 @@ function Cart() {
                 <span>{formatPrice(activeSubtotal)}</span>
               </div>
               <div className="order-summary__row">
-                <span>Kuljetus</span>
+                <span>Kuljetus{delivery.method === 'delivery' ? deliveryDistanceLabel : ''}</span>
                 <span>{delivery.method === 'delivery' ? formatPrice(deliveryFee) : 'Ei toimitusta'}</span>
               </div>
               <div className="order-summary__row">
@@ -715,7 +1003,7 @@ function Cart() {
           </div>
         )}
 
-        {(step === 'payment' || step === 'processing') && activeGroup && (
+        {(step === 'payment' || step === 'processing') && activeGroup && paymentIntent && (
           <div className="cart-layout">
             <section className="cart-panel">
               <button type="button" className="cart-panel__back" onClick={() => setStep('details')}>
@@ -725,114 +1013,30 @@ function Cart() {
                 Takaisin toimitustietoihin
               </button>
               <h1 className="cart-panel__title">Maksutiedot</h1>
-              <p className="cart-panel__subtitle">Tämä on demoympäristö - mitään oikeaa maksua ei veloiteta.</p>
+              <p className="cart-panel__subtitle">Stripe-testitila - kokeile esim. korttia 4242 4242 4242 4242.</p>
 
-              <div className={`payment-card${cvcFocused ? ' payment-card--flipped' : ''}`}>
-                <div className="payment-card__inner">
-                  <div className="payment-card__front">
-                    <div className="payment-card__top">
-                      <span className="payment-card__chip" />
-                      {brand && <span className={`payment-card__brand payment-card__brand--${brand}`}>{brand}</span>}
-                    </div>
-                    <span className="payment-card__number">
-                      {card.number ? formatCardNumber(card.number) : '•••• •••• •••• ••••'}
-                    </span>
-                    <div className="payment-card__bottom">
-                      <div>
-                        <span className="payment-card__label">Kortinhaltija</span>
-                        <span className="payment-card__value">{card.name || 'ETUNIMI SUKUNIMI'}</span>
-                      </div>
-                      <div>
-                        <span className="payment-card__label">Voimassa</span>
-                        <span className="payment-card__value">{card.expiry || 'KK/VV'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="payment-card__back">
-                    <div className="payment-card__stripe" />
-                    <div className="payment-card__cvc-strip">
-                      <span>{card.cvc.padEnd(3, '•')}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <form className="payment-form" onSubmit={handlePay}>
-                <div className="payment-field">
-                  <label htmlFor="card-name">Kortinhaltijan nimi</label>
-                  <input
-                    id="card-name"
-                    type="text"
-                    autoComplete="cc-name"
-                    placeholder="Etunimi Sukunimi"
-                    value={card.name}
-                    onChange={updateCard('name')}
-                  />
-                  {errors.name && <span className="payment-field__error">{errors.name}</span>}
-                </div>
-
-                <div className="payment-field">
-                  <label htmlFor="card-number">Kortin numero</label>
-                  <input
-                    id="card-number"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="cc-number"
-                    placeholder="1234 5678 9012 3456"
-                    value={formatCardNumber(card.number)}
-                    onChange={updateCard('number', formatCardNumber)}
-                  />
-                  {errors.number && <span className="payment-field__error">{errors.number}</span>}
-                </div>
-
-                <div className="payment-field-row">
-                  <div className="payment-field">
-                    <label htmlFor="card-expiry">Voimassaolo</label>
-                    <input
-                      id="card-expiry"
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="cc-exp"
-                      placeholder="KK/VV"
-                      value={card.expiry}
-                      onChange={updateCard('expiry', formatExpiry)}
-                    />
-                    {errors.expiry && <span className="payment-field__error">{errors.expiry}</span>}
-                  </div>
-
-                  <div className="payment-field">
-                    <label htmlFor="card-cvc">CVC</label>
-                    <input
-                      id="card-cvc"
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="cc-csc"
-                      placeholder="123"
-                      value={card.cvc}
-                      onChange={updateCard('cvc', (v) => v.replace(/\D/g, '').slice(0, 3))}
-                      onFocus={() => setCvcFocused(true)}
-                      onBlur={() => setCvcFocused(false)}
-                    />
-                    {errors.cvc && <span className="payment-field__error">{errors.cvc}</span>}
-                  </div>
-                </div>
-
-                <button type="submit" className="payment-submit" disabled={step === 'processing'}>
-                  {step === 'processing' ? (
-                    <span className="payment-submit__spinner" />
-                  ) : (
-                    `Maksa ${formatPrice(totalWithDelivery)}`
-                  )}
-                </button>
-
-                <p className="payment-secure">
-                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <rect x="4" y="9" width="12" height="8" rx="2" stroke="currentColor" strokeWidth="1.4" />
-                    <path d="M6.5 9V6.5a3.5 3.5 0 0 1 7 0V9" stroke="currentColor" strokeWidth="1.4" />
-                  </svg>
-                  Tiedot pysyvät tällä laitteella - tämä on demo.
+              {(payError || activeRestaurantClosed) && (
+                <p className="payment-field__error payment-field__error--center">
+                  {payError || `${activeGroup.restaurantName} on juuri nyt kiinni, joten tilausta ei voi lähettää.`}
                 </p>
-              </form>
+              )}
+
+              <Elements stripe={stripePromise} options={{ clientSecret: paymentIntent.clientSecret, appearance: STRIPE_APPEARANCE }}>
+                <StripeCardSection
+                  cardName={cardName}
+                  setCardName={setCardName}
+                  customerEmail={customer?.email}
+                  totalCents={paymentIntent.totalCents}
+                  disabled={activeRestaurantClosed}
+                  processing={step === 'processing'}
+                  setProcessing={(processing) => setStep(processing ? 'processing' : 'payment')}
+                  onSuccess={handlePaymentSucceeded}
+                  onError={(message) => {
+                    setPayError(message)
+                    setStep('payment')
+                  }}
+                />
+              </Elements>
             </section>
 
             <aside className="order-summary">
@@ -861,49 +1065,50 @@ function Cart() {
                 <div>
                   <strong>{delivery.method === 'delivery' ? 'Kotiinkuljetus' : 'Nouto ravintolasta'}</strong>
                   <span>{delivery.method === 'delivery' ? delivery.address || '—' : activeGroup.restaurantName}</span>
+                  {delivery.method === 'delivery' && delivery.leaveAtDoor && (
+                    <span className="order-summary__delivery-note">Jätetään ovelle</span>
+                  )}
                 </div>
               </div>
 
               <ul className="order-summary__lines">
                 {activeGroup.lines.map((line) => (
-                  <li key={line.item.id}>
+                  <li key={line.item.id + (line.optionsKey ?? '')}>
                     <span>
                       {line.quantity} × {line.item.name}
+                      {line.selectedOptions?.length > 0 && (
+                        <span className="order-summary__line-options">
+                          {' '}
+                          ({line.selectedOptions.map((o) => o.name).join(', ')})
+                        </span>
+                      )}
                     </span>
-                    <span>{formatPrice(line.quantity * line.item.price_cents)}</span>
+                    <span>{formatPrice(line.quantity * lineUnitPriceCents(line))}</span>
                   </li>
                 ))}
               </ul>
 
-              <PromoCode
-                promo={promo}
-                promoInput={promoInput}
-                setPromoInput={setPromoInput}
-                promoError={promoError}
-                onApply={applyPromo}
-                onRemove={removePromo}
-              />
               <div className="order-summary__row">
                 <span>Välisumma</span>
-                <span>{formatPrice(activeSubtotal)}</span>
+                <span>{formatPrice(paymentIntent.subtotalCents)}</span>
               </div>
               <div className="order-summary__row">
-                <span>Kuljetus</span>
-                <span>{formatPrice(deliveryFee)}</span>
+                <span>Kuljetus{delivery.method === 'delivery' ? deliveryDistanceLabel : ''}</span>
+                <span>{formatPrice(paymentIntent.deliveryFeeCents)}</span>
               </div>
               <div className="order-summary__row">
                 <span>Palvelumaksu</span>
-                <span>{formatPrice(serviceFee)}</span>
+                <span>{formatPrice(paymentIntent.serviceFeeCents)}</span>
               </div>
-              {promo && (
+              {paymentIntent.discountCents > 0 && (
                 <div className="order-summary__row order-summary__row--discount">
-                  <span>Alennus ({promo.code})</span>
-                  <span>−{formatPrice(discountCents)}</span>
+                  <span>Alennus ({paymentIntent.promoCode})</span>
+                  <span>−{formatPrice(paymentIntent.discountCents)}</span>
                 </div>
               )}
               <div className="order-summary__row order-summary__row--total">
                 <span>Yhteensä</span>
-                <span>{formatPrice(totalWithDelivery)}</span>
+                <span>{formatPrice(paymentIntent.totalCents)}</span>
               </div>
             </aside>
           </div>

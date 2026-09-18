@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import AccountMenu from './AccountMenu.jsx'
+import { useAuth } from '../lib/AuthContext.jsx'
 import './Header.css'
 
 function Header({ search, citySelector, cart, variant }) {
   const location = useLocation()
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const { isAuthenticated } = useAuth()
   const [isCityOpen, setIsCityOpen] = useState(false)
+  const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [cartBumped, setCartBumped] = useState(false)
@@ -14,10 +16,6 @@ function Header({ search, citySelector, cart, variant }) {
   const cityRef = useRef(null)
   const cartRef = useRef(null)
   const prevCartCount = useRef(cart?.count ?? 0)
-
-  useEffect(() => {
-    if (isSearchOpen) searchInputRef.current?.focus()
-  }, [isSearchOpen])
 
   useEffect(() => {
     const current = cart?.count ?? 0
@@ -81,71 +79,25 @@ function Header({ search, citySelector, cart, variant }) {
   }, [isCartOpen])
 
   function closeSearch() {
-    setIsSearchOpen(false)
     search?.onChange('')
+    searchInputRef.current?.focus()
   }
 
-  function handleSearchBlur() {
-    if (!search?.value) setIsSearchOpen(false)
-  }
+  const accountMenuVariant = isTransparent || variant === 'dark' ? 'overlay' : undefined
+
+  const showSuggestions = Boolean(isSearchFocused && search?.value && search?.suggestions?.length > 0)
 
   return (
     <header
       className={`site-header${variant === 'overlay' ? ' site-header--overlay' : ''}${
-        isTransparent ? ' site-header--transparent' : ''
-      }`}
+        variant === 'dark' ? ' site-header--dark' : ''
+      }${isTransparent ? ' site-header--transparent' : ''}`}
     >
       <div className="site-header__inner">
         <div className="site-header__left">
           <Link to="/" className="site-header__logo">
             Fiko
           </Link>
-
-          {search && (
-            <div className={`search-field${isSearchOpen ? ' search-field--open' : ''}`}>
-              <button
-                type="button"
-                className="search-field__toggle"
-                aria-label="Avaa haku"
-                onClick={() => setIsSearchOpen(true)}
-              >
-                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="m17 17-3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </button>
-
-              <div className="search-field__box">
-                <svg className="search-field__icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="m17 17-3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-                <input
-                  ref={searchInputRef}
-                  type="search"
-                  aria-label="Hae ravintoloita"
-                  placeholder={search.placeholder ?? 'Hae ravintoloita...'}
-                  value={search.value}
-                  onChange={(e) => search.onChange(e.target.value)}
-                  onBlur={handleSearchBlur}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') search.onSubmit?.(search.value)
-                  }}
-                />
-                <button
-                  type="button"
-                  className="search-field__close"
-                  aria-label="Sulje haku"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={closeSearch}
-                >
-                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          )}
 
           {citySelector && (
             <div className="city-select" ref={cityRef}>
@@ -214,6 +166,65 @@ function Header({ search, citySelector, cart, variant }) {
             </div>
           )}
         </div>
+
+        {search && (
+          <div className="site-header__center">
+            <div className="search-field-bar" onClick={() => searchInputRef.current?.focus()}>
+              <svg className="search-field-bar__icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" />
+                <path d="m17 17-3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <input
+                ref={searchInputRef}
+                type="search"
+                aria-label="Hae ravintoloita"
+                placeholder={search.placeholder ?? 'Hae ravintoloita...'}
+                value={search.value}
+                onChange={(e) => search.onChange(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') search.onSubmit?.(search.value)
+                }}
+              />
+              {search.value && (
+                <button
+                  type="button"
+                  className="search-field-bar__clear"
+                  aria-label="Tyhjennä haku"
+                  onClick={closeSearch}
+                >
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {showSuggestions && (
+              <>
+                <div className="search-suggest-backdrop" />
+                <div className="search-suggest-panel">
+                  {search.suggestions.slice(0, 8).map((r) => (
+                    <Link
+                      key={r.id}
+                      to={`/ravintola/${r.id}`}
+                      className="search-suggest-panel__item"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        searchInputRef.current?.blur()
+                        setIsSearchFocused(false)
+                      }}
+                    >
+                      <span className="search-suggest-panel__name">{r.name}</span>
+                      {r.category && <span className="search-suggest-panel__category">{r.category}</span>}
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="site-header__right">
           {cart && cart.count > 0 && (
@@ -287,14 +298,18 @@ function Header({ search, citySelector, cart, variant }) {
             </div>
           )}
 
-          <Link
-            to="/kumppanina"
-            className={`site-header__partner-link${isTransparent ? ' site-header__partner-link--overlay' : ''}`}
-          >
-            Ravintoloille
-          </Link>
+          {!isAuthenticated && (
+            <Link
+              to="/kumppanina"
+              className={`site-header__partner-link${
+                isTransparent || variant === 'dark' ? ' site-header__partner-link--overlay' : ''
+              }`}
+            >
+              Ravintoloille
+            </Link>
+          )}
 
-          <AccountMenu currentPath={location.pathname} variant={isTransparent ? 'overlay' : undefined} />
+          <AccountMenu currentPath={location.pathname} variant={accountMenuVariant} />
         </div>
       </div>
     </header>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header.jsx'
+import Footer from '../components/Footer.jsx'
 import GoogleAuthButton from '../components/GoogleAuthButton.jsx'
 import AppleAuthButton from '../components/AppleAuthButton.jsx'
 import FacebookAuthButton from '../components/FacebookAuthButton.jsx'
@@ -30,6 +31,7 @@ function Register() {
       password,
       options: {
         data: { name: name.trim(), phone: phone.trim() },
+        emailRedirectTo: window.location.origin,
       },
     })
 
@@ -57,12 +59,13 @@ function Register() {
     return (
       <div className="page">
         <Header />
-        <main className="auth-page">
+        <main className="auth-page auth-page--full-height">
           <div className="auth-card">
             <h1>Rekisteröityminen ei ole käytössä</h1>
             <p className="auth-card__subtitle">Supabase-yhteyttä ei ole määritetty (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).</p>
           </div>
         </main>
+        <Footer />
       </div>
     )
   }
@@ -70,7 +73,7 @@ function Register() {
   return (
     <div className="page">
       <Header />
-      <main className="auth-page">
+      <main className="auth-page auth-page--full-height">
         <div className="auth-card">
           <h1>Luo tili</h1>
           <p className="auth-card__subtitle">Näet tilaushistoriasi ja tilaat nopeammin uudelleen. Voit tilata myös ilman tiliä.</p>
@@ -151,6 +154,7 @@ function Register() {
           </p>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

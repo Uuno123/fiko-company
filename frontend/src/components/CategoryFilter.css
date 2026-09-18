@@ -6,6 +6,12 @@
   scrollbar-width: none;
 }
 
+@media (max-width: 560px) {
+  .category-filter {
+    display: none;
+  }
+}
+
 .category-filter::-webkit-scrollbar {
   display: none;
 }
@@ -36,4 +42,5 @@
 .category-chip--active {
   background: var(--fiko-lime);
   border-color: var(--fiko-lime);
+  color: #fff;
 }

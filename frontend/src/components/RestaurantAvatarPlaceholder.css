@@ -10,7 +10,7 @@
 .avatar-placeholder span {
   font-family: var(--font-display);
   font-weight: 700;
-  color: var(--fiko-black);
+  color: #fff;
   line-height: 1;
   user-select: none;
 }

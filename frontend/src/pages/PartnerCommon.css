@@ -9,15 +9,23 @@
   text-decoration: none;
   cursor: pointer;
   border: 1.5px solid transparent;
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, opacity 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .partner-btn--primary {
   background: var(--fiko-lime);
-  color: var(--fiko-black);
+  color: #fff;
 }
 
 .partner-btn--primary:hover:not(:disabled) {
-  opacity: 0.9;
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px -10px rgba(20, 21, 15, 0.4);
+}
+
+.partner-btn--primary:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .partner-btn--primary:disabled {

@@ -3,15 +3,15 @@
 -- jotta ravintolan sivun linkit toimivat identtisesti sekä paikallisella
 -- fallback-datalla että oikealla Supabase-datalla.
 
-insert into public.restaurants (id, name, category, image_url, is_open, address, city, pickup_estimate_minutes, rating, free_delivery) values
-  ('c735adcd-ec46-4222-bb3a-865f01277e97', 'Törnävän Kebab Pizzeria', 'Kebab & Pizza', 'https://images.unsplash.com/photo-1633436375795-12b3b339712f?auto=format&fit=crop&w=1600&q=80', true, 'Törnäväntie 1, 70460 Kuopio', 'Kuopio', 15, 4.7, false),
-  ('986ab0df-bf51-48f9-bf82-615fdd77744c', 'Ravintola Myllynkivi', 'Kotiruoka', 'https://images.unsplash.com/photo-1712594533988-13a401974b44?auto=format&fit=crop&w=1600&q=80', true, 'Myllykatu 4, 70100 Kuopio', 'Kuopio', 20, 4.8, true),
-  ('0b135302-d424-4518-bd9a-81e2ff008af1', 'Sushi Bar Sato', 'Aasialainen', 'https://images.unsplash.com/photo-1564489563601-c53cfc451e93?auto=format&fit=crop&w=1600&q=80', false, 'Kauppakatu 25, 70100 Kuopio', 'Kuopio', 15, 4.6, false),
-  ('3e34b072-39d8-4f9a-adaa-4d9262c3e492', 'Burger Talli', 'Burgerit', 'https://images.unsplash.com/photo-1636907229111-a8ac768fe6c9?auto=format&fit=crop&w=1600&q=80', true, 'Puijonkatu 15, 70100 Kuopio', 'Kuopio', 10, 4.5, false),
-  ('07f6bec8-43ee-486a-9dad-83d264940e5b', 'Kahvila Kulma', 'Kahvila', 'https://images.unsplash.com/photo-1744638628542-12578d73179b?auto=format&fit=crop&w=1600&q=80', true, 'Kauppakatu 8, 70100 Kuopio', 'Kuopio', 8, 4.9, true),
-  ('5587665c-2dcc-4cfc-8f63-43312da3e096', 'Salaattibaari Vihreä', 'Salaatit', 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1600&q=80', true, 'Puistokatu 2, 70110 Kuopio', 'Kuopio', 10, 4.6, false),
-  ('b00324cc-a408-4887-9921-3173ceeafb49', 'Trattoria Bella', 'Italialainen', 'https://images.unsplash.com/photo-1680405229153-a753d043c4ec?auto=format&fit=crop&w=1600&q=80', true, 'Satamakatu 5, 70100 Kuopio', 'Kuopio', 20, 4.7, true)
-on conflict (id) do nothing;
+insert into public.restaurants (id, name, category, image_url, is_open, address, city, pickup_estimate_minutes, rating, free_delivery, lat, lng) values
+  ('c735adcd-ec46-4222-bb3a-865f01277e97', 'Törnävän Kebab Pizzeria', 'Kebab & Pizza', 'https://images.unsplash.com/photo-1633436375795-12b3b339712f?auto=format&fit=crop&w=1600&q=80', true, 'Törnäväntie 1, 70460 Kuopio', 'Kuopio', 15, 4.7, false, 62.870961, 27.686987),
+  ('986ab0df-bf51-48f9-bf82-615fdd77744c', 'Ravintola Myllynkivi', 'Kotiruoka', 'https://images.unsplash.com/photo-1712594533988-13a401974b44?auto=format&fit=crop&w=1600&q=80', true, 'Myllykatu 4, 70100 Kuopio', 'Kuopio', 20, 4.8, true, 62.889012, 27.680015),
+  ('0b135302-d424-4518-bd9a-81e2ff008af1', 'Sushi Bar Sato', 'Aasialainen', 'https://images.unsplash.com/photo-1564489563601-c53cfc451e93?auto=format&fit=crop&w=1600&q=80', false, 'Kauppakatu 25, 70100 Kuopio', 'Kuopio', 15, 4.6, false, 62.892980, 27.678463),
+  ('3e34b072-39d8-4f9a-adaa-4d9262c3e492', 'Burger Talli', 'Burgerit', 'https://images.unsplash.com/photo-1636907229111-a8ac768fe6c9?auto=format&fit=crop&w=1600&q=80', true, 'Puijonkatu 15, 70100 Kuopio', 'Kuopio', 10, 4.5, false, 62.894527, 27.675981),
+  ('07f6bec8-43ee-486a-9dad-83d264940e5b', 'Kahvila Kulma', 'Kahvila', 'https://images.unsplash.com/photo-1744638628542-12578d73179b?auto=format&fit=crop&w=1600&q=80', true, 'Kauppakatu 8, 70100 Kuopio', 'Kuopio', 8, 4.9, true, 62.892014, 27.679012),
+  ('5587665c-2dcc-4cfc-8f63-43312da3e096', 'Salaattibaari Vihreä', 'Salaatit', 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1600&q=80', true, 'Puistokatu 2, 70110 Kuopio', 'Kuopio', 10, 4.6, false, 62.895967, 27.671984),
+  ('b00324cc-a408-4887-9921-3173ceeafb49', 'Trattoria Bella', 'Italialainen', 'https://images.unsplash.com/photo-1680405229153-a753d043c4ec?auto=format&fit=crop&w=1600&q=80', true, 'Satamakatu 5, 70100 Kuopio', 'Kuopio', 20, 4.7, true, 62.897498, 27.684972)
+on conflict (id) do update set lat = excluded.lat, lng = excluded.lng;
 
 insert into public.menu_items (restaurant_id, name, description, price_cents, image_url, category) values
   -- Törnävän Kebab Pizzeria: täysi esimerkkiruokalista, tyypillinen suomalainen kebab-pizzeria-valikoima.

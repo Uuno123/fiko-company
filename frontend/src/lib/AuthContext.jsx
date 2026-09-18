@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase, isSupabaseConfigured } from './supabaseClient.js'
 
-const AuthContext = createContext(undefined)
+export const AuthContext = createContext(undefined)
 
 async function fetchCustomerProfile(userId) {
   const { data, error } = await supabase.from('customers').select('*').eq('id', userId).maybeSingle()
@@ -55,12 +55,19 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut()
   }
 
+  async function refreshCustomer() {
+    if (!session) return
+    const profile = await fetchCustomerProfile(session.user.id)
+    setCustomer(profile)
+  }
+
   const value = {
     session,
     customer,
     isAuthenticated: Boolean(session),
     status,
     signOut,
+    refreshCustomer,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

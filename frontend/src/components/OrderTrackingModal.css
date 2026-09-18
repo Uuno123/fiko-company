@@ -1,0 +1,96 @@
+.order-tracking-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  background: rgba(20, 21, 15, 0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: order-tracking-modal-backdrop-in 0.2s ease;
+}
+
+@keyframes order-tracking-modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.order-tracking-modal {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-radius: 22px 22px 0 0;
+  padding: 24px 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-sizing: border-box;
+  animation: order-tracking-modal-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes order-tracking-modal-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+@media (min-width: 640px) {
+  .order-tracking-modal__backdrop {
+    align-items: center;
+  }
+
+  .order-tracking-modal {
+    border-radius: 22px;
+    max-height: 82vh;
+  }
+}
+
+.order-tracking-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface-muted);
+  color: var(--fiko-black);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.order-tracking-modal__close svg {
+  width: 15px;
+  height: 15px;
+}
+
+.order-tracking-modal__header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  padding-right: 28px;
+}
+
+.order-tracking-modal__header h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--fiko-black);
+}
+
+.order-tracking-modal__all-link {
+  align-self: center;
+  margin-top: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--fiko-black);
+  text-decoration: underline;
+}

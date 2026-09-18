@@ -3,7 +3,7 @@ import { usePartnerAuth } from '../lib/PartnerAuthContext.jsx'
 import './PartnerHeader.css'
 
 function PartnerHeader() {
-  const { isAuthenticated, signOut } = usePartnerAuth()
+  const { isOwner, signOut } = usePartnerAuth()
 
   return (
     <header className="partner-header">
@@ -14,7 +14,7 @@ function PartnerHeader() {
         </Link>
 
         <nav className="partner-header__nav">
-          {isAuthenticated ? (
+          {isOwner ? (
             <>
               <Link to="/kumppani/dashboard" className="partner-header__link">
                 Kojelauta
@@ -29,7 +29,7 @@ function PartnerHeader() {
                 Kirjaudu
               </Link>
               <Link to="/kumppani/rekisteroidy" className="partner-header__cta">
-                Liity kumppaniksi
+                Jätä hakemus
               </Link>
             </>
           )}

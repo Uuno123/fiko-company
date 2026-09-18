@@ -11,14 +11,14 @@ router.get('/', async (req, res) => {
       ...restaurant,
       menu_items: seedMenuItems
         .filter((item) => item.restaurant_id === restaurant.id)
-        .map((item) => ({ price_cents: item.price_cents })),
+        .map((item) => ({ price_cents: item.price_cents, image_url: item.image_url })),
     }))
     return res.json(withMenuItems)
   }
 
   const { data, error } = await supabase
     .from('restaurants')
-    .select('*, menu_items(price_cents)')
+    .select('*, menu_items(price_cents, image_url)')
     .order('name', { ascending: true })
 
   if (error) {
@@ -41,7 +41,11 @@ router.get('/:id', async (req, res) => {
     return res.json({ ...restaurant, menu_items: menuItems })
   }
 
-  const { data, error } = await supabase.from('restaurants').select('*, menu_items(*)').eq('id', id).maybeSingle()
+  const { data, error } = await supabase
+    .from('restaurants')
+    .select('*, menu_items(*, menu_item_option_groups(*, menu_item_options(*)))')
+    .eq('id', id)
+    .maybeSingle()
 
   if (error) {
     console.error('[fiko-backend] Ravintolan haku epäonnistui:', error.message)

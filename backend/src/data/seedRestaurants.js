@@ -14,6 +14,8 @@ export const seedRestaurants = [
     pickup_estimate_minutes: 15,
     rating: 4.7,
     free_delivery: false,
+    lat: 62.870961,
+    lng: 27.686987,
   },
   {
     id: '986ab0df-bf51-48f9-bf82-615fdd77744c',
@@ -26,6 +28,8 @@ export const seedRestaurants = [
     pickup_estimate_minutes: 20,
     rating: 4.8,
     free_delivery: true,
+    lat: 62.889012,
+    lng: 27.680015,
   },
   {
     id: '0b135302-d424-4518-bd9a-81e2ff008af1',
@@ -38,6 +42,8 @@ export const seedRestaurants = [
     pickup_estimate_minutes: 15,
     rating: 4.6,
     free_delivery: false,
+    lat: 62.892980,
+    lng: 27.678463,
   },
   {
     id: '3e34b072-39d8-4f9a-adaa-4d9262c3e492',
@@ -50,6 +56,8 @@ export const seedRestaurants = [
     pickup_estimate_minutes: 10,
     rating: 4.5,
     free_delivery: false,
+    lat: 62.894527,
+    lng: 27.675981,
   },
   {
     id: '07f6bec8-43ee-486a-9dad-83d264940e5b',
@@ -62,6 +70,8 @@ export const seedRestaurants = [
     pickup_estimate_minutes: 8,
     rating: 4.9,
     free_delivery: true,
+    lat: 62.892014,
+    lng: 27.679012,
   },
   {
     id: '5587665c-2dcc-4cfc-8f63-43312da3e096',
@@ -74,6 +84,8 @@ export const seedRestaurants = [
     pickup_estimate_minutes: 10,
     rating: 4.6,
     free_delivery: false,
+    lat: 62.895967,
+    lng: 27.671984,
   },
   {
     id: 'b00324cc-a408-4887-9921-3173ceeafb49',
@@ -86,5 +98,7 @@ export const seedRestaurants = [
     pickup_estimate_minutes: 20,
     rating: 4.7,
     free_delivery: true,
+    lat: 62.897498,
+    lng: 27.684972,
   },
 ]

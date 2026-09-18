@@ -10,7 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@stripe/react-stripe-js": "^6.9.0",
+    "@stripe/stripe-js": "^9.16.0",
     "@supabase/supabase-js": "^2.116.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.45.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.3"

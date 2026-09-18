@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import './PromoCarousel.css'
 
-const slides = [
+const defaultSlides = [
   {
     id: 'nouto',
     image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=1600&q=80',
@@ -28,8 +28,11 @@ const slides = [
   },
 ]
 
-function PromoCarousel() {
+// slides voi antaa propina toista karuselli-esiintymää varten (esim. yksittäinen
+// valmis mainoskuva ilman headline/subtitle-tekstiylitystä - kuva sisältää tekstinsä itse).
+function PromoCarousel({ slides = defaultSlides, ariaLabel = 'Nostot' }) {
   const trackRef = useRef(null)
+  const showArrows = slides.length > 1
 
   function scrollBySlide(direction) {
     const track = trackRef.current
@@ -38,40 +41,52 @@ function PromoCarousel() {
   }
 
   return (
-    <section className="promo-carousel" aria-label="Nostot">
-      <button
-        type="button"
-        className="promo-carousel__arrow promo-carousel__arrow--prev"
-        aria-label="Edellinen"
-        onClick={() => scrollBySlide(-1)}
-      >
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M12 5 7 10l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
+    <section className="promo-carousel" aria-label={ariaLabel}>
+      {showArrows && (
+        <button
+          type="button"
+          className="promo-carousel__arrow promo-carousel__arrow--prev"
+          aria-label="Edellinen"
+          onClick={() => scrollBySlide(-1)}
+        >
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M12 5 7 10l5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
 
       <div className="promo-carousel__track" ref={trackRef}>
-        {slides.map((slide) => (
-          <div className="promo-slide" key={slide.id}>
-            <div className="promo-slide__image" style={{ backgroundImage: `url(${slide.image})` }} />
-            <div className="promo-slide__overlay">
-              <h2>{slide.headline}</h2>
-              <p>{slide.subtitle}</p>
+        {slides.map((slide) =>
+          slide.headline ? (
+            <div className="promo-slide" key={slide.id}>
+              <div className="promo-slide__image" style={{ backgroundImage: `url(${slide.image})` }} />
+              <div className="promo-slide__overlay">
+                <h2>{slide.headline}</h2>
+                <p>{slide.subtitle}</p>
+              </div>
             </div>
-          </div>
-        ))}
+          ) : (
+            // Valmis mainoskuva, jossa teksti on jo kuvan sisällä - näytetään kokonaisena
+            // <img>-elementtinä (ei taustakuva-rajausta), ettei kuvan oma teksti leikkaudu.
+            <div className="promo-slide promo-slide--banner" key={slide.id}>
+              <img className="promo-slide__banner-img" src={slide.image} alt={slide.alt ?? ''} loading="lazy" />
+            </div>
+          ),
+        )}
       </div>
 
-      <button
-        type="button"
-        className="promo-carousel__arrow promo-carousel__arrow--next"
-        aria-label="Seuraava"
-        onClick={() => scrollBySlide(1)}
-      >
-        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path d="M8 5l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
+      {showArrows && (
+        <button
+          type="button"
+          className="promo-carousel__arrow promo-carousel__arrow--next"
+          aria-label="Seuraava"
+          onClick={() => scrollBySlide(1)}
+        >
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M8 5l5 5-5 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      )}
     </section>
   )
 }

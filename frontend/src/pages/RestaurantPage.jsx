@@ -1,11 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Star, Footprints, Car } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
 import { getRestaurantById } from '../lib/api.js'
 import { useCart } from '../lib/CartContext.jsx'
-import { formatPrice } from '../lib/format.js'
+import { formatPrice, formatDisplayAddress } from '../lib/format.js'
+import { getTodayHours, formatHoursRange } from '../lib/openingHours.js'
+import {
+  getOptionGroups,
+  getDefaultSelection,
+  isGroupValid,
+  areAllGroupsValid,
+  computeTotalDeltaCents,
+  buildSelectedOptionsPayload,
+} from '../lib/menuOptions.js'
 import './RestaurantPage.css'
 
 function groupByCategory(items) {
@@ -30,9 +40,11 @@ function RestaurantPage() {
   const [status, setStatus] = useState('loading')
   const [errorMessage, setErrorMessage] = useState('')
   const [menuQuery, setMenuQuery] = useState('')
+  const [fulfillmentMode, setFulfillmentMode] = useState('pickup')
   const [activeCategory, setActiveCategory] = useState('')
   const [selectedItem, setSelectedItem] = useState(null)
   const [quantity, setQuantity] = useState(1)
+  const [optionSelections, setOptionSelections] = useState({})
   const [headerSearch, setHeaderSearch] = useState('')
   const [isFavorited, setIsFavorited] = useState(false)
   const [justAdded, setJustAdded] = useState(false)
@@ -43,10 +55,27 @@ function RestaurantPage() {
     [restaurant],
   )
 
+  const todayHoursLabel = useMemo(
+    () => formatHoursRange(getTodayHours(restaurant?.opening_hours)),
+    [restaurant],
+  )
+
+  const restaurantClosed = restaurant?.is_open === false
+
+  const selectedItemGroups = useMemo(() => getOptionGroups(selectedItem ?? {}), [selectedItem])
+  const optionsDeltaCents = useMemo(
+    () => computeTotalDeltaCents(selectedItemGroups, optionSelections),
+    [selectedItemGroups, optionSelections],
+  )
+  const optionsValid = useMemo(
+    () => areAllGroupsValid(selectedItemGroups, optionSelections),
+    [selectedItemGroups, optionSelections],
+  )
+
   const currentGroup = restaurant ? cart.groups.find((g) => g.restaurantId === restaurant.id) : null
   const currentGroupCount = currentGroup?.lines.reduce((sum, line) => sum + line.quantity, 0) ?? 0
   const currentGroupTotalCents =
-    currentGroup?.lines.reduce((sum, line) => sum + line.quantity * line.item.price_cents, 0) ?? 0
+    currentGroup?.lines.reduce((sum, line) => sum + line.quantity * (line.unitPriceCents ?? line.item.price_cents), 0) ?? 0
   const otherGroupsCount = cart.count - currentGroupCount
 
   const normalizedMenuQuery = menuQuery.trim().toLowerCase()
@@ -124,6 +153,12 @@ function RestaurantPage() {
     setSelectedItem(item)
     setQuantity(1)
     setJustAdded(false)
+    const groups = getOptionGroups(item)
+    const initial = {}
+    groups.forEach((group) => {
+      initial[group.id] = getDefaultSelection(group)
+    })
+    setOptionSelections(initial)
   }
 
   function closeModal() {
@@ -131,15 +166,38 @@ function RestaurantPage() {
     setJustAdded(false)
   }
 
+  function toggleOption(group, optionId) {
+    setOptionSelections((current) => {
+      const selected = current[group.id] ?? []
+      if (group.selection_type === 'single') {
+        const next = selected[0] === optionId && group.min_selections === 0 ? [] : [optionId]
+        return { ...current, [group.id]: next }
+      }
+      const max = group.max_selections ?? Infinity
+      if (selected.includes(optionId)) {
+        return { ...current, [group.id]: selected.filter((id) => id !== optionId) }
+      }
+      if (selected.length >= max) return current
+      return { ...current, [group.id]: [...selected, optionId] }
+    })
+  }
+
   function addSelectedToCart() {
-    if (selectedItem.is_available === false) return
-    cart.addItem(restaurant, selectedItem, quantity)
+    if (selectedItem.is_available === false || restaurant.is_open === false || !optionsValid) return
+    const selectedOptions = buildSelectedOptionsPayload(selectedItemGroups, optionSelections)
+    const unitPriceCents = selectedItem.price_cents + optionsDeltaCents
+    cart.addItem(restaurant, selectedItem, quantity, { selectedOptions, unitPriceCents })
     setJustAdded(true)
   }
 
   function quickAdd(e, item) {
     e.stopPropagation()
-    if (item.is_available === false) return
+    if (item.is_available === false || restaurant.is_open === false) return
+    const groups = getOptionGroups(item)
+    if (groups.some((g) => g.min_selections > 0)) {
+      openItem(item)
+      return
+    }
     cart.addItem(restaurant, item, 1)
   }
 
@@ -180,15 +238,7 @@ function RestaurantPage() {
         {status === 'ready' && restaurant && (
           <div className="restaurant-hero">
             {restaurant.image_url ? (
-              <>
-                <img src={restaurant.image_url} alt={restaurant.name} />
-                <div className="restaurant-hero__text">
-                  <div className="restaurant-hero__text-inner">
-                    <h1>{restaurant.name}</h1>
-                    <p>{restaurant.category}</p>
-                  </div>
-                </div>
-              </>
+              <img src={restaurant.image_url} alt={restaurant.name} />
             ) : (
               <RestaurantAvatarPlaceholder name={restaurant.name} size="hero" />
             )}
@@ -196,14 +246,7 @@ function RestaurantPage() {
         )}
       </div>
 
-      <main className="restaurant-page">
-        <Link to="/" className="back-link">
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <path d="M12 5 7 10l5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          Takaisin listaukseen
-        </Link>
-
+      <main className={`restaurant-page${currentGroupCount > 0 ? ' restaurant-page--with-cart-bar' : ''}`}>
         {status === 'loading' && <p className="state-message">Ladataan ravintolaa...</p>}
         {status === 'error' && (
           <p className="state-message state-message--error">Ravintolaa ei löytynyt: {errorMessage}</p>
@@ -212,43 +255,87 @@ function RestaurantPage() {
         {status === 'ready' && restaurant && (
           <article className="restaurant-detail">
             <div className="restaurant-detail__body">
+              <div className="restaurant-detail__heading">
+                <h1>{restaurant.name}</h1>
+                <span className="category-tag">{restaurant.category}</span>
+              </div>
+
+              <div className="fulfillment-toggle" role="tablist" aria-label="Nouto vai kuljetus">
+                <span
+                  className={`fulfillment-toggle__indicator${fulfillmentMode === 'delivery' ? ' fulfillment-toggle__indicator--delivery' : ''}`}
+                  aria-hidden="true"
+                />
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={fulfillmentMode === 'pickup'}
+                  className={`fulfillment-toggle__option${fulfillmentMode === 'pickup' ? ' fulfillment-toggle__option--active' : ''}`}
+                  onClick={() => setFulfillmentMode('pickup')}
+                >
+                  <Footprints size={16} aria-hidden="true" />
+                  Nouto
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={fulfillmentMode === 'delivery'}
+                  className={`fulfillment-toggle__option${fulfillmentMode === 'delivery' ? ' fulfillment-toggle__option--active' : ''}`}
+                  onClick={() => setFulfillmentMode('delivery')}
+                >
+                  <Car size={16} aria-hidden="true" />
+                  Kuljetus
+                </button>
+              </div>
+
               <div className="restaurant-detail__top-row">
-                <div className="restaurant-detail__stats">
-                  <span
-                    className={`status-badge ${restaurant.is_open ? 'status-badge--open' : 'status-badge--closed'}`}
-                  >
-                    <span className="status-badge__dot" />
-                    {restaurant.is_open ? 'Avoinna' : 'Kiinni'}
-                  </span>
-
-                  {restaurant.is_open && restaurant.pickup_estimate_minutes && (
-                    <span className="pickup-estimate">
-                      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                        <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
-                        <path
-                          d="M10 6v4l3 2"
-                          stroke="currentColor"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      Nouto n. {restaurant.pickup_estimate_minutes} min
-                    </span>
-                  )}
-
-                  <span className={`pickup-estimate${restaurant.free_delivery ? ' pickup-estimate--free' : ''}`}>
-                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <path
-                        d="M3 6h9l3 4h2v4h-1M3 6v8h1m0 0a2 2 0 1 0 4 0m-4 0h4m6 0a2 2 0 1 0 4 0m-4 0h4"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
+                <div className="info-line">
+                  {[
+                    <span className="info-line__item" key="status">
+                      <span
+                        className={`info-line__dot${restaurant.is_open ? ' info-line__dot--open' : ' info-line__dot--closed'}`}
                       />
-                    </svg>
-                    {restaurant.free_delivery ? 'Ilmainen kuljetus' : 'Kuljetus 5,99 €'}
-                  </span>
+                      {restaurant.is_open ? 'Avoinna' : 'Kiinni'}
+                      {todayHoursLabel ? ` · ${todayHoursLabel}` : ''}
+                    </span>,
+                    ...(restaurant.rating != null
+                      ? [
+                          <span className="info-line__item" key="rating">
+                            <Star className="info-line__star" size={16} fill="currentColor" aria-hidden="true" />
+                            {Number(restaurant.rating).toFixed(1)}
+                          </span>,
+                        ]
+                      : []),
+                    ...(restaurant.is_open && fulfillmentMode === 'pickup' && restaurant.pickup_estimate_minutes
+                      ? [
+                          <span className="info-line__item" key="pickup">
+                            <Footprints size={16} aria-hidden="true" />
+                            Nouto n. {restaurant.pickup_estimate_minutes} min
+                          </span>,
+                        ]
+                      : []),
+                    ...(fulfillmentMode === 'delivery'
+                      ? [
+                          <span className="info-line__item" key="delivery">
+                            <Car size={16} aria-hidden="true" />
+                            Kuljetus
+                            {restaurant.is_open && restaurant.pickup_estimate_minutes
+                              ? ` n. ${restaurant.pickup_estimate_minutes + 15} min`
+                              : ''}
+                            {' · '}
+                            {restaurant.free_delivery ? 'Ilmainen' : '5,99 €'}
+                          </span>,
+                        ]
+                      : []),
+                  ].flatMap((item, i) =>
+                    i === 0
+                      ? [item]
+                      : [
+                          <span className="info-line__sep" aria-hidden="true" key={`sep-${i}`}>
+                            ·
+                          </span>,
+                          item,
+                        ],
+                  )}
                 </div>
 
                 <button
@@ -269,13 +356,6 @@ function RestaurantPage() {
                 </button>
               </div>
 
-              {!restaurant.image_url && (
-                <>
-                  <h1>{restaurant.name}</h1>
-                  <span className="category-tag">{restaurant.category}</span>
-                </>
-              )}
-
               {restaurant.address && (
                 <p className="restaurant-detail__address">
                   <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -287,7 +367,14 @@ function RestaurantPage() {
                     />
                     <circle cx="10" cy="8" r="2.25" stroke="currentColor" strokeWidth="1.5" />
                   </svg>
-                  {restaurant.address}
+                  {formatDisplayAddress(restaurant.address, restaurant.city)}
+                </p>
+              )}
+
+              {restaurantClosed && (
+                <p className="restaurant-closed-notice">
+                  Ravintola on juuri nyt suljettu, eikä tilaaminen ole mahdollista.
+                  {todayHoursLabel ? ` Tänään avoinna ${todayHoursLabel}.` : ''}
                 </p>
               )}
             </div>
@@ -353,6 +440,20 @@ function RestaurantPage() {
                                     {item.description && (
                                       <span className="menu-card__description">{item.description}</span>
                                     )}
+                                    {item.tags?.length > 0 && (
+                                      <div className="menu-card__tag-list">
+                                        {item.tags.slice(0, 3).map((tag) => (
+                                          <span className="menu-card__tag-chip" key={tag}>
+                                            {tag}
+                                          </span>
+                                        ))}
+                                        {item.tags.length > 3 && (
+                                          <span className="menu-card__tag-chip menu-card__tag-chip--more">
+                                            +{item.tags.length - 3}
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
                                     {item.is_available === false ? (
                                       <span className="menu-card__sold-out">Loppu valikoimasta</span>
                                     ) : (
@@ -366,7 +467,7 @@ function RestaurantPage() {
                                     ) : (
                                       <RestaurantAvatarPlaceholder name={item.name} size="thumb" />
                                     )}
-                                    {item.is_available !== false && (
+                                    {item.is_available !== false && !restaurantClosed && (
                                       <button
                                         type="button"
                                         className="menu-card__add"
@@ -429,12 +530,95 @@ function RestaurantPage() {
             <div className="item-modal__body">
               <h2>{selectedItem.name}</h2>
               {selectedItem.description && <p className="item-modal__description">{selectedItem.description}</p>}
+              {selectedItem.tags?.length > 0 && (
+                <div className="item-modal__tag-list">
+                  {selectedItem.tags.map((tag) => (
+                    <span className="item-modal__tag-chip" key={tag}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
               <p className="item-modal__price">{formatPrice(selectedItem.price_cents)}</p>
+
+              {selectedItemGroups.map((group) => {
+                const selected = optionSelections[group.id] ?? []
+                const max = group.max_selections ?? Infinity
+                return (
+                  <div className="option-group" key={group.id}>
+                    <div className="option-group__header">
+                      <span className="option-group__name">{group.name}</span>
+                      <span className="option-group__hint">
+                        {group.selection_type === 'single'
+                          ? group.min_selections > 0
+                            ? 'Valitse yksi'
+                            : 'Valitse yksi (valinnainen)'
+                          : group.max_selections
+                            ? `Valitse ${group.min_selections}-${group.max_selections}`
+                            : group.min_selections > 0
+                              ? `Valitse vähintään ${group.min_selections}`
+                              : 'Valitse haluamasi'}
+                        {group.free_selections > 0 ? ` · ${group.free_selections} ilmaiseksi` : ''}
+                      </span>
+                    </div>
+                    <div className="option-group__options">
+                      {group.menu_item_options.map((option) => {
+                        const isSelected = selected.includes(option.id)
+                        const disabled =
+                          !isSelected && group.selection_type === 'multi' && selected.length >= max
+                        return (
+                          <button
+                            type="button"
+                            key={option.id}
+                            className={`option-row${isSelected ? ' option-row--selected' : ''}`}
+                            disabled={disabled}
+                            onClick={() => toggleOption(group, option.id)}
+                          >
+                            <span className="option-row__name">
+                              {option.name}
+                              {option.price_delta_cents > 0 && (
+                                <span className="option-row__price">+{formatPrice(option.price_delta_cents)}</span>
+                              )}
+                            </span>
+                            <span
+                              className={`option-row__control${group.selection_type === 'single' ? ' option-row__control--radio' : ''}${isSelected ? ' option-row__control--checked' : ''}`}
+                              aria-hidden="true"
+                            >
+                              {isSelected && group.selection_type !== 'single' && (
+                                <svg viewBox="0 0 16 16" fill="none">
+                                  <path
+                                    d="m3.5 8.5 2.8 2.8 6.2-6.6"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {!isGroupValid(group, selected) && (
+                      <p className="option-group__error">
+                        {group.min_selections > 0 ? `Valitse vähintään ${group.min_selections}` : ''}
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
 
               {selectedItem.is_available === false ? (
                 <div className="item-modal__actions">
                   <button type="button" className="item-modal__add item-modal__add--soldout" disabled>
                     Loppu valikoimasta
+                  </button>
+                </div>
+              ) : restaurantClosed ? (
+                <div className="item-modal__actions">
+                  <button type="button" className="item-modal__add item-modal__add--soldout" disabled>
+                    Ravintola on suljettu
                   </button>
                 </div>
               ) : (
@@ -457,7 +641,7 @@ function RestaurantPage() {
                     type="button"
                     className={`item-modal__add${justAdded ? ' item-modal__add--added' : ''}`}
                     onClick={addSelectedToCart}
-                    disabled={justAdded}
+                    disabled={justAdded || !optionsValid}
                   >
                     {justAdded ? (
                       <>
@@ -473,7 +657,7 @@ function RestaurantPage() {
                         Lisätty ostoskoriin
                       </>
                     ) : (
-                      `Lisää ostoskoriin · ${formatPrice(selectedItem.price_cents * quantity)}`
+                      `Lisää ostoskoriin · ${formatPrice((selectedItem.price_cents + optionsDeltaCents) * quantity)}`
                     )}
                   </button>
                 </div>

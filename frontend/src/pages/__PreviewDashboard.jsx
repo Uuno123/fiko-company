@@ -3,6 +3,7 @@
    can be viewed without a real backend. Keep this in sync manually when the real file changes. */
 import { useState, useEffect } from 'react'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
+import AddressMapPicker from '../components/AddressMapPicker.jsx'
 import { formatPrice } from '../lib/format.js'
 import '../pages/RestaurantPage.css'
 import './PartnerCommon.css'
@@ -49,6 +50,33 @@ function euroStringToCents(value) {
   return Math.round(euros * 100)
 }
 
+const WEEKDAYS = [
+  { key: 'mon', label: 'Maanantai' },
+  { key: 'tue', label: 'Tiistai' },
+  { key: 'wed', label: 'Keskiviikko' },
+  { key: 'thu', label: 'Torstai' },
+  { key: 'fri', label: 'Perjantai' },
+  { key: 'sat', label: 'Lauantai' },
+  { key: 'sun', label: 'Sunnuntai' },
+]
+
+function defaultOpeningHours() {
+  return WEEKDAYS.reduce((acc, day) => {
+    acc[day.key] = { open: '11:00', close: '21:00', closed: false }
+    return acc
+  }, {})
+}
+
+function normalizeOpeningHours(value) {
+  const defaults = defaultOpeningHours()
+  if (!value || typeof value !== 'object') return defaults
+  const merged = {}
+  for (const day of WEEKDAYS) {
+    merged[day.key] = { ...defaults[day.key], ...(value[day.key] || {}) }
+  }
+  return merged
+}
+
 function RestaurantInfoForm({ restaurant }) {
   const [form, setForm] = useState({
     name: restaurant.name || '',
@@ -57,8 +85,16 @@ function RestaurantInfoForm({ restaurant }) {
     address: restaurant.address || '',
     image_url: restaurant.image_url || '',
     pickup_estimate_minutes: restaurant.pickup_estimate_minutes ?? '',
+    opening_hours: normalizeOpeningHours(restaurant.opening_hours),
   })
   const [status, setStatus] = useState('idle')
+
+  function updateDayHours(dayKey, patch) {
+    setForm((f) => ({
+      ...f,
+      opening_hours: { ...f.opening_hours, [dayKey]: { ...f.opening_hours[dayKey], ...patch } },
+    }))
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -93,11 +129,6 @@ function RestaurantInfoForm({ restaurant }) {
         </div>
 
         <div className="partner-field">
-          <label htmlFor="ri-address">Osoite</label>
-          <input id="ri-address" value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} />
-        </div>
-
-        <div className="partner-field">
           <label htmlFor="ri-image">Kuvan URL</label>
           <input id="ri-image" value={form.image_url} onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))} />
         </div>
@@ -114,7 +145,56 @@ function RestaurantInfoForm({ restaurant }) {
         </div>
       </div>
 
-      <p className="partner-form__hint">Ravintolan auki/kiinni-tila vaihdetaan yläpalkin kytkimestä - se vaikuttaa heti.</p>
+      <div className="partner-field">
+        <label htmlFor="ri-address">Osoite</label>
+        <AddressMapPicker id="ri-address" value={form.address} onChange={(address) => setForm((f) => ({ ...f, address }))} />
+      </div>
+
+      <div className="partner-opening-hours">
+        <h3>Aukioloajat</h3>
+        <p className="partner-form__hint">
+          Nämä näkyvät asiakkaille ravintolasi sivulla. Ravintolan auki/kiinni-tila juuri nyt vaihdetaan
+          yläpalkin kytkimestä.
+        </p>
+
+        <div className="partner-opening-hours__rows">
+          {WEEKDAYS.map((day) => {
+            const dayHours = form.opening_hours[day.key]
+            return (
+              <div className="partner-opening-hours__row" key={day.key}>
+                <span className="partner-opening-hours__day">{day.label}</span>
+
+                <label className="partner-checkbox partner-opening-hours__closed">
+                  <input
+                    type="checkbox"
+                    checked={dayHours.closed}
+                    onChange={(e) => updateDayHours(day.key, { closed: e.target.checked })}
+                  />
+                  Kiinni
+                </label>
+
+                <div className="partner-opening-hours__times">
+                  <input
+                    type="time"
+                    aria-label={`${day.label}: avaa`}
+                    value={dayHours.open}
+                    disabled={dayHours.closed}
+                    onChange={(e) => updateDayHours(day.key, { open: e.target.value })}
+                  />
+                  <span>–</span>
+                  <input
+                    type="time"
+                    aria-label={`${day.label}: sulkee`}
+                    value={dayHours.close}
+                    disabled={dayHours.closed}
+                    onChange={(e) => updateDayHours(day.key, { close: e.target.value })}
+                  />
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
 
       <button type="submit" className="partner-btn partner-btn--primary" disabled={status === 'submitting'}>
         {status === 'submitting' ? 'Tallennetaan...' : status === 'saved' ? 'Tallennettu ✓' : 'Tallenna tiedot'}
@@ -761,11 +841,11 @@ const TABS = [
   { id: 'asetukset', label: 'Asetukset', icon: SettingsIcon },
 ]
 
-function DashboardTopBar({ activeTab, onTabChange, isOpen, onToggleOpen, isOnline }) {
+function DashboardTopBar({ activeTab, onTabChange, isOpen, onToggleOpen, isOnline, restaurantName }) {
   return (
     <header className="partner-dashboard-topbar">
       <div className="partner-dashboard-topbar__inner">
-        <span className="partner-dashboard-topbar__brand">Ravintola</span>
+        <span className="partner-dashboard-topbar__brand">{restaurantName || 'Ravintola'}</span>
 
         <nav className="partner-dashboard-topbar__tabs">
           {TABS.map((tab) => {
@@ -812,7 +892,14 @@ function PreviewDashboard() {
 
   return (
     <div className="page">
-      <DashboardTopBar activeTab={activeTab} onTabChange={setActiveTab} isOpen={isOpen} onToggleOpen={() => setIsOpen((v) => !v)} isOnline={isOnline} />
+      <DashboardTopBar
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isOpen={isOpen}
+        onToggleOpen={() => setIsOpen((v) => !v)}
+        isOnline={isOnline}
+        restaurantName={MOCK_RESTAURANT.name}
+      />
 
       {!isOnline && <OfflineOverlay />}
 

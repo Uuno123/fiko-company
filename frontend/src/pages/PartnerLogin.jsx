@@ -36,7 +36,7 @@ function PartnerLogin() {
     return (
       <div className="page">
         <PartnerHeader />
-        <main className="auth-page">
+        <main className="auth-page auth-page--full-height">
           <div className="auth-card">
             <h1>Kirjautuminen ei ole käytössä</h1>
             <p className="auth-card__subtitle">Supabase-yhteyttä ei ole määritetty (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).</p>
@@ -50,7 +50,7 @@ function PartnerLogin() {
   return (
     <div className="page">
       <PartnerHeader />
-      <main className="auth-page">
+      <main className="auth-page auth-page--full-height">
         <div className="auth-card">
           <h1>Kumppanin kirjautuminen</h1>
           <p className="auth-card__subtitle">Kirjaudu hallitaksesi ravintolasi tietoja ja ruokalistaa.</p>
@@ -88,7 +88,7 @@ function PartnerLogin() {
           </form>
 
           <p className="auth-footer">
-            Etkö ole vielä kumppani? <Link to="/kumppani/rekisteroidy">Liity kumppaniksi</Link>
+            Etkö ole vielä kumppani? <Link to="/kumppani/rekisteroidy">Jätä kumppanuushakemus</Link>
           </p>
           <p className="auth-footer">
             <Link to="/kumppanina">← Takaisin kumppani-infoon</Link>

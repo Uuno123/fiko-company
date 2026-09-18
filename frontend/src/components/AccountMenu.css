@@ -1,21 +1,14 @@
-.site-header__auth {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
 .account-menu__icon {
   width: 17px;
   height: 17px;
   flex-shrink: 0;
 }
 
-.account-menu__chevron {
-  width: 14px;
-  height: 14px;
+.site-header__auth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .auth-ghost-btn,
@@ -36,14 +29,14 @@
 }
 
 .auth-ghost-btn {
-  color: var(--fiko-black);
+  color: #fff;
   background: transparent;
-  border: 1.5px solid rgba(20, 21, 15, 0.18);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
 }
 
 .auth-ghost-btn:hover {
-  background: rgba(20, 21, 15, 0.08);
-  border-color: rgba(20, 21, 15, 0.28);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.55);
   transform: translateY(-1px);
 }
 
@@ -52,8 +45,6 @@
   transform: translateY(0) scale(0.97);
 }
 
-/* Header renders transparently over a dark photo (RestaurantPage hero) in this mode,
-   so the plain-text/icon ghost button needs to flip to white - see Header.css .site-header--overlay. */
 .auth-ghost-btn--overlay {
   color: #fff;
   border-color: rgba(255, 255, 255, 0.55);
@@ -65,14 +56,14 @@
 }
 
 .auth-pill-btn {
-  background: var(--fiko-black);
-  color: var(--fiko-lime);
-  border: 1.5px solid var(--fiko-black);
+  background: #fff;
+  color: var(--fiko-black);
+  border: 1.5px solid #fff;
 }
 
 .auth-pill-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 20px -10px rgba(20, 21, 15, 0.55);
+  box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.35);
 }
 
 .account-menu {
@@ -80,60 +71,166 @@
   flex-shrink: 0;
 }
 
+/* Kaksi eri esitystapaa kirjautumattomalle käyttäjälle: leveä näyttö näyttää erilliset
+   Kirjaudu/Rekisteröidy-napit suoraan, kapea (mobiili) piilottaa ne kompaktin
+   avatar+chevron-painikkeen taakse pudotusvalikkoon - sama breakpoint kuin muualla
+   headerissa (Header.css, esim. .city-select piilotus). */
+.account-menu--narrow {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .site-header__auth--wide {
+    display: none;
+  }
+
+  .account-menu--narrow {
+    display: block;
+  }
+}
+
 .account-menu__trigger {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 8px;
-  height: 42px;
-  padding: 0 16px;
+  gap: 6px;
+  height: 34px;
+  padding: 0 8px 0 0;
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--fiko-black);
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  background: none;
   cursor: pointer;
-  max-width: 160px;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.2s ease;
 }
 
 .account-menu__trigger:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 18px -12px rgba(20, 21, 15, 0.45);
+  background: rgba(20, 21, 15, 0.08);
 }
 
 .account-menu__trigger:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--fiko-black);
+  border-radius: var(--radius-pill);
 }
 
 .account-menu__trigger:active {
-  transform: translateY(0) scale(0.97);
+  transform: scale(0.97);
 }
 
-.account-menu__trigger[aria-expanded='true'] .account-menu__chevron {
+.account-menu__trigger-chevron {
+  width: 12px;
+  height: 12px;
+  color: var(--fiko-black);
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.account-menu__trigger-chevron--open {
   transform: rotate(180deg);
 }
 
-.account-menu__name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.account-menu__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(155deg, #24261b 0%, var(--fiko-black) 100%);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 1px 3px rgba(20, 21, 15, 0.25);
+  flex-shrink: 0;
+}
+
+.account-menu__avatar--large {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 1rem;
+  background: linear-gradient(155deg, #24261b 0%, var(--fiko-black) 100%);
+  color: #fff;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), 0 2px 6px rgba(20, 21, 15, 0.25);
+}
+
+/* Kirjautumattoman käyttäjän kompaktissa (mobiili) avatar-napissa ei ole nimikirjaimia -
+   ohuempi ääriviiva-tyyli erottaa sen selvästi kirjautuneen käyttäjän täytetystä avatarista. */
+.account-menu__avatar--guest {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: none;
+  color: #fff;
+}
+
+.account-menu__avatar--guest .account-menu__icon {
+  width: 16px;
+  height: 16px;
 }
 
 .account-menu__dropdown {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  min-width: 170px;
+  min-width: 220px;
   background: var(--surface);
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 32px -16px rgba(0, 0, 0, 0.28);
   padding: 6px;
   z-index: 20;
   animation: account-menu-in 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.account-menu__profile-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.account-menu__profile-row:hover {
+  background: var(--surface-muted);
+}
+
+.account-menu__row-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.account-menu__divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 4px;
+}
+
+.account-menu__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.account-menu__display-name {
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--fiko-black);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu__email {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @keyframes account-menu-in {
@@ -151,6 +248,7 @@
   display: block;
   width: 100%;
   text-align: left;
+  text-decoration: none;
   border: none;
   background: none;
   padding: 10px 12px;
@@ -165,6 +263,11 @@
 
 .account-menu__item:hover {
   background: var(--surface-muted);
+}
+
+.account-menu__item--danger:hover {
+  background: rgba(154, 40, 40, 0.08);
+  color: #9a2828;
 }
 
 .account-menu__item:active {

@@ -1,21 +1,49 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
 import { AuthProvider } from './lib/AuthContext.jsx'
 import { CartProvider } from './lib/CartContext.jsx'
 import { PartnerAuthProvider } from './lib/PartnerAuthContext.jsx'
 import PartnerRoute from './components/PartnerRoute.jsx'
+import ActiveOrderBubble from './components/ActiveOrderBubble.jsx'
 import Home from './pages/Home.jsx'
 import RestaurantPage from './pages/RestaurantPage.jsx'
 import Cart from './pages/Cart.jsx'
 import Register from './pages/Register.jsx'
 import Login from './pages/Login.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
+import Settings from './pages/Settings.jsx'
+import SettingsProfile from './pages/SettingsProfile.jsx'
+import SettingsPassword from './pages/SettingsPassword.jsx'
+import SettingsPayments from './pages/SettingsPayments.jsx'
+import OrderHistory from './pages/OrderHistory.jsx'
 import PartnerLanding from './pages/PartnerLanding.jsx'
 import PartnerLogin from './pages/PartnerLogin.jsx'
 import PartnerRegister from './pages/PartnerRegister.jsx'
 import PartnerDashboard from './pages/PartnerDashboard.jsx'
 import PreviewDashboard from './pages/__PreviewDashboard.jsx'
+import PreviewAccount from './pages/__PreviewAccount.jsx'
+import PreviewCart from './pages/__PreviewCart.jsx'
 
 function App() {
+  useEffect(() => {
+    // Sivulla ei ole yhtään laillista syytä koko dokumentin vaakavieritykselle -
+    // kaikki vaakasuunnassa vierivät rivit (kategoriat, lisäostosuositukset...) ovat
+    // omia overflow-x:auto -säiliöitään. Silti esim. Stripen Link-integraatio
+    // maksuvaiheessa asentaa oman kelluvan ikkunansa suoraan <body>:n alle, sivun
+    // React-puun ulkopuolelle, emmekä voi rajata sitä minkään konttiemme CSS:llä.
+    // Jos se (tai joku muu 3. osapuolen upotus) fokusoi piilotetun/reunan
+    // ulkopuolella olevan elementin, selain vierittää koko sivua näyttääkseen sen -
+    // tämä ohittaa html/body:n overflow-x:hidden:in, koska se estää vain
+    // käyttäjän oman vieritysyrityksen, ei ohjelmallista scrollIntoView'ta.
+    // Nollataan vaakavieritys heti jos jokin pakottaa sen, sen sijaan että
+    // yritettäisiin arvata etukäteen mikä upotus sen aiheuttaa.
+    function resetHorizontalScroll() {
+      if (window.scrollX !== 0) window.scrollTo(0, window.scrollY)
+    }
+    window.addEventListener('scroll', resetHorizontalScroll, { passive: true })
+    return () => window.removeEventListener('scroll', resetHorizontalScroll)
+  }, [])
+
   return (
     <BrowserRouter>
       <AuthProvider>
@@ -27,6 +55,13 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/asetukset" element={<Settings />} />
+            <Route path="/asetukset/tiedot" element={<SettingsProfile />} />
+            <Route path="/asetukset/salasana" element={<SettingsPassword />} />
+            <Route path="/asetukset/maksutavat" element={<SettingsPayments />} />
+            <Route path="/omat-tilaukset" element={<OrderHistory />} />
+            <Route path="/__preview-account" element={<PreviewAccount />} />
+            <Route path="/__preview-cart" element={<PreviewCart />} />
 
             <Route
               element={
@@ -49,6 +84,7 @@ function App() {
               />
             </Route>
           </Routes>
+          <ActiveOrderBubble />
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

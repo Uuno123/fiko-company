@@ -1,6 +1,7 @@
 :root {
-  /* Väliaikainen brändiväri - vaihda tähän logon tarkka HEX kun se on tiedossa. */
-  --fiko-lime: #b6f500;
+  /* Lopullinen: ei kirkasta aksenttiväriä, pelkkä musta - sama musta kuin --fiko-black
+     (ei puhdas #000000) jotta kaikki "musta" pinta koko sivustolla on sama sävy. */
+  --fiko-lime: #14150f;
   --fiko-black: #14150f;
 
   --surface: #ffffff;
@@ -16,7 +17,7 @@
   --radius-pill: 999px;
   --header-height: 74px;
 
-  --font-display: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
 
   color-scheme: light;
@@ -26,6 +27,15 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+/* overflow-x tarvitaan myös html:lle: pelkkä body:n overflow ei rajaa
+   position:fixed-elementtejä (esim. Stripe Linkin oma kelluva "käytä tätä
+   korttia" -pudotus), jotka muuten venyttävät koko dokumentin leveyttä
+   kapealla näytöllä ja rikkovat kaikki %-pohjaiset leveydet. */
+html {
+  overflow-x: hidden;
+  width: 100%;
 }
 
 body {

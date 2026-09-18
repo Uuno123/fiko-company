@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Header from '../components/Header.jsx'
+import Footer from '../components/Footer.jsx'
 import GoogleAuthButton from '../components/GoogleAuthButton.jsx'
 import AppleAuthButton from '../components/AppleAuthButton.jsx'
 import FacebookAuthButton from '../components/FacebookAuthButton.jsx'
@@ -57,12 +58,13 @@ function Login() {
     return (
       <div className="page">
         <Header />
-        <main className="auth-page">
+        <main className="auth-page auth-page--full-height">
           <div className="auth-card">
             <h1>Kirjautuminen ei ole käytössä</h1>
             <p className="auth-card__subtitle">Supabase-yhteyttä ei ole määritetty (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).</p>
           </div>
         </main>
+        <Footer />
       </div>
     )
   }
@@ -70,7 +72,7 @@ function Login() {
   return (
     <div className="page">
       <Header />
-      <main className="auth-page">
+      <main className="auth-page auth-page--full-height">
         <div className="auth-card">
           {mode === 'login' ? (
             <>
@@ -176,6 +178,7 @@ function Login() {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   )
 }
