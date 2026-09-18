@@ -1,0 +1,97 @@
+.staff-header {
+  background: var(--fiko-black);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.staff-header__inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  height: var(--header-height);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.staff-header__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: #fff;
+}
+
+.staff-header__wordmark {
+  font-family: 'Fredoka', var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.staff-header__sublabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.staff-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.staff-header__link {
+  position: relative;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.staff-header__link:hover {
+  color: #fff;
+}
+
+.staff-header__link-button {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .staff-header__inner {
+    height: 60px;
+    padding: 0 16px;
+    gap: 10px;
+  }
+
+  .staff-header__wordmark {
+    font-size: 1.6rem;
+  }
+
+  .staff-header__sublabel {
+    display: none;
+  }
+
+  .staff-header__link {
+    padding: 9px 14px;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-pill);
+    font-size: 0.82rem;
+  }
+
+  .staff-header__link:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}

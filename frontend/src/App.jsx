@@ -4,8 +4,11 @@ import { AuthProvider } from './lib/AuthContext.jsx'
 import { CartProvider } from './lib/CartContext.jsx'
 import { PartnerAuthProvider } from './lib/PartnerAuthContext.jsx'
 import PartnerRoute from './components/PartnerRoute.jsx'
+import { StaffAuthProvider } from './lib/StaffAuthContext.jsx'
+import StaffRoute from './components/StaffRoute.jsx'
 import ActiveOrderBubble from './components/ActiveOrderBubble.jsx'
 import Home from './pages/Home.jsx'
+import SearchResults from './pages/SearchResults.jsx'
 import RestaurantPage from './pages/RestaurantPage.jsx'
 import Cart from './pages/Cart.jsx'
 import Register from './pages/Register.jsx'
@@ -15,11 +18,14 @@ import Settings from './pages/Settings.jsx'
 import SettingsProfile from './pages/SettingsProfile.jsx'
 import SettingsPassword from './pages/SettingsPassword.jsx'
 import SettingsPayments from './pages/SettingsPayments.jsx'
+import SettingsNotifications from './pages/SettingsNotifications.jsx'
 import OrderHistory from './pages/OrderHistory.jsx'
 import PartnerLanding from './pages/PartnerLanding.jsx'
 import PartnerLogin from './pages/PartnerLogin.jsx'
 import PartnerRegister from './pages/PartnerRegister.jsx'
 import PartnerDashboard from './pages/PartnerDashboard.jsx'
+import StaffLogin from './pages/StaffLogin.jsx'
+import StaffDashboard from './pages/StaffDashboard.jsx'
 import PreviewDashboard from './pages/__PreviewDashboard.jsx'
 import PreviewAccount from './pages/__PreviewAccount.jsx'
 import PreviewCart from './pages/__PreviewCart.jsx'
@@ -50,6 +56,7 @@ function App() {
         <CartProvider>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/haku" element={<SearchResults />} />
             <Route path="/ravintola/:id" element={<RestaurantPage />} />
             <Route path="/ostoskori" element={<Cart />} />
             <Route path="/register" element={<Register />} />
@@ -59,6 +66,7 @@ function App() {
             <Route path="/asetukset/tiedot" element={<SettingsProfile />} />
             <Route path="/asetukset/salasana" element={<SettingsPassword />} />
             <Route path="/asetukset/maksutavat" element={<SettingsPayments />} />
+            <Route path="/asetukset/ilmoitukset" element={<SettingsNotifications />} />
             <Route path="/omat-tilaukset" element={<OrderHistory />} />
             <Route path="/__preview-account" element={<PreviewAccount />} />
             <Route path="/__preview-cart" element={<PreviewCart />} />
@@ -80,6 +88,24 @@ function App() {
                   <PartnerRoute>
                     <PartnerDashboard />
                   </PartnerRoute>
+                }
+              />
+            </Route>
+
+            <Route
+              element={
+                <StaffAuthProvider>
+                  <Outlet />
+                </StaffAuthProvider>
+              }
+            >
+              <Route path="/henkilokunta/kirjaudu" element={<StaffLogin />} />
+              <Route
+                path="/henkilokunta/dashboard"
+                element={
+                  <StaffRoute>
+                    <StaffDashboard />
+                  </StaffRoute>
                 }
               />
             </Route>

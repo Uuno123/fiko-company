@@ -156,10 +156,6 @@ function AccountMenu({ currentPath, variant }) {
             Tilaukset
           </Link>
 
-          <Link to="/asetukset" className="account-menu__item" role="menuitem" onClick={() => setOpen(false)}>
-            Asetukset
-          </Link>
-
           <div className="account-menu__divider" />
 
           <button

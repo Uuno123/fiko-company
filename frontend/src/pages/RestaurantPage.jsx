@@ -6,6 +6,8 @@ import Footer from '../components/Footer.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
 import { getRestaurantById } from '../lib/api.js'
 import { useCart } from '../lib/CartContext.jsx'
+import { useAuth } from '../lib/AuthContext.jsx'
+import { isRestaurantFavorited, addFavorite, removeFavorite } from '../lib/favorites.js'
 import { formatPrice, formatDisplayAddress } from '../lib/format.js'
 import { getTodayHours, formatHoursRange } from '../lib/openingHours.js'
 import {
@@ -36,6 +38,7 @@ function RestaurantPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const cart = useCart()
+  const { customer, isAuthenticated } = useAuth()
   const [restaurant, setRestaurant] = useState(null)
   const [status, setStatus] = useState('loading')
   const [errorMessage, setErrorMessage] = useState('')
@@ -108,6 +111,31 @@ function RestaurantPage() {
       cancelled = true
     }
   }, [id])
+
+  useEffect(() => {
+    if (!isAuthenticated || !customer) {
+      setIsFavorited(false)
+      return undefined
+    }
+    let cancelled = false
+    isRestaurantFavorited(customer.id, id).then((favorited) => {
+      if (!cancelled) setIsFavorited(favorited)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [id, isAuthenticated, customer])
+
+  async function toggleFavorite() {
+    if (!isAuthenticated || !customer) {
+      navigate('/login', { state: { from: `/ravintola/${id}` } })
+      return
+    }
+    const next = !isFavorited
+    setIsFavorited(next)
+    const ok = next ? await addFavorite(customer.id, id) : await removeFavorite(customer.id, id)
+    if (!ok) setIsFavorited(!next)
+  }
 
   useEffect(() => {
     if (menuCategories.length === 0) return undefined
@@ -230,7 +258,14 @@ function RestaurantPage() {
           }
           cart={
             cart.count > 0
-              ? { count: cart.count, totalCents: cart.totalCents, groups: cart.groups, onClear: cart.clear, formatPrice }
+              ? {
+                  count: cart.count,
+                  totalCents: cart.totalCents,
+                  groups: cart.groups,
+                  onClear: cart.clear,
+                  onClearRestaurant: cart.clearRestaurant,
+                  formatPrice,
+                }
               : null
           }
         />
@@ -343,7 +378,7 @@ function RestaurantPage() {
                   className={`favorite-button${isFavorited ? ' favorite-button--active' : ''}`}
                   aria-pressed={isFavorited}
                   aria-label={isFavorited ? 'Poista suosikeista' : 'Lisää suosikkeihin'}
-                  onClick={() => setIsFavorited((v) => !v)}
+                  onClick={toggleFavorite}
                 >
                   <svg viewBox="0 0 20 20" fill={isFavorited ? 'currentColor' : 'none'} aria-hidden="true">
                     <path

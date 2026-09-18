@@ -160,48 +160,51 @@
   color: var(--fiko-black);
 }
 
-.favorites-card {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.favorites-card__text h2 {
-  margin: 0 0 4px;
+.favorites-section h2 {
+  margin: 0;
   font-family: var(--font-display);
   font-size: 1.15rem;
   color: var(--fiko-black);
 }
 
-.favorites-card__text p {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 0.85rem;
-  line-height: 1.4;
-  max-width: 340px;
+.favorites-empty {
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
 }
 
-.favorites-card__demo {
-  display: inline-flex;
+.favorites-empty__icon {
+  display: flex;
   align-items: center;
-  gap: 8px;
-  height: 42px;
-  padding: 0 18px;
-  border-radius: var(--radius-pill);
-  border: 1.5px solid var(--border);
-  color: var(--fiko-black);
-  font-weight: 600;
-  font-size: 0.9rem;
-  white-space: nowrap;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface-muted);
+  color: var(--color-favorite);
   flex-shrink: 0;
 }
 
-.favorites-card__demo svg {
-  width: 18px;
-  height: 18px;
+.favorites-empty__icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.favorites-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.favorites-list .restaurant-card {
+  width: 100%;
+  max-width: none;
+  flex: 1 1 auto;
+  scroll-snap-align: none;
+}
+
+.favorites-list .restaurant-card .restaurant-card__media {
+  aspect-ratio: 3.2 / 1;
 }
 
 .address-card {
@@ -612,4 +615,112 @@
 .order-status-badge--cancelled {
   background: #f6d9d9;
   color: #8a2a2a;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.toggle-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.toggle-row__text {
+  min-width: 0;
+}
+
+.toggle-row__title {
+  margin: 0 0 2px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--fiko-black);
+}
+
+.toggle-row__hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.toggle-row__fixed {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.toggle-switch {
+  flex-shrink: 0;
+  position: relative;
+  width: 46px;
+  height: 27px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--border);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.toggle-switch:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.toggle-switch__thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-switch--on {
+  background: var(--fiko-lime);
+}
+
+.toggle-switch--on .toggle-switch__thumb {
+  transform: translateX(19px);
+}
+
+.account-actions-card {
+  gap: 10px;
+}
+
+.account-actions__signout {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--fiko-black);
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.account-actions__signout:hover {
+  opacity: 0.65;
+}
+
+.account-actions__delete {
+  align-self: flex-start;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.account-actions__delete:hover {
+  color: var(--fiko-black);
 }

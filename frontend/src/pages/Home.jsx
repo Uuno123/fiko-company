@@ -131,18 +131,22 @@ function Home() {
   const [restaurants, setRestaurants] = useState([])
   const [status, setStatus] = useState('loading')
   const [errorMessage, setErrorMessage] = useState('')
-  const [activeCategory, setActiveCategory] = useState(ALL)
+  const [activeCategory, setActiveCategory] = useState(() => searchParams.get('category') ?? ALL)
   const [activeCity, setActiveCity] = useState(() => searchParams.get('city') ?? '')
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '')
 
+  // Reagoi ?q=/?city=/?category=-parametreihin myös silloin kun ollaan jo etusivulla
+  // (esim. promo-karusellin kategoria-nosto navigoi tänne ilman uudelleenmounttausta,
+  // jolloin useState-lazy-alkuarvo ei enää ajaisi uudelleen). Siivotaan osoiterivi heti.
   useEffect(() => {
-    if (searchParams.has('q') || searchParams.has('city')) {
-      setSearchParams({}, { replace: true })
-    }
-    // Vain kerran alkulatauksella: siirretään mahdolliset ?q=/?city= headerin haun/sijainnin
-    // aloitusarvoiksi (ks. RestaurantPage), eikä pidetä niitä osoiterivillä sen jälkeen.
+    if (!searchParams.has('q') && !searchParams.has('city') && !searchParams.has('category')) return
+
+    if (searchParams.has('q')) setSearchQuery(searchParams.get('q') ?? '')
+    if (searchParams.has('city')) setActiveCity(searchParams.get('city') ?? '')
+    if (searchParams.has('category')) setActiveCategory(searchParams.get('category') ?? ALL)
+    setSearchParams({}, { replace: true })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [searchParams])
 
   useEffect(() => {
     let cancelled = false
@@ -213,7 +217,14 @@ function Home() {
         citySelector={cities.length > 0 ? { value: activeCity, onChange: setActiveCity, options: cities } : null}
         cart={
           cart.count > 0
-            ? { count: cart.count, totalCents: cart.totalCents, groups: cart.groups, onClear: cart.clear, formatPrice }
+            ? {
+                count: cart.count,
+                totalCents: cart.totalCents,
+                groups: cart.groups,
+                onClear: cart.clear,
+                onClearRestaurant: cart.clearRestaurant,
+                formatPrice,
+              }
             : null
         }
       />

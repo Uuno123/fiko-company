@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './PromoCarousel.css'
 
 const defaultSlides = [
@@ -13,18 +14,21 @@ const defaultSlides = [
     image: 'https://images.unsplash.com/photo-1600628421066-f6bda6a7b976?auto=format&fit=crop&w=1600&q=80',
     headline: 'Pizza ilman jonotusta',
     subtitle: 'Tilaa etukäteen, nouda kun on valmista.',
+    category: 'Kebab & Pizza',
   },
   {
     id: 'burgerit',
     image: 'https://images.unsplash.com/photo-1606149059549-6042addafc5a?auto=format&fit=crop&w=1600&q=80',
     headline: 'Burgerit tuoreena grillistä',
     subtitle: 'Kuopion parhaat burgeripaikat yhdessä paikassa.',
+    category: 'Burgerit',
   },
   {
     id: 'aasialainen',
     image: 'https://images.unsplash.com/photo-1567620815168-8afeeb18de17?auto=format&fit=crop&w=1600&q=80',
     headline: 'Sushia ja muuta aasialaista',
     subtitle: 'Nouda tuoretta sushia lähiravintolasta.',
+    category: 'Aasialainen',
   },
 ]
 
@@ -32,12 +36,18 @@ const defaultSlides = [
 // valmis mainoskuva ilman headline/subtitle-tekstiylitystä - kuva sisältää tekstinsä itse).
 function PromoCarousel({ slides = defaultSlides, ariaLabel = 'Nostot' }) {
   const trackRef = useRef(null)
+  const navigate = useNavigate()
   const showArrows = slides.length > 1
 
   function scrollBySlide(direction) {
     const track = trackRef.current
     if (!track) return
     track.scrollBy({ left: direction * track.clientWidth * 0.9, behavior: 'smooth' })
+  }
+
+  function handleSlideClick(slide) {
+    if (!slide.category) return
+    navigate(`/?category=${encodeURIComponent(slide.category)}`)
   }
 
   return (
@@ -58,7 +68,19 @@ function PromoCarousel({ slides = defaultSlides, ariaLabel = 'Nostot' }) {
       <div className="promo-carousel__track" ref={trackRef}>
         {slides.map((slide) =>
           slide.headline ? (
-            <div className="promo-slide" key={slide.id}>
+            <div
+              className={`promo-slide${slide.category ? ' promo-slide--clickable' : ''}`}
+              key={slide.id}
+              role={slide.category ? 'button' : undefined}
+              tabIndex={slide.category ? 0 : undefined}
+              onClick={() => handleSlideClick(slide)}
+              onKeyDown={(e) => {
+                if (slide.category && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault()
+                  handleSlideClick(slide)
+                }
+              }}
+            >
               <div className="promo-slide__image" style={{ backgroundImage: `url(${slide.image})` }} />
               <div className="promo-slide__overlay">
                 <h2>{slide.headline}</h2>

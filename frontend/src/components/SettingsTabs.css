@@ -47,7 +47,7 @@
 
 .settings-tabs {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 24px;
   margin-top: 20px;
   overflow-x: auto;

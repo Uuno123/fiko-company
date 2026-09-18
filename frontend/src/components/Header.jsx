@@ -1,21 +1,85 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AccountMenu from './AccountMenu.jsx'
+import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { supabase } from '../lib/supabaseClient.js'
 import './Header.css'
 
 function Header({ search, citySelector, cart, variant }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const [isCityOpen, setIsCityOpen] = useState(false)
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [cartBumped, setCartBumped] = useState(false)
+  const [itemResults, setItemResults] = useState([])
+  const [restaurantResults, setRestaurantResults] = useState([])
+  const [cartRestaurantImages, setCartRestaurantImages] = useState({})
   const searchInputRef = useRef(null)
   const cityRef = useRef(null)
   const cartRef = useRef(null)
   const prevCartCount = useRef(cart?.count ?? 0)
+
+  // Sietää pieniä kirjoitusvirheitä (esim. "pizzta" -> "pizza") trigram-samankaltaisuuden
+  // avulla (search_restaurants/search_menu_items, ks. migraatio 0027) - plain ilike vaatisi
+  // tarkan osajonon.
+  useEffect(() => {
+    const query = search?.value?.trim()
+    if (!query) {
+      setItemResults([])
+      setRestaurantResults([])
+      return undefined
+    }
+    let cancelled = false
+    const timer = setTimeout(() => {
+      supabase
+        .rpc('search_menu_items', { search_term: query })
+        .then(({ data }) => {
+          if (!cancelled) setItemResults(data ?? [])
+        })
+      supabase
+        .rpc('search_restaurants', { search_term: query })
+        .then(({ data }) => {
+          if (!cancelled) setRestaurantResults(data ?? [])
+        })
+    }, 250)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
+  }, [search?.value])
+
+  useEffect(() => {
+    const missingIds = (cart?.groups ?? [])
+      .map((g) => g.restaurantId)
+      .filter((id) => !(id in cartRestaurantImages))
+    if (missingIds.length === 0) return undefined
+
+    let cancelled = false
+    supabase
+      .from('restaurants')
+      .select('id, image_url')
+      .in('id', missingIds)
+      .then(({ data }) => {
+        if (cancelled || !data) return
+        setCartRestaurantImages((current) => {
+          const next = { ...current }
+          data.forEach((r) => {
+            next[r.id] = r.image_url ?? null
+          })
+          missingIds.forEach((id) => {
+            if (!(id in next)) next[id] = null
+          })
+          return next
+        })
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [cart?.groups, cartRestaurantImages])
 
   useEffect(() => {
     const current = cart?.count ?? 0
@@ -85,7 +149,9 @@ function Header({ search, citySelector, cart, variant }) {
 
   const accountMenuVariant = isTransparent || variant === 'dark' ? 'overlay' : undefined
 
-  const showSuggestions = Boolean(isSearchFocused && search?.value && search?.suggestions?.length > 0)
+  const showSuggestions = Boolean(
+    isSearchFocused && search?.value && (restaurantResults.length > 0 || itemResults.length > 0),
+  )
 
   return (
     <header
@@ -184,7 +250,12 @@ function Header({ search, citySelector, cart, variant }) {
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') search.onSubmit?.(search.value)
+                  if (e.key === 'Enter' && search.value.trim()) {
+                    searchInputRef.current?.blur()
+                    setIsSearchFocused(false)
+                    search.onSubmit?.(search.value)
+                    navigate(`/haku?q=${encodeURIComponent(search.value.trim())}`)
+                  }
                 }}
               />
               {search.value && (
@@ -205,21 +276,73 @@ function Header({ search, citySelector, cart, variant }) {
               <>
                 <div className="search-suggest-backdrop" />
                 <div className="search-suggest-panel">
-                  {search.suggestions.slice(0, 8).map((r) => (
-                    <Link
-                      key={r.id}
-                      to={`/ravintola/${r.id}`}
-                      className="search-suggest-panel__item"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
-                        searchInputRef.current?.blur()
-                        setIsSearchFocused(false)
-                      }}
-                    >
-                      <span className="search-suggest-panel__name">{r.name}</span>
-                      {r.category && <span className="search-suggest-panel__category">{r.category}</span>}
-                    </Link>
-                  ))}
+                  {restaurantResults.length > 0 && (
+                    <div className="search-suggest-section">
+                      <h3 className="search-suggest-section__title">Ravintolat ja kaupat</h3>
+                      <div className="search-suggest-restaurants">
+                        {restaurantResults.map((r) => (
+                          <Link
+                            key={r.id}
+                            to={`/ravintola/${r.id}`}
+                            className="search-suggest-restaurant-card"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              searchInputRef.current?.blur()
+                              setIsSearchFocused(false)
+                            }}
+                          >
+                            <div className="search-suggest-restaurant-card__media">
+                              {r.image_url ? (
+                                <img src={r.image_url} alt={r.name} loading="lazy" />
+                              ) : (
+                                <RestaurantAvatarPlaceholder name={r.name} />
+                              )}
+                            </div>
+                            <span className="search-suggest-restaurant-card__name">{r.name}</span>
+                            <span className="search-suggest-restaurant-card__meta">
+                              {r.free_delivery ? 'Ilmainen kuljetus' : 'Kuljetus 5,99 €'}
+                              {r.pickup_estimate_minutes && ` · n. ${r.pickup_estimate_minutes} min`}
+                            </span>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {itemResults.length > 0 && (
+                    <div className="search-suggest-section">
+                      <h3 className="search-suggest-section__title">Hakutulokset</h3>
+                      <div className="search-suggest-items">
+                        {itemResults.map((item) => (
+                          <Link
+                            key={item.id}
+                            to={`/ravintola/${item.restaurant_id}`}
+                            className="search-suggest-item-card"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              searchInputRef.current?.blur()
+                              setIsSearchFocused(false)
+                            }}
+                          >
+                            <div className="search-suggest-item-card__media">
+                              {item.image_url ? (
+                                <img src={item.image_url} alt={item.name} loading="lazy" />
+                              ) : (
+                                <RestaurantAvatarPlaceholder name={item.name} />
+                              )}
+                            </div>
+                            <div className="search-suggest-item-card__body">
+                              <span className="search-suggest-item-card__price">
+                                {(item.price_cents / 100).toFixed(2).replace('.', ',')} €
+                              </span>
+                              <span className="search-suggest-item-card__name">{item.name}</span>
+                              <span className="search-suggest-item-card__restaurant">{item.restaurant_name}</span>
+                            </div>
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -249,51 +372,139 @@ function Header({ search, citySelector, cart, variant }) {
               </button>
 
               {isCartOpen && (
-                <div className="cart-menu__panel">
-                  <div className="cart-menu__groups">
-                    {cart.groups.map((group) => (
-                      <div className="cart-menu__group" key={group.restaurantId}>
-                        <span className="cart-menu__group-name">{group.restaurantName}</span>
-                        <ul className="cart-menu__lines">
-                          {group.lines.map((line) => (
-                            <li key={line.item.id}>
-                              <span>
-                                {line.quantity} × {line.item.name}
+                <>
+                  <div className="cart-drawer-backdrop" onClick={() => setIsCartOpen(false)} />
+                  <aside className="cart-drawer" role="dialog" aria-label="Ostoskori">
+                    <div className="cart-drawer__header">
+                      <span className="cart-drawer__title">Ostoskorisi</span>
+                      <button
+                        type="button"
+                        className="cart-drawer__close"
+                        aria-label="Sulje ostoskori"
+                        onClick={() => setIsCartOpen(false)}
+                      >
+                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                          <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <div className="cart-drawer__body">
+                      {cart.groups.map((group) => {
+                        const itemCount = group.lines.reduce((sum, line) => sum + line.quantity, 0)
+                        const groupTotalCents = group.lines.reduce(
+                          (sum, line) => sum + line.quantity * (line.unitPriceCents ?? line.item.price_cents),
+                          0,
+                        )
+
+                        return (
+                          <div className="cart-drawer-card" key={group.restaurantId}>
+                            <div className="cart-drawer-card__header">
+                              <div className="cart-drawer-card__identity">
+                                <span className="cart-drawer-card__avatar" aria-hidden="true">
+                                  {cartRestaurantImages[group.restaurantId] ? (
+                                    <img src={cartRestaurantImages[group.restaurantId]} alt="" />
+                                  ) : (
+                                    group.restaurantName?.trim().charAt(0).toUpperCase() || '?'
+                                  )}
+                                </span>
+                                <div className="cart-drawer-card__titles">
+                                  <span className="cart-drawer-card__name">{group.restaurantName}</span>
+                                  <span className="cart-drawer-card__meta">
+                                    {itemCount} {itemCount === 1 ? 'tuote' : 'tuotetta'}
+                                  </span>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                className="cart-drawer-card__remove"
+                                aria-label={`Tyhjennä ${group.restaurantName} korista`}
+                                onClick={() => cart.onClearRestaurant(group.restaurantId)}
+                              >
+                                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                  <path
+                                    d="M5 6h10M8.5 6V4.8a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1V6M6.3 6l.6 9a1 1 0 0 0 1 .95h4.2a1 1 0 0 0 1-.95l.6-9"
+                                    stroke="currentColor"
+                                    strokeWidth="1.4"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+
+                            <ul className="cart-drawer-card__items">
+                              {group.lines.map((line) => (
+                                <li className="cart-drawer-card__item" key={line.item.id + (line.optionsKey ?? '')}>
+                                  <div className="cart-drawer-card__item-media">
+                                    {line.item.image_url ? (
+                                      <img src={line.item.image_url} alt="" />
+                                    ) : (
+                                      <RestaurantAvatarPlaceholder name={line.item.name} size="thumb" />
+                                    )}
+                                  </div>
+                                  <div className="cart-drawer-card__item-info">
+                                    <span className="cart-drawer-card__item-name">
+                                      <span className="cart-drawer-card__item-qty">{line.quantity}×</span>{' '}
+                                      {line.item.name}
+                                    </span>
+                                    {line.selectedOptions?.length > 0 && (
+                                      <span className="cart-drawer-card__item-options">
+                                        {line.selectedOptions.map((o) => o.name).join(', ')}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="cart-drawer-card__item-price">
+                                    {cart.formatPrice(line.quantity * (line.unitPriceCents ?? line.item.price_cents))}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+
+                            <div className="cart-drawer-card__footer">
+                              <span className="cart-drawer-card__subtotal">
+                                Välisumma: {cart.formatPrice(groupTotalCents)}
                               </span>
-                              <span>{cart.formatPrice(line.quantity * line.item.price_cents)}</span>
-                            </li>
-                          ))}
-                        </ul>
+                              <div className="cart-drawer-card__actions">
+                                <Link
+                                  to={`/ravintola/${group.restaurantId}`}
+                                  className="cart-drawer-card__add"
+                                  onClick={() => setIsCartOpen(false)}
+                                >
+                                  Lisää tuotteita
+                                </Link>
+                                <Link
+                                  to="/ostoskori"
+                                  className="cart-drawer-card__checkout"
+                                  onClick={() => setIsCartOpen(false)}
+                                >
+                                  Siirry kassalle
+                                </Link>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    <div className="cart-drawer__footer">
+                      <div className="cart-drawer__total">
+                        <span>Yhteensä</span>
+                        <span>{cart.formatPrice(cart.totalCents)}</span>
                       </div>
-                    ))}
-                  </div>
-                  <div className="cart-menu__total">
-                    <span>Yhteensä</span>
-                    <span>{cart.formatPrice(cart.totalCents)}</span>
-                  </div>
-                  <Link to="/ostoskori" className="cart-menu__checkout" onClick={() => setIsCartOpen(false)}>
-                    Siirry kassalle
-                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <path
-                        d="M8 5l5 5-5 5"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </Link>
-                  <button
-                    type="button"
-                    className="cart-menu__clear"
-                    onClick={() => {
-                      cart.onClear()
-                      setIsCartOpen(false)
-                    }}
-                  >
-                    Tyhjennä ostoskori
-                  </button>
-                </div>
+                      <button
+                        type="button"
+                        className="cart-drawer__clear"
+                        onClick={() => {
+                          cart.onClear()
+                          setIsCartOpen(false)
+                        }}
+                      >
+                        Tyhjennä koko ostoskori
+                      </button>
+                    </div>
+                  </aside>
+                </>
               )}
             </div>
           )}

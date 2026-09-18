@@ -16,8 +16,9 @@ function ChatIcon() {
 
 const TABS = [
   { to: '/asetukset/tiedot', label: 'Omat tiedot' },
-  { to: '/asetukset/salasana', label: 'Salasana' },
   { to: '/asetukset/maksutavat', label: 'Maksutavat' },
+  { to: '/asetukset/ilmoitukset', label: 'Ilmoitukset' },
+  { to: '/asetukset/salasana', label: 'Salasana' },
   { to: '/omat-tilaukset', label: 'Tilaukset' },
 ]
 

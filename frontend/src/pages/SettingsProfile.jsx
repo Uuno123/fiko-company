@@ -1,8 +1,12 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import SettingsLayout from '../components/SettingsLayout.jsx'
 import AddressMapPicker from '../components/AddressMapPicker.jsx'
+import RestaurantCard from '../components/RestaurantCard.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
+import { getFavoriteRestaurantIds } from '../lib/favorites.js'
+import { getRestaurants } from '../lib/api.js'
 import '../pages/AuthForm.css'
 import './Settings.css'
 
@@ -20,8 +24,22 @@ function PinIcon() {
   )
 }
 
+function HeartIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path
+        d="M10 17s-6.5-4-6.5-8.5A3.5 3.5 0 0 1 10 6a3.5 3.5 0 0 1 6.5 2.5C16.5 13 10 17 10 17Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
 function SettingsProfile() {
-  const { customer, refreshCustomer } = useAuth()
+  const { customer, refreshCustomer, signOut } = useAuth()
+  const navigate = useNavigate()
 
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
@@ -35,6 +53,9 @@ function SettingsProfile() {
   const [addressStatus, setAddressStatus] = useState('idle')
   const [addressError, setAddressError] = useState('')
 
+  const [favorites, setFavorites] = useState([])
+  const [favoritesStatus, setFavoritesStatus] = useState('loading')
+
   useEffect(() => {
     if (customer) {
       setName(customer.name || '')
@@ -42,6 +63,33 @@ function SettingsProfile() {
       setAddress(customer.address || '')
     }
   }, [customer])
+
+  useEffect(() => {
+    if (!customer) return undefined
+    let cancelled = false
+    setFavoritesStatus('loading')
+
+    Promise.all([getFavoriteRestaurantIds(customer.id), getRestaurants()])
+      .then(([favoriteIds, restaurants]) => {
+        if (cancelled) return
+        const idSet = new Set(favoriteIds)
+        setFavorites(restaurants.filter((r) => idSet.has(r.id)))
+        setFavoritesStatus('ready')
+      })
+      .catch(() => {
+        if (cancelled) return
+        setFavoritesStatus('error')
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [customer])
+
+  async function handleSignOut() {
+    await signOut()
+    navigate('/')
+  }
 
   function startEditing() {
     setError('')
@@ -168,25 +216,36 @@ function SettingsProfile() {
       )}
 
       {!editing && (
-        <section className="auth-card favorites-card">
-          <div className="favorites-card__text">
-            <h2>Lempipaikat</h2>
-            <p>
-              Löydät tänne suosikkiravintolasi ja -kauppasi. Voit lisätä suosikkeja napauttamalla sydän-ikonia.
-            </p>
-          </div>
-          <span className="favorites-card__demo">
-            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path
-                d="M10 17s-6.5-4-6.5-8.5A3.5 3.5 0 0 1 10 6a3.5 3.5 0 0 1 6.5 2.5C16.5 13 10 17 10 17Z"
-                fill="var(--color-favorite)"
-                stroke="var(--color-favorite)"
-                strokeWidth="1.5"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Suosikki
-          </span>
+        <section className="auth-card favorites-section">
+          <h2>Lempipaikat</h2>
+
+          {favoritesStatus === 'ready' && favorites.length === 0 && (
+            <div className="settings-empty favorites-empty">
+              <span className="favorites-empty__icon">
+                <HeartIcon />
+              </span>
+              <div>
+                <p>Ei vielä suosikkeja.</p>
+                <span className="settings-empty__hint">
+                  Napauta sydän-ikonia ravintolan sivulla, niin löydät sen aina täältä nopeasti.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {favoritesStatus === 'error' && (
+            <div className="settings-empty">
+              <p>Suosikkien haku epäonnistui. Yritä hetken kuluttua uudelleen.</p>
+            </div>
+          )}
+
+          {favorites.length > 0 && (
+            <div className="favorites-list">
+              {favorites.map((restaurant) => (
+                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+              ))}
+            </div>
+          )}
         </section>
       )}
 
@@ -220,6 +279,20 @@ function SettingsProfile() {
               </button>
             </div>
           </form>
+        </section>
+      )}
+
+      {!editing && (
+        <section className="auth-card account-actions-card">
+          <button type="button" className="account-actions__signout" onClick={handleSignOut}>
+            Kirjaudu ulos
+          </button>
+          <a
+            href="mailto:tuki@fiko.fi?subject=Tilin%20poistopyynt%C3%B6"
+            className="account-actions__delete"
+          >
+            Pyydä tilin poistamista
+          </a>
         </section>
       )}
     </SettingsLayout>
