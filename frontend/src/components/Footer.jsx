@@ -8,7 +8,7 @@ function Footer() {
     <footer className="site-footer">
       <div className="site-footer__inner">
         <div className="site-footer__brand">
-          <span className="site-footer__logo">Fiko</span>
+          <span className="site-footer__logo">delivo</span>
           <p className="site-footer__tagline">Nouda tai tilaa kuljetuksella suoraan lähiravintoloista.</p>
         </div>
 
@@ -19,7 +19,7 @@ function Footer() {
           <Link to="/register">Rekisteröidy</Link>
         </nav>
 
-        <p className="site-footer__copyright">© {year} Fiko</p>
+        <p className="site-footer__copyright">© {year} delivo</p>
       </div>
     </footer>
   )

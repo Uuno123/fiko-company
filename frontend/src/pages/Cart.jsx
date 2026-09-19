@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import Header from '../components/Header.jsx'
+import AccountMenu from '../components/AccountMenu.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
 import LoginModal from '../components/LoginModal.jsx'
 import AddressMapPicker from '../components/AddressMapPicker.jsx'
@@ -77,7 +78,7 @@ const STEPS = [
 ]
 
 const PROMO_CODES = {
-  FIKO10: { type: 'percent', value: 10, label: '10 % alennus' },
+  DELIVO10: { type: 'percent', value: 10, label: '10 % alennus' },
   TERVETULOA: { type: 'fixed', value: 300, label: '3,00 € alennus' },
 }
 
@@ -201,7 +202,7 @@ function StripeCardSection({ cardName, setCardName, customerEmail, totalCents, d
           <rect x="4" y="9" width="12" height="8" rx="2" stroke="currentColor" strokeWidth="1.4" />
           <path d="M6.5 9V6.5a3.5 3.5 0 0 1 7 0V9" stroke="currentColor" strokeWidth="1.4" />
         </svg>
-        Maksu käsitellään Stripen kautta - korttitietosi eivät kulje Fikon palvelimien läpi.
+        Maksu käsitellään Stripen kautta - korttitietosi eivät kulje delivon palvelimien läpi.
       </p>
     </form>
   )
@@ -458,7 +459,7 @@ function Cart() {
       value: headerSearch,
       onChange: setHeaderSearch,
       onSubmit: (q) => navigate(`/?q=${encodeURIComponent(q)}`),
-      placeholder: 'Hae Fikosta...',
+      placeholder: 'Hae delivosta...',
     },
     citySelector: firstCity
       ? {
@@ -471,8 +472,16 @@ function Cart() {
 
   if (authStatus !== 'loading' && !isAuthenticated) {
     return (
-      <div className="page">
+      <div className="page page--cart">
         <Header {...headerProps} />
+        <div className="cart-topbar">
+          <button type="button" className="cart-topbar__back" aria-label="Takaisin" onClick={() => navigate('/')}>
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M12 5 7 10l5 5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          <AccountMenu currentPath="/ostoskori" />
+        </div>
         <main className="cart-page" aria-hidden="true">
           <div className="cart-empty">
             <div className="cart-empty__icon">
@@ -499,9 +508,28 @@ function Cart() {
     )
   }
 
+  // Mobiilin takaisin-nuoli peruu yhden vaiheen kerrallaan, ei poistu koko
+  // kassalta kesken täytön.
+  function handleTopbarBack() {
+    if (step === 'payment' || step === 'processing') setStep('details')
+    else if (step === 'details') setStep('review')
+    else navigate('/')
+  }
+
   return (
-    <div className="page">
+    <div className="page page--cart">
       <Header {...headerProps} />
+
+      {/* Mobiilissa koko header korvataan tällä: pelkkä takaisin-nuoli ja tili
+          vastakkaisissa reunoissa, jotta kassalla ei ole mitään ylimääräistä. */}
+      <div className="cart-topbar">
+        <button type="button" className="cart-topbar__back" aria-label="Takaisin" onClick={handleTopbarBack}>
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M12 5 7 10l5 5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+        <AccountMenu currentPath="/ostoskori" />
+      </div>
 
       <main className={`cart-page${hasMobileFixedCta ? ' cart-page--fixed-cta' : ''}`}>
         {step !== 'success' && (

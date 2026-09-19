@@ -2,11 +2,12 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AccountMenu from './AccountMenu.jsx'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
+import SearchSuggest from './SearchSuggest.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import './Header.css'
 
-function Header({ search, citySelector, cart, variant }) {
+function Header({ search, citySelector, cart, variant, back }) {
   const location = useLocation()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
@@ -15,42 +16,11 @@ function Header({ search, citySelector, cart, variant }) {
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [cartBumped, setCartBumped] = useState(false)
-  const [itemResults, setItemResults] = useState([])
-  const [restaurantResults, setRestaurantResults] = useState([])
   const [cartRestaurantImages, setCartRestaurantImages] = useState({})
   const searchInputRef = useRef(null)
   const cityRef = useRef(null)
   const cartRef = useRef(null)
   const prevCartCount = useRef(cart?.count ?? 0)
-
-  // Sietää pieniä kirjoitusvirheitä (esim. "pizzta" -> "pizza") trigram-samankaltaisuuden
-  // avulla (search_restaurants/search_menu_items, ks. migraatio 0027) - plain ilike vaatisi
-  // tarkan osajonon.
-  useEffect(() => {
-    const query = search?.value?.trim()
-    if (!query) {
-      setItemResults([])
-      setRestaurantResults([])
-      return undefined
-    }
-    let cancelled = false
-    const timer = setTimeout(() => {
-      supabase
-        .rpc('search_menu_items', { search_term: query })
-        .then(({ data }) => {
-          if (!cancelled) setItemResults(data ?? [])
-        })
-      supabase
-        .rpc('search_restaurants', { search_term: query })
-        .then(({ data }) => {
-          if (!cancelled) setRestaurantResults(data ?? [])
-        })
-    }, 250)
-    return () => {
-      cancelled = true
-      clearTimeout(timer)
-    }
-  }, [search?.value])
 
   useEffect(() => {
     const missingIds = (cart?.groups ?? [])
@@ -149,9 +119,7 @@ function Header({ search, citySelector, cart, variant }) {
 
   const accountMenuVariant = isTransparent || variant === 'dark' ? 'overlay' : undefined
 
-  const showSuggestions = Boolean(
-    isSearchFocused && search?.value && (restaurantResults.length > 0 || itemResults.length > 0),
-  )
+  const showSuggestions = Boolean(isSearchFocused && search?.value?.trim())
 
   return (
     <header
@@ -161,9 +129,22 @@ function Header({ search, citySelector, cart, variant }) {
     >
       <div className="site-header__inner">
         <div className="site-header__left">
-          <Link to="/" className="site-header__logo">
-            Fiko
-          </Link>
+          {back ? (
+            <button
+              type="button"
+              className="site-header__back"
+              aria-label="Takaisin"
+              onClick={() => navigate(-1)}
+            >
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="m12 5-5 5 5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          ) : (
+            <Link to="/" className="site-header__logo">
+              delivo
+            </Link>
+          )}
 
           {citySelector && (
             <div className="city-select" ref={cityRef}>
@@ -275,75 +256,14 @@ function Header({ search, citySelector, cart, variant }) {
             {showSuggestions && (
               <>
                 <div className="search-suggest-backdrop" />
-                <div className="search-suggest-panel">
-                  {restaurantResults.length > 0 && (
-                    <div className="search-suggest-section">
-                      <h3 className="search-suggest-section__title">Ravintolat ja kaupat</h3>
-                      <div className="search-suggest-restaurants">
-                        {restaurantResults.map((r) => (
-                          <Link
-                            key={r.id}
-                            to={`/ravintola/${r.id}`}
-                            className="search-suggest-restaurant-card"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => {
-                              searchInputRef.current?.blur()
-                              setIsSearchFocused(false)
-                            }}
-                          >
-                            <div className="search-suggest-restaurant-card__media">
-                              {r.image_url ? (
-                                <img src={r.image_url} alt={r.name} loading="lazy" />
-                              ) : (
-                                <RestaurantAvatarPlaceholder name={r.name} />
-                              )}
-                            </div>
-                            <span className="search-suggest-restaurant-card__name">{r.name}</span>
-                            <span className="search-suggest-restaurant-card__meta">
-                              {r.free_delivery ? 'Ilmainen kuljetus' : 'Kuljetus 5,99 €'}
-                              {r.pickup_estimate_minutes && ` · n. ${r.pickup_estimate_minutes} min`}
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {itemResults.length > 0 && (
-                    <div className="search-suggest-section">
-                      <h3 className="search-suggest-section__title">Hakutulokset</h3>
-                      <div className="search-suggest-items">
-                        {itemResults.map((item) => (
-                          <Link
-                            key={item.id}
-                            to={`/ravintola/${item.restaurant_id}`}
-                            className="search-suggest-item-card"
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => {
-                              searchInputRef.current?.blur()
-                              setIsSearchFocused(false)
-                            }}
-                          >
-                            <div className="search-suggest-item-card__media">
-                              {item.image_url ? (
-                                <img src={item.image_url} alt={item.name} loading="lazy" />
-                              ) : (
-                                <RestaurantAvatarPlaceholder name={item.name} />
-                              )}
-                            </div>
-                            <div className="search-suggest-item-card__body">
-                              <span className="search-suggest-item-card__price">
-                                {(item.price_cents / 100).toFixed(2).replace('.', ',')} €
-                              </span>
-                              <span className="search-suggest-item-card__name">{item.name}</span>
-                              <span className="search-suggest-item-card__restaurant">{item.restaurant_name}</span>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <SearchSuggest
+                  query={search.value}
+                  variant="dropdown"
+                  onNavigate={() => {
+                    searchInputRef.current?.blur()
+                    setIsSearchFocused(false)
+                  }}
+                />
               </>
             )}
           </div>

@@ -14,7 +14,7 @@ const MIN_CHARGE_CENTS = 50 // Stripe EUR-minimi
 // Pidettävä samassa muodossa kuin frontend/src/pages/Cart.jsx:n PROMO_CODES - jos toista
 // muutetaan, muuta toinenkin, muuten näytetty ja veloitettu summa voivat erota.
 const PROMO_CODES = {
-  FIKO10: { type: 'percent', value: 10 },
+  DELIVO10: { type: 'percent', value: 10 },
   TERVETULOA: { type: 'fixed', value: 300 },
 }
 
@@ -113,7 +113,7 @@ router.post('/create-intent', async (req, res) => {
       promoCode: appliedPromoCode,
     })
   } catch (err) {
-    console.error('[fiko-backend] Stripe PaymentIntentin luonti epäonnistui:', err.message)
+    console.error('[delivo-backend] Stripe PaymentIntentin luonti epäonnistui:', err.message)
     res.status(502).json({ error: 'Maksun aloitus epäonnistui. Yritä uudelleen.' })
   }
 })

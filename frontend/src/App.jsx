@@ -1,15 +1,14 @@
 import { useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom'
 import { AuthProvider } from './lib/AuthContext.jsx'
 import { CartProvider } from './lib/CartContext.jsx'
 import { PartnerAuthProvider } from './lib/PartnerAuthContext.jsx'
 import PartnerRoute from './components/PartnerRoute.jsx'
-import { StaffAuthProvider } from './lib/StaffAuthContext.jsx'
-import StaffRoute from './components/StaffRoute.jsx'
 import ActiveOrderBubble from './components/ActiveOrderBubble.jsx'
 import Home from './pages/Home.jsx'
 import SearchResults from './pages/SearchResults.jsx'
 import RestaurantPage from './pages/RestaurantPage.jsx'
+import CategoryPage from './pages/CategoryPage.jsx'
 import Cart from './pages/Cart.jsx'
 import Register from './pages/Register.jsx'
 import Login from './pages/Login.jsx'
@@ -24,11 +23,21 @@ import PartnerLanding from './pages/PartnerLanding.jsx'
 import PartnerLogin from './pages/PartnerLogin.jsx'
 import PartnerRegister from './pages/PartnerRegister.jsx'
 import PartnerDashboard from './pages/PartnerDashboard.jsx'
-import StaffLogin from './pages/StaffLogin.jsx'
-import StaffDashboard from './pages/StaffDashboard.jsx'
 import PreviewDashboard from './pages/__PreviewDashboard.jsx'
 import PreviewAccount from './pages/__PreviewAccount.jsx'
 import PreviewCart from './pages/__PreviewCart.jsx'
+
+// React Router ei nollaa vieritystä sivunvaihdossa - ilman tätä esim. ravintolan sivulle
+// PALATESSA (selaimen takaisin-painike tms.) sivu renderöityy edelliseen vieritysasentoon,
+// jolloin Header luulee heti olevansa "scrollattu" ja näyttää tumman/kiinteän taustan sen
+// läpinäkyvän hero-tilan sijaan.
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
+}
 
 function App() {
   useEffect(() => {
@@ -52,12 +61,14 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <CartProvider>
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/haku" element={<SearchResults />} />
             <Route path="/ravintola/:id" element={<RestaurantPage />} />
+            <Route path="/kategoria/:slug" element={<CategoryPage />} />
             <Route path="/ostoskori" element={<Cart />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
@@ -88,24 +99,6 @@ function App() {
                   <PartnerRoute>
                     <PartnerDashboard />
                   </PartnerRoute>
-                }
-              />
-            </Route>
-
-            <Route
-              element={
-                <StaffAuthProvider>
-                  <Outlet />
-                </StaffAuthProvider>
-              }
-            >
-              <Route path="/henkilokunta/kirjaudu" element={<StaffLogin />} />
-              <Route
-                path="/henkilokunta/dashboard"
-                element={
-                  <StaffRoute>
-                    <StaffDashboard />
-                  </StaffRoute>
                 }
               />
             </Route>

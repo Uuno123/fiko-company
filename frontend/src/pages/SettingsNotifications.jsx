@@ -51,7 +51,7 @@ function SettingsNotifications() {
         <div className="toggle-row">
           <div className="toggle-row__text">
             <p className="toggle-row__title">Tarjoukset ja uutiset</p>
-            <p className="toggle-row__hint">Satunnaisia etuja ja uutuuksia Fikon ravintoloilta.</p>
+            <p className="toggle-row__hint">Satunnaisia etuja ja uutuuksia delivon ravintoloilta.</p>
           </div>
           <button
             type="button"

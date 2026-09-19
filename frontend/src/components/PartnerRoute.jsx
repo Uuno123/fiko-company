@@ -12,7 +12,7 @@ function NotOwnerNotice() {
         <div className="partner-card">
           <h2>Tämä tili ei ole kumppanitili</h2>
           <p>
-            Kirjauduit sisään, mutta tähän tiliin ei ole liitetty kumppaniravintolaa. Jos kirjauduit Fikon
+            Kirjauduit sisään, mutta tähän tiliin ei ole liitetty kumppaniravintolaa. Jos kirjauduit delivon
             asiakastilillä vahingossa, kirjaudu ulos ja käytä kumppanin omia tunnuksia. Jos et ole vielä jättänyt
             kumppanuushakemusta, voit tehdä sen alta.
           </p>

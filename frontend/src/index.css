@@ -1,13 +1,18 @@
 :root {
-  /* Lopullinen: ei kirkasta aksenttiväriä, pelkkä musta - sama musta kuin --fiko-black
-     (ei puhdas #000000) jotta kaikki "musta" pinta koko sivustolla on sama sävy. */
-  --fiko-lime: #14150f;
-  --fiko-black: #14150f;
+  /* Ei puhdas #000000 vaan hieman lämmin musta, jotta kaikki "musta" pinta
+     koko sivustolla on samaa sävyä. */
+  --delivo-black: #14150f;
 
   --surface: #ffffff;
   --surface-muted: #f1f3ec;
   --text-muted: #6c7066;
   --border: #e2e5db;
+
+  /* delivo-brändi: oranssi on ensisijainen korostusväri, musta säilyy
+     ensisijaisten nappien värinä. */
+  --delivo-orange: #f4501e;
+  --delivo-orange-dark: #d93f10;
+  --delivo-orange-soft: #ffece5;
 
   --color-open: #2fae4e;
   --color-closed: #9a9d94;
@@ -29,10 +34,15 @@
   box-sizing: border-box;
 }
 
-/* overflow-x tarvitaan myös html:lle: pelkkä body:n overflow ei rajaa
+/* overflow-x kuuluu html:lle eikä bodylle: pelkkä body:n overflow ei rajaa
    position:fixed-elementtejä (esim. Stripe Linkin oma kelluva "käytä tätä
    korttia" -pudotus), jotka muuten venyttävät koko dokumentin leveyttä
-   kapealla näytöllä ja rikkovat kaikki %-pohjaiset leveydet. */
+   kapealla näytöllä ja rikkovat kaikki %-pohjaiset leveydet.
+
+   HUOM älä lisää overflow-x:ää takaisin bodylle: juurielementin overflow
+   periytyy viewportille, jolloin bodyn oma overflow jää voimaan bodyn omana
+   leikkaavana laatikkona - ja silloin sticky-header kiinnittyy bodyyn
+   viewportin sijaan eli valuu pois näkyvistä vieritettäessä. */
 html {
   overflow-x: hidden;
   width: 100%;
@@ -41,9 +51,8 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  overflow-x: hidden;
   background: var(--surface-muted);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
@@ -72,7 +81,7 @@ button {
   background: var(--surface);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   text-decoration: none;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   font-weight: 600;
   font-size: 0.85rem;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -98,7 +107,7 @@ button {
   font-size: 0.75rem;
   font-weight: 600;
   background: rgba(255, 255, 255, 0.92);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   width: fit-content;
 }
 
@@ -121,4 +130,18 @@ button {
   color: var(--text-muted);
   font-size: 0.8rem;
   font-weight: 500;
+}
+
+/* delivo-brändimerkki: valkoinen teksti oranssilla pyöristetyllä taustalla. */
+.delivo-logo {
+  padding: 5px 13px;
+  border-radius: 14px;
+  background: var(--delivo-orange);
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: #fff;
+  text-decoration: none;
 }

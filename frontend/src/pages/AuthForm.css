@@ -30,7 +30,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.3rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .auth-card__subtitle {
@@ -50,7 +50,7 @@
   border: 1.5px solid var(--border);
   border-radius: var(--radius-pill);
   background: var(--surface);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   font-family: inherit;
   font-weight: 700;
   font-size: 0.95rem;
@@ -76,13 +76,13 @@
 }
 
 .oauth-btn--apple {
-  background: var(--fiko-black);
-  border-color: var(--fiko-black);
+  background: var(--delivo-black);
+  border-color: var(--delivo-black);
   color: var(--surface);
 }
 
 .oauth-btn--apple:hover {
-  border-color: var(--fiko-black);
+  border-color: var(--delivo-black);
   box-shadow: 0 8px 16px -10px rgba(20, 21, 15, 0.55);
 }
 
@@ -128,7 +128,7 @@
 .auth-field label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .auth-field input {
@@ -137,14 +137,14 @@
   padding: 9px 14px;
   font-size: 0.95rem;
   font-family: var(--font-body);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   background: var(--surface);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .auth-field input:focus {
   outline: none;
-  border-color: var(--fiko-lime);
+  border-color: var(--delivo-black);
   box-shadow: 0 0 0 4px rgba(20, 21, 15, 0.18);
 }
 
@@ -157,7 +157,7 @@
   margin-top: 2px;
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--fiko-lime);
+  background: var(--delivo-black);
   color: #fff;
   font-weight: 700;
   font-size: 0.95rem;
@@ -201,7 +201,7 @@
 }
 
 .auth-footer a {
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   font-weight: 600;
   text-decoration: none;
 }
@@ -223,5 +223,5 @@
 }
 
 .auth-link-button:hover {
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }

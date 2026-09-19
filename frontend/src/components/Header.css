@@ -3,6 +3,9 @@
   position: sticky;
   top: 0;
   z-index: 50;
+  /* Kotivalikosta avattuna (standalone) sivu alkaa tilapalkin alta, joten
+     header tarvitsee tilapalkin verran omaa yläpaddingia. Selaimessa arvo on 0. */
+  padding-top: env(safe-area-inset-top, 0px);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 32px -16px rgba(0, 0, 0, 0.5);
 }
 
@@ -11,7 +14,7 @@
   top: 0;
   left: 0;
   right: 0;
-  background: var(--fiko-lime);
+  background: var(--delivo-black);
   transition: background 0.25s ease, box-shadow 0.25s ease;
 }
 
@@ -32,7 +35,7 @@
 /* Musta headeri ostoskori-/kassavirrassa - kokeilu "ammattimaisemmasta" ilmeestä lime-vihreän
    sijaan sivuilla, joilla asiakas on jo tunnistautunut eikä brändin huomioarvo ole enää kärjessä. */
 .site-header--dark {
-  background: var(--fiko-black);
+  background: var(--delivo-black);
 }
 
 .site-header--dark .site-header__logo,
@@ -54,21 +57,21 @@
 
 .site-header--dark .cart-menu__trigger svg,
 .site-header--overlay .cart-menu__trigger svg {
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .site-header--dark .cart-menu__badge,
 .site-header--overlay .cart-menu__badge {
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
-  border-color: var(--fiko-black);
+  border-color: var(--delivo-black);
   box-shadow: 0 0 0 2px #fff;
 }
 
 .site-header--dark .account-menu__avatar,
 .site-header--overlay .account-menu__avatar {
   background: #fff;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .site-header--dark .account-menu__trigger-chevron,
@@ -144,179 +147,9 @@
   min-width: 0;
 }
 
-.search-suggest-backdrop {
-  position: fixed;
-  inset: 0;
-  top: var(--header-height);
-  background: rgba(20, 21, 15, 0.45);
-  z-index: 40;
-  animation: search-suggest-backdrop-in 0.15s ease;
-}
-
-@keyframes search-suggest-backdrop-in {
-  from {
-    opacity: 0;
-  }
-}
-
-.search-suggest-panel {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 0;
-  right: 0;
-  z-index: 41;
-  background: var(--surface);
-  border-radius: 16px;
-  box-shadow: 0 20px 40px -16px rgba(0, 0, 0, 0.35);
-  padding: 16px;
-  max-height: 70vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  animation: fiko-panel-in 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.search-suggest-section {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.search-suggest-section__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  color: var(--fiko-black);
-}
-
-.search-suggest-restaurants {
-  display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: 2px;
-}
-
-.search-suggest-restaurants::-webkit-scrollbar {
-  display: none;
-}
-
-.search-suggest-restaurant-card {
-  flex-shrink: 0;
-  width: 160px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  text-decoration: none;
-  color: var(--fiko-black);
-  border-radius: 12px;
-  padding: 6px;
-  transition: background 0.15s ease;
-}
-
-.search-suggest-restaurant-card:hover {
-  background: var(--surface-muted);
-}
-
-.search-suggest-restaurant-card__media {
-  width: 100%;
-  height: 90px;
-  border-radius: 10px;
-  overflow: hidden;
-  background: var(--surface-muted);
-}
-
-.search-suggest-restaurant-card__media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.search-suggest-restaurant-card__name {
-  font-weight: 700;
-  font-size: 0.88rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.search-suggest-restaurant-card__category,
-.search-suggest-restaurant-card__meta {
-  font-size: 0.76rem;
-  color: var(--text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.search-suggest-items {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-}
-
-.search-suggest-item-card {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  text-decoration: none;
-  color: var(--fiko-black);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 8px;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.search-suggest-item-card:hover {
-  background: var(--surface-muted);
-  border-color: rgba(20, 21, 15, 0.25);
-}
-
-.search-suggest-item-card__media {
-  width: 56px;
-  height: 56px;
-  border-radius: 10px;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: var(--surface-muted);
-}
-
-.search-suggest-item-card__media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.search-suggest-item-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.search-suggest-item-card__price {
-  font-weight: 700;
-  font-size: 0.88rem;
-}
-
-.search-suggest-item-card__name {
-  font-size: 0.86rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.search-suggest-item-card__restaurant {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
+/* Aina näkyvä valkoinen hakukenttä (ei enää kollapsoituva ikoninappi kapealla näytöllä) -
+   hyvin erottuva tummallakin headerin taustalla, tekstinä ja ikonina musta/harmaa valkoisen
+   päällä. */
 .search-field-bar {
   display: flex;
   align-items: center;
@@ -326,21 +159,21 @@
   height: 44px;
   padding: 0 8px 0 16px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1.5px solid rgba(255, 255, 255, 0.16);
-  transition: background 0.2s ease, border-color 0.2s ease, width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #fff;
+  border: 1.5px solid transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease, width 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .search-field-bar:focus-within {
   width: 700px;
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.32);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
 }
 
 .search-field-bar__icon {
   width: 17px;
   height: 17px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
@@ -353,11 +186,11 @@
   font-family: inherit;
   font-size: 0.92rem;
   font-weight: 500;
-  color: #fff;
+  color: var(--delivo-black);
 }
 
 .search-field-bar input::placeholder {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-muted);
 }
 
 .search-field-bar input:focus {
@@ -376,8 +209,8 @@
   height: 26px;
   border-radius: 50%;
   border: none;
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+  background: var(--surface-muted);
+  color: var(--delivo-black);
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -388,7 +221,7 @@
 }
 
 .search-field-bar__clear:hover {
-  background: rgba(255, 255, 255, 0.24);
+  background: var(--border);
 }
 
 @media (max-width: 720px) {
@@ -398,36 +231,6 @@
 
   .site-header__center {
     justify-content: flex-end;
-  }
-
-  /* Kompakti pyöreä nappula levossa - laajenee koko riviksi kun sitä koskettaa/fokusoi. */
-  .search-field-bar {
-    width: 40px;
-    padding: 0;
-    justify-content: center;
-    gap: 0;
-  }
-
-  .search-field-bar input {
-    width: 0;
-    flex: none;
-    opacity: 0;
-    padding: 0;
-    transition: width 0.2s ease, opacity 0.15s ease;
-  }
-
-  .search-field-bar:focus-within {
-    width: 100%;
-    padding: 0 8px 0 16px;
-    justify-content: flex-start;
-    gap: 8px;
-  }
-
-  .search-field-bar:focus-within input {
-    width: auto;
-    flex: 1;
-    opacity: 1;
-    padding: 0;
   }
 }
 
@@ -478,16 +281,43 @@
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
+/* Takaisin-nuoli korvaa delivo-logon kun tullaan tietyn ravintolan sivulle (esim.
+   RestaurantPage back-propin kautta) - sama pyöreä nappityyli kuin cart-menu__triggerissä. */
+.site-header__back {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.site-header__back:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.site-header__back svg {
+  width: 18px;
+  height: 18px;
+}
+
 .cart-menu__trigger:hover {
   background: rgba(255, 255, 255, 0.16);
   border-color: rgba(255, 255, 255, 0.3);
 }
 
 .cart-menu__trigger--bump {
-  animation: fiko-cart-bump 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: delivo-cart-bump 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes fiko-cart-bump {
+@keyframes delivo-cart-bump {
   0% {
     transform: scale(1) rotate(0deg);
   }
@@ -521,14 +351,14 @@
   padding: 0 4px;
   border-radius: 999px;
   background: #fff;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   font-size: 0.7rem;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 2px solid #fff;
-  box-shadow: 0 0 0 2px var(--fiko-black);
+  box-shadow: 0 0 0 2px var(--delivo-black);
 }
 
 .cart-drawer-backdrop {
@@ -536,10 +366,10 @@
   inset: 0;
   background: rgba(15, 16, 11, 0.45);
   z-index: 100;
-  animation: fiko-drawer-fade-in 0.2s ease;
+  animation: delivo-drawer-fade-in 0.2s ease;
 }
 
-@keyframes fiko-drawer-fade-in {
+@keyframes delivo-drawer-fade-in {
   from {
     opacity: 0;
   }
@@ -556,10 +386,10 @@
   box-shadow: -24px 0 48px -20px rgba(0, 0, 0, 0.35);
   display: flex;
   flex-direction: column;
-  animation: fiko-drawer-slide-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: delivo-drawer-slide-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes fiko-drawer-slide-in {
+@keyframes delivo-drawer-slide-in {
   from {
     transform: translateX(100%);
   }
@@ -578,7 +408,7 @@
   font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 700;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .cart-drawer__close {
@@ -602,7 +432,7 @@
 .cart-drawer__close svg {
   width: 16px;
   height: 16px;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .cart-drawer__body {
@@ -622,6 +452,8 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  background: var(--surface);
+  box-shadow: 0 2px 5px rgba(20, 21, 15, 0.08), 0 14px 30px -14px rgba(20, 21, 15, 0.28);
 }
 
 .cart-drawer-card__header {
@@ -647,7 +479,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(155deg, var(--fiko-lime) 0%, color-mix(in srgb, var(--fiko-lime) 80%, black) 100%);
+  background: linear-gradient(155deg, var(--delivo-black) 0%, color-mix(in srgb, var(--delivo-black) 80%, black) 100%);
   font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 700;
@@ -670,7 +502,7 @@
 .cart-drawer-card__name {
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -746,7 +578,7 @@
 .cart-drawer-card__item-name {
   font-size: 0.87rem;
   font-weight: 600;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -770,7 +602,7 @@
   flex-shrink: 0;
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .cart-drawer-card__footer {
@@ -810,7 +642,7 @@
 
 .cart-drawer-card__add {
   background: var(--surface-muted);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   border: 1px solid var(--border);
 }
 
@@ -819,7 +651,7 @@
 }
 
 .cart-drawer-card__checkout {
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
 }
 
@@ -846,7 +678,7 @@
   justify-content: space-between;
   font-weight: 700;
   font-size: 1rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .cart-drawer__clear {
@@ -882,7 +714,7 @@
   display: inline-block;
   transform-origin: left center;
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease, letter-spacing 0.25s ease;
-  animation: fiko-logo-in 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: delivo-logo-in 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .site-header__logo:hover,
@@ -895,7 +727,7 @@
   transform: scale(0.97);
 }
 
-@keyframes fiko-logo-in {
+@keyframes delivo-logo-in {
   from {
     opacity: 0;
     transform: translateY(-6px);
@@ -994,10 +826,10 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  animation: fiko-panel-in 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: delivo-panel-in 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes fiko-panel-in {
+@keyframes delivo-panel-in {
   from {
     opacity: 0;
     transform: translateY(-4px);
@@ -1016,7 +848,7 @@
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   text-align: left;
   cursor: pointer;
 }
@@ -1026,7 +858,7 @@
 }
 
 .city-select__option--active {
-  background: var(--fiko-lime);
+  background: var(--delivo-black);
   color: #fff;
 }
 
@@ -1111,7 +943,7 @@
   font-family: inherit;
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .search-field__box input:focus {
@@ -1139,7 +971,7 @@
 }
 
 .search-field__close:hover {
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 /* Tämä lohko on tarkoituksella tiedoston LOPUSSA - .city-select-säännöt (mm. display: flex)

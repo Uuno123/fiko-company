@@ -170,7 +170,7 @@ export const seedMenuItems = [
   {
     id: 'f1a1f5b0-1a1a-4a1a-9a1a-000000000010',
     restaurant_id: '3e34b072-39d8-4f9a-adaa-4d9262c3e492',
-    name: 'Fiko Cheeseburger',
+    name: 'delivo Cheeseburger',
     description: 'Naudanliha, cheddar, burgerikastike',
     price_cents: 1290,
     image_url: 'https://images.unsplash.com/photo-1636907229111-a8ac768fe6c9?auto=format&fit=crop&w=800&q=80',

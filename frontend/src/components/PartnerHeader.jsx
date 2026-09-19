@@ -9,7 +9,7 @@ function PartnerHeader() {
     <header className="partner-header">
       <div className="partner-header__inner">
         <Link to="/kumppanina" className="partner-header__brand">
-          <span className="partner-header__wordmark">Fiko</span>
+          <span className="partner-header__wordmark">delivo</span>
           <span className="partner-header__sublabel">Kumppanit</span>
         </Link>
 

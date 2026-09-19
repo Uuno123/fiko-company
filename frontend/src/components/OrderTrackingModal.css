@@ -58,7 +58,7 @@
   border-radius: 50%;
   border: none;
   background: var(--surface-muted);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,7 +83,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.3rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .order-tracking-modal__all-link {
@@ -91,6 +91,6 @@
   margin-top: 4px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   text-decoration: underline;
 }

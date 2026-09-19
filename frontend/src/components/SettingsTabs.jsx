@@ -27,7 +27,7 @@ function SettingsTabs() {
     <div className="settings-tabs-header">
       <div className="settings-tabs-header__top">
         <h1>Profiili</h1>
-        <a href="mailto:tuki@fiko.fi" className="settings-tabs-header__support">
+        <a href="mailto:tuki@delivo.fi" className="settings-tabs-header__support">
           <ChatIcon />
           Ota yhteyttä
         </a>

@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(155deg, var(--fiko-lime) 0%, color-mix(in srgb, var(--fiko-lime) 80%, black) 100%);
+  background: linear-gradient(155deg, var(--delivo-black) 0%, color-mix(in srgb, var(--delivo-black) 80%, black) 100%);
 }
 
 .avatar-placeholder span {

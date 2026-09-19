@@ -6,7 +6,7 @@ export const isStripeConfigured = Boolean(publishableKey)
 
 if (!isStripeConfigured) {
   console.warn(
-    '[fiko-frontend] VITE_STRIPE_PUBLISHABLE_KEY puuttuu .env-tiedostosta.\n' +
+    '[delivo-frontend] VITE_STRIPE_PUBLISHABLE_KEY puuttuu .env-tiedostosta.\n' +
       '  -> Maksaminen ei toimi ennen kuin tämä on asetettu.',
   )
 }

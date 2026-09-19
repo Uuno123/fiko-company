@@ -7,7 +7,7 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey)
 
 if (!isSupabaseConfigured) {
   console.warn(
-    '[fiko-frontend] VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY puuttuvat .env-tiedostosta.\n' +
+    '[delivo-frontend] VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY puuttuvat .env-tiedostosta.\n' +
       '  -> Asiakkaan kirjautuminen ja rekisteröityminen eivät toimi ennen kuin nämä on asetettu.',
   )
 }

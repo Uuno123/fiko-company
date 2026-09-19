@@ -1582,7 +1582,7 @@ function computeHourlyRevenueForDay(completedOrders, dayStart) {
   return buckets.map((value, i) => ({ label: String(i * 2).padStart(2, '0'), value }))
 }
 
-// order.total_cents sisältää toimitus-/palvelumaksun, jotka menevät kuljettajalle/Fikolle -
+// order.total_cents sisältää toimitus-/palvelumaksun, jotka menevät kuljettajalle/delivolle -
 // ravintola ei saa niistä mitään, joten kaikkialla missä ravintolalle näytetään "heidän
 // osuutensa" pitää käyttää tätä, ei total_cents.
 function restaurantShareCents(order) {
@@ -2500,14 +2500,14 @@ function FinanceSection({ orders, status, restaurant }) {
         ]
       }),
     ]
-    downloadCsv(`fiko-tilitys-${period}.csv`, rows)
+    downloadCsv(`delivo-tilitys-${period}.csv`, rows)
   }
 
   return (
     <div className="partner-card">
       <h2>Talous</h2>
       <p className="partner-form__hint">
-        Laskennallinen arvio olemassa olevasta tilausdatasta - Fiko ei vielä välitä oikeita maksuja tai tilityksiä
+        Laskennallinen arvio olemassa olevasta tilausdatasta - delivo ei vielä välitä oikeita maksuja tai tilityksiä
         automaattisesti, joten tämä ei ole pankkitilitys.
       </p>
 
@@ -2540,7 +2540,7 @@ function FinanceSection({ orders, status, restaurant }) {
               <strong>{formatPrice(gross)}</strong>
             </div>
             <div>
-              <span>Fikon palkkio ({commissionRate} %)</span>
+              <span>delivon palkkio ({commissionRate} %)</span>
               <strong>−{formatPrice(commission)}</strong>
             </div>
             <div className="partner-finance-summary__net">
@@ -2554,7 +2554,7 @@ function FinanceSection({ orders, status, restaurant }) {
               <div
                 className="finance-split-bar"
                 role="img"
-                aria-label={`Netto ${formatPrice(net)}, Fikon palkkio ${formatPrice(commission)}`}
+                aria-label={`Netto ${formatPrice(net)}, delivon palkkio ${formatPrice(commission)}`}
               >
                 <div className="finance-split-bar__net" style={{ width: `${(net / gross) * 100}%` }} />
                 <div className="finance-split-bar__commission" style={{ width: `${(commission / gross) * 100}%` }} />
@@ -2564,7 +2564,7 @@ function FinanceSection({ orders, status, restaurant }) {
                   <span className="finance-split__dot finance-split__dot--net" /> Netto
                 </span>
                 <span className="finance-split__legend-item">
-                  <span className="finance-split__dot finance-split__dot--commission" /> Fikon palkkio
+                  <span className="finance-split__dot finance-split__dot--commission" /> delivon palkkio
                 </span>
               </div>
             </div>
@@ -2759,7 +2759,7 @@ function PartnerDashboard() {
                 <h2>Tähän tiliin ei ole liitetty ravintolaa</h2>
                 <p>
                   Jotain meni pieleen - tällä tilillä ei ole ravintolaa, vaikka pääsit kirjautumaan sisään. Ota
-                  yhteyttä Fikoon niin selvitämme asian.
+                  yhteyttä delivoon niin selvitämme asian.
                 </p>
               </div>
             )}

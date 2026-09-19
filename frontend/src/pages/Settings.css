@@ -19,7 +19,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.6rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .settings-back-link {
@@ -40,7 +40,7 @@
 }
 
 .settings-back-link:hover {
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .settings-menu {
@@ -58,7 +58,7 @@
   gap: 14px;
   padding: 16px 18px;
   text-decoration: none;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   border-bottom: 1px solid var(--border);
   transition: background 0.15s ease;
 }
@@ -85,7 +85,7 @@
 .settings-row__icon svg {
   width: 18px;
   height: 18px;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .settings-row__label {
@@ -105,7 +105,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.05rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .settings-page .auth-field input:disabled {
@@ -136,7 +136,7 @@
   width: 84px;
   height: 84px;
   border-radius: 30%;
-  background: linear-gradient(155deg, #24261b 0%, var(--fiko-black) 100%);
+  background: linear-gradient(155deg, #24261b 0%, var(--delivo-black) 100%);
   color: #fff;
   font-family: var(--font-display);
   font-weight: 800;
@@ -157,14 +157,14 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.3rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .favorites-section h2 {
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.15rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .favorites-empty {
@@ -239,7 +239,7 @@
   height: 40px;
   border-radius: 50%;
   background: var(--surface-muted);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   flex-shrink: 0;
 }
 
@@ -264,7 +264,7 @@
 .profile-summary__label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .profile-summary__value {
@@ -277,7 +277,7 @@
   border: none;
   background: none;
   padding: 0;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   font-weight: 700;
   font-size: 0.88rem;
   text-decoration: underline;
@@ -319,7 +319,7 @@
 
 .settings-empty p {
   margin: 0;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   font-size: 0.92rem;
 }
 
@@ -350,7 +350,7 @@
   flex: 1;
   font-weight: 600;
   font-size: 0.92rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .payment-method-row__status {
@@ -380,14 +380,14 @@
 }
 
 .payment-badge--black {
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
-  border-color: var(--fiko-black);
+  border-color: var(--delivo-black);
 }
 
 .payment-badge--outline {
   background: var(--surface);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .payment-badge--mobilepay {
@@ -399,7 +399,7 @@
 
 .payment-badge--klarna {
   background: #ffb3c7;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   border-color: #ffb3c7;
 }
 
@@ -444,14 +444,14 @@
   text-align: center;
   font-size: 0.92rem;
   font-weight: 500;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .order-history-card__eta {
   margin: 0;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .order-history-card__tracking .delivery-route-map {
@@ -464,7 +464,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.05rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .order-history-card__meta {
@@ -482,7 +482,7 @@
   font-size: 0.78rem;
   font-weight: 600;
   background: var(--surface-muted, #f1f1ea);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .order-history-card__lines {
@@ -501,7 +501,7 @@
   justify-content: space-between;
   gap: 12px;
   font-size: 0.88rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .order-history-card__lines li > span:first-child {
@@ -520,14 +520,14 @@
   justify-content: space-between;
   font-weight: 700;
   font-size: 0.95rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .past-orders-section__title {
   margin: 0 0 12px;
   font-family: var(--font-display);
   font-size: 1.05rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .past-orders-section__list {
@@ -560,7 +560,7 @@
 .past-order-row__summary strong {
   display: block;
   font-size: 0.88rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .past-order-row__right {
@@ -573,7 +573,7 @@
 .past-order-row__total {
   font-weight: 700;
   font-size: 0.88rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .past-order-row__details {
@@ -595,7 +595,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   background: var(--surface-muted);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   white-space: nowrap;
 }
 
@@ -603,8 +603,8 @@
 .order-status-badge--confirmed,
 .order-status-badge--preparing,
 .order-status-badge--ready {
-  background: var(--fiko-lime);
-  color: var(--fiko-black);
+  background: var(--delivo-black);
+  color: var(--delivo-black);
 }
 
 .order-status-badge--completed {
@@ -639,7 +639,7 @@
   margin: 0 0 2px;
   font-weight: 600;
   font-size: 0.92rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .toggle-row__hint {
@@ -686,7 +686,7 @@
 }
 
 .toggle-switch--on {
-  background: var(--fiko-lime);
+  background: var(--delivo-black);
 }
 
 .toggle-switch--on .toggle-switch__thumb {
@@ -702,7 +702,7 @@
   border: none;
   background: none;
   padding: 0;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   font-weight: 700;
   font-size: 0.92rem;
   cursor: pointer;
@@ -722,5 +722,5 @@
 }
 
 .account-actions__delete:hover {
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }

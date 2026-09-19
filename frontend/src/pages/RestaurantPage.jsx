@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Star, Footprints, Car } from 'lucide-react'
+import { Star } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
+import Spinner from '../components/Spinner.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
 import { getRestaurantById } from '../lib/api.js'
 import { useCart } from '../lib/CartContext.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { isRestaurantFavorited, addFavorite, removeFavorite } from '../lib/favorites.js'
-import { formatPrice, formatDisplayAddress } from '../lib/format.js'
+import { formatPrice } from '../lib/format.js'
 import { getTodayHours, formatHoursRange } from '../lib/openingHours.js'
 import {
   getOptionGroups,
@@ -34,6 +35,37 @@ function categoryId(category) {
   return 'menu-' + category.toLowerCase().replace(/\s+/g, '-')
 }
 
+// Fikolla ei ole vielä oikeaa arvostelujärjestelmää (ei arvostelutaulua tietokannassa) -
+// tämä on visuaalinen placeholder käyttäjän hyväksymänä ("lisää visuaalinen placeholder"),
+// korvataan oikealla arvostelumäärällä kun arvostelut joskus rakennetaan. Deterministinen
+// ravintolan id:stä, jotta luku ei vaihdu joka renderöinnillä eikä ole sama joka ravintolalla.
+function pseudoReviewCount(id) {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 31 + id.charCodeAt(i)) >>> 0
+  }
+  return 40 + (hash % 460)
+}
+
+const MENU_TABS = [
+  { key: 'all', label: 'Kaikki tuotteet' },
+  { key: 'popular', label: 'Suosituimmat' },
+  { key: 'offers', label: 'Tarjoukset' },
+]
+
+// Sama placeholder-periaate kuin pseudoReviewCount: ei oikeaa per-tuote arvostelutietoa
+// tietokannassa, joten luku lasketaan deterministisesti tuotteen id:stä (pysyy samana joka
+// renderöinnillä, vaihtelee tuotteittain).
+function pseudoItemRating(id) {
+  let hash = 0
+  for (let i = 0; i < id.length; i++) {
+    hash = (hash * 13 + id.charCodeAt(i)) >>> 0
+  }
+  const rating = 3.8 + (hash % 13) / 10
+  const count = 5 + (hash % 55)
+  return { rating: rating.toFixed(1), count }
+}
+
 function RestaurantPage() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -43,7 +75,8 @@ function RestaurantPage() {
   const [status, setStatus] = useState('loading')
   const [errorMessage, setErrorMessage] = useState('')
   const [menuQuery, setMenuQuery] = useState('')
-  const [fulfillmentMode, setFulfillmentMode] = useState('pickup')
+  const [menuTab, setMenuTab] = useState('all')
+  const [reviewsTapped, setReviewsTapped] = useState(false)
   const [activeCategory, setActiveCategory] = useState('')
   const [selectedItem, setSelectedItem] = useState(null)
   const [quantity, setQuantity] = useState(1)
@@ -51,6 +84,7 @@ function RestaurantPage() {
   const [headerSearch, setHeaderSearch] = useState('')
   const [isFavorited, setIsFavorited] = useState(false)
   const [justAdded, setJustAdded] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
   const sectionRefs = useRef(new Map())
 
   const menuCategories = useMemo(
@@ -137,6 +171,24 @@ function RestaurantPage() {
     if (!ok) setIsFavorited(!next)
   }
 
+  // navigator.share puuttuu useimmilta työpöytäselaimilta - kopioidaan linkki leikepöydälle
+  // sen sijaan ja näytetään hetkeksi kuittaus, ettei nappi tunnu tekevän mitään.
+  async function shareRestaurant() {
+    const shareData = { title: restaurant.name, url: window.location.href }
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData)
+      } catch {
+        // Käyttäjä perui jakamisen - ei tehdä mitään.
+      }
+      return
+    }
+    if (navigator.clipboard) {
+      await navigator.clipboard.writeText(shareData.url)
+      setLinkCopied(true)
+    }
+  }
+
   useEffect(() => {
     if (menuCategories.length === 0) return undefined
 
@@ -172,6 +224,18 @@ function RestaurantPage() {
     const timer = setTimeout(() => closeModal(), 700)
     return () => clearTimeout(timer)
   }, [justAdded])
+
+  useEffect(() => {
+    if (!linkCopied) return undefined
+    const timer = setTimeout(() => setLinkCopied(false), 1600)
+    return () => clearTimeout(timer)
+  }, [linkCopied])
+
+  useEffect(() => {
+    if (!reviewsTapped) return undefined
+    const timer = setTimeout(() => setReviewsTapped(false), 1800)
+    return () => clearTimeout(timer)
+  }, [reviewsTapped])
 
   function scrollToCategory(category) {
     document.getElementById(categoryId(category))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -240,12 +304,13 @@ function RestaurantPage() {
     <div className="page">
       <div className={`restaurant-hero-wrap${restaurant?.image_url ? ' restaurant-hero-wrap--overlay' : ''}`}>
         <Header
+          back
           variant={restaurant?.image_url ? 'overlay' : undefined}
           search={{
             value: headerSearch,
             onChange: setHeaderSearch,
             onSubmit: (q) => navigate(`/?q=${encodeURIComponent(q)}`),
-            placeholder: 'Hae Fikosta...',
+            placeholder: 'Hae delivosta...',
           }}
           citySelector={
             restaurant?.city
@@ -253,18 +318,6 @@ function RestaurantPage() {
                   value: restaurant.city,
                   options: [restaurant.city],
                   onChange: (city) => navigate(`/?city=${encodeURIComponent(city)}`),
-                }
-              : null
-          }
-          cart={
-            cart.count > 0
-              ? {
-                  count: cart.count,
-                  totalCents: cart.totalCents,
-                  groups: cart.groups,
-                  onClear: cart.clear,
-                  onClearRestaurant: cart.clearRestaurant,
-                  formatPrice,
                 }
               : null
           }
@@ -279,99 +332,67 @@ function RestaurantPage() {
             )}
           </div>
         )}
-      </div>
-
-      <main className={`restaurant-page${currentGroupCount > 0 ? ' restaurant-page--with-cart-bar' : ''}`}>
-        {status === 'loading' && <p className="state-message">Ladataan ravintolaa...</p>}
-        {status === 'error' && (
-          <p className="state-message state-message--error">Ravintolaa ei löytynyt: {errorMessage}</p>
-        )}
 
         {status === 'ready' && restaurant && (
-          <article className="restaurant-detail">
-            <div className="restaurant-detail__body">
-              <div className="restaurant-detail__heading">
+          <div className="restaurant-info-card-wrap">
+            <div className="restaurant-info-card">
+              <div className="restaurant-info-card__avatar">
+                {restaurant.image_url ? (
+                  <img src={restaurant.image_url} alt="" />
+                ) : (
+                  <RestaurantAvatarPlaceholder name={restaurant.name} size="card" />
+                )}
+              </div>
+
+              <div className="restaurant-info-card__text">
                 <h1>{restaurant.name}</h1>
-                <span className="category-tag">{restaurant.category}</span>
-              </div>
-
-              <div className="fulfillment-toggle" role="tablist" aria-label="Nouto vai kuljetus">
-                <span
-                  className={`fulfillment-toggle__indicator${fulfillmentMode === 'delivery' ? ' fulfillment-toggle__indicator--delivery' : ''}`}
-                  aria-hidden="true"
-                />
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={fulfillmentMode === 'pickup'}
-                  className={`fulfillment-toggle__option${fulfillmentMode === 'pickup' ? ' fulfillment-toggle__option--active' : ''}`}
-                  onClick={() => setFulfillmentMode('pickup')}
-                >
-                  <Footprints size={16} aria-hidden="true" />
-                  Nouto
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={fulfillmentMode === 'delivery'}
-                  className={`fulfillment-toggle__option${fulfillmentMode === 'delivery' ? ' fulfillment-toggle__option--active' : ''}`}
-                  onClick={() => setFulfillmentMode('delivery')}
-                >
-                  <Car size={16} aria-hidden="true" />
-                  Kuljetus
-                </button>
-              </div>
-
-              <div className="restaurant-detail__top-row">
-                <div className="info-line">
-                  {[
-                    <span className="info-line__item" key="status">
-                      <span
-                        className={`info-line__dot${restaurant.is_open ? ' info-line__dot--open' : ' info-line__dot--closed'}`}
-                      />
-                      {restaurant.is_open ? 'Avoinna' : 'Kiinni'}
-                      {todayHoursLabel ? ` · ${todayHoursLabel}` : ''}
-                    </span>,
-                    ...(restaurant.rating != null
-                      ? [
-                          <span className="info-line__item" key="rating">
-                            <Star className="info-line__star" size={16} fill="currentColor" aria-hidden="true" />
-                            {Number(restaurant.rating).toFixed(1)}
-                          </span>,
-                        ]
-                      : []),
-                    ...(restaurant.is_open && fulfillmentMode === 'pickup' && restaurant.pickup_estimate_minutes
-                      ? [
-                          <span className="info-line__item" key="pickup">
-                            <Footprints size={16} aria-hidden="true" />
-                            Nouto n. {restaurant.pickup_estimate_minutes} min
-                          </span>,
-                        ]
-                      : []),
-                    ...(fulfillmentMode === 'delivery'
-                      ? [
-                          <span className="info-line__item" key="delivery">
-                            <Car size={16} aria-hidden="true" />
-                            Kuljetus
-                            {restaurant.is_open && restaurant.pickup_estimate_minutes
-                              ? ` n. ${restaurant.pickup_estimate_minutes + 15} min`
-                              : ''}
-                            {' · '}
-                            {restaurant.free_delivery ? 'Ilmainen' : '5,99 €'}
-                          </span>,
-                        ]
-                      : []),
-                  ].flatMap((item, i) =>
-                    i === 0
-                      ? [item]
-                      : [
-                          <span className="info-line__sep" aria-hidden="true" key={`sep-${i}`}>
-                            ·
-                          </span>,
-                          item,
-                        ],
+                <div className="restaurant-info-card__meta">
+                  <span className="category-tag">{restaurant.category}</span>
+                  {restaurant.rating != null && (
+                    <span className="restaurant-info-card__rating">
+                      <Star size={14} fill="currentColor" aria-hidden="true" />
+                      {Number(restaurant.rating).toFixed(1)}
+                      <span className="restaurant-info-card__review-count">
+                        ({pseudoReviewCount(restaurant.id)}+)
+                      </span>
+                    </span>
                   )}
+                  <button
+                    type="button"
+                    className="restaurant-info-card__reviews-btn"
+                    onClick={() => setReviewsTapped(true)}
+                  >
+                    {reviewsTapped ? 'Tulossa pian' : 'Katso arvostelut'}
+                  </button>
                 </div>
+              </div>
+
+              <div className="restaurant-info-card__actions">
+                <button
+                  type="button"
+                  className="favorite-button"
+                  aria-label={linkCopied ? 'Linkki kopioitu' : 'Jaa ravintola'}
+                  onClick={shareRestaurant}
+                >
+                  {linkCopied ? (
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path
+                        d="m5 10 3.5 3.5L15 6.5"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <circle cx="15" cy="5" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+                      <circle cx="5" cy="10" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+                      <circle cx="15" cy="15" r="2.25" stroke="currentColor" strokeWidth="1.5" />
+                      <path d="M6.9 8.9 13.1 5.9M6.9 11.1 13.1 14.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  )}
+                </button>
 
                 <button
                   type="button"
@@ -390,22 +411,20 @@ function RestaurantPage() {
                   </svg>
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+      </div>
 
-              {restaurant.address && (
-                <p className="restaurant-detail__address">
-                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                    <path
-                      d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10Z"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinejoin="round"
-                    />
-                    <circle cx="10" cy="8" r="2.25" stroke="currentColor" strokeWidth="1.5" />
-                  </svg>
-                  {formatDisplayAddress(restaurant.address, restaurant.city)}
-                </p>
-              )}
+      <main className={`restaurant-page${currentGroupCount > 0 ? ' restaurant-page--with-cart-bar' : ''}`}>
+        {status === 'loading' && <Spinner label="Ladataan ravintolaa" />}
+        {status === 'error' && (
+          <p className="state-message state-message--error">Ravintolaa ei löytynyt: {errorMessage}</p>
+        )}
 
+        {status === 'ready' && restaurant && (
+          <article className="restaurant-detail">
+            <div className="restaurant-detail__body">
               {restaurantClosed && (
                 <p className="restaurant-closed-notice">
                   Ravintola on juuri nyt suljettu, eikä tilaaminen ole mahdollista.
@@ -416,20 +435,48 @@ function RestaurantPage() {
 
             {restaurant.menu_items?.length > 0 ? (
               <>
-                <div className="menu-nav">
-                  <div className="menu-nav__categories">
-                    {menuCategories.map((category) => (
+                <div className="restaurant-menu-tabs" role="tablist" aria-label="Tuotenäkymä">
+                  {MENU_TABS.map((tab) => (
+                    <button
+                      type="button"
+                      key={tab.key}
+                      role="tab"
+                      aria-selected={menuTab === tab.key}
+                      className={`restaurant-menu-tabs__btn${menuTab === tab.key ? ' restaurant-menu-tabs__btn--active' : ''}`}
+                      onClick={() => setMenuTab(tab.key)}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                  {menuTab === 'all' &&
+                    menuCategories.map((category) => (
                       <button
                         type="button"
                         key={category}
-                        className={`menu-nav__chip${activeCategory === category ? ' menu-nav__chip--active' : ''}`}
+                        className={`restaurant-menu-tabs__btn${activeCategory === category ? ' restaurant-menu-tabs__btn--active' : ''}`}
                         onClick={() => scrollToCategory(category)}
                       >
                         {category}
                       </button>
                     ))}
-                  </div>
+                </div>
 
+                {menuTab !== 'all' && (
+                  <div className="restaurant-detail__body">
+                    <p className="state-message">
+                      {menuTab === 'popular' ? 'Suosituimmat tuotteet' : 'Erikoistarjoukset'} tulossa pian.
+                    </p>
+                  </div>
+                )}
+
+                {menuTab === 'all' && (
+                  <>
+                <div className="menu-section-heading">
+                  <h2>Kaikki tuotteet</h2>
+                  <p>Kattava valikoima ravintolan {restaurant.name} tuotteita.</p>
+                </div>
+
+                <div className="menu-nav">
                   <div className="menu-nav__search">
                     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                       <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" />
@@ -470,8 +517,44 @@ function RestaurantPage() {
                                   onClick={() => openItem(item)}
                                   onKeyDown={(e) => handleCardKeyDown(e, item)}
                                 >
+                                  <div className="menu-card__media-wrap">
+                                    <div className="menu-card__media">
+                                      {item.image_url ? (
+                                        <img src={item.image_url} alt={item.name} />
+                                      ) : (
+                                        <RestaurantAvatarPlaceholder name={item.name} size="thumb" />
+                                      )}
+                                    </div>
+                                    {item.is_available !== false && !restaurantClosed && (
+                                      <button
+                                        type="button"
+                                        className="menu-card__add"
+                                        aria-label={`Lisää ${item.name} ostoskoriin`}
+                                        onClick={(e) => quickAdd(e, item)}
+                                      >
+                                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                          <path
+                                            d="M10 4v12M4 10h12"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                          />
+                                        </svg>
+                                      </button>
+                                    )}
+                                  </div>
+
                                   <div className="menu-card__info">
                                     <span className="menu-card__name">{item.name}</span>
+                                    {item.is_available !== false && (
+                                      <span className="menu-card__rating">
+                                        <Star size={12} fill="currentColor" aria-hidden="true" />
+                                        {pseudoItemRating(item.id).rating}
+                                        <span className="menu-card__rating-count">
+                                          ({pseudoItemRating(item.id).count}+)
+                                        </span>
+                                      </span>
+                                    )}
                                     {item.description && (
                                       <span className="menu-card__description">{item.description}</span>
                                     )}
@@ -495,31 +578,6 @@ function RestaurantPage() {
                                       <span className="menu-card__price">{formatPrice(item.price_cents)}</span>
                                     )}
                                   </div>
-
-                                  <div className="menu-card__media">
-                                    {item.image_url ? (
-                                      <img src={item.image_url} alt={item.name} />
-                                    ) : (
-                                      <RestaurantAvatarPlaceholder name={item.name} size="thumb" />
-                                    )}
-                                    {item.is_available !== false && !restaurantClosed && (
-                                      <button
-                                        type="button"
-                                        className="menu-card__add"
-                                        aria-label={`Lisää ${item.name} ostoskoriin`}
-                                        onClick={(e) => quickAdd(e, item)}
-                                      >
-                                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                          <path
-                                            d="M10 4v12M4 10h12"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                          />
-                                        </svg>
-                                      </button>
-                                    )}
-                                  </div>
                                 </div>
                               </li>
                             ))}
@@ -531,6 +589,8 @@ function RestaurantPage() {
                     <p className="state-message">Ei tuloksia haulle "{menuQuery}".</p>
                   )}
                 </div>
+                  </>
+                )}
               </>
             ) : (
               <div className="restaurant-detail__body">

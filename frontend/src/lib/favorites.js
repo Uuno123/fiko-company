@@ -7,7 +7,7 @@ export async function getFavoriteRestaurantIds(customerId) {
     .eq('customer_id', customerId)
 
   if (error) {
-    console.error('[fiko-frontend] Suosikkien haku epäonnistui:', error.message)
+    console.error('[delivo-frontend] Suosikkien haku epäonnistui:', error.message)
     return []
   }
   return data.map((row) => row.restaurant_id)
@@ -22,7 +22,7 @@ export async function isRestaurantFavorited(customerId, restaurantId) {
     .maybeSingle()
 
   if (error) {
-    console.error('[fiko-frontend] Suosikkitilan haku epäonnistui:', error.message)
+    console.error('[delivo-frontend] Suosikkitilan haku epäonnistui:', error.message)
     return false
   }
   return Boolean(data)
@@ -33,7 +33,7 @@ export async function addFavorite(customerId, restaurantId) {
     .from('customer_favorites')
     .insert({ customer_id: customerId, restaurant_id: restaurantId })
 
-  if (error) console.error('[fiko-frontend] Suosikkiin lisäys epäonnistui:', error.message)
+  if (error) console.error('[delivo-frontend] Suosikkiin lisäys epäonnistui:', error.message)
   return !error
 }
 
@@ -44,6 +44,6 @@ export async function removeFavorite(customerId, restaurantId) {
     .eq('customer_id', customerId)
     .eq('restaurant_id', restaurantId)
 
-  if (error) console.error('[fiko-frontend] Suosikista poisto epäonnistui:', error.message)
+  if (error) console.error('[delivo-frontend] Suosikista poisto epäonnistui:', error.message)
   return !error
 }

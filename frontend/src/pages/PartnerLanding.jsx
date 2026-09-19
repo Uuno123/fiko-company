@@ -14,12 +14,12 @@ const DRIVER_IMAGE = 'https://images.unsplash.com/photo-1526367790999-0150786686
 
 const AUDIENCE_HERO = {
   restaurants: {
-    title: 'Tuo ravintolasi Fikoon',
-    body: 'Fiko on suomalainen ruoantilausalusta. Liity kumppaniksi ja tavoita uusia asiakkaita - asiakkaasi voivat noutaa itse tai valita kotiinkuljetuksen, jonka Fiko hoitaa puolestasi.',
+    title: 'Tuo ravintolasi delivoon',
+    body: 'delivo on suomalainen ruoantilausalusta. Liity kumppaniksi ja tavoita uusia asiakkaita - asiakkaasi voivat noutaa itse tai valita kotiinkuljetuksen, jonka delivo hoitaa puolestasi.',
     image: HERO_IMAGE,
   },
   drivers: {
-    title: 'Aja Fikolle',
+    title: 'Aja delivolle',
     body: 'Kuljeta tilauksia kaupungissasi omilla ehdoillasi. Kuljettajaohjelmaa rakennetaan parhaillaan - pysy kuulolla.',
     image: DRIVER_HERO_IMAGE,
   },
@@ -105,8 +105,8 @@ const TRUST_ITEMS = ['Ei sitoutumisaikaa', 'Laite ja kojelauta sisältyvät', 'N
 const DEEP_BENEFITS = [
   {
     title: 'Uusia asiakkaita lähialueelta',
-    body: 'Ravintolasi näkyy Fikon etusivulla kaupunkisi asukkaille - ei erillistä markkinointibudjettia tarvita.',
-    bullets: ['Näkyvyys Fikon etusivulla ja hauissa', 'Sekä nouto- että kotiinkuljetusasiakkaat'],
+    body: 'Ravintolasi näkyy delivon etusivulla kaupunkisi asukkaille - ei erillistä markkinointibudjettia tarvita.',
+    bullets: ['Näkyvyys delivon etusivulla ja hauissa', 'Sekä nouto- että kotiinkuljetusasiakkaat'],
     visual: 'icon',
     icon: BenefitReachIcon,
   },
@@ -117,7 +117,7 @@ const DEEP_BENEFITS = [
     visual: 'preview',
   },
   {
-    title: 'Fiko hoitaa loput puolestasi',
+    title: 'delivo hoitaa loput puolestasi',
     body: 'Ei omaa kuljetuskalustoa, ei erillisiä laitehankintoja - saat kaiken tarvittavan valmiina ja voit hallita ruokalistaa, hintoja ja aukioloa itse milloin haluat.',
     bullets: ['Tilauslaite ja kojelauta sisältyvät', 'Nouto ja kotiinkuljetus hoidettu puolestasi', 'Muutokset näkyvät asiakkaille heti'],
     visual: 'icon',
@@ -127,11 +127,11 @@ const DEEP_BENEFITS = [
 
 const FAQ_ITEMS = [
   {
-    q: 'Miten haen Fikon kumppaniksi?',
+    q: 'Miten haen delivon kumppaniksi?',
     a: 'Täytä kumppanuushakemus - yritys- ja ravintolatietosi, mukaan lukien Y-tunnus - muutamassa minuutissa. Käsittelemme hakemuksen ja olemme sinuun yhteydessä sähköpostitse.',
   },
   {
-    q: 'Paljonko Fikon käyttö maksaa?',
+    q: 'Paljonko delivon käyttö maksaa?',
     a: 'Kuukausimaksu (30 € Peruspaketti tai 79,99 € Pro) sekä välityspalkkio jokaisesta tilauksesta (15 % tai 8 % paketista riippuen). Ei muita piilokuluja.',
   },
   {
@@ -148,15 +148,15 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Hoidatteko kuljetuksen puolestani?',
-    a: 'Kyllä - asiakkaasi voivat valita noudon tai kotiinkuljetuksen, jonka Fiko hoitaa puolestasi. Sinun ei tarvitse järjestää omia kuljettajia.',
+    a: 'Kyllä - asiakkaasi voivat valita noudon tai kotiinkuljetuksen, jonka delivo hoitaa puolestasi. Sinun ei tarvitse järjestää omia kuljettajia.',
   },
 ]
 
 const SHARED_PLAN_FEATURES = [
-  'Ravintolan profiili ja ruokalista Fikossa',
+  'Ravintolan profiili ja ruokalista delivossa',
   'Tilausten vastaanottoon tarvittava laite sisältyy - ei omia hankintoja',
   'Oma kojelauta ruokalistan ja aukiolon hallintaan',
-  'Nouto ja kotiinkuljetus asiakkaillesi - Fiko hoitaa kuljetuksen',
+  'Nouto ja kotiinkuljetus asiakkaillesi - delivo hoitaa kuljetuksen',
   'Ei sitoutumisaikaa - peruuta koska vain',
 ]
 
@@ -360,10 +360,10 @@ function PartnerLanding() {
               <img src={DRIVER_IMAGE} alt="" loading="lazy" />
             </div>
             <div className="driver-section__content">
-              <span className="driver-section__eyebrow">Fiko Deliver · Tulossa myöhemmin</span>
-              <h2>Kuljeta Fikolle</h2>
+              <span className="driver-section__eyebrow">delivo Deliver · Tulossa myöhemmin</span>
+              <h2>Kuljeta delivolle</h2>
               <p>
-                Ansaitse omilla ehdoillasi kuljettamalla tilauksia kaupungissasi. Kuljettajaohjelmaa ja omaa Fiko
+                Ansaitse omilla ehdoillasi kuljettamalla tilauksia kaupungissasi. Kuljettajaohjelmaa ja omaa delivo
                 Deliver -sovellusta rakennetaan parhaillaan.
               </p>
 
@@ -407,7 +407,7 @@ function PartnerLanding() {
         </section>
 
         <section className="partner-section partner-section--wide">
-          <h2>Miksi liittyä Fikoon?</h2>
+          <h2>Miksi liittyä delivoon?</h2>
           <div className="partner-deep-benefits">
             {DEEP_BENEFITS.map((benefit, index) => (
               <div

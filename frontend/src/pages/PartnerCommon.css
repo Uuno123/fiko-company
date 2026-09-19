@@ -14,7 +14,7 @@
 }
 
 .partner-btn--primary {
-  background: var(--fiko-lime);
+  background: var(--delivo-black);
   color: #fff;
 }
 
@@ -35,7 +35,7 @@
 
 .partner-btn--ghost {
   background: var(--surface);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   border-color: var(--border);
 }
 

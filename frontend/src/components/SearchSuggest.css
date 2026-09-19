@@ -1,0 +1,149 @@
+.search-suggest-backdrop {
+  position: fixed;
+  inset: 0;
+  top: var(--header-height);
+  background: rgba(20, 21, 15, 0.45);
+  z-index: 40;
+  animation: search-suggest-backdrop-in 0.15s ease;
+}
+
+@keyframes search-suggest-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.search-suggest-panel {
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Headerin pudotusvalikko. */
+.search-suggest-panel--dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  z-index: 41;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px -16px rgba(0, 0, 0, 0.35);
+  padding: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+  animation: delivo-panel-in 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Mobiilin koko ruudun hakunäkymä: tulokset vierivät, hakukenttä jää ylös. */
+.search-suggest-panel--fullscreen {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 16px 28px;
+}
+
+.search-suggest-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-suggest-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.search-suggest-section__all {
+  flex-shrink: 0;
+  color: var(--delivo-orange);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.search-suggest-empty {
+  margin: 0;
+  padding: 20px 0 4px;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.search-suggest-section__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--delivo-black);
+}
+
+.search-suggest-restaurants {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.search-suggest-restaurants::-webkit-scrollbar {
+  display: none;
+}
+
+.search-suggest-restaurant-card {
+  flex-shrink: 0;
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-decoration: none;
+  color: var(--delivo-black);
+  border-radius: 12px;
+  padding: 6px;
+  transition: background 0.15s ease;
+}
+
+.search-suggest-restaurant-card:hover {
+  background: var(--surface-muted);
+}
+
+.search-suggest-restaurant-card__media {
+  width: 100%;
+  height: 90px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface-muted);
+}
+
+.search-suggest-restaurant-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.search-suggest-restaurant-card__name {
+  font-weight: 700;
+  font-size: 0.88rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search-suggest-restaurant-card__category,
+.search-suggest-restaurant-card__meta {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Yksi sarake: annosrivi luetaan vasemmalta oikealle (kuva -> hinta -> nimi),
+   ja useampi sarake pakottaisi nimen katkeamaan kesken. */
+.search-suggest-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

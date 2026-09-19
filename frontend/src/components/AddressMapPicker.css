@@ -15,15 +15,15 @@
   padding: 12px 14px;
   font-size: 1rem;
   font-family: var(--font-body);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   background: var(--surface);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .address-picker__search input:focus {
   outline: none;
-  border-color: var(--fiko-lime);
-  box-shadow: 0 0 0 4px rgba(184, 134, 11, 0.28);
+  border-color: var(--delivo-black);
+  box-shadow: 0 0 0 4px rgba(20, 21, 15, 0.18);
 }
 
 .address-picker__spinner {
@@ -34,7 +34,7 @@
   height: 16px;
   margin-top: -8px;
   border: 2px solid var(--border);
-  border-top-color: var(--fiko-black);
+  border-top-color: var(--delivo-black);
   border-radius: 50%;
   animation: address-picker-spin 0.7s linear infinite;
 }
@@ -71,7 +71,7 @@
   border-radius: 8px;
   font-family: inherit;
   font-size: 0.85rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   cursor: pointer;
 }
 

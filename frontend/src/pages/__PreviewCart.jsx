@@ -1,7 +1,7 @@
 /* TEMPORARY PREVIEW FILE - not part of the app, not linked from anywhere, safe to delete.
    Renders the real Cart page with a mocked AuthContext value (no real Supabase session) so
    the checkout delivery-address map picker can be reviewed without a real login. Seed
-   localStorage key "fiko-cart" before navigating here to have items in the cart. */
+   localStorage key "delivo-cart" before navigating here to have items in the cart. */
 import { AuthContext } from '../lib/AuthContext.jsx'
 import Cart from './Cart.jsx'
 

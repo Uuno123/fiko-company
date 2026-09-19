@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-import Header from '../components/Header.jsx'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Footer from '../components/Footer.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
-import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
+import DishResultCard from '../components/DishResultCard.jsx'
+import Spinner from '../components/Spinner.jsx'
 import { supabase } from '../lib/supabaseClient.js'
-import { useCart } from '../lib/CartContext.jsx'
-import { formatPrice } from '../lib/format.js'
 import './SearchResults.css'
 
 const RESULT_LIMIT = 20
@@ -18,7 +16,7 @@ function SearchResults() {
   const [restaurants, setRestaurants] = useState([])
   const [items, setItems] = useState([])
   const [status, setStatus] = useState('idle')
-  const cart = useCart()
+  const navigate = useNavigate()
 
   useEffect(() => {
     setInputValue(query)
@@ -58,29 +56,40 @@ function SearchResults() {
   }, [query])
 
   return (
-    <div className="page">
-      <Header
-        search={{ value: inputValue, onChange: setInputValue, placeholder: 'Hae ravintoloita...' }}
-        cart={
-          cart.count > 0
-            ? {
-                count: cart.count,
-                totalCents: cart.totalCents,
-                groups: cart.groups,
-                onClear: cart.clear,
-                onClearRestaurant: cart.clearRestaurant,
-                formatPrice,
-              }
-            : null
-        }
-      />
+    <div className="page page--search">
+      <div className="search-topbar">
+        <button type="button" className="search-topbar__back" aria-label="Takaisin" onClick={() => navigate('/')}>
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M12 5 7 10l5 5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
+        <div className="search-topbar__field">
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="2.2" />
+            <path d="m17.5 17.5-4-4" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+          </svg>
+          <input
+            type="search"
+            aria-label="Hae delivosta"
+            placeholder="Hae delivosta"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+          />
+          {inputValue && (
+            <button type="button" aria-label="Tyhjennä haku" onClick={() => setInputValue('')}>
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
 
       <main className="search-results">
-        <h1 className="search-results__heading">
-          Hakutulokset{query ? <> haulle &quot;{query}&quot;</> : null}
-        </h1>
+        {query && <h1 className="search-results__heading">“{query}”</h1>}
 
-        {status === 'loading' && <p className="state-message">Haetaan...</p>}
+        {status === 'loading' && <Spinner label="Haetaan" />}
 
         {status === 'ready' && !query.trim() && <p className="state-message">Kirjoita jotain hakeaksesi.</p>}
 
@@ -104,20 +113,7 @@ function SearchResults() {
             <h2>Ruokalajit</h2>
             <div className="search-results__item-grid">
               {items.map((item) => (
-                <Link key={item.id} to={`/ravintola/${item.restaurant_id}`} className="search-result-item-card">
-                  <div className="search-result-item-card__media">
-                    {item.image_url ? (
-                      <img src={item.image_url} alt={item.name} loading="lazy" />
-                    ) : (
-                      <RestaurantAvatarPlaceholder name={item.name} />
-                    )}
-                  </div>
-                  <div className="search-result-item-card__body">
-                    <span className="search-result-item-card__price">{formatPrice(item.price_cents)}</span>
-                    <span className="search-result-item-card__name">{item.name}</span>
-                    <span className="search-result-item-card__restaurant">{item.restaurant_name}</span>
-                  </div>
-                </Link>
+                <DishResultCard key={item.id} item={item} />
               ))}
             </div>
           </section>

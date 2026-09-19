@@ -100,7 +100,7 @@
 }
 
 .partner-audience-toggle__btn--active {
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
 }
 
@@ -142,7 +142,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: 2rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .driver-section__content > p {
@@ -168,7 +168,7 @@
   gap: 10px;
   font-size: 0.98rem;
   font-weight: 600;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .driver-section__points svg {
@@ -176,7 +176,7 @@
   width: 18px;
   height: 18px;
   margin-top: 2px;
-  color: var(--fiko-lime);
+  color: var(--delivo-black);
 }
 
 .driver-section__subheading {
@@ -241,14 +241,14 @@
   font-family: inherit;
   font-size: 0.95rem;
   background: var(--surface);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .driver-form__field input:focus,
 .driver-form__field select:focus,
 .driver-form__field textarea:focus {
   outline: none;
-  border-color: var(--fiko-black);
+  border-color: var(--delivo-black);
 }
 
 .driver-form__error {
@@ -262,7 +262,7 @@
   padding: 20px 24px;
   border-radius: var(--radius-lg);
   background: var(--surface-muted);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   font-weight: 600;
   font-size: 0.98rem;
 }
@@ -288,14 +288,14 @@
   gap: 10px;
   font-weight: 600;
   font-size: 0.96rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   white-space: nowrap;
 }
 
 .partner-trust-bar__item svg {
   width: 18px;
   height: 18px;
-  color: var(--fiko-lime);
+  color: var(--delivo-black);
   flex-shrink: 0;
 }
 
@@ -322,11 +322,11 @@
   font-family: var(--font-display);
   font-size: 1.85rem;
   margin: 0 0 40px;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   text-align: center;
 }
 
-/* "Miksi liittyä Fikoon?" - deep-dive benefit rows with a supporting visual */
+/* "Miksi liittyä delivoon?" - deep-dive benefit rows with a supporting visual */
 .partner-deep-benefits {
   display: flex;
   flex-direction: column;
@@ -352,7 +352,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.5rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .partner-deep-benefit__text p {
@@ -378,7 +378,7 @@
   gap: 10px;
   font-size: 0.92rem;
   font-weight: 600;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .partner-deep-benefit__bullets svg {
@@ -386,7 +386,7 @@
   width: 18px;
   height: 18px;
   margin-top: 1px;
-  color: var(--fiko-lime);
+  color: var(--delivo-black);
 }
 
 .partner-deep-benefit__visual {
@@ -400,7 +400,7 @@
   height: 168px;
   border-radius: 50%;
   background: var(--surface-muted);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -414,7 +414,7 @@
 .partner-insight-preview {
   width: 100%;
   max-width: 420px;
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   border-radius: var(--radius-lg);
   padding: 30px 26px 22px;
   display: flex;
@@ -484,7 +484,7 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   text-align: center;
 }
 
@@ -504,7 +504,7 @@
   align-items: flex-start;
   gap: 10px;
   font-size: 0.92rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   line-height: 1.45;
   text-align: left;
 }
@@ -514,7 +514,7 @@
   width: 18px;
   height: 18px;
   margin-top: 1px;
-  color: var(--fiko-lime);
+  color: var(--delivo-black);
 }
 
 .partner-pricing-grid {
@@ -546,13 +546,13 @@
 }
 
 .partner-pricing-card--highlight {
-  border-color: var(--fiko-lime);
+  border-color: var(--delivo-black);
   box-shadow: 0 14px 32px -16px rgba(20, 21, 15, 0.32);
   transform: translateY(-6px);
 }
 
 .partner-pricing-card--highlight:hover {
-  border-color: var(--fiko-lime);
+  border-color: var(--delivo-black);
   box-shadow: 0 20px 40px -16px rgba(20, 21, 15, 0.42);
   transform: translateY(-9px);
 }
@@ -571,7 +571,7 @@
   position: absolute;
   top: -12px;
   right: 22px;
-  background: var(--fiko-lime);
+  background: var(--delivo-black);
   color: #fff;
   font-size: 0.72rem;
   font-weight: 700;
@@ -585,7 +585,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.3rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .partner-pricing-card__price {
@@ -597,7 +597,7 @@
 .partner-pricing-card__price-value {
   font-family: var(--font-display);
   font-size: 2.4rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .partner-pricing-card__price-unit {
@@ -627,7 +627,7 @@
   align-items: flex-start;
   gap: 10px;
   font-size: 0.94rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   line-height: 1.45;
 }
 
@@ -636,14 +636,14 @@
   width: 18px;
   height: 18px;
   margin-top: 1px;
-  color: var(--fiko-lime);
+  color: var(--delivo-black);
 }
 
 .partner-pricing-card--highlight .partner-pricing-card__features svg {
-  /* Hieman tummempi sävy tarkkaan --fiko-lime-arvoon nähden, jotta ikonit erottuvat
+  /* Hieman tummempi sävy tarkkaan --delivo-black-arvoon nähden, jotta ikonit erottuvat
      saman-värisestä reunuksesta - color-mix pitää tämän ajan tasalla automaattisesti vaikka
-     brändiväri (--fiko-lime) vaihtuisi vielä kokeilujen aikana, ei tarvitse kovakoodattua hexiä. */
-  color: color-mix(in srgb, var(--fiko-lime) 70%, black);
+     brändiväri (--delivo-black) vaihtuisi vielä kokeilujen aikana, ei tarvitse kovakoodattua hexiä. */
+  color: color-mix(in srgb, var(--delivo-black) 70%, black);
 }
 
 .partner-pricing-card .partner-btn {
@@ -688,7 +688,7 @@
   font-family: inherit;
   font-weight: 600;
   font-size: 1rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .partner-faq__question:hover {
@@ -784,7 +784,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--fiko-lime);
+  background: var(--delivo-black);
   color: #fff;
   display: flex;
   align-items: center;
@@ -795,7 +795,7 @@
 .partner-steps h3 {
   margin: 0 0 4px;
   font-size: 1rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .partner-steps p {

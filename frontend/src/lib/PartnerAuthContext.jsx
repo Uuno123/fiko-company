@@ -10,7 +10,7 @@ async function fetchOwnerData(ownerId) {
     .eq('owner_id', ownerId)
 
   if (error) {
-    console.error('[fiko-frontend] Kumppanin ravintoloiden haku epäonnistui:', error.message)
+    console.error('[delivo-frontend] Kumppanin ravintoloiden haku epäonnistui:', error.message)
     return { isOwner: false, restaurants: [] }
   }
 

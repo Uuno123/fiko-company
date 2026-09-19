@@ -22,7 +22,7 @@ router.get('/', async (req, res) => {
     .order('name', { ascending: true })
 
   if (error) {
-    console.error('[fiko-backend] Ravintoloiden haku epäonnistui:', error.message)
+    console.error('[delivo-backend] Ravintoloiden haku epäonnistui:', error.message)
     return res.status(500).json({ error: 'Ravintoloiden haku epäonnistui.' })
   }
 
@@ -48,7 +48,7 @@ router.get('/:id', async (req, res) => {
     .maybeSingle()
 
   if (error) {
-    console.error('[fiko-backend] Ravintolan haku epäonnistui:', error.message)
+    console.error('[delivo-backend] Ravintolan haku epäonnistui:', error.message)
     return res.status(500).json({ error: 'Ravintolan haku epäonnistui.' })
   }
 

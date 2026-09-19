@@ -6,7 +6,7 @@ export const AuthContext = createContext(undefined)
 async function fetchCustomerProfile(userId) {
   const { data, error } = await supabase.from('customers').select('*').eq('id', userId).maybeSingle()
   if (error) {
-    console.error('[fiko-frontend] Asiakastietojen haku epäonnistui:', error.message)
+    console.error('[delivo-frontend] Asiakastietojen haku epäonnistui:', error.message)
     return null
   }
   return data

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 
 const CartContext = createContext(null)
-const STORAGE_KEY = 'fiko-cart'
+const STORAGE_KEY = 'delivo-cart'
 
 function readStoredCart() {
   try {

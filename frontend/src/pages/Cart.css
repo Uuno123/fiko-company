@@ -52,23 +52,23 @@
 }
 
 .checkout-steps__item--active {
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .checkout-steps__item--active .checkout-steps__dot {
-  background: var(--fiko-black);
-  border-color: var(--fiko-black);
+  background: var(--delivo-black);
+  border-color: var(--delivo-black);
   color: #fff;
 }
 
 .checkout-steps__item--done .checkout-steps__dot {
-  background: var(--fiko-black);
-  border-color: var(--fiko-black);
+  background: var(--delivo-black);
+  border-color: var(--delivo-black);
   color: #fff;
 }
 
 .checkout-steps__item--done {
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 /* Tyhjä kori */
@@ -115,7 +115,7 @@
 .cart-empty__cta {
   padding: 12px 24px;
   border-radius: var(--radius-pill);
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
   font-weight: 700;
   text-decoration: none;
@@ -124,7 +124,7 @@
 
 .cart-empty__cta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px -10px rgba(184, 134, 11, 0.7);
+  box-shadow: 0 10px 20px -10px rgba(20, 21, 15, 0.45);
 }
 
 /* Layout */
@@ -185,7 +185,7 @@
 }
 
 .cart-panel__back:hover {
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 /* Ostoskorin rivit */
@@ -204,7 +204,7 @@
   gap: 14px;
   padding: 14px 0;
   border-top: 1px solid var(--border);
-  animation: fiko-fade-in 0.25s ease;
+  animation: delivo-fade-in 0.25s ease;
 }
 
 .cart-item:first-child {
@@ -270,7 +270,7 @@
   background: none;
   font-size: 1.1rem;
   line-height: 1;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   cursor: pointer;
 }
 
@@ -313,7 +313,7 @@
   height: 13px;
 }
 
-@keyframes fiko-fade-in {
+@keyframes delivo-fade-in {
   from {
     opacity: 0;
     transform: translateY(4px);
@@ -398,7 +398,7 @@
   padding: 0 18px;
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
   font-family: inherit;
   font-size: 0.88rem;
@@ -503,7 +503,7 @@
   height: 28px;
   border-radius: 50%;
   border: none;
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
   display: flex;
   align-items: center;
@@ -581,7 +581,7 @@
   border-top: 1px solid var(--border);
   font-weight: 700;
   font-size: 1.05rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .order-summary__row--discount {
@@ -623,21 +623,21 @@
   padding: 9px 12px;
   font-size: 0.85rem;
   font-family: inherit;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   background: var(--surface);
   transition: border-color 0.2s ease;
 }
 
 .promo-code__form input:focus {
   outline: none;
-  border-color: var(--fiko-lime);
+  border-color: var(--delivo-black);
 }
 
 .promo-code__form button {
   padding: 0 16px;
   border: none;
   border-radius: 10px;
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
   font-family: inherit;
   font-size: 0.8rem;
@@ -673,7 +673,7 @@
   height: 50px;
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
   font-weight: 700;
   font-size: 0.98rem;
@@ -683,7 +683,7 @@
 
 .order-summary__cta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px -10px rgba(184, 134, 11, 0.7);
+  box-shadow: 0 10px 20px -10px rgba(20, 21, 15, 0.45);
 }
 
 .order-summary__back {
@@ -695,7 +695,7 @@
 }
 
 .order-summary__back:hover {
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 /* Toimitustapa */
@@ -727,8 +727,8 @@
 }
 
 .delivery-method__option--active {
-  border-color: var(--fiko-black);
-  background: var(--fiko-black);
+  border-color: var(--delivo-black);
+  background: var(--delivo-black);
   color: #fff;
 }
 
@@ -760,7 +760,7 @@
 .pickup-info__icon svg {
   width: 18px;
   height: 18px;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .pickup-info div {
@@ -794,7 +794,7 @@
   width: 18px;
   height: 18px;
   flex-shrink: 0;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .order-summary__delivery div {
@@ -834,13 +834,13 @@
   gap: 8px;
   font-family: var(--font-display);
   font-size: 0.95rem;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .payment-method-card__label svg {
   width: 18px;
   height: 18px;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .payment-method-card .payment-field input {
@@ -885,15 +885,15 @@
   padding: 12px 14px;
   font-size: 1rem;
   font-family: var(--font-body);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   background: var(--surface);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .payment-field input:focus {
   outline: none;
-  border-color: var(--fiko-lime);
-  box-shadow: 0 0 0 4px rgba(184, 134, 11, 0.28);
+  border-color: var(--delivo-black);
+  box-shadow: 0 0 0 4px rgba(20, 21, 15, 0.18);
 }
 
 .payment-field__error {
@@ -919,7 +919,7 @@
   height: 52px;
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
   font-family: inherit;
   font-weight: 700;
@@ -950,7 +950,7 @@
   margin: -4px 0 4px;
   border-radius: 16px;
   overflow: hidden;
-  background: linear-gradient(155deg, var(--fiko-black) 0%, #2a2c20 100%);
+  background: linear-gradient(155deg, var(--delivo-black) 0%, #2a2c20 100%);
 }
 
 .checkout-hero img {
@@ -1015,11 +1015,11 @@
 }
 
 .address-summary-row:hover {
-  border-color: var(--fiko-black);
+  border-color: var(--delivo-black);
 }
 
 .address-summary-row--open {
-  border-color: var(--fiko-black);
+  border-color: var(--delivo-black);
   background: var(--surface-muted);
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
@@ -1034,7 +1034,7 @@
   flex-shrink: 0;
   border-radius: 50%;
   background: var(--surface-muted);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .address-summary-row--open .address-summary-row__icon {
@@ -1051,7 +1051,7 @@
   min-width: 0;
   font-size: 0.88rem;
   font-weight: 600;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1071,7 +1071,7 @@
 
 .address-summary-row__panel {
   padding: 14px;
-  border: 1.5px solid var(--fiko-black);
+  border: 1.5px solid var(--delivo-black);
   border-top: none;
   border-radius: 0 0 14px 14px;
   background: var(--surface-muted);
@@ -1086,7 +1086,7 @@
   background: var(--surface);
   padding: 6px 14px;
   border-radius: var(--radius-pill);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
@@ -1137,7 +1137,7 @@
 }
 
 .toggle-switch--on {
-  background: var(--fiko-black);
+  background: var(--delivo-black);
 }
 
 .toggle-switch__thumb {
@@ -1159,7 +1159,7 @@
 .order-summary__delivery span.order-summary__delivery-note {
   margin-top: 2px;
   font-weight: 600;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   white-space: normal;
 }
 
@@ -1176,7 +1176,7 @@
   justify-content: center;
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
   font-weight: 700;
   font-size: 1rem;
@@ -1186,7 +1186,7 @@
 
 .payment-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px -10px rgba(184, 134, 11, 0.7);
+  box-shadow: 0 10px 20px -10px rgba(20, 21, 15, 0.45);
 }
 
 .payment-submit:disabled {
@@ -1198,12 +1198,12 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2.5px solid rgba(184, 134, 11, 0.3);
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
   border-top-color: #fff;
-  animation: fiko-spin 0.7s linear infinite;
+  animation: delivo-spin 0.7s linear infinite;
 }
 
-@keyframes fiko-spin {
+@keyframes delivo-spin {
   to {
     transform: rotate(360deg);
   }
@@ -1252,31 +1252,31 @@
 }
 
 .order-success__circle {
-  stroke: var(--fiko-lime);
+  stroke: var(--delivo-black);
   stroke-width: 3;
   stroke-linecap: round;
   stroke-dasharray: 151;
   stroke-dashoffset: 151;
-  animation: fiko-circle 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: delivo-circle 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .order-success__mark {
-  stroke: var(--fiko-black);
+  stroke: var(--delivo-black);
   stroke-width: 4;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 34;
   stroke-dashoffset: 34;
-  animation: fiko-check 0.35s 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: delivo-check 0.35s 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-@keyframes fiko-circle {
+@keyframes delivo-circle {
   to {
     stroke-dashoffset: 0;
   }
 }
 
-@keyframes fiko-check {
+@keyframes delivo-check {
   to {
     stroke-dashoffset: 0;
   }
@@ -1327,7 +1327,7 @@
   gap: 8px;
   padding: 14px 16px;
   border-radius: 14px;
-  background: rgba(184, 134, 11, 0.15);
+  background: rgba(20, 21, 15, 0.06);
   margin-bottom: 4px;
 }
 
@@ -1335,7 +1335,7 @@
   margin: 0;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--fiko-black);
+  color: var(--delivo-black);
 }
 
 .order-success__more-btn {
@@ -1347,7 +1347,7 @@
   border: none;
   border-radius: 10px;
   background: var(--surface);
-  color: var(--fiko-black);
+  color: var(--delivo-black);
   font-family: inherit;
   font-size: 0.82rem;
   font-weight: 700;
@@ -1363,7 +1363,7 @@
   margin-top: 6px;
   padding: 13px 28px;
   border-radius: var(--radius-pill);
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
   font-weight: 700;
   text-decoration: none;
@@ -1545,4 +1545,67 @@
     width: 14px;
     margin-left: 6px;
   }
+}
+
+/* Mobiilin kassapalkki: näkyy vain kapealla näytöllä, jossa se korvaa
+   koko site-headerin. */
+.cart-topbar {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .page--cart .site-header {
+    display: none;
+  }
+
+  .cart-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
+    background: var(--surface);
+  }
+
+  .cart-topbar__back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50%;
+    background: var(--delivo-black);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .cart-topbar__back svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .cart-topbar__back:active {
+    transform: scale(0.94);
+  }
+
+  /* Sivun oma yläreunan täyte on nyt palkissa. */
+  .cart-page {
+    padding-top: 6px;
+  }
+}
+
+/* Kassan tausta valkoiseksi. Valkoiset paneelit tarvitsevat silloin ohuen
+   reunuksen, muuten ne sulautuvat taustaan. */
+.page--cart {
+  background: var(--surface);
+}
+
+.page--cart .cart-panel,
+.page--cart .order-summary,
+.page--cart .cart-empty {
+  border: 1px solid #efe9e5;
+  box-shadow: none;
 }

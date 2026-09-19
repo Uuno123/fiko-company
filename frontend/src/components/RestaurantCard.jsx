@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom'
-import { Truck } from 'lucide-react'
+import { Truck, Clock, Heart } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { computePriceTier } from '../lib/priceTier.js'
 import './RestaurantCard.css'
 
-function RestaurantCard({ restaurant, disabled }) {
+function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) {
   const {
     id,
     name,
@@ -37,6 +37,30 @@ function RestaurantCard({ restaurant, disabled }) {
           <span className="status-badge__dot" />
           {isOpen ? 'Avoinna' : 'Kiinni'}
         </span>
+
+        {isOpen && pickupEstimateMinutes && (
+          <span className="restaurant-card__time">
+            <Clock size={12} aria-hidden="true" />
+            {pickupEstimateMinutes} min
+          </span>
+        )}
+
+        {onToggleFavorite && (
+          <button
+            type="button"
+            className={`restaurant-card__fav${isFavorite ? ' restaurant-card__fav--active' : ''}`}
+            aria-label={isFavorite ? `Poista ${name} suosikeista` : `Lisää ${name} suosikkeihin`}
+            aria-pressed={isFavorite}
+            onClick={(e) => {
+              // Kortti on linkki, joten estetään navigointi sydäntä painettaessa.
+              e.preventDefault()
+              e.stopPropagation()
+              onToggleFavorite(id)
+            }}
+          >
+            <Heart size={15} fill={isFavorite ? 'currentColor' : 'none'} aria-hidden="true" />
+          </button>
+        )}
       </div>
 
       <div className="restaurant-card__body">

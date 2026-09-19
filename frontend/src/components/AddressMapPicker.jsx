@@ -13,7 +13,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 })
 
-const DEFAULT_CENTER = [62.8924, 27.677] // Kuopio - Fikon esimerkkidatan kaupunki
+const DEFAULT_CENTER = [62.8924, 27.677] // Kuopio - delivon esimerkkidatan kaupunki
 const DEFAULT_ZOOM = 13
 const SEARCH_DEBOUNCE_MS = 600
 

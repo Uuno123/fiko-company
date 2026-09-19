@@ -8,7 +8,7 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseKey)
 
 if (!isSupabaseConfigured) {
   console.warn(
-    '[fiko-backend] SUPABASE_URL / SUPABASE_ANON_KEY puuttuvat .env-tiedostosta.\n' +
+    '[delivo-backend] SUPABASE_URL / SUPABASE_ANON_KEY puuttuvat .env-tiedostosta.\n' +
       '  -> Käytetään paikallista esimerkkidataa (backend/src/data/seedRestaurants.js).\n' +
       '  -> Aja "supabase/migrations" ja "supabase/seed.sql", täytä backend/.env, ja käynnistä backend uudelleen.',
   )

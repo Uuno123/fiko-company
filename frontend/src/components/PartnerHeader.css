@@ -1,5 +1,5 @@
 .partner-header {
-  background: var(--fiko-black);
+  background: var(--delivo-black);
   color: #fff;
   position: sticky;
   top: 0;
@@ -91,7 +91,7 @@
 }
 
 .partner-header__cta {
-  background: var(--fiko-lime);
+  background: var(--delivo-black);
   color: #fff;
   text-decoration: none;
   font-weight: 700;
@@ -118,7 +118,7 @@
   }
 
   /* "Kumppanit"-tunniste vie puhelimella tilaa Kirjaudu/Jätä hakemus -napeilta - brändi on
-     silti selvä pelkästä Fiko-logosta tällä sivustolla. */
+     silti selvä pelkästä delivo-logosta tällä sivustolla. */
   .partner-header__sublabel {
     display: none;
   }

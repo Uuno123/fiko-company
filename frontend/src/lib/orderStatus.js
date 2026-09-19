@@ -1,6 +1,6 @@
 export const ORDER_STATUS_FLOW = ['pending', 'confirmed', 'preparing', 'ready', 'completed']
 
-// Fikolla ei ole (vielä) kuljettajaseurantaa, joten ravintola voi todistetusti tietää vain
+// delivolla ei ole (vielä) kuljettajaseurantaa, joten ravintola voi todistetusti tietää vain
 // milloin tilaus on valmis ja milloin se on noudettu HEILTÄ - ei milloin se on oikeasti
 // perillä asiakkaalla. Siksi ravintolan toiminnot ja "completed"-tila eivät väitä "toimitettu",
 // vaan "noudettu" sekä nouto- että toimitustilauksille.

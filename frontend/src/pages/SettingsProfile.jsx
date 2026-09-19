@@ -288,7 +288,7 @@ function SettingsProfile() {
             Kirjaudu ulos
           </button>
           <a
-            href="mailto:tuki@fiko.fi?subject=Tilin%20poistopyynt%C3%B6"
+            href="mailto:tuki@delivo.fi?subject=Tilin%20poistopyynt%C3%B6"
             className="account-actions__delete"
           >
             Pyydä tilin poistamista

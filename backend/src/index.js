@@ -16,5 +16,5 @@ app.use('/api/restaurants', restaurantsRouter)
 app.use('/api/payments', paymentsRouter)
 
 app.listen(PORT, () => {
-  console.log(`[fiko-backend] http://localhost:${PORT}`)
+  console.log(`[delivo-backend] http://localhost:${PORT}`)
 })
