@@ -2,12 +2,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import AccountMenu from '../components/AccountMenu.jsx'
 import Footer from '../components/Footer.jsx'
+import Header from '../components/Header.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import Spinner from '../components/Spinner.jsx'
 import { getRestaurants } from '../lib/api.js'
 import { CATEGORY_NAMES, categorySlug, padWithFillers } from '../lib/categories.js'
 import { restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { useCart } from '../lib/CartContext.jsx'
+import { formatPrice } from '../lib/format.js'
 import { getFavoriteRestaurantIds, addFavorite, removeFavorite } from '../lib/favorites.js'
 import './CategoryPage.css'
 
@@ -15,6 +18,8 @@ function CategoryPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
   const { customer } = useAuth()
+  const cart = useCart()
+  const [searchValue, setSearchValue] = useState('')
   const [restaurants, setRestaurants] = useState([])
   const [status, setStatus] = useState('loading')
   const [favoriteIds, setFavoriteIds] = useState(() => new Set())
@@ -114,6 +119,25 @@ function CategoryPage() {
 
   return (
     <div className="page page--category">
+      {/* Työpöydällä sama header kuin etusivulla (logo, osoite, haku, tili, kori).
+          Mobiilissa kevyt topbar - CSS näyttää oikean, sama tapa kuin SearchResults.jsx:ssä. */}
+      <Header
+        showAddress
+        search={{ value: searchValue, onChange: setSearchValue, placeholder: 'Hae ravintoloita...' }}
+        cart={
+          cart.count > 0
+            ? {
+                count: cart.count,
+                totalCents: cart.totalCents,
+                groups: cart.groups,
+                onClear: cart.clear,
+                onClearRestaurant: cart.clearRestaurant,
+                formatPrice,
+              }
+            : null
+        }
+      />
+
       <div className="category-topbar">
         <div className="category-topbar__left">
           <button

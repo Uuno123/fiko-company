@@ -65,6 +65,7 @@
 /* Sama raja kuin etusivun .home-content: leveys on vapaa asti erittäin
    leveillä näytöillä, joilla rajaton ruudukko venyisi epämukavan harvaksi. */
 @media (min-width: 1900px) {
+  /* Sama leveys kuin headerilla ja etusivulla, jotta otsikko alkaa logon kohdalta. */
   .category-page {
     max-width: 1600px;
   }
@@ -104,9 +105,22 @@
 }
 
 @media (min-width: 561px) {
+  /* Sama väli headerin ja otsikon välissä kuin hakusivulla (.search-results). */
+  .category-page {
+    padding-top: 40px;
+  }
+
   .category-page__list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+
+  /* Kortti levenee rivin mukana, mutta ei pitene: kuvalla kiinteä korkeus
+     16:9-suhteen sijaan (sama korkeus kuin aiemmin ~340 px leveässä kortissa).
+     .page--category voittaa Home.css:n jaetun 16:9-säännön. */
+  .page--category .category-page__list .restaurant-card__media {
+    aspect-ratio: auto;
+    height: 190px;
   }
 }
 
@@ -142,16 +156,6 @@
   background: #000;
 }
 
-/* Sama vaalean taustan ongelma koskee myös mobiilin kompaktia avatar-nappia
-   (.account-menu--narrow), joka näytetään leveiden nappien sijaan alle 640px
-   leveydellä - senkin oletusväritys (valkoinen reunus/ikoni) on suunniteltu
-   tumman headerin päälle. */
-.category-topbar .account-menu__avatar--guest {
-  background: rgba(20, 21, 15, 0.06);
-  border-color: var(--border);
-  color: var(--delivo-black);
-}
-
 /* Lajittelu näkyy kategoriasivulla myös puhelimella (käyttäjän pyyntö), vaikka
    SearchResults.css piilottaa .search-sort-valitsimen alle 560px leveydellä
    hakusivulla. Kaksi luokkaa voittaa sen yhden luokan säännön järjestyksestä
@@ -162,6 +166,18 @@
   .category-page__heading {
     flex-wrap: wrap;
     align-items: center;
+  }
+
+  .category-page__heading h1 {
+    font-size: 1.25rem;
+  }
+
+  /* Kapeampi sivureunus puhelimella - kortit levenevät, ja reuna osuu samaan
+     linjaan topbarin takaisin-napin kanssa (20 px). */
+  .category-page {
+    padding-top: 32px;
+    padding-left: 20px;
+    padding-right: 20px;
   }
 
   .category-page__heading .search-sort {
@@ -175,5 +191,20 @@
     overflow: hidden;
     clip: rect(0 0 0 0);
     white-space: nowrap;
+  }
+}
+
+/* Header/topbar-vaihto tiedoston lopussa, jotta se voittaa yllä olevat saman
+   spesifisyyden säännöt: työpöydällä etusivun header, mobiilissa kevyt topbar
+   (sama jako kuin SearchResults.css:ssä). */
+@media (min-width: 561px) {
+  .category-topbar {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .page--category .site-header {
+    display: none;
   }
 }

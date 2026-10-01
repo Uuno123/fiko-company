@@ -147,6 +147,10 @@
   display: none;
 }
 
+.search-results__heading--mobile {
+  font-size: 1.1rem;
+}
+
 .search-results__heading-sub {
   display: none;
   margin: 0;
@@ -284,7 +288,14 @@
 @media (min-width: 561px) {
   .search-results__restaurant-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(264px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+
+  /* Leveämpi kortti ei pitene: kuvalla kiinteä korkeus 2.1:1-suhteen sijaan
+     (sama korkeus kuin aiemmin ~295 px leveässä kortissa). */
+  .page--search .search-results__restaurant-grid .restaurant-card__media {
+    aspect-ratio: auto;
+    height: 140px;
   }
 }
 

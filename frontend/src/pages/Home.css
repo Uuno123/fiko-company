@@ -254,14 +254,6 @@
     display: none;
   }
 
-  /* Kirjautumattoman valkoinen ääriviiva-avatar on tehty tummaa headeria varten -
-     vaalealla se katoaisi taustaan. */
-  .page--home .account-menu__avatar--guest {
-    background: rgba(0, 0, 0, 0.05);
-    border-color: var(--border);
-    color: var(--delivo-black);
-  }
-
   /* Ostoskorinappi on oletuksena läpikuultava valkoinen tummaa headeria varten -
      valkoisella taustalla se katoaisi kokonaan. Musta täyttö erottaa sen
      selvästi, samaan tapaan kuin tumma tili-avatar sen vieressä. */

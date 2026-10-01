@@ -73,48 +73,15 @@ function AccountMenu({ currentPath, variant }) {
           </Link>
         </div>
 
-        {/* Mobiili: kompakti avatar+chevron, avaa pudotusvalikon jossa samat linkit. */}
-        <div className="account-menu account-menu--narrow" ref={menuRef}>
-          <button
-            type="button"
-            className="account-menu__trigger"
-            onClick={() => setOpen((v) => !v)}
-            aria-expanded={open}
-            aria-label="Tili"
-          >
-            <span className="account-menu__avatar account-menu__avatar--guest">
-              <PersonIcon />
-            </span>
-            <ChevronIcon className={`account-menu__trigger-chevron${open ? ' account-menu__trigger-chevron--open' : ''}`} />
-          </button>
-
-          {open && (
-            <div className="account-menu__dropdown" role="menu">
-              <Link
-                to="/login"
-                state={{ from: currentPath }}
-                className="account-menu__item"
-                role="menuitem"
-                onClick={() => setOpen(false)}
-              >
-                Kirjaudu
-              </Link>
-              <Link
-                to="/register"
-                state={{ from: currentPath }}
-                className="account-menu__item"
-                role="menuitem"
-                onClick={() => setOpen(false)}
-              >
-                Rekisteröidy
-              </Link>
-              <div className="account-menu__divider" />
-              <Link to="/kumppanina" className="account-menu__item" role="menuitem" onClick={() => setOpen(false)}>
-                Ravintoloille
-              </Link>
-            </div>
-          )}
-        </div>
+        {/* Mobiili: yksi Kirjaudu-nappi - pelkkä henkilöikoni näytti sovelluksen
+            käyttöliittymältä. Rekisteröityminen löytyy kirjautumissivulta. */}
+        <Link
+          to="/login"
+          state={{ from: currentPath }}
+          className={`auth-login-btn${variant === 'overlay' ? ' auth-login-btn--overlay' : ''}`}
+        >
+          Kirjaudu
+        </Link>
       </>
     )
   }
