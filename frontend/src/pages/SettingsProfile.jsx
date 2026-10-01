@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SettingsLayout from '../components/SettingsLayout.jsx'
-import AddressMapPicker from '../components/AddressMapPicker.jsx'
+import AddressPickerModal from '../components/AddressPickerModal.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import { getFavoriteRestaurantIds } from '../lib/favorites.js'
 import { getRestaurants } from '../lib/api.js'
+import { formatDisplayAddress } from '../lib/format.js'
 import '../pages/AuthForm.css'
 import './Settings.css'
 
@@ -48,10 +49,8 @@ function SettingsProfile() {
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
 
-  const [editingAddress, setEditingAddress] = useState(false)
-  const [address, setAddress] = useState('')
-  const [addressStatus, setAddressStatus] = useState('idle')
-  const [addressError, setAddressError] = useState('')
+  const [addressModalOpen, setAddressModalOpen] = useState(false)
+  const closeAddressModal = useCallback(() => setAddressModalOpen(false), [])
 
   const [favorites, setFavorites] = useState([])
   const [favoritesStatus, setFavoritesStatus] = useState('loading')
@@ -60,7 +59,6 @@ function SettingsProfile() {
     if (customer) {
       setName(customer.name || '')
       setPhone(customer.phone || '')
-      setAddress(customer.address || '')
     }
   }, [customer])
 
@@ -128,130 +126,36 @@ function SettingsProfile() {
     setSaved(true)
   }
 
-  function cancelAddressEditing() {
-    setAddress(customer?.address || '')
-    setAddressError('')
-    setEditingAddress(false)
-  }
-
-  async function handleAddressSave() {
-    setAddressError('')
-    setAddressStatus('submitting')
-
+  // Osoiteikkunan vahvistus tallentaa suoraan. Virhe heitetään ikkunalle, joka
+  // pysyy auki ja näyttää viestin.
+  async function handleAddressSave({ address }) {
     const { error: updateError } = await supabase
       .from('customers')
       .update({ address: address.trim() || null })
       .eq('id', customer.id)
 
-    if (updateError) {
-      setAddressError(`Tallennus epäonnistui: ${updateError.message}`)
-      setAddressStatus('idle')
-      return
-    }
+    if (updateError) throw new Error(`Tallennus epäonnistui: ${updateError.message}`)
 
     await refreshCustomer()
-    setAddressStatus('idle')
-    setEditingAddress(false)
+    setAddressModalOpen(false)
   }
 
-  const initial = (customer?.name?.trim()?.[0] || customer?.email?.[0] || '?').toUpperCase()
-
   return (
-    <SettingsLayout>
+    <SettingsLayout title="Omat tiedot" description="Yhteystietosi, toimitusosoitteesi ja tallennetut ravintolasi.">
       {saved && <p className="auth-success">Tiedot tallennettu.</p>}
 
-      {!editing && (
-        <section className="auth-card profile-summary">
-          <div className="profile-summary__avatar-col">
-            <span className="profile-summary__avatar">{initial}</span>
-            <button type="button" className="profile-summary__edit" onClick={startEditing}>
+      <section className="settings-section">
+        <div className="settings-section__head">
+          <h2>Henkilötiedot</h2>
+          {!editing && (
+            <button type="button" className="settings-section__action" onClick={startEditing}>
               Muokkaa
             </button>
-          </div>
-
-          <div className="profile-summary__body">
-            <h2 className="profile-summary__name">{customer?.name || 'Tili'}</h2>
-
-            <div className="profile-summary__field">
-              <span className="profile-summary__label">Sähköposti</span>
-              <span className="profile-summary__value">{customer?.email}</span>
-            </div>
-
-            <div className="profile-summary__field">
-              <span className="profile-summary__label">Puhelinnumero</span>
-              <span className="profile-summary__value">{customer?.phone || '-'}</span>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {editingAddress ? (
-        <section className="auth-card">
-          {addressError && <p className="auth-error">{addressError}</p>}
-          <AddressMapPicker value={address} onChange={setAddress} />
-          <div className="profile-edit-actions">
-            <button
-              type="button"
-              className="auth-submit"
-              onClick={handleAddressSave}
-              disabled={addressStatus === 'submitting'}
-            >
-              {addressStatus === 'submitting' ? 'Tallennetaan...' : 'Tallenna osoite'}
-            </button>
-            <button type="button" className="auth-link-button" onClick={cancelAddressEditing}>
-              Peruuta
-            </button>
-          </div>
-        </section>
-      ) : (
-        <button type="button" className="auth-card address-card address-card--button" onClick={() => setEditingAddress(true)}>
-          <span className="address-card__icon">
-            <PinIcon />
-          </span>
-          <div className="address-card__body">
-            <span className="profile-summary__label">Osoite</span>
-            <span className="profile-summary__value">{customer?.address || 'Ei asetettu - paina lisätäksesi'}</span>
-          </div>
-        </button>
-      )}
-
-      {!editing && (
-        <section className="auth-card favorites-section">
-          <h2>Lempipaikat</h2>
-
-          {favoritesStatus === 'ready' && favorites.length === 0 && (
-            <div className="settings-empty favorites-empty">
-              <span className="favorites-empty__icon">
-                <HeartIcon />
-              </span>
-              <div>
-                <p>Ei vielä suosikkeja.</p>
-                <span className="settings-empty__hint">
-                  Napauta sydän-ikonia ravintolan sivulla, niin löydät sen aina täältä nopeasti.
-                </span>
-              </div>
-            </div>
           )}
+        </div>
 
-          {favoritesStatus === 'error' && (
-            <div className="settings-empty">
-              <p>Suosikkien haku epäonnistui. Yritä hetken kuluttua uudelleen.</p>
-            </div>
-          )}
-
-          {favorites.length > 0 && (
-            <div className="favorites-list">
-              {favorites.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {editing && (
-        <section className="auth-card">
-          <form className="auth-form" onSubmit={handleSubmit}>
+        {editing ? (
+          <form className="settings-panel settings-panel--padded auth-form" onSubmit={handleSubmit}>
             {error && <p className="auth-error">{error}</p>}
 
             <div className="auth-field">
@@ -272,29 +176,122 @@ function SettingsProfile() {
 
             <div className="profile-edit-actions">
               <button type="submit" className="auth-submit" disabled={status === 'submitting'}>
-                {status === 'submitting' ? 'Tallennetaan...' : 'Tallenna tiedot'}
+                {status === 'submitting' ? 'Tallennetaan...' : 'Tallenna'}
               </button>
               <button type="button" className="auth-link-button" onClick={cancelEditing}>
                 Peruuta
               </button>
             </div>
           </form>
-        </section>
-      )}
+        ) : (
+          <div className="settings-panel">
+            <div className="settings-panel__row">
+              <span className="settings-panel__label">Nimi</span>
+              <span className="settings-panel__value">{customer?.name || '-'}</span>
+            </div>
+            <div className="settings-panel__row">
+              <span className="settings-panel__label">Sähköposti</span>
+              <span className="settings-panel__value">{customer?.email}</span>
+            </div>
+            <div className="settings-panel__row">
+              <span className="settings-panel__label">Puhelinnumero</span>
+              <span className="settings-panel__value">{customer?.phone || '-'}</span>
+            </div>
+          </div>
+        )}
+      </section>
 
-      {!editing && (
-        <section className="auth-card account-actions-card">
-          <button type="button" className="account-actions__signout" onClick={handleSignOut}>
-            Kirjaudu ulos
+      <section className="settings-section">
+        <div className="settings-section__head">
+          <h2>Toimitusosoite</h2>
+          <button type="button" className="settings-section__action" onClick={() => setAddressModalOpen(true)}>
+            {customer?.address ? 'Muuta' : 'Lisää'}
           </button>
-          <a
-            href="mailto:tuki@delivo.fi?subject=Tilin%20poistopyynt%C3%B6"
-            className="account-actions__delete"
-          >
-            Pyydä tilin poistamista
-          </a>
-        </section>
-      )}
+        </div>
+
+        <div className="settings-panel">
+          <div className="settings-panel__row address-row">
+            <span className="address-row__icon">
+              <PinIcon />
+            </span>
+            <span className={`settings-panel__value${customer?.address ? '' : ' settings-panel__value--muted'}`}>
+              {formatDisplayAddress(customer?.address) || 'Ei vielä lisätty. Osoite täytetään valmiiksi kassalla.'}
+            </span>
+          </div>
+        </div>
+
+        {addressModalOpen && (
+          <AddressPickerModal
+            title="Toimitusosoite"
+            confirmLabel="Tallenna osoite"
+            initial={customer?.address ? { address: customer.address } : null}
+            onConfirm={handleAddressSave}
+            onClose={closeAddressModal}
+          />
+        )}
+      </section>
+
+      <section className="settings-section">
+        <div className="settings-section__head">
+          <h2>Lempipaikat</h2>
+          {favorites.length > 0 && <span className="settings-section__count">{favorites.length}</span>}
+        </div>
+
+        {favoritesStatus === 'ready' && favorites.length === 0 && (
+          <div className="settings-panel settings-panel--padded favorites-empty">
+            <span className="favorites-empty__icon">
+              <HeartIcon />
+            </span>
+            <div className="settings-empty">
+              <p>Ei vielä suosikkeja.</p>
+              <span className="settings-empty__hint">
+                Napauta sydäntä ravintolan sivulla, niin löydät sen aina täältä.
+              </span>
+            </div>
+          </div>
+        )}
+
+        {favoritesStatus === 'error' && (
+          <div className="settings-panel settings-panel--padded">
+            <p className="settings-empty__hint">Suosikkien haku epäonnistui. Yritä hetken kuluttua uudelleen.</p>
+          </div>
+        )}
+
+        {favorites.length > 0 && (
+          <div className="favorites-list">
+            {favorites.map((restaurant) => (
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="settings-section">
+        <div className="settings-section__head">
+          <h2>Tili</h2>
+        </div>
+        <div className="settings-panel">
+          <div className="settings-panel__row">
+            <span className="settings-panel__label">Kirjautuminen</span>
+            <span className="settings-panel__value settings-panel__value--muted">Kirjaudu ulos tältä laitteelta.</span>
+            <button type="button" className="settings-panel__link" onClick={handleSignOut}>
+              Kirjaudu ulos
+            </button>
+          </div>
+          <div className="settings-panel__row">
+            <span className="settings-panel__label">Tilin poistaminen</span>
+            <span className="settings-panel__value settings-panel__value--muted">
+              Pyyntö lähtee asiakastukeen sähköpostilla.
+            </span>
+            <a
+              href="mailto:tuki@delivo.fi?subject=Tilin%20poistopyynt%C3%B6"
+              className="settings-panel__link settings-panel__link--danger"
+            >
+              Pyydä poistoa
+            </a>
+          </div>
+        </div>
+      </section>
     </SettingsLayout>
   )
 }

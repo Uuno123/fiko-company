@@ -1,18 +1,54 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import DishResultCard from './DishResultCard.jsx'
+import { Truck } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { getRestaurants } from '../lib/api.js'
+import { searchFillerRestaurants } from '../lib/categories.js'
 import { supabase } from '../lib/supabaseClient.js'
 import './SearchSuggest.css'
 
-// Hakuehdotukset: ravintolat ja yksittäiset annokset. Sama toteutus sekä
-// headerin pudotusvalikossa että mobiilin koko ruudun hakunäkymässä, jotta
+// Hakuehdotukset: pelkät ravintolat (ei yksittäisiä annoksia). Sama toteutus
+// sekä headerin hakunäkymässä että mobiilin koko ruudun haussa, jotta
 // hakulogiikka on vain yhdessä paikassa.
 //
 // Haku sietää pieniä kirjoitusvirheitä ("pizzta" -> "pizza") trigram-
 // samankaltaisuuden avulla (search_restaurants/search_menu_items, ks.
 // migraatio 0027) - pelkkä ilike vaatisi tarkan osajonon.
+export function RestaurantResultCard({ restaurant: r, onNavigate }) {
+  // Täyteravintolalla ei ole omaa sivua - kortti näkyy mutta ei ole linkki,
+  // kuten etusivullakin (RestaurantCard disabled).
+  const Wrapper = r.isPlaceholder ? 'div' : Link
+  const wrapperProps = r.isPlaceholder
+    ? { 'aria-disabled': true }
+    : { to: `/ravintola/${r.id}`, onMouseDown: (e) => e.preventDefault(), onClick: onNavigate }
+
+  return (
+    <Wrapper
+      {...wrapperProps}
+      className={`search-suggest-restaurant-card${r.isPlaceholder ? ' search-suggest-restaurant-card--disabled' : ''}`}
+    >
+      <div className="search-suggest-restaurant-card__media">
+        {r.image_url ? (
+          <img src={r.image_url} alt={r.name} loading="lazy" />
+        ) : (
+          <RestaurantAvatarPlaceholder name={r.name} />
+        )}
+      </div>
+      <div className="search-suggest-restaurant-card__body">
+        <span className="search-suggest-restaurant-card__name">{r.name}</span>
+        {r.category && <span className="search-suggest-restaurant-card__category">{r.category}</span>}
+      </div>
+      <span className="search-suggest-restaurant-card__meta">
+        <Truck size={14} aria-hidden="true" />
+        <span className={r.free_delivery ? 'search-suggest-restaurant-card__fee--free' : undefined}>
+          {r.free_delivery ? '0,00 €' : '5,99 €'}
+        </span>
+        {r.pickup_estimate_minutes && <span>· {r.pickup_estimate_minutes} min</span>}
+      </span>
+    </Wrapper>
+  )
+}
+
 function SearchSuggest({ query, variant = 'dropdown', onNavigate }) {
   const [itemResults, setItemResults] = useState([])
   const [restaurantResults, setRestaurantResults] = useState([])
@@ -40,10 +76,10 @@ function SearchSuggest({ query, variant = 'dropdown', onNavigate }) {
     }
   }, [query])
 
-  // Ravintolahaku osuu vain ravintolan nimeen/kategoriaan, joten esim.
-  // "kinkkupizza" löytää annoksen muttei sitä tarjoavaa ravintolaa. Täydennetään
-  // ravintolalista annososumien ravintoloilla - ne oikeasti myyvät haettua
-  // ruokaa, ja search_menu_items palauttaa niistä jo kaikki tarvittavat tiedot.
+  // Annoksia ei näytetä, mutta annosten haku kertoo mitkä ravintolat myyvät
+  // haettua ruokaa (esim. "kinkkupizza" ei osu yhdenkään ravintolan nimeen).
+  // Oikeiden ravintoloiden perään tulevat hakuun liittyvät täyteravintolat,
+  // jotta näkymä ei jää kahden kortin varaan.
   const shownRestaurants = useMemo(() => {
     const seen = new Set(restaurantResults.map((r) => r.id))
     const fromItems = []
@@ -60,10 +96,13 @@ function SearchSuggest({ query, variant = 'dropdown', onNavigate }) {
         pickup_estimate_minutes: item.restaurant_pickup_estimate_minutes,
       })
     }
-    return [...restaurantResults, ...fromItems]
-  }, [restaurantResults, itemResults])
+    const real = [...restaurantResults, ...fromItems]
+    const realNames = new Set(real.map((r) => r.name?.toLowerCase()))
+    const fillers = searchFillerRestaurants(query).filter((f) => !realNames.has(f.name.toLowerCase()))
+    return [...real, ...fillers]
+  }, [restaurantResults, itemResults, query])
 
-  const hasResults = shownRestaurants.length > 0 || itemResults.length > 0
+  const hasResults = shownRestaurants.length > 0
   const trimmed = query?.trim() ?? ''
 
   // Kun haku ei tuota osumia, näytetään silti ravintoloita - mutta omana
@@ -98,44 +137,9 @@ function SearchSuggest({ query, variant = 'dropdown', onNavigate }) {
               Katso kaikki
             </Link>
           </div>
-          <div className="search-suggest-restaurants">
+          <div className="search-suggest-restaurants search-suggest-restaurants--grid">
             {shownRestaurants.map((r) => (
-              <Link
-                key={r.id}
-                to={`/ravintola/${r.id}`}
-                className="search-suggest-restaurant-card"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={onNavigate}
-              >
-                <div className="search-suggest-restaurant-card__media">
-                  {r.image_url ? (
-                    <img src={r.image_url} alt={r.name} loading="lazy" />
-                  ) : (
-                    <RestaurantAvatarPlaceholder name={r.name} />
-                  )}
-                </div>
-                <span className="search-suggest-restaurant-card__name">{r.name}</span>
-                <span className="search-suggest-restaurant-card__meta">
-                  {r.free_delivery ? 'Ilmainen kuljetus' : 'Kuljetus 5,99 €'}
-                  {r.pickup_estimate_minutes && ` · n. ${r.pickup_estimate_minutes} min`}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {itemResults.length > 0 && (
-        <div className="search-suggest-section">
-          <div className="search-suggest-section__header">
-            <h3 className="search-suggest-section__title">Hakutulokset</h3>
-            <Link to={seeAllHref} className="search-suggest-section__all" onClick={onNavigate}>
-              Katso kaikki
-            </Link>
-          </div>
-          <div className="search-suggest-items">
-            {itemResults.map((item) => (
-              <DishResultCard key={item.id} item={item} onNavigate={onNavigate} />
+              <RestaurantResultCard key={r.id} restaurant={r} onNavigate={onNavigate} />
             ))}
           </div>
         </div>
@@ -150,28 +154,9 @@ function SearchSuggest({ query, variant = 'dropdown', onNavigate }) {
               <div className="search-suggest-section__header">
                 <h3 className="search-suggest-section__title">Suosittuja juuri nyt</h3>
               </div>
-              <div className="search-suggest-restaurants">
+              <div className="search-suggest-restaurants search-suggest-restaurants--grid">
                 {fallback.map((r) => (
-                  <Link
-                    key={r.id}
-                    to={`/ravintola/${r.id}`}
-                    className="search-suggest-restaurant-card"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={onNavigate}
-                  >
-                    <div className="search-suggest-restaurant-card__media">
-                      {r.image_url ? (
-                        <img src={r.image_url} alt={r.name} loading="lazy" />
-                      ) : (
-                        <RestaurantAvatarPlaceholder name={r.name} />
-                      )}
-                    </div>
-                    <span className="search-suggest-restaurant-card__name">{r.name}</span>
-                    <span className="search-suggest-restaurant-card__meta">
-                      {r.free_delivery ? 'Ilmainen kuljetus' : 'Kuljetus 5,99 €'}
-                      {r.pickup_estimate_minutes && ` · n. ${r.pickup_estimate_minutes} min`}
-                    </span>
-                  </Link>
+                  <RestaurantResultCard key={r.id} restaurant={r} onNavigate={onNavigate} />
                 ))}
               </div>
             </>

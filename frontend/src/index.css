@@ -14,13 +14,26 @@
   --delivo-orange-dark: #d93f10;
   --delivo-orange-soft: #ffece5;
 
+  /* Sivun tausta. Oli aiemmin lämmin murrettu #faf7f5, mutta käyttäjä halusi
+     kaiken valkoiseksi - kortit erottuvat nyt omalla reunuksellaan ja varjollaan.
+     Tätä käyttävät body, vaalea header sekä haku- ja kategoriasivu, joten sävyn
+     vaihtaminen tapahtuu vain tässä. */
+  --delivo-bg: #ffffff;
+
   --color-open: #2fae4e;
   --color-closed: #9a9d94;
   --color-favorite: #e0455b;
 
   --radius-lg: 20px;
   --radius-pill: 999px;
+  /* Kumppanipuolen headerin korkeus. */
   --header-height: 74px;
+
+  /* Asiakaspuolen header on hieman matalampi - omana muuttujanaan, jottei
+     madaltaminen kutista samalla kumppanipuolen headeria. Kaikki mikä
+     asemoituu asiakasheaderin alle (hakuehdotukset, kassan sticky-yhteenveto)
+     lukee tätä, jottei väliin jää rakoa. */
+  --site-header-height: 66px;
 
   --font-display: 'Space Grotesk', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
@@ -51,7 +64,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--surface-muted);
+  background: var(--delivo-bg);
   color: var(--delivo-black);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;

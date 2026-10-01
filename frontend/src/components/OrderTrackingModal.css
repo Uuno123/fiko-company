@@ -2,95 +2,441 @@
   position: fixed;
   inset: 0;
   z-index: 950;
-  background: rgba(20, 21, 15, 0.55);
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  animation: order-tracking-modal-backdrop-in 0.2s ease;
+  background: rgba(20, 21, 15, 0.55);
+  animation: order-tracking-fade-in 0.25s ease both;
 }
 
-@keyframes order-tracking-modal-backdrop-in {
-  from {
-    opacity: 0;
-  }
+.order-tracking-modal__backdrop--closing {
+  animation: order-tracking-fade-out 0.28s ease both;
 }
 
+/* Puhelin: koko näytön näkymä, joka liukuu alhaalta ylös ja sulkiessa takaisin
+   alas. Oma vieritys, jotta kartta ja laskuri pysyvät yhtenäisenä sivuna. */
 .order-tracking-modal {
   position: relative;
-  width: 100%;
-  max-width: 480px;
-  max-height: 88vh;
-  overflow-y: auto;
-  background: var(--surface);
-  border-radius: 22px 22px 0 0;
-  padding: 24px 20px 28px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  width: 100%;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface);
   box-sizing: border-box;
-  animation: order-tracking-modal-in 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: order-tracking-slide-up 0.38s cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
-@keyframes order-tracking-modal-in {
+.order-tracking-modal--closing {
+  animation: order-tracking-slide-down 0.28s cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+/* Sulkunappi tilapalkin alle kotinäytöltä avatussa sovelluksessa. */
+.order-tracking-modal .tracking__close {
+  top: calc(14px + env(safe-area-inset-top, 0px));
+}
+
+@keyframes order-tracking-fade-in {
   from {
-    transform: translateY(24px);
     opacity: 0;
   }
 }
 
+@keyframes order-tracking-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes order-tracking-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes order-tracking-slide-down {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes order-tracking-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+}
+
+@keyframes order-tracking-pop-out {
+  to {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+
+/* Työpöytä: keskitetty modaali. */
 @media (min-width: 640px) {
   .order-tracking-modal__backdrop {
     align-items: center;
+    padding: 24px;
   }
 
   .order-tracking-modal {
-    border-radius: 22px;
-    max-height: 82vh;
+    max-width: 480px;
+    height: auto;
+    max-height: 90vh;
+    border-radius: 20px;
+    box-shadow: 0 30px 80px -24px rgba(0, 0, 0, 0.45);
+    animation: order-tracking-pop-in 0.25s cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+
+  .order-tracking-modal--closing {
+    animation: order-tracking-pop-out 0.2s ease both;
   }
 }
 
-.order-tracking-modal__close {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background: var(--surface-muted);
-  color: var(--delivo-black);
+@media (prefers-reduced-motion: reduce) {
+  .order-tracking-modal,
+  .order-tracking-modal__backdrop {
+    animation: none;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Seurantanäkymä (OrderTrackingView): kartta ylhäällä, iso aikalaskuri
+   nousee sen reunan päälle, sivuilla tuki- ja kuittinapit, alla tila.
+   ══════════════════════════════════════════════════════════════════════ */
+.tracking {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  background: var(--surface);
+}
+
+.tracking__map {
+  position: relative;
+  flex-shrink: 0;
+  height: 280px;
+}
+
+.tracking__map .delivery-route-map {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+/* Kartan aika-arvio vasempaan reunaan - oikealla on sulkunappi. */
+.tracking .delivery-route-map__eta {
+  top: 14px;
+  left: 14px;
+  right: auto;
+}
+
+.tracking__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--delivo-black);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
 
-.order-tracking-modal__close svg {
-  width: 15px;
-  height: 15px;
+.tracking__close svg {
+  width: 16px;
+  height: 16px;
 }
 
-.order-tracking-modal__header {
+.tracking__sheet {
+  position: relative;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  text-align: center;
-  padding-right: 28px;
+  gap: 8px;
+  padding: 0 20px 24px;
 }
 
-.order-tracking-modal__header h2 {
+/* Laskurin yläpuolisko nousee kartan päälle (puolet 216 px:n korkeudesta). */
+.tracking__ring-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  width: 100%;
+  margin: -108px 0 10px;
+}
+
+.tracking__ring-row > :first-child {
+  justify-self: start;
+}
+
+.tracking__ring-row > :last-child {
+  justify-self: end;
+}
+
+.tracking__side-btn {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 14px;
+  background: var(--surface-muted);
+  color: var(--delivo-black);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tracking__side-btn:hover {
+  background: #e6e8df;
+}
+
+.tracking__side-btn--active,
+.tracking__side-btn--active:hover {
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+/* Valmis tai peruttu tilaus: laskurin paikalla sama pyöreä levy tilatekstillä. */
+.tracking__state {
+  display: grid;
+  place-items: center;
+  width: 216px;
+  height: 216px;
+  padding: 24px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 10px 30px -12px rgba(20, 21, 15, 0.35);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.tracking__state--cancelled {
+  color: #9a2828;
+}
+
+.tracking__restaurant {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.tracking__headline {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  text-align: center;
   color: var(--delivo-black);
 }
 
-.order-tracking-modal__all-link {
-  align-self: center;
-  margin-top: 4px;
-  font-size: 0.85rem;
-  font-weight: 600;
+.tracking__message {
+  max-width: 34ch;
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.tracking__steps {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  max-width: 240px;
+  margin: 8px 0 4px;
+}
+
+.tracking__step {
+  flex: 1;
+  height: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-muted);
+  transition: background 0.3s ease;
+}
+
+.tracking__step--done {
+  background: var(--delivo-orange);
+}
+
+.tracking__step--current {
+  animation: tracking-step-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes tracking-step-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.tracking__details {
+  width: 100%;
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.tracking__details-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  background: none;
   color: var(--delivo-black);
-  text-decoration: underline;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tracking__details-toggle > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tracking__details-meta {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.tracking__details-chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.tracking__details-toggle[aria-expanded='true'] .tracking__details-chevron {
+  transform: rotate(180deg);
+}
+
+.tracking__details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 16px 16px;
+}
+
+.tracking__fact {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 0.88rem;
+}
+
+.tracking__fact span {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.tracking__fact strong {
+  font-weight: 600;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.tracking__lines {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.tracking__lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.88rem;
+}
+
+.tracking__lines li > span:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tracking__line-options {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.tracking__total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-weight: 700;
+}
+
+.tracking__all-link {
+  align-self: flex-start;
+  color: var(--delivo-black);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
+.tracking__close:focus-visible,
+.tracking__side-btn:focus-visible,
+.tracking__details-toggle:focus-visible {
+  outline: 2px solid var(--delivo-black);
+  outline-offset: 2px;
+}
+
+/* Heti tilauksen jälkeen näytettävä sivuversio (ostoskorin vahvistusvaihe). */
+.tracking--page {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid #ece8e4;
+  border-radius: 20px;
+}
+
+@media (max-width: 560px) {
+  .tracking--page {
+    border: none;
+    border-radius: 0;
+  }
+
+  /* Puhelimella kartta täyttää suurimman osan näytöstä kuten Woltissa: alle
+     jää juuri laskurin alapuolisko, tila ja "Tilauksen tiedot" (~370 px),
+     joten perusnäkymä mahtuu ruutuun vierittämättä. */
+  .tracking__map {
+    height: max(260px, calc(100dvh - 370px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tracking__step--current {
+    animation: none;
+  }
+
+  .tracking__details-chevron {
+    transition: none;
+  }
 }

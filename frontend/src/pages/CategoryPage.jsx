@@ -5,7 +5,8 @@ import Footer from '../components/Footer.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import Spinner from '../components/Spinner.jsx'
 import { getRestaurants } from '../lib/api.js'
-import { categorySlug, padWithFillers } from '../lib/categories.js'
+import { CATEGORY_NAMES, categorySlug, padWithFillers } from '../lib/categories.js'
+import { restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { getFavoriteRestaurantIds, addFavorite, removeFavorite } from '../lib/favorites.js'
 import './CategoryPage.css'
@@ -17,6 +18,8 @@ function CategoryPage() {
   const [restaurants, setRestaurants] = useState([])
   const [status, setStatus] = useState('loading')
   const [favoriteIds, setFavoriteIds] = useState(() => new Set())
+  const [sortBy, setSortBy] = useState('suositellut')
+  const deliveryAddress = useDeliveryAddress()
 
   useEffect(() => {
     let cancelled = false
@@ -50,19 +53,42 @@ function CategoryPage() {
     }
   }, [customer?.id])
 
+  // Kanoninen nimi tulee CATEGORY_NAMES-listasta eikä ravintoladatasta: jos
+  // kategorialla ei ole vielä yhtään oikeaa ravintolaa, otsikko ja täytteet
+  // pitää silti pystyä ratkaisemaan pelkän slugin perusteella.
+  const canonicalCategory = useMemo(
+    () => CATEGORY_NAMES.find((name) => categorySlug(name) === slug) ?? null,
+    [slug],
+  )
+
   // Täydennetään samalla säännöllä kuin etusivun rivit, jotta kategoria näyttää
   // saman määrän molemmissa paikoissa. Täytteet ovat fiktiivisiä eivätkä
   // klikattavissa (disabled).
   const matching = useMemo(() => {
+    if (!canonicalCategory) return []
     const real = restaurants.filter((r) => r.category && categorySlug(r.category) === slug)
-    if (real.length === 0) return []
-    return padWithFillers(real[0].category, real)
-  }, [restaurants, slug])
+    return padWithFillers(canonicalCategory, real).map((r) => ({
+      ...r,
+      distance_km: restaurantDistanceKm(r, deliveryAddress),
+    }))
+  }, [restaurants, slug, canonicalCategory, deliveryAddress])
 
-  // Otsikko luetaan datasta, jotta se näkyy oikein kirjoitettuna ("Kebab & Pizza")
-  // eikä URL-muodossa. Latauksen aikana dataa ei vielä ole, joten otsikko
-  // näytetään vasta sitten - muuten ylhäällä vilahtaisi "burgerit" pienellä.
-  const title = matching[0]?.category ?? null
+  const title = canonicalCategory
+
+  // Samat kaksi oikeaa kenttää kuin hakutuloksissa (SearchResults.jsx) - ei
+  // keksittyä järjestystä, molemmat lukevat kortin jo näyttämää dataa.
+  const sortedMatching = useMemo(() => {
+    if (sortBy === 'rating') return [...matching].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+    if (sortBy === 'eta') {
+      return [...matching].sort(
+        (a, b) => (a.pickup_estimate_minutes ?? Infinity) - (b.pickup_estimate_minutes ?? Infinity),
+      )
+    }
+    if (sortBy === 'distance') {
+      return [...matching].sort((a, b) => (a.distance_km ?? Infinity) - (b.distance_km ?? Infinity))
+    }
+    return matching
+  }, [matching, sortBy])
 
   async function toggleFavorite(restaurantId) {
     if (!customer?.id) return
@@ -111,6 +137,31 @@ function CategoryPage() {
         {title && (
           <div className="category-page__heading">
             <h1>{title}</h1>
+
+            {matching.length > 1 && (
+              <div className="search-sort">
+                <label htmlFor="category-sort" className="search-sort__label">
+                  Lajittelu
+                </label>
+                <div className="search-sort__control">
+                  <select id="category-sort" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                    <option value="suositellut">Suositellut</option>
+                    <option value="rating">Paras arvio</option>
+                    <option value="eta">Nopein toimitus</option>
+                    {deliveryAddress && <option value="distance">Lähin ensin</option>}
+                  </select>
+                  <svg className="search-sort__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path
+                      d="m6 8 4 4 4-4"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -122,13 +173,13 @@ function CategoryPage() {
 
         {matching.length > 0 && (
           <div className="category-page__list">
-            {matching.map((restaurant) => (
+            {sortedMatching.map((restaurant) => (
               <RestaurantCard
                 key={restaurant.id}
                 restaurant={restaurant}
                 disabled={restaurant.isPlaceholder}
                 isFavorite={favoriteIds.has(restaurant.id)}
-                onToggleFavorite={customer && !restaurant.isPlaceholder ? toggleFavorite : undefined}
+                onToggleFavorite={customer && !restaurant.isPlaceholder && !restaurant.isDemo ? toggleFavorite : undefined}
               />
             ))}
           </div>

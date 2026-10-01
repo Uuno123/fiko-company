@@ -1,7 +1,5 @@
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import Header from '../components/Header.jsx'
-import Footer from '../components/Footer.jsx'
 import GoogleAuthButton from '../components/GoogleAuthButton.jsx'
 import AppleAuthButton from '../components/AppleAuthButton.jsx'
 import FacebookAuthButton from '../components/FacebookAuthButton.jsx'
@@ -15,10 +13,21 @@ function Login() {
   const redirectTo = location.state?.from || '/'
 
   const [mode, setMode] = useState('login') // 'login' | 'forgot'
+  // Ensimmäisellä ruudulla kysytään vain sähköposti (kuten lopullisessa
+  // varmistusviesti-kirjautumisessa tulee olemaan). Salasana on toisena askeleena,
+  // koska varmistusviestiä ei ole vielä rakennettu - kun se tulee, se korvaa
+  // pelkästään tämän 'password'-askeleen.
+  const [step, setStep] = useState('email') // 'email' | 'password'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
+
+  function handleEmailContinue(e) {
+    e.preventDefault()
+    setErrorMessage('')
+    setStep('password')
+  }
 
   async function handleLogin(e) {
     e.preventDefault()
@@ -57,26 +66,23 @@ function Login() {
   if (!isSupabaseConfigured) {
     return (
       <div className="page">
-        <Header />
         <main className="auth-page auth-page--full-height">
           <div className="auth-card">
             <h1>Kirjautuminen ei ole käytössä</h1>
             <p className="auth-card__subtitle">Supabase-yhteyttä ei ole määritetty (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).</p>
           </div>
         </main>
-        <Footer />
       </div>
     )
   }
 
   return (
     <div className="page">
-      <Header />
       <main className="auth-page auth-page--full-height">
         <div className="auth-card">
           {mode === 'login' ? (
             <>
-              <h1>Kirjaudu sisään</h1>
+              <h1>Kirjaudu sisään Delivoon</h1>
               <p className="auth-card__subtitle">Näet tilaushistoriasi ja tilaat nopeammin uudelleen.</p>
 
               <GoogleAuthButton />
@@ -84,52 +90,83 @@ function Login() {
               <FacebookAuthButton />
               <p className="auth-divider">tai jatka sähköpostilla</p>
 
-              <form className="auth-form" onSubmit={handleLogin}>
-                {errorMessage && <p className="auth-error">{errorMessage}</p>}
+              {step === 'email' ? (
+                <form className="auth-form" onSubmit={handleEmailContinue}>
+                  <div className="auth-field">
+                    <label htmlFor="email">Anna sähköpostiosoite</label>
+                    <input
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="esimerkki@osoite.fi"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  </div>
 
-                <div className="auth-field">
-                  <label htmlFor="email">Sähköposti</label>
-                  <input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
+                  <button type="submit" className="auth-submit">
+                    Jatka
+                  </button>
+                </form>
+              ) : (
+                <form className="auth-form" onSubmit={handleLogin}>
+                  {errorMessage && <p className="auth-error">{errorMessage}</p>}
 
-                <div className="auth-field">
-                  <label htmlFor="password">Salasana</label>
-                  <input
-                    id="password"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
+                  <p className="auth-step-email">
+                    {email}
+                    <button
+                      type="button"
+                      className="auth-link-button"
+                      onClick={() => {
+                        setErrorMessage('')
+                        setStatus('idle')
+                        setStep('email')
+                      }}
+                    >
+                      Vaihda
+                    </button>
+                  </p>
 
-                <button
-                  type="button"
-                  className="auth-link-button"
-                  onClick={() => {
-                    setErrorMessage('')
-                    setStatus('idle')
-                    setMode('forgot')
-                  }}
-                >
-                  Unohditko salasanan?
-                </button>
+                  <div className="auth-field">
+                    <label htmlFor="password">Salasana</label>
+                    <input
+                      id="password"
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      autoFocus
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
 
-                <button type="submit" className="auth-submit" disabled={status === 'submitting'}>
-                  {status === 'submitting' ? 'Kirjaudutaan...' : 'Kirjaudu sisään'}
-                </button>
-              </form>
+                  <button
+                    type="button"
+                    className="auth-link-button"
+                    onClick={() => {
+                      setErrorMessage('')
+                      setStatus('idle')
+                      setMode('forgot')
+                    }}
+                  >
+                    Unohditko salasanan?
+                  </button>
+
+                  <button type="submit" className="auth-submit" disabled={status === 'submitting'}>
+                    {status === 'submitting' ? 'Kirjaudutaan...' : 'Kirjaudu sisään'}
+                  </button>
+                </form>
+              )}
 
               <p className="auth-footer">
                 Eikö sinulla ole vielä tiliä? <Link to="/register" state={{ from: redirectTo }}>Rekisteröidy</Link>
+              </p>
+
+              {/* Referenssikuvassa "tietosuojaseloste" on linkki, mutta sellaista sivua ei ole
+                  vielä olemassa - rikkinäisen linkin sijaan teksti on toistaiseksi pelkkää tekstiä. */}
+              <p className="auth-legal">
+                Delivon tietosuojaseloste sisältää tietoa henkilötietojen käsittelystä Delivolla.
               </p>
             </>
           ) : (
@@ -178,7 +215,6 @@ function Login() {
           )}
         </div>
       </main>
-      <Footer />
     </div>
   )
 }

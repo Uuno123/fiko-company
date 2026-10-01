@@ -1,6 +1,242 @@
+import { useEffect, useState } from 'react'
 import SettingsLayout from '../components/SettingsLayout.jsx'
+import { useAuth } from '../lib/AuthContext.jsx'
 import './AuthForm.css'
 import './Settings.css'
+
+// TILAPÄINEN, käyttäjän pyynnöstä esittelykäyttöön: kortin "tallennus" ei ole
+// oikea maksupalvelu. Selaimeen jää vain kortin merkki, 4 viimeistä numeroa ja
+// voimassaolo - ei koskaan koko numeroa eikä turvakoodia. Oikeassa toteutuksessa
+// kortti tallennetaan Stripeen (SetupIntent), ei omaan tietokantaan.
+function storageKey(customerId) {
+  return `delivo-demo-cards-${customerId}`
+}
+
+function loadCards(customerId) {
+  try {
+    return JSON.parse(localStorage.getItem(storageKey(customerId))) ?? []
+  } catch {
+    return []
+  }
+}
+
+function saveCards(customerId, cards) {
+  try {
+    localStorage.setItem(storageKey(customerId), JSON.stringify(cards))
+  } catch {
+    // Selaimen tallennus estetty (esim. yksityinen ikkuna) - kortit näkyvät silti tämän käynnin ajan.
+  }
+}
+
+function cardBrand(digits) {
+  if (/^4/.test(digits)) return 'Visa'
+  if (/^(5[1-5]|2[2-7])/.test(digits)) return 'Mastercard'
+  if (/^3[47]/.test(digits)) return 'Amex'
+  return 'Kortti'
+}
+
+// Luhn-tarkiste: sama tarkistus jonka oikea korttilomake tekee, joten
+// kirjoitusvirhe huomataan jo ennen tallennusta (4242 4242 4242 4242 kelpaa).
+function passesLuhn(digits) {
+  let sum = 0
+  for (let i = 0; i < digits.length; i++) {
+    let d = Number(digits[digits.length - 1 - i])
+    if (i % 2 === 1) {
+      d *= 2
+      if (d > 9) d -= 9
+    }
+    sum += d
+  }
+  return sum % 10 === 0
+}
+
+function formatCardNumber(value) {
+  return value
+    .replace(/\D/g, '')
+    .slice(0, 19)
+    .replace(/(\d{4})(?=\d)/g, '$1 ')
+}
+
+function formatExpiry(value) {
+  const digits = value.replace(/\D/g, '').slice(0, 4)
+  return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits
+}
+
+function validateCard({ number, expiry, cvc, name }) {
+  const errors = {}
+  const digits = number.replace(/\D/g, '')
+  if (digits.length < 13 || !passesLuhn(digits)) errors.number = 'Tarkista kortin numero'
+
+  const match = expiry.match(/^(\d{2})\/(\d{2})$/)
+  const month = match ? Number(match[1]) : 0
+  const year = match ? 2000 + Number(match[2]) : 0
+  const now = new Date()
+  const expired = year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1)
+  if (!match || month < 1 || month > 12 || expired) errors.expiry = 'Tarkista voimassaolo (KK/VV)'
+
+  if (!/^\d{3,4}$/.test(cvc)) errors.cvc = '3-4 numeroa'
+  if (name.trim().length < 2) errors.name = 'Anna kortinhaltijan nimi'
+  return errors
+}
+
+const EMPTY_FORM = { number: '', expiry: '', cvc: '', name: '' }
+
+function SavedCards() {
+  const { customer } = useAuth()
+  const [cards, setCards] = useState([])
+  const [adding, setAdding] = useState(false)
+  const [form, setForm] = useState(EMPTY_FORM)
+  const [errors, setErrors] = useState({})
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    if (customer?.id) setCards(loadCards(customer.id))
+  }, [customer?.id])
+
+  function updateCards(next) {
+    setCards(next)
+    if (customer?.id) saveCards(customer.id, next)
+  }
+
+  function startAdding() {
+    setForm({ ...EMPTY_FORM, name: customer?.name ?? '' })
+    setErrors({})
+    setSaved(false)
+    setAdding(true)
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault()
+    const nextErrors = validateCard(form)
+    setErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) return
+
+    const digits = form.number.replace(/\D/g, '')
+    updateCards([
+      ...cards,
+      { id: `${Date.now()}`, brand: cardBrand(digits), last4: digits.slice(-4), expiry: form.expiry },
+    ])
+    setForm(EMPTY_FORM)
+    setAdding(false)
+    setSaved(true)
+  }
+
+  function removeCard(id) {
+    setSaved(false)
+    updateCards(cards.filter((card) => card.id !== id))
+  }
+
+  return (
+    <section className="auth-card">
+      <div className="saved-cards__head">
+        <h2>Tallennetut kortit</h2>
+        {!adding && (
+          <button type="button" className="settings-section__action" onClick={startAdding}>
+            + Lisää kortti
+          </button>
+        )}
+      </div>
+
+      {saved && <p className="auth-success">Kortti lisätty.</p>}
+
+      {cards.length === 0 && !adding && (
+        <div className="settings-empty">
+          <p>Ei vielä tallennettuja maksukortteja.</p>
+        </div>
+      )}
+
+      {cards.length > 0 && (
+        <ul className="saved-cards">
+          {cards.map((card, index) => (
+            <li key={card.id} className="saved-card">
+              <span className={`card-brand card-brand--${card.brand.toLowerCase()}`}>
+                {card.brand === 'Mastercard' ? 'MC' : card.brand.toUpperCase()}
+              </span>
+              <span className="saved-card__main">
+                <span className="saved-card__number">
+                  {card.brand} •••• {card.last4}
+                  {index === 0 && <span className="saved-card__default">Oletus</span>}
+                </span>
+                <span className="saved-card__expiry">Voimassa {card.expiry}</span>
+              </span>
+              <button type="button" className="settings-panel__link" onClick={() => removeCard(card.id)}>
+                Poista
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {adding && (
+        <form className="auth-form card-form" onSubmit={handleSubmit} noValidate>
+          <div className="auth-field">
+            <label htmlFor="card-number">Kortin numero</label>
+            <input
+              id="card-number"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="1234 5678 9012 3456"
+              value={form.number}
+              onChange={(e) => setForm((f) => ({ ...f, number: formatCardNumber(e.target.value) }))}
+            />
+            {errors.number && <span className="card-form__error">{errors.number}</span>}
+          </div>
+
+          <div className="card-form__row">
+            <div className="auth-field">
+              <label htmlFor="card-expiry">Voimassa</label>
+              <input
+                id="card-expiry"
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="KK/VV"
+                value={form.expiry}
+                onChange={(e) => setForm((f) => ({ ...f, expiry: formatExpiry(e.target.value) }))}
+              />
+              {errors.expiry && <span className="card-form__error">{errors.expiry}</span>}
+            </div>
+            <div className="auth-field">
+              <label htmlFor="card-cvc">Turvakoodi</label>
+              <input
+                id="card-cvc"
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="CVC"
+                value={form.cvc}
+                onChange={(e) => setForm((f) => ({ ...f, cvc: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
+              />
+              {errors.cvc && <span className="card-form__error">{errors.cvc}</span>}
+            </div>
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="card-name">Kortinhaltijan nimi</label>
+            <input
+              id="card-name"
+              autoComplete="off"
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            />
+            {errors.name && <span className="card-form__error">{errors.name}</span>}
+          </div>
+
+          <div className="profile-edit-actions">
+            <button type="submit" className="auth-submit">
+              Tallenna kortti
+            </button>
+            <button type="button" className="auth-link-button" onClick={() => setAdding(false)}>
+              Peruuta
+            </button>
+          </div>
+
+          <p className="settings-empty__hint">
+            Esittelytila: korttia ei veloiteta eikä sen numeroa tallenneta - vain 4 viimeistä numeroa näytetään.
+          </p>
+        </form>
+      )}
+    </section>
+  )
+}
 
 function AppleBadge() {
   return (
@@ -68,13 +304,8 @@ const METHODS = [
 
 function SettingsPayments() {
   return (
-    <SettingsLayout>
-      <section className="auth-card">
-        <h2>Tallennetut kortit</h2>
-        <div className="settings-empty">
-          <p>Ei vielä tallennettuja maksukortteja.</p>
-        </div>
-      </section>
+    <SettingsLayout title="Maksutavat" description="Tallennetut kortit ja muut maksutavat.">
+      <SavedCards />
 
       <section className="auth-card">
         <h2>Muut maksutavat</h2>

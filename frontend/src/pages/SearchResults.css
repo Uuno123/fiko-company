@@ -1,6 +1,13 @@
 .page--search {
-  background: #faf7f5;
+  background: var(--delivo-bg);
 }
+
+/* Työpöydällä normaali delivo-header (Header.jsx, aina renderöity), mobiilissa
+   kevyt search-topbar allaolevine säännöllä. Molemmat ovat aina DOM:ssa - CSS
+   valitsee kumpi näkyy - sama tapa kuin Home.jsx:n home-mobile-top/desktop-grid.
+   HUOM nämä ovat tiedoston LOPUSSA (ei tässä): sama luokka, sama spesifisyys,
+   joten järjestys tiedostossa ratkaisee - .search-topbar:n oma display:flex
+   alempana voittaisi muuten tämän saman-spesifisyyden säännön. */
 
 .search-topbar {
   position: sticky;
@@ -10,7 +17,7 @@
   align-items: center;
   gap: 12px;
   padding: calc(10px + env(safe-area-inset-top, 0px)) 20px 10px;
-  background: #faf7f5;
+  background: var(--delivo-bg);
 }
 
 .search-topbar__back {
@@ -102,6 +109,28 @@
   box-sizing: border-box;
 }
 
+@media (min-width: 561px) {
+  .search-results {
+    max-width: none;
+    /* Sama sivupadding ja leveys kuin etusivulla, jotta sisältö ei tunnu
+       kapeammalta hakusivulla kuin muualla sivustolla. */
+    padding: 40px 32px 64px;
+  }
+}
+
+@media (min-width: 1900px) {
+  .search-results {
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+}
+
+.search-results__heading-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .search-results__heading {
   margin: 0;
   font-family: var(--font-display);
@@ -109,6 +138,34 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--delivo-black);
+}
+
+/* Kaksi otsikkoa DOM:ssa, CSS valitsee kumpi näkyy - työpöydällä kiinteä
+   "Hakutulokset" (haettu sana näkyy jo headerin hakukentässä, kuten Woltissa),
+   mobiilissa haettu sana itse otsikkona, koska omaa hakukenttää ei näy. */
+.search-results__heading--desktop {
+  display: none;
+}
+
+.search-results__heading-sub {
+  display: none;
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+@media (min-width: 561px) {
+  .search-results__heading--desktop {
+    display: block;
+  }
+
+  .search-results__heading--mobile {
+    display: none;
+  }
+
+  .search-results__heading-sub {
+    display: block;
+  }
 }
 
 .search-results__section {
@@ -123,6 +180,68 @@
   font-size: 1.15rem;
   font-weight: 700;
   color: var(--delivo-black);
+}
+
+.search-results__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Lajitteluvalitsin: piilotettu natiivi <select> pillerin sisällä. Yksinkertaisin
+   tapa saada oikea, näppäimistöllä ja ruudunlukijalla toimiva pudotusvalikko
+   ilman omaa avautuva/sulkeutuva-tilanhallintaa. */
+.search-sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.search-sort__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.search-sort__control {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-sort__control select {
+  appearance: none;
+  height: 36px;
+  padding: 0 30px 0 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.search-sort__control select:hover {
+  border-color: var(--delivo-black);
+}
+
+.search-sort__control select:focus-visible {
+  outline: 2px solid var(--delivo-black);
+  outline-offset: 2px;
+}
+
+.search-sort__chevron {
+  position: absolute;
+  right: 10px;
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  pointer-events: none;
 }
 
 .search-results__restaurant-grid {
@@ -141,29 +260,54 @@
   box-shadow: 0 6px 16px -10px rgba(20, 21, 15, 0.35);
 }
 
+/* Matalampi kuin oletus-16:9: 16:9 teki hakutuloskortista pystysuuntaisen
+   tornin, samasta syystä kuin etusivun kategoriarivien korteissa. */
 .search-results__restaurant-grid .restaurant-card__media {
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 2.1 / 1;
 }
 
-.search-results__restaurant-grid .restaurant-card__arrow {
-  display: none;
+/* Tiiviimpi tekstiosa: kortti on leveä (grid-solu, ei kapea mobiilikortti),
+   joten rivit eivät tarvitse yhtä paljon ilmaa. */
+.search-results__restaurant-grid .restaurant-card__body {
+  padding: 9px 14px 11px;
+  gap: 3px;
 }
 
-.search-results__item-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.search-results__restaurant-grid .restaurant-card__heading h3 {
+  font-size: 1.02rem;
+}
+
+.search-results__restaurant-grid .restaurant-card__meta {
+  gap: 7px;
 }
 
 @media (min-width: 561px) {
   .search-results__restaurant-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(264px, 1fr));
   }
+}
 
-  .search-results__item-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 8px;
+/* Header/topbar-vaihto tiedoston lopussa - katso kommentti .search-topbarin
+   määrittelyn kohdalla siitä miksi tämä ei voi olla siellä. */
+@media (max-width: 560px) {
+  .page--search .site-header {
+    display: none;
+  }
+}
+
+@media (min-width: 561px) {
+  .search-topbar {
+    display: none;
+  }
+}
+
+/* Lajitteluvalitsin oli pyydetty vain työpöydälle (Wolt-esikuva). Mobiilissa
+   se puristui "Ravintolat ja kaupat" -otsikon viereen ahtaaksi, koska otsikko
+   rivittyy kahdelle riville kapealla näytöllä - sama syy tämän sijainnista
+   tiedoston lopussa kuin yllä. */
+@media (max-width: 560px) {
+  .search-sort {
+    display: none;
   }
 }

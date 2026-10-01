@@ -31,7 +31,7 @@ function SettingsPassword() {
   }
 
   return (
-    <SettingsLayout>
+    <SettingsLayout title="Salasana" description="Vaihda kirjautumisessa käyttämäsi salasana.">
       <section className="auth-card">
         <form className="auth-form" onSubmit={handleSubmit}>
           {error && <p className="auth-error">{error}</p>}

@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase, isSupabaseConfigured } from './supabaseClient.js'
 
-const PartnerAuthContext = createContext(undefined)
+// Viedään esikatselusivua varten (__PreviewDashboard), joka antaa valekirjautumisen.
+export const PartnerAuthContext = createContext(undefined)
 
 async function fetchOwnerData(ownerId) {
   const { data, error } = await supabase

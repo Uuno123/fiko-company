@@ -1,5 +1,5 @@
 // Ennalta määritelty ainesosa-/ominaisuustagilista MenuItemForm/MenuItemModal-tagipoimintaa
-// varten (PartnerDashboard.jsx, Ruokalista-välilehti). Kumppani voi lisätä myös omia tageja
+// varten (partner-dashboard/views/menu/ItemDrawer.jsx). Kumppani voi lisätä myös omia tageja
 // tämän listan ulkopuolelta - tämä on vain valmis lähtökohta, ei tyhjentävä luettelo.
 export const INGREDIENT_TAG_GROUPS = [
   {

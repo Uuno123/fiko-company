@@ -5,6 +5,8 @@ import { CartProvider } from './lib/CartContext.jsx'
 import { PartnerAuthProvider } from './lib/PartnerAuthContext.jsx'
 import PartnerRoute from './components/PartnerRoute.jsx'
 import ActiveOrderBubble from './components/ActiveOrderBubble.jsx'
+import CookieConsent from './components/CookieConsent.jsx'
+import AddressGate from './components/AddressGate.jsx'
 import Home from './pages/Home.jsx'
 import SearchResults from './pages/SearchResults.jsx'
 import RestaurantPage from './pages/RestaurantPage.jsx'
@@ -22,10 +24,11 @@ import OrderHistory from './pages/OrderHistory.jsx'
 import PartnerLanding from './pages/PartnerLanding.jsx'
 import PartnerLogin from './pages/PartnerLogin.jsx'
 import PartnerRegister from './pages/PartnerRegister.jsx'
-import PartnerDashboard from './pages/PartnerDashboard.jsx'
+import PartnerDashboard from './partner-dashboard/PartnerDashboard.jsx'
 import PreviewDashboard from './pages/__PreviewDashboard.jsx'
 import PreviewAccount from './pages/__PreviewAccount.jsx'
 import PreviewCart from './pages/__PreviewCart.jsx'
+import PreviewTracking from './pages/__PreviewTracking.jsx'
 
 // React Router ei nollaa vieritystä sivunvaihdossa - ilman tätä esim. ravintolan sivulle
 // PALATESSA (selaimen takaisin-painike tms.) sivu renderöityy edelliseen vieritysasentoon,
@@ -81,6 +84,7 @@ function App() {
             <Route path="/omat-tilaukset" element={<OrderHistory />} />
             <Route path="/__preview-account" element={<PreviewAccount />} />
             <Route path="/__preview-cart" element={<PreviewCart />} />
+            <Route path="/__preview-tracking" element={<PreviewTracking />} />
 
             <Route
               element={
@@ -89,12 +93,12 @@ function App() {
                 </PartnerAuthProvider>
               }
             >
-              <Route path="/__preview-dashboard" element={<PreviewDashboard />} />
+              <Route path="/__preview-dashboard/*" element={<PreviewDashboard />} />
               <Route path="/kumppanina" element={<PartnerLanding />} />
               <Route path="/kumppani/kirjaudu" element={<PartnerLogin />} />
               <Route path="/kumppani/rekisteroidy" element={<PartnerRegister />} />
               <Route
-                path="/kumppani/dashboard"
+                path="/kumppani/dashboard/*"
                 element={
                   <PartnerRoute>
                     <PartnerDashboard />
@@ -104,6 +108,8 @@ function App() {
             </Route>
           </Routes>
           <ActiveOrderBubble />
+          <CookieConsent />
+          <AddressGate />
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

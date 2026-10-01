@@ -1,3 +1,5 @@
+import { getDemoRestaurant } from './demoRestaurants.js'
+
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
 
 async function request(path, options) {
@@ -14,6 +16,9 @@ export function getRestaurants() {
 }
 
 export function getRestaurantById(id) {
+  // Esittelyravintolat (lib/demoRestaurants.js) eivät ole tietokannassa.
+  const demo = getDemoRestaurant(id)
+  if (demo) return Promise.resolve(demo)
   return request(`/api/restaurants/${id}`)
 }
 

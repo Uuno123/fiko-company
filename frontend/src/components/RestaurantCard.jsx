@@ -1,8 +1,19 @@
 import { Link } from 'react-router-dom'
-import { Truck, Clock, Heart } from 'lucide-react'
+import { Bike, Heart, Tag } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
-import { computePriceTier } from '../lib/priceTier.js'
+import { DELIVERY_FEE_CENTS, formatEtaRange } from '../lib/delivery.js'
+import { formatDistance } from '../lib/deliveryAddress.js'
+import { formatPrice } from '../lib/format.js'
 import './RestaurantCard.css'
+
+// Tähti arvosanan edessä.
+function StarIcon() {
+  return (
+    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path d="M10 2.5l2.35 4.76 5.25.76-3.8 3.7.9 5.23L10 14.5l-4.7 2.47.9-5.23-3.8-3.7 5.25-.76L10 2.5z" />
+    </svg>
+  )
+}
 
 function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) {
   const {
@@ -11,16 +22,46 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
     image_url: imageUrl,
     is_open: isOpen,
     rating,
-    menu_items: menuItems,
     free_delivery: freeDelivery,
     pickup_estimate_minutes: pickupEstimateMinutes,
+    distance_km: distanceKm,
   } = restaurant
-  const priceTier = computePriceTier(menuItems)
+
+  const etaRange = formatEtaRange(pickupEstimateMinutes)
+  const distance = formatDistance(distanceKm)
+
+  // Yksi tietorivi: arvosana · aika · etäisyys · kuljetusmaksu. Etäisyys on
+  // mukana vain kun kävijä on antanut toimitusosoitteen (lib/deliveryAddress.js).
+  // Kiinni olevaa ravintolaa ei merkitä tekstillä vaan himmennetyllä kortilla
+  // (.restaurant-card--closed).
+  const stats = [
+    rating != null && (
+      <span key="rating" className="restaurant-card__stat restaurant-card__stat--rating">
+        <StarIcon />
+        {Number(rating).toFixed(1)}
+      </span>
+    ),
+    etaRange && (
+      <span key="eta" className="restaurant-card__stat">
+        {etaRange}
+      </span>
+    ),
+    distance && (
+      <span key="distance" className="restaurant-card__stat">
+        {distance}
+      </span>
+    ),
+    <span
+      key="fee"
+      className={`restaurant-card__stat${freeDelivery ? ' restaurant-card__stat--accent' : ''}`}
+    >
+      <Bike size={14} aria-hidden="true" />
+      {formatPrice(freeDelivery ? 0 : DELIVERY_FEE_CENTS)}
+    </span>,
+  ].filter(Boolean)
 
   const Wrapper = disabled ? 'div' : Link
-  const wrapperProps = disabled
-    ? { 'aria-disabled': true, tabIndex: -1 }
-    : { to: `/ravintola/${id}` }
+  const wrapperProps = disabled ? { 'aria-disabled': true, tabIndex: -1 } : { to: `/ravintola/${id}` }
 
   return (
     <Wrapper
@@ -33,17 +74,14 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
         ) : (
           <RestaurantAvatarPlaceholder name={name} />
         )}
-        <span className={`status-badge ${isOpen ? 'status-badge--open' : 'status-badge--closed'}`}>
-          <span className="status-badge__dot" />
-          {isOpen ? 'Avoinna' : 'Kiinni'}
-        </span>
 
-        {isOpen && pickupEstimateMinutes && (
-          <span className="restaurant-card__time">
-            <Clock size={12} aria-hidden="true" />
-            {pickupEstimateMinutes} min
-          </span>
-        )}
+        {/* Merkki on totta: SUURTILAUS antaa kassalla oikeasti 30 % (enint. 7 €)
+            kun tilaus on vähintään 50 € - sama katto ja raja on sekä täällä
+            (Cart.jsx) että backendin payments.js:ssä, joka veloittaa summan. */}
+        <span className="restaurant-card__promo">
+          <Tag size={12} aria-hidden="true" />
+          −30 % (enint. 7 €)
+        </span>
 
         {onToggleFavorite && (
           <button
@@ -66,42 +104,20 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
       <div className="restaurant-card__body">
         <div className="restaurant-card__heading">
           <h3>{name}</h3>
-          <span className="restaurant-card__arrow" aria-hidden="true">
-            →
-          </span>
         </div>
 
         <div className="restaurant-card__meta">
-          {rating != null && (
-            <span className="rating-badge">
-              <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path d="M10 2.5l2.35 4.76 5.25.76-3.8 3.7.9 5.23L10 14.5l-4.7 2.47.9-5.23-3.8-3.7 5.25-.76L10 2.5z" />
-              </svg>
-              {Number(rating).toFixed(1)}
+          {stats.map((stat, i) => (
+            <span key={stat.key} className="restaurant-card__meta-item">
+              {i > 0 && (
+                <span className="restaurant-card__sep" aria-hidden="true">
+                  ·
+                </span>
+              )}
+              {stat}
             </span>
-          )}
-          {isOpen && pickupEstimateMinutes && (
-            <span className="eta-badge">
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
-                <path
-                  d="M10 6v4l3 2"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              n. {pickupEstimateMinutes} min
-            </span>
-          )}
-          {priceTier && <span className="price-tier">{priceTier}</span>}
+          ))}
         </div>
-
-        <span className={`delivery-note${freeDelivery ? ' delivery-note--free' : ''}`}>
-          <Truck size={13} aria-hidden="true" />
-          {freeDelivery ? 'Ilmainen kuljetus' : 'Kuljetus 5,99 €'}
-        </span>
       </div>
     </Wrapper>
   )

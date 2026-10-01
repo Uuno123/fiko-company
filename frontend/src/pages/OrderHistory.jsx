@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { ChevronDown } from 'lucide-react'
 import SettingsLayout from '../components/SettingsLayout.jsx'
+import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
 import DeliveryRouteMap from '../components/DeliveryRouteMap.jsx'
 import OrderCountdownRing from '../components/OrderCountdownRing.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -16,8 +18,8 @@ function formatEta(value) {
 
 function formatOrderDate(value) {
   return new Date(value).toLocaleString('fi-FI', {
-    day: '2-digit',
-    month: '2-digit',
+    day: 'numeric',
+    month: 'numeric',
     year: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
@@ -48,41 +50,58 @@ function OrderLines({ order }) {
   )
 }
 
+function itemCountLabel(order) {
+  const count = (order.order_items ?? []).reduce((sum, line) => sum + line.quantity, 0)
+  return `${count} ${count === 1 ? 'tuote' : 'tuotetta'}`
+}
+
 function PastOrderRow({ order, isOpen, onToggle }) {
+  const restaurantName = order.restaurants?.name ?? 'Ravintola'
+
   return (
-    <div className="past-order-row">
-      <button
-        type="button"
-        className="past-order-row__summary"
-        onClick={onToggle}
-        aria-expanded={isOpen}
-      >
-        <div>
-          <strong>{order.restaurants?.name ?? 'Ravintola'}</strong>
-          <span className="order-history-card__meta">
-            {order.order_number} · {formatOrderDate(order.created_at)}
+    <li className="past-order">
+      <button type="button" className="past-order__summary" onClick={onToggle} aria-expanded={isOpen}>
+        <span className="past-order__thumb">
+          {order.restaurants?.image_url ? (
+            <img src={order.restaurants.image_url} alt="" loading="lazy" />
+          ) : (
+            <RestaurantAvatarPlaceholder name={restaurantName} size="thumb" />
+          )}
+        </span>
+        <span className="past-order__main">
+          <span className="past-order__name">{restaurantName}</span>
+          <span className="past-order__meta">
+            {formatOrderDate(order.created_at)} · {itemCountLabel(order)}
           </span>
-        </div>
-        <div className="past-order-row__right">
-          <span className={`order-status-badge order-status-badge--${order.status}`}>
+        </span>
+        <span className="past-order__side">
+          <span className="past-order__total">{formatPrice(order.total_cents)}</span>
+          <span className={`past-order__status past-order__status--${order.status}`}>
             {orderStatusLabel(order.status, order.delivery_method)}
           </span>
-          <span className="past-order-row__total">{formatPrice(order.total_cents)}</span>
-        </div>
+        </span>
+        <ChevronDown className="past-order__chevron" size={18} strokeWidth={1.75} aria-hidden="true" />
       </button>
+
       {isOpen && (
-        <div className="past-order-row__details">
-          <span className={`order-method-badge order-method-badge--${order.delivery_method}`}>
-            {order.delivery_method === 'delivery' ? 'Kotiinkuljetus' : 'Nouto'}
-          </span>
+        <div className="past-order__details">
+          <div className="past-order__facts">
+            <span>Tilaus {order.order_number}</span>
+            <span>{order.delivery_method === 'delivery' ? 'Kotiinkuljetus' : 'Nouto'}</span>
+          </div>
           <OrderLines order={order} />
           <div className="order-history-card__total">
             <span>Yhteensä</span>
             <span>{formatPrice(order.total_cents)}</span>
           </div>
+          {order.restaurant_id && (
+            <Link to={`/ravintola/${order.restaurant_id}`} className="past-order__link">
+              Siirry ravintolaan
+            </Link>
+          )}
         </div>
       )}
-    </div>
+    </li>
   )
 }
 
@@ -99,7 +118,7 @@ function OrderHistory() {
 
     supabase
       .from('orders')
-      .select('*, order_items(*), restaurants(name, lat, lng)')
+      .select('*, order_items(*), restaurants(name, lat, lng, image_url)')
       .eq('customer_id', session.user.id)
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
@@ -121,7 +140,7 @@ function OrderHistory() {
   const pastOrders = orders.filter((o) => !ACTIVE_STATUSES.includes(o.status))
 
   return (
-    <SettingsLayout>
+    <SettingsLayout title="Tilaukset" description="Käynnissä olevat ja aiemmat tilauksesi.">
       {status === 'loading' && (
         <section className="auth-card">
           <p className="state-message">Ladataan...</p>
@@ -182,7 +201,11 @@ function OrderHistory() {
               {isOpen && (
                 <div className="order-history-card__tracking">
                   {order.estimated_ready_at && order.status !== 'cancelled' && (
-                    <OrderCountdownRing createdAt={order.created_at} arrivalAt={estimatedArrivalAt(order)} />
+                    <OrderCountdownRing
+                      createdAt={order.created_at}
+                      arrivalAt={estimatedArrivalAt(order)}
+                      deliveryMethod={order.delivery_method}
+                    />
                   )}
                   <p className="order-history-card__tracking-message">{trackingMessage(order)}</p>
                   {order.estimated_ready_at && (
@@ -207,9 +230,12 @@ function OrderHistory() {
         })}
 
       {status === 'ready' && pastOrders.length > 0 && (
-        <section className="auth-card past-orders-section">
-          <h2 className="past-orders-section__title">Vanhat tilaukset</h2>
-          <div className="past-orders-section__list">
+        <section className="settings-section">
+          <div className="settings-section__head">
+            <h2>Aiemmat tilaukset</h2>
+            <span className="settings-section__count">{pastOrders.length}</span>
+          </div>
+          <ul className="settings-panel past-orders">
             {pastOrders.map((order) => (
               <PastOrderRow
                 key={order.id}
@@ -218,7 +244,7 @@ function OrderHistory() {
                 onToggle={() => setOpenOrderId(openOrderId === order.id ? null : order.id)}
               />
             ))}
-          </div>
+          </ul>
         </section>
       )}
     </SettingsLayout>

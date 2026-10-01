@@ -1,5 +1,5 @@
 .page--category {
-  background: #faf7f5;
+  background: var(--delivo-bg);
 }
 
 .category-topbar {
@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: space-between;
   padding: calc(10px + env(safe-area-inset-top, 0px)) 20px 10px;
-  background: #faf7f5;
+  background: var(--delivo-bg);
 }
 
 .category-topbar__back {
@@ -36,15 +36,38 @@
   transform: scale(0.94);
 }
 
+/* Sama koko kuin etusivun headerin logolla (Header.css, vaalea header -lohko) -
+   jos se muuttuu, muuta molemmat. */
+.category-topbar .delivo-logo {
+  padding: 5px 13px;
+  border-radius: 13px;
+  font-size: 1.25rem;
+}
+
+@media (max-width: 560px) {
+  .category-topbar .delivo-logo {
+    padding: 4px 11px;
+    border-radius: 12px;
+    font-size: 1.05rem;
+  }
+}
+
 .category-page {
   width: 100%;
-  max-width: 1080px;
   margin: 0 auto;
-  padding: 6px 20px 64px;
+  padding: 20px 32px 64px;
   display: flex;
   flex-direction: column;
   gap: 18px;
   box-sizing: border-box;
+}
+
+/* Sama raja kuin etusivun .home-content: leveys on vapaa asti erittäin
+   leveillä näytöillä, joilla rajaton ruudukko venyisi epämukavan harvaksi. */
+@media (min-width: 1900px) {
+  .category-page {
+    max-width: 1600px;
+  }
 }
 
 .category-page__heading {
@@ -70,21 +93,14 @@
 }
 
 /* Kortit ovat oletuksena vaakarivin kiinteän levyisiä - tässä listassa ne
-   täyttävät rivin. */
+   täyttävät ruudukon solun. Median 16:9-suhde tulee Home.css:n jaetusta
+   .category-page__list .restaurant-card__media -säännöstä. */
 .category-page__list .restaurant-card {
   width: 100%;
   max-width: none;
   border-radius: 16px;
   border: 1px solid #efe9e5;
   box-shadow: 0 6px 16px -10px rgba(20, 21, 15, 0.35);
-}
-
-.category-page__list .restaurant-card__media {
-  aspect-ratio: 16 / 9;
-}
-
-.category-page__list .restaurant-card__arrow {
-  display: none;
 }
 
 @media (min-width: 561px) {
@@ -99,4 +115,65 @@
   align-items: center;
   gap: 12px;
   min-width: 0;
+}
+
+/* AccountMenun oletus .auth-ghost-btn (Kirjaudu) on suunniteltu tumman headerin
+   päälle - valkoinen teksti ja himmeä valkoinen reunus. Tämän sivun topbar on
+   vaalea (var(--delivo-bg)), joten nappi olisi ilman tätä käytännössä näkymätön. */
+.category-topbar .auth-ghost-btn {
+  color: var(--delivo-black);
+  border-color: var(--border);
+}
+
+.category-topbar .auth-ghost-btn:hover {
+  background: rgba(20, 21, 15, 0.06);
+  border-color: var(--delivo-black);
+}
+
+/* Rekisteröidy mustana pilerinä (sama väri kuin takaisin-nuolessa) oletuksen
+   valkoisen pillerin sijaan. */
+.category-topbar .auth-pill-btn {
+  background: var(--delivo-black);
+  color: #fff;
+  border-color: var(--delivo-black);
+}
+
+.category-topbar .auth-pill-btn:hover {
+  background: #000;
+}
+
+/* Sama vaalean taustan ongelma koskee myös mobiilin kompaktia avatar-nappia
+   (.account-menu--narrow), joka näytetään leveiden nappien sijaan alle 640px
+   leveydellä - senkin oletusväritys (valkoinen reunus/ikoni) on suunniteltu
+   tumman headerin päälle. */
+.category-topbar .account-menu__avatar--guest {
+  background: rgba(20, 21, 15, 0.06);
+  border-color: var(--border);
+  color: var(--delivo-black);
+}
+
+/* Lajittelu näkyy kategoriasivulla myös puhelimella (käyttäjän pyyntö), vaikka
+   SearchResults.css piilottaa .search-sort-valitsimen alle 560px leveydellä
+   hakusivulla. Kaksi luokkaa voittaa sen yhden luokan säännön järjestyksestä
+   riippumatta. Pitkillä kategorianimillä ("Kebab & Pizza") valitsin rivittyy
+   otsikon alle, ja "Lajittelu"-teksti piilotetaan vain näkyvistä - valitsin
+   kertoo jo itse valinnan, ja ruudunlukija kuulee yhä nimen. */
+@media (max-width: 560px) {
+  .category-page__heading {
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .category-page__heading .search-sort {
+    display: flex;
+  }
+
+  .category-page__heading .search-sort__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
 }

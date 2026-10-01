@@ -9,7 +9,7 @@
 }
 
 .delivery-route-map__canvas {
-  /* Leafletin sisäiset paneelit käyttävät z-indexejä jopa 700 asti; ilman omaa
+  /* Karttakirjastojen sisäiset paneelit käyttävät z-indexejä jopa 700 asti; ilman omaa
      z-indexiä (joka luo pino-kontekstin) ne vuotaisivat ETA-merkin (z-index 20) päälle. */
   z-index: 0;
   width: 100%;
@@ -38,45 +38,9 @@
   z-index: 20;
   padding: 6px 12px;
   border-radius: var(--radius-pill);
-  background: var(--delivo-black);
+  background: var(--delivo-orange);
   color: #fff;
   font-size: 0.75rem;
   font-weight: 700;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-}
-
-.route-pin {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.route-pin span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-.route-pin svg {
-  width: 60%;
-  height: 60%;
-}
-
-.route-pin--store span {
-  border-radius: 50%;
-  background: var(--delivo-black);
-  color: #fff;
-  box-shadow: 0 3px 8px rgba(20, 21, 15, 0.35);
-}
-
-.route-pin--dest {
-  color: var(--color-favorite);
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
-}
-
-.route-pin--dest svg {
-  width: 100%;
-  height: 100%;
 }

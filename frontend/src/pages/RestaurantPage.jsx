@@ -1,15 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Star } from 'lucide-react'
+import { useParams } from 'react-router-dom'
+import { ChevronDown, Star, Tag } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import Spinner from '../components/Spinner.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
 import { getRestaurantById } from '../lib/api.js'
 import { useCart } from '../lib/CartContext.jsx'
-import { useAuth } from '../lib/AuthContext.jsx'
-import { isRestaurantFavorited, addFavorite, removeFavorite } from '../lib/favorites.js'
 import { formatPrice } from '../lib/format.js'
+import { MCDONALDS_DEMO_MENU } from '../lib/demoRestaurants.js'
 import { getTodayHours, formatHoursRange } from '../lib/openingHours.js'
 import {
   getOptionGroups,
@@ -21,6 +20,30 @@ import {
 } from '../lib/menuOptions.js'
 import './RestaurantPage.css'
 
+// TILAPÄINEN: pakotettu testikuva ja -teksti heroon, ohittaa Supabasen oman
+// image_url:n/name:n (Burger Tallilla on jo Unsplash-kuva, joten || ei koskaan
+// valinnut tätä). Poista nämä ja käytä restaurant.name/image_url kun testaus
+// on valmis.
+const TEMP_HERO_IMAGE_URL = 'https://imageproxy.wolt.com/assets/6735be5986f45b72713e2127'
+const TEMP_HERO_NAME = "McDonald's"
+const TEMP_HERO_TAGLINE = 'Kuumana nyt'
+
+// TILAPÄINEN: sama id:t kuin supabase/migrations/0039_remove_burger_talli_placeholder_items.sql -
+// piilotetaan täältä heti esikatselua varten kunnes käyttäjä ajaa migraation Supabasessa.
+// Poista tämä kun rivit on oikeasti poistettu tietokannasta.
+const TEMP_HIDDEN_MENU_ITEM_IDS = new Set([
+  '6323dff7-216d-4c58-942c-e0ff3ae0f0b1', // Fiko Cheeseburger
+  '93ef890b-f052-4642-af0f-5367f4ede37d', // Bacon Burger
+])
+
+// TILAPÄINEN: sama sisältö kuin supabase/migrations/0038_add_burger_talli_mcdonalds_items.sql,
+// näytetään täältä heti esikatselua varten kunnes käyttäjä ajaa migraation Supabasessa.
+// Poista tämä kun oikeat rivit ovat tietokannassa (muuten tuotteet näkyvät kahteen kertaan).
+// Esittelyravintolalla (lib/demoRestaurants.js) samat tuotteet ovat jo omana menuna.
+const TEMP_EXTRA_MENU_ITEMS = MCDONALDS_DEMO_MENU
+
+// Lisukkeet viimeiseksi aina, muut kategoriat säilyttävät datan oman järjestyksen -
+// sivulliset kuuluvat pääruokien jälkeen, ei niiden sekaan.
 function groupByCategory(items) {
   const groups = new Map()
   for (const item of items) {
@@ -28,16 +51,35 @@ function groupByCategory(items) {
     if (!groups.has(key)) groups.set(key, [])
     groups.get(key).push(item)
   }
-  return Array.from(groups.entries())
+  return Array.from(groups.entries()).sort(([a], [b]) => {
+    if (a === 'Lisukkeet') return 1
+    if (b === 'Lisukkeet') return -1
+    return 0
+  })
 }
 
 function categoryId(category) {
   return 'menu-' + category.toLowerCase().replace(/\s+/g, '-')
 }
 
+// TILAPÄINEN: samat välilehtinimet kuin McDonald'sin referenssikuvassa - vain
+// "Tilatuimmat" (key 'all') näyttää oikeaa dataa, loput ovat vielä "tulossa
+// pian" -paikanpitäjiä samaan tapaan kuin Suosituimmat/Tarjoukset olivat ennen.
+const MENU_TABS = [
+  { key: 'all', label: 'Tilatuimmat' },
+  { key: 'world-menu', label: 'World Menu Mission' },
+  { key: 'campaign', label: 'Kampanja-ateriat -20%' },
+  { key: 'combos', label: 'Kombot' },
+  { key: 'burgers', label: 'Hampurilaiset' },
+  { key: 'chicken-veg', label: 'Kana & Kasvis' },
+  { key: 'salads-wraps', label: 'Salaatit & McWrap®' },
+  { key: 'happy-meal', label: 'Happy Meal®' },
+  { key: 'more', label: 'Lisää (4)' },
+]
+
 // Fikolla ei ole vielä oikeaa arvostelujärjestelmää (ei arvostelutaulua tietokannassa) -
 // tämä on visuaalinen placeholder käyttäjän hyväksymänä ("lisää visuaalinen placeholder"),
-// korvataan oikealla arvostelumäärällä kun arvostelut joskus rakennetaan. Deterministinen
+// korvataan oikealla arvostelutiedolla kun arvostelut joskus rakennetaan. Deterministinen
 // ravintolan id:stä, jotta luku ei vaihdu joka renderöinnillä eikä ole sama joka ravintolalla.
 function pseudoReviewCount(id) {
   let hash = 0
@@ -47,15 +89,9 @@ function pseudoReviewCount(id) {
   return 40 + (hash % 460)
 }
 
-const MENU_TABS = [
-  { key: 'all', label: 'Kaikki tuotteet' },
-  { key: 'popular', label: 'Suosituimmat' },
-  { key: 'offers', label: 'Tarjoukset' },
-]
-
-// Sama placeholder-periaate kuin pseudoReviewCount: ei oikeaa per-tuote arvostelutietoa
-// tietokannassa, joten luku lasketaan deterministisesti tuotteen id:stä (pysyy samana joka
-// renderöinnillä, vaihtelee tuotteittain).
+// Sama placeholder-periaate kuin yllä: ei oikeaa per-tuote arvostelutietoa
+// tietokannassa, joten luku lasketaan deterministisesti tuotteen id:stä (pysyy
+// samana joka renderöinnillä, vaihtelee tuotteittain).
 function pseudoItemRating(id) {
   let hash = 0
   for (let i = 0; i < id.length; i++) {
@@ -68,29 +104,27 @@ function pseudoItemRating(id) {
 
 function RestaurantPage() {
   const { id } = useParams()
-  const navigate = useNavigate()
   const cart = useCart()
-  const { customer, isAuthenticated } = useAuth()
   const [restaurant, setRestaurant] = useState(null)
   const [status, setStatus] = useState('loading')
   const [errorMessage, setErrorMessage] = useState('')
-  const [menuQuery, setMenuQuery] = useState('')
   const [menuTab, setMenuTab] = useState('all')
-  const [reviewsTapped, setReviewsTapped] = useState(false)
-  const [activeCategory, setActiveCategory] = useState('')
   const [selectedItem, setSelectedItem] = useState(null)
   const [quantity, setQuantity] = useState(1)
   const [optionSelections, setOptionSelections] = useState({})
-  const [headerSearch, setHeaderSearch] = useState('')
-  const [isFavorited, setIsFavorited] = useState(false)
   const [justAdded, setJustAdded] = useState(false)
-  const [linkCopied, setLinkCopied] = useState(false)
-  const sectionRefs = useRef(new Map())
+  const [offerDetailsOpen, setOfferDetailsOpen] = useState(false)
 
-  const menuCategories = useMemo(
-    () => Array.from(new Set((restaurant?.menu_items ?? []).map((item) => item.category || 'Ruokalista'))),
+  // TILAPÄINEN yhdistelmä oikean datan ja TEMP_EXTRA_MENU_ITEMS-esikatselurivien
+  // välillä - katso kommentti vakion määrittelyn kohdalla.
+  const allMenuItems = useMemo(
+    () => [
+      ...(restaurant?.menu_items ?? []).filter((item) => !TEMP_HIDDEN_MENU_ITEM_IDS.has(item.id)),
+      ...(restaurant?.isDemo ? [] : TEMP_EXTRA_MENU_ITEMS),
+    ],
     [restaurant],
   )
+
 
   const todayHoursLabel = useMemo(
     () => formatHoursRange(getTodayHours(restaurant?.opening_hours)),
@@ -109,25 +143,12 @@ function RestaurantPage() {
     [selectedItemGroups, optionSelections],
   )
 
-  const currentGroup = restaurant ? cart.groups.find((g) => g.restaurantId === restaurant.id) : null
-  const currentGroupCount = currentGroup?.lines.reduce((sum, line) => sum + line.quantity, 0) ?? 0
-  const currentGroupTotalCents =
-    currentGroup?.lines.reduce((sum, line) => sum + line.quantity * (line.unitPriceCents ?? line.item.price_cents), 0) ?? 0
-  const otherGroupsCount = cart.count - currentGroupCount
 
-  const normalizedMenuQuery = menuQuery.trim().toLowerCase()
-  const filteredMenuItems = (restaurant?.menu_items ?? []).filter(
-    (item) =>
-      !normalizedMenuQuery ||
-      item.name.toLowerCase().includes(normalizedMenuQuery) ||
-      item.description?.toLowerCase().includes(normalizedMenuQuery),
-  )
-  const groupedMenu = groupByCategory(filteredMenuItems)
+  const groupedMenu = groupByCategory(allMenuItems)
 
   useEffect(() => {
     let cancelled = false
     setStatus('loading')
-    setIsFavorited(false)
 
     getRestaurantById(id)
       .then((data) => {
@@ -146,65 +167,6 @@ function RestaurantPage() {
     }
   }, [id])
 
-  useEffect(() => {
-    if (!isAuthenticated || !customer) {
-      setIsFavorited(false)
-      return undefined
-    }
-    let cancelled = false
-    isRestaurantFavorited(customer.id, id).then((favorited) => {
-      if (!cancelled) setIsFavorited(favorited)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [id, isAuthenticated, customer])
-
-  async function toggleFavorite() {
-    if (!isAuthenticated || !customer) {
-      navigate('/login', { state: { from: `/ravintola/${id}` } })
-      return
-    }
-    const next = !isFavorited
-    setIsFavorited(next)
-    const ok = next ? await addFavorite(customer.id, id) : await removeFavorite(customer.id, id)
-    if (!ok) setIsFavorited(!next)
-  }
-
-  // navigator.share puuttuu useimmilta työpöytäselaimilta - kopioidaan linkki leikepöydälle
-  // sen sijaan ja näytetään hetkeksi kuittaus, ettei nappi tunnu tekevän mitään.
-  async function shareRestaurant() {
-    const shareData = { title: restaurant.name, url: window.location.href }
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData)
-      } catch {
-        // Käyttäjä perui jakamisen - ei tehdä mitään.
-      }
-      return
-    }
-    if (navigator.clipboard) {
-      await navigator.clipboard.writeText(shareData.url)
-      setLinkCopied(true)
-    }
-  }
-
-  useEffect(() => {
-    if (menuCategories.length === 0) return undefined
-
-    setActiveCategory((current) => (menuCategories.includes(current) ? current : menuCategories[0]))
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.find((entry) => entry.isIntersecting)
-        if (visible) setActiveCategory(visible.target.dataset.category)
-      },
-      { rootMargin: '-96px 0px -70% 0px', threshold: 0 },
-    )
-
-    sectionRefs.current.forEach((el) => observer.observe(el))
-    return () => observer.disconnect()
-  }, [menuCategories])
 
   useEffect(() => {
     if (!selectedItem) return undefined
@@ -224,18 +186,6 @@ function RestaurantPage() {
     const timer = setTimeout(() => closeModal(), 700)
     return () => clearTimeout(timer)
   }, [justAdded])
-
-  useEffect(() => {
-    if (!linkCopied) return undefined
-    const timer = setTimeout(() => setLinkCopied(false), 1600)
-    return () => clearTimeout(timer)
-  }, [linkCopied])
-
-  useEffect(() => {
-    if (!reviewsTapped) return undefined
-    const timer = setTimeout(() => setReviewsTapped(false), 1800)
-    return () => clearTimeout(timer)
-  }, [reviewsTapped])
 
   function scrollToCategory(category) {
     document.getElementById(categoryId(category))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -282,17 +232,6 @@ function RestaurantPage() {
     setJustAdded(true)
   }
 
-  function quickAdd(e, item) {
-    e.stopPropagation()
-    if (item.is_available === false || restaurant.is_open === false) return
-    const groups = getOptionGroups(item)
-    if (groups.some((g) => g.min_selections > 0)) {
-      openItem(item)
-      return
-    }
-    cart.addItem(restaurant, item, 1)
-  }
-
   function handleCardKeyDown(e, item) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
@@ -302,22 +241,18 @@ function RestaurantPage() {
 
   return (
     <div className="page">
-      <div className={`restaurant-hero-wrap${restaurant?.image_url ? ' restaurant-hero-wrap--overlay' : ''}`}>
+      <div className="restaurant-hero-wrap">
         <Header
-          back
-          variant={restaurant?.image_url ? 'overlay' : undefined}
-          search={{
-            value: headerSearch,
-            onChange: setHeaderSearch,
-            onSubmit: (q) => navigate(`/?q=${encodeURIComponent(q)}`),
-            placeholder: 'Hae delivosta...',
-          }}
-          citySelector={
-            restaurant?.city
+          showAddress
+          cart={
+            cart.count > 0
               ? {
-                  value: restaurant.city,
-                  options: [restaurant.city],
-                  onChange: (city) => navigate(`/?city=${encodeURIComponent(city)}`),
+                  count: cart.count,
+                  totalCents: cart.totalCents,
+                  groups: cart.groups,
+                  onClear: cart.clear,
+                  onClearRestaurant: cart.clearRestaurant,
+                  formatPrice,
                 }
               : null
           }
@@ -325,98 +260,18 @@ function RestaurantPage() {
 
         {status === 'ready' && restaurant && (
           <div className="restaurant-hero">
-            {restaurant.image_url ? (
-              <img src={restaurant.image_url} alt={restaurant.name} />
-            ) : (
-              <RestaurantAvatarPlaceholder name={restaurant.name} size="hero" />
-            )}
-          </div>
-        )}
-
-        {status === 'ready' && restaurant && (
-          <div className="restaurant-info-card-wrap">
-            <div className="restaurant-info-card">
-              <div className="restaurant-info-card__avatar">
-                {restaurant.image_url ? (
-                  <img src={restaurant.image_url} alt="" />
-                ) : (
-                  <RestaurantAvatarPlaceholder name={restaurant.name} size="card" />
-                )}
-              </div>
-
-              <div className="restaurant-info-card__text">
-                <h1>{restaurant.name}</h1>
-                <div className="restaurant-info-card__meta">
-                  <span className="category-tag">{restaurant.category}</span>
-                  {restaurant.rating != null && (
-                    <span className="restaurant-info-card__rating">
-                      <Star size={14} fill="currentColor" aria-hidden="true" />
-                      {Number(restaurant.rating).toFixed(1)}
-                      <span className="restaurant-info-card__review-count">
-                        ({pseudoReviewCount(restaurant.id)}+)
-                      </span>
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    className="restaurant-info-card__reviews-btn"
-                    onClick={() => setReviewsTapped(true)}
-                  >
-                    {reviewsTapped ? 'Tulossa pian' : 'Katso arvostelut'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="restaurant-info-card__actions">
-                <button
-                  type="button"
-                  className="favorite-button"
-                  aria-label={linkCopied ? 'Linkki kopioitu' : 'Jaa ravintola'}
-                  onClick={shareRestaurant}
-                >
-                  {linkCopied ? (
-                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <path
-                        d="m5 10 3.5 3.5L15 6.5"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <circle cx="15" cy="5" r="2.25" stroke="currentColor" strokeWidth="1.5" />
-                      <circle cx="5" cy="10" r="2.25" stroke="currentColor" strokeWidth="1.5" />
-                      <circle cx="15" cy="15" r="2.25" stroke="currentColor" strokeWidth="1.5" />
-                      <path d="M6.9 8.9 13.1 5.9M6.9 11.1 13.1 14.1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  className={`favorite-button${isFavorited ? ' favorite-button--active' : ''}`}
-                  aria-pressed={isFavorited}
-                  aria-label={isFavorited ? 'Poista suosikeista' : 'Lisää suosikkeihin'}
-                  onClick={toggleFavorite}
-                >
-                  <svg viewBox="0 0 20 20" fill={isFavorited ? 'currentColor' : 'none'} aria-hidden="true">
-                    <path
-                      d="M10 17.5S3 13.4 3 8.6A3.6 3.6 0 0 1 10 6a3.6 3.6 0 0 1 7 2.6c0 4.8-7 8.9-7 8.9Z"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              </div>
+            <div className="restaurant-hero__image">
+              <img src={TEMP_HERO_IMAGE_URL} alt={restaurant.name} />
+            </div>
+            <div className="restaurant-hero__text">
+              <p className="restaurant-hero__tagline">{TEMP_HERO_TAGLINE}</p>
+              <h1 className="restaurant-hero__title">{TEMP_HERO_NAME}</h1>
             </div>
           </div>
         )}
       </div>
 
-      <main className={`restaurant-page${currentGroupCount > 0 ? ' restaurant-page--with-cart-bar' : ''}`}>
+      <main className="restaurant-page">
         {status === 'loading' && <Spinner label="Ladataan ravintolaa" />}
         {status === 'error' && (
           <p className="state-message state-message--error">Ravintolaa ei löytynyt: {errorMessage}</p>
@@ -424,16 +279,16 @@ function RestaurantPage() {
 
         {status === 'ready' && restaurant && (
           <article className="restaurant-detail">
-            <div className="restaurant-detail__body">
-              {restaurantClosed && (
+            {restaurantClosed && (
+              <div className="restaurant-detail__body">
                 <p className="restaurant-closed-notice">
                   Ravintola on juuri nyt suljettu, eikä tilaaminen ole mahdollista.
                   {todayHoursLabel ? ` Tänään avoinna ${todayHoursLabel}.` : ''}
                 </p>
-              )}
-            </div>
+              </div>
+            )}
 
-            {restaurant.menu_items?.length > 0 ? (
+            {allMenuItems.length > 0 ? (
               <>
                 <div className="restaurant-menu-tabs" role="tablist" aria-label="Tuotenäkymä">
                   {MENU_TABS.map((tab) => (
@@ -448,147 +303,127 @@ function RestaurantPage() {
                       {tab.label}
                     </button>
                   ))}
-                  {menuTab === 'all' &&
-                    menuCategories.map((category) => (
-                      <button
-                        type="button"
-                        key={category}
-                        className={`restaurant-menu-tabs__btn${activeCategory === category ? ' restaurant-menu-tabs__btn--active' : ''}`}
-                        onClick={() => scrollToCategory(category)}
-                      >
-                        {category}
-                      </button>
-                    ))}
+                </div>
+
+                {/* Merkki on totta: SUURTILAUS antaa kassalla oikeasti 30 % (enint. 7 €)
+                    kun tilaus on vähintään 50 € - sama katto ja raja on sekä täällä
+                    (Cart.jsx) että backendin payments.js:ssä, joka veloittaa summan. */}
+                <div className="menu-offer-card">
+                  <span className="menu-offer-card__icon" aria-hidden="true">
+                    <Tag size={18} />
+                  </span>
+                  <div className="menu-offer-card__body">
+                    <p className="menu-offer-card__title">
+                      30 % alennus (enintään 7 €) tilauksille yli 50 € – koodilla SUURTILAUS kassalla
+                    </p>
+                    <button
+                      type="button"
+                      className="menu-offer-card__toggle"
+                      aria-expanded={offerDetailsOpen}
+                      onClick={() => setOfferDetailsOpen((v) => !v)}
+                    >
+                      {offerDetailsOpen ? 'Piilota tiedot' : 'Näytä lisätiedot'}
+                      <ChevronDown
+                        size={14}
+                        className={`menu-offer-card__chevron${offerDetailsOpen ? ' menu-offer-card__chevron--open' : ''}`}
+                      />
+                    </button>
+                    {offerDetailsOpen && (
+                      <p className="menu-offer-card__details">
+                        Alennus lasketaan tilauksen välisummasta ennen toimitusmaksua, enintään 7 €. Syötä koodi
+                        SUURTILAUS ostoskorissa ennen kassalle siirtymistä.
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {menuTab !== 'all' && (
                   <div className="restaurant-detail__body">
                     <p className="state-message">
-                      {menuTab === 'popular' ? 'Suosituimmat tuotteet' : 'Erikoistarjoukset'} tulossa pian.
+                      {MENU_TABS.find((tab) => tab.key === menuTab)?.label} tulossa pian.
                     </p>
                   </div>
                 )}
 
                 {menuTab === 'all' && (
                   <>
-                <div className="menu-section-heading">
-                  <h2>Kaikki tuotteet</h2>
-                  <p>Kattava valikoima ravintolan {restaurant.name} tuotteita.</p>
-                </div>
+                    <div className="menu-section-heading">
+                      <h2>Kaikki tuotteet</h2>
+                      <p>Kattava valikoima ravintolan {restaurant.name} tuotteita.</p>
+                    </div>
 
-                <div className="menu-nav">
-                  <div className="menu-nav__search">
-                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.5" />
-                      <path d="m17 17-3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                    <input
-                      type="search"
-                      aria-label={`Etsi ruokalistalta: ${restaurant.name}`}
-                      placeholder="Etsi ruokalistalta..."
-                      value={menuQuery}
-                      onChange={(e) => setMenuQuery(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="restaurant-detail__body restaurant-detail__body--menu">
-                  {groupedMenu.length > 0 ? (
-                    <div className="menu">
-                      {groupedMenu.map(([category, items]) => (
-                        <section
-                          className="menu-section"
-                          id={categoryId(category)}
-                          data-category={category}
-                          key={category}
-                          ref={(el) => {
-                            if (el) sectionRefs.current.set(category, el)
-                            else sectionRefs.current.delete(category)
-                          }}
-                        >
-                          <h2 className="menu-section__title">{category}</h2>
-                          <ul className="menu-grid">
-                            {items.map((item) => (
-                              <li key={item.id}>
-                                <div
-                                  className={`menu-card${item.is_available === false ? ' menu-card--unavailable' : ''}`}
-                                  role="button"
-                                  tabIndex={0}
-                                  onClick={() => openItem(item)}
-                                  onKeyDown={(e) => handleCardKeyDown(e, item)}
-                                >
-                                  <div className="menu-card__media-wrap">
-                                    <div className="menu-card__media">
-                                      {item.image_url ? (
-                                        <img src={item.image_url} alt={item.name} />
-                                      ) : (
-                                        <RestaurantAvatarPlaceholder name={item.name} size="thumb" />
-                                      )}
-                                    </div>
-                                    {item.is_available !== false && !restaurantClosed && (
-                                      <button
-                                        type="button"
-                                        className="menu-card__add"
-                                        aria-label={`Lisää ${item.name} ostoskoriin`}
-                                        onClick={(e) => quickAdd(e, item)}
-                                      >
-                                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                          <path
-                                            d="M10 4v12M4 10h12"
-                                            stroke="currentColor"
-                                            strokeWidth="2"
-                                            strokeLinecap="round"
-                                          />
-                                        </svg>
-                                      </button>
-                                    )}
-                                  </div>
-
-                                  <div className="menu-card__info">
-                                    <span className="menu-card__name">{item.name}</span>
-                                    {item.is_available !== false && (
-                                      <span className="menu-card__rating">
-                                        <Star size={12} fill="currentColor" aria-hidden="true" />
-                                        {pseudoItemRating(item.id).rating}
-                                        <span className="menu-card__rating-count">
-                                          ({pseudoItemRating(item.id).count}+)
-                                        </span>
-                                      </span>
-                                    )}
-                                    {item.description && (
-                                      <span className="menu-card__description">{item.description}</span>
-                                    )}
-                                    {item.tags?.length > 0 && (
-                                      <div className="menu-card__tag-list">
-                                        {item.tags.slice(0, 3).map((tag) => (
-                                          <span className="menu-card__tag-chip" key={tag}>
-                                            {tag}
-                                          </span>
-                                        ))}
-                                        {item.tags.length > 3 && (
-                                          <span className="menu-card__tag-chip menu-card__tag-chip--more">
-                                            +{item.tags.length - 3}
-                                          </span>
+                    <div className="restaurant-detail__body restaurant-detail__body--menu">
+                      <div className="menu">
+                        {groupedMenu.map(([category, items]) => (
+                          <section
+                            className="menu-section"
+                            id={categoryId(category)}
+                            data-category={category}
+                            key={category}
+                          >
+                            <h2 className="menu-section__title">{category}</h2>
+                            <ul className="menu-grid">
+                              {items.map((item) => (
+                                <li key={item.id}>
+                                  <div
+                                    className={`menu-card${item.is_available === false ? ' menu-card--unavailable' : ''}`}
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => openItem(item)}
+                                    onKeyDown={(e) => handleCardKeyDown(e, item)}
+                                  >
+                                    <div className="menu-card__media-wrap">
+                                      <div className="menu-card__media">
+                                        {item.image_url ? (
+                                          <img src={item.image_url} alt={item.name} />
+                                        ) : (
+                                          <RestaurantAvatarPlaceholder name={item.name} size="thumb" />
                                         )}
                                       </div>
-                                    )}
-                                    {item.is_available === false ? (
-                                      <span className="menu-card__sold-out">Loppu valikoimasta</span>
-                                    ) : (
-                                      <span className="menu-card__price">{formatPrice(item.price_cents)}</span>
-                                    )}
+                                    </div>
+
+                                    <div className="menu-card__info">
+                                      <span className="menu-card__name">{item.name}</span>
+                                      {item.is_available !== false && (
+                                        <span className="menu-card__rating">
+                                          <Star size={12} fill="currentColor" aria-hidden="true" />
+                                          {pseudoItemRating(item.id).rating}
+                                          <span className="menu-card__rating-count">
+                                            ({pseudoItemRating(item.id).count}+)
+                                          </span>
+                                        </span>
+                                      )}
+                                      {item.description && (
+                                        <span className="menu-card__description">{item.description}</span>
+                                      )}
+                                      {item.tags?.length > 0 && (
+                                        <div className="menu-card__tag-list">
+                                          {item.tags.slice(0, 3).map((tag) => (
+                                            <span className="menu-card__tag-chip" key={tag}>
+                                              {tag}
+                                            </span>
+                                          ))}
+                                          {item.tags.length > 3 && (
+                                            <span className="menu-card__tag-chip menu-card__tag-chip--more">
+                                              +{item.tags.length - 3}
+                                            </span>
+                                          )}
+                                        </div>
+                                      )}
+                                      {item.is_available === false ? (
+                                        <span className="menu-card__sold-out">Loppu valikoimasta</span>
+                                      ) : (
+                                        <span className="menu-card__price">{formatPrice(item.price_cents)}</span>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              </li>
-                            ))}
-                          </ul>
-                        </section>
-                      ))}
+                                </li>
+                              ))}
+                            </ul>
+                          </section>
+                        ))}
+                      </div>
                     </div>
-                  ) : (
-                    <p className="state-message">Ei tuloksia haulle "{menuQuery}".</p>
-                  )}
-                </div>
                   </>
                 )}
               </>
@@ -762,25 +597,6 @@ function RestaurantPage() {
         </div>
       )}
 
-      {currentGroupCount > 0 && (
-        <div className="cart-bar">
-          <span>
-            {currentGroupCount} {currentGroupCount === 1 ? 'tuote' : 'tuotetta'} · {formatPrice(currentGroupTotalCents)}
-            {otherGroupsCount > 0 && (
-              <span className="cart-bar__extra"> · +{otherGroupsCount} muualta</span>
-            )}
-          </span>
-          <button type="button" className="cart-bar__clear" onClick={() => cart.clearRestaurant(restaurant.id)}>
-            Tyhjennä
-          </button>
-          <Link to="/ostoskori" className="cart-bar__checkout">
-            Siirry kassalle
-            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M8 5l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </Link>
-        </div>
-      )}
     </div>
   )
 }

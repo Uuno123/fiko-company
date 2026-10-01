@@ -4,7 +4,21 @@ import './OrderCountdownRing.css'
 const RADIUS = 54
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
-function OrderCountdownRing({ createdAt, arrivalAt }) {
+// Woltin tapaan aikaikkuna ("15–20") eikä yksittäinen minuutti: arvio on
+// arvio, ja väli kertoo sen rehellisemmin kuin minuutin tarkkuus.
+function minutesRange(minutes) {
+  if (minutes <= 5) return 'Alle 5'
+  const low = Math.floor(minutes / 5) * 5
+  return `${low}–${low + 5}`
+}
+
+function unitLabel(deliveryMethod) {
+  if (deliveryMethod === 'delivery') return 'minuuttia toimitukseen'
+  if (deliveryMethod === 'pickup') return 'minuuttia noutoon'
+  return 'min jäljellä'
+}
+
+function OrderCountdownRing({ createdAt, arrivalAt, deliveryMethod, size = 'md' }) {
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
@@ -22,7 +36,7 @@ function OrderCountdownRing({ createdAt, arrivalAt }) {
   const isDue = remainingMs <= 0
 
   return (
-    <div className="order-countdown-ring">
+    <div className={`order-countdown-ring order-countdown-ring--${size}`}>
       <svg viewBox="0 0 120 120" className="order-countdown-ring__svg">
         <circle cx="60" cy="60" r={RADIUS} className="order-countdown-ring__track" />
         <circle
@@ -39,8 +53,8 @@ function OrderCountdownRing({ createdAt, arrivalAt }) {
           <span className="order-countdown-ring__due">Kohta valmis</span>
         ) : (
           <>
-            <span className="order-countdown-ring__number">{remainingMinutes}</span>
-            <span className="order-countdown-ring__unit">min jäljellä</span>
+            <span className="order-countdown-ring__number">{minutesRange(remainingMinutes)}</span>
+            <span className="order-countdown-ring__unit">{unitLabel(deliveryMethod)}</span>
           </>
         )}
       </div>

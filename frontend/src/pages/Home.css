@@ -1,17 +1,11 @@
 .home-content {
   width: 100%;
   margin: 0 auto;
-  padding: 64px 32px 64px;
+  padding: 40px 32px 64px;
   display: flex;
   flex-direction: column;
   gap: 24px;
   box-sizing: border-box;
-}
-
-.restaurant-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
 }
 
 @media (min-width: 1900px) {
@@ -19,20 +13,139 @@
     max-width: 1600px;
     margin: 0 auto;
   }
-
-  .restaurant-grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
 }
 
-@media (max-width: 1000px) {
-  .restaurant-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
+/* Kategoriarivit: otsikko ja vaakarivi kortteja, kuten Woltissa. Nämä olivat
+   aiemmin vain mobiilissa - työpöydällä oli otsikoton ruudukko, joka on nyt
+   poistettu, koska se näytti saman sisällön ilman kategoriatietoa. */
 .category-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+}
+
+.category-row__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.category-row__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--delivo-black);
+}
+
+.category-row__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Rivin nuolet, kuten Woltissa. Piilossa puhelimella, jossa rivi
+   pyyhkäistään - nuolet veisivät vain tilaa otsikkoriviltä. */
+.category-row__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--delivo-black);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.category-row__nav svg {
+  width: 18px;
+  height: 18px;
+}
+
+.category-row__nav:hover {
+  background: var(--delivo-orange-soft);
+  border-color: var(--delivo-orange);
+  color: var(--delivo-orange);
+}
+
+.category-row__nav:active {
+  transform: scale(0.94);
+}
+
+@media (max-width: 560px) {
+  .category-row__nav {
+    display: none;
+  }
+}
+
+/* Työpöydällä pelkkä tekstilinkki nuolten vieressä, kuten Woltissa - musta
+   pilleri kilpaili otsikon kanssa rivin ainoasta painopisteestä. Mobiilissa
+   pilleri jää (alempana), koska siellä se on rivin ainoa kosketuskohde. */
+.category-row__see-all {
+  flex-shrink: 0;
+  padding: 0 6px;
+  color: var(--delivo-orange);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.category-row__see-all:hover {
+  text-decoration: underline;
+}
+
+.category-row__scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 16px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  /* Alareunan väljyys, ettei korttien varjo leikkaudu vieritettävän
+     säiliön reunaan (overflow-x:auto leikkaa myös pystysuunnassa). */
+  padding: 8px 0 22px;
+}
+
+.category-row__scroll::-webkit-scrollbar {
   display: none;
+}
+
+/* Kortit ovat vaakarivillä kiinteän levyisiä, muuten flex kutistaisi ne
+   sisällön mukaan eri levyisiksi. Vain työpöydällä: mobiilissa kortin leveys
+   on 84vw, ja flex-basis voittaisi sen. */
+@media (min-width: 561px) {
+  .category-row__scroll .restaurant-card {
+    flex: 0 0 336px;
+    scroll-snap-align: start;
+  }
+
+  /* Leveä ja matala kuva, kuten Woltin nostokorteissa. Mobiilin 16:9 tekisi
+     tämän levyisestä kortista turhan korkean, joten se jää mobiiliin. */
+  .page--home .category-row__scroll .restaurant-card__media {
+    aspect-ratio: 2.25 / 1;
+  }
+
+  /* Tiiviimpi tekstiosa: kortti on leveä, joten rivit eivät tarvitse yhtä
+     paljon ilmaa kuin kapea mobiilikortti. */
+  .category-row__scroll .restaurant-card__body {
+    padding: 9px 14px 11px;
+    gap: 3px;
+  }
+
+  .category-row__scroll .restaurant-card__heading h3 {
+    font-size: 1.02rem;
+  }
+
+  .category-row__scroll .restaurant-card__meta {
+    gap: 7px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -40,59 +153,36 @@
     padding: 40px 16px 48px;
   }
 
-  .restaurant-grid--desktop {
-    display: none;
-  }
-
   .category-rows {
-    display: flex;
-    flex-direction: column;
     gap: 24px;
   }
 
   .category-row__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
     margin-bottom: 12px;
   }
 
+  .category-row__title {
+    font-size: 1.28rem;
+  }
+
   .category-row__see-all {
-    flex-shrink: 0;
     padding: 6px 14px;
     border-radius: var(--radius-pill);
     background: var(--delivo-black);
     color: #fff;
     font-size: 0.78rem;
-    font-weight: 700;
+  }
+
+  .category-row__see-all:hover {
     text-decoration: none;
   }
 
-  .category-row__title {
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: 1.28rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-    color: var(--delivo-black);
-  }
-
   .category-row__scroll {
-    display: flex;
-    overflow-x: auto;
     gap: 12px;
-    scroll-snap-type: x mandatory;
     scroll-padding-left: 16px;
-    scrollbar-width: none;
+    /* Rivi ulottuu ruudun reunoihin, mutta kortit alkavat sisällön reunasta. */
     margin: 0 -16px;
-    /* Alareunan väljyys, ettei korttien varjo leikkaudu vieritettävän
-       säiliön reunaan (overflow-x:auto leikkaa myös pystysuunnassa). */
     padding: 8px 16px 22px;
-  }
-
-  .category-row__scroll::-webkit-scrollbar {
-    display: none;
   }
 }
 
@@ -107,14 +197,18 @@
   color: var(--color-closed);
 }
 
-/* delivo: lämmin murrettu tausta, jotta valkoiset kortit erottuvat ilman että
-   jokaisen alle tarvitaan varjo. */
+/* Sama sävy kuin bodylla - oma sääntö siltä varalta että sivu saa joskus
+   taustan, joka poikkeaa muusta sivustosta. */
 .page--home {
-  background: #faf7f5;
+  background: var(--delivo-bg);
 }
 
-/* Kortit erottumaan murretusta taustasta: ohut reunus antaa rajan ja kevyt
-   varjo nostaa kortin irti pinnasta ilman että se leijuu liikaa. */
+/* Headerin vaalea ilme (tausta, logo, ikonivärit) tulee Header.css:n
+   .site-header:not(--dark):not(--overlay) -lohkosta - sen :not():not() on tarkempi kuin
+   mikään .page--home-sääntö täällä, joten näitä ei kannata yrittää ohittaa täältä. */
+
+/* Valkoinen kortti valkoisella taustalla tarvitsee sekä reunuksen että kevyen
+   varjon - ilman niitä kortin rajaa ei näkisi lainkaan. */
 .page--home .restaurant-card {
   border-radius: 16px;
   border: 1px solid #efe9e5;
@@ -136,24 +230,10 @@
     gap: 20px;
   }
 
-  /* Iso hero-kuva vei mobiilissa kolmasosan ensinäkymästä eikä sillä voinut
-     tehdä mitään - tilalla home-mobile-top ja kampanjabanneri. */
-  .home-content > .promo-carousel {
-    display: none;
-  }
-
   /* Headerin haku on mobiilissa vain pieni ikoni; etusivulla on nyt oikea
      hakukenttä sivun yläosassa, joten ikoni on turha tuplaus. */
   .page--home .site-header__center {
     display: none;
-  }
-
-  /* Mobiilin header: raskas musta palkki pois, tilalle kevyt vaalea rivi jossa
-     vain logo, sijainti ja tili. Rajattu etusivuun (.page--home), koska kassa- ja
-     ravintolasivut nojaavat omiin header-variantteihinsa. */
-  .page--home .site-header {
-    background: #faf7f5;
-    box-shadow: none;
   }
 
   /* Headerin korkeus muuttujana, koska sticky kategoriarivi kiinnittyy tasan
@@ -167,19 +247,6 @@
     padding: 8px 16px;
     grid-template-columns: auto 1fr auto;
     gap: 12px;
-  }
-
-  /* Valkoinen teksti oranssilla pyöristetyllä taustalla. Fredoka on liian
-     pyöreä tähän ilmeeseen - Space Grotesk on sama kuin otsikoissa. */
-  .page--home .site-header__logo {
-    padding: 5px 13px;
-    border-radius: 14px;
-    background: var(--delivo-orange);
-    font-family: var(--font-display);
-    font-size: 1.3rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: #fff;
   }
 
   /* Sijaintia ei näytetä etusivulla lainkaan. */
@@ -302,7 +369,7 @@
     /* Alareunan väljyys, ettei laatikoiden varjo leikkaudu vieritettävän
        säiliön reunaan (overflow-x:auto leikkaa myös pystysuunnassa). */
     padding: 8px 16px 15px;
-    background: var(--surface);
+    background: #ffffff;
     box-shadow: 0 1px 0 var(--border);
     transition: padding 0.22s cubic-bezier(0.4, 0, 0.2, 1), gap 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -331,8 +398,10 @@
       background 0.22s ease, border-color 0.22s ease;
   }
 
-  /* Musta ympyrä, aktiivinen oranssilla — aktiivisuus tulee scroll-spystä eli
-     kertoo missä kohtaa sivua ollaan, ei ole pelkkä koriste. */
+  /* Kuva tuo oman pastellitaustansa, joten pallolla ei ole omaa väriä - musta
+     tausta näkyi kuvan alta tummana renkaana. Aktiivinen merkitään oranssilla:
+     aktiivisuus tulee scroll-spystä eli kertoo missä kohtaa sivua ollaan,
+     ei ole pelkkä koriste. */
   .home-cat-tile__art {
     display: flex;
     align-items: center;
@@ -340,7 +409,7 @@
     width: 62px;
     height: 62px;
     border-radius: 50%;
-    background: var(--delivo-black);
+    background: var(--surface-muted);
     font-size: 1.5rem;
     line-height: 1;
     transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), height 0.22s cubic-bezier(0.4, 0, 0.2, 1),
@@ -409,169 +478,6 @@
     font-size: 0.78rem;
     white-space: nowrap;
   }
-
-  /* Oranssi kampanjabanneri kategorioiden alla. Diat ovat päällekkäin ja
-     vaihtuvat ristiinhäivytyksellä, jotta korkeus ei nytkähdä. */
-  .home-ad {
-    position: relative;
-    display: block;
-    overflow: hidden;
-    /* Suhde on sama kuin v2-bannerikuvissa (1248x544), jolloin ne täyttävät
-       kortin täsmälleen ilman rajausta. Vanha promo-banner.png on 1200x400
-       eli leveämpi, joten se rajautuu sivuilta - se kannattaa viedä ulos
-       samassa 1248x544-koossa. Kuva peittää koko kortin, koska kuvien oma
-       liuku ei osu mihinkään yksittäiseen taustaväriin ja vajaa peitto
-       näkyisi saumana. */
-    aspect-ratio: 1248 / 544;
-    border-radius: 16px;
-    background: #f9672e;
-  }
-
-  .home-ad__slide {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    padding: 16px 18px;
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.45s ease;
-  }
-
-  .home-ad__slide--active {
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .home-ad__content {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    min-width: 0;
-  }
-
-  /* Pallot bannerin ALLA sivun taustalla, kuten uudessa ilmeessä. */
-  .home-promo {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .home-ad__dots {
-    display: flex;
-    justify-content: center;
-    gap: 7px;
-  }
-
-  .home-ad__dot {
-    width: 7px;
-    height: 7px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: rgba(20, 21, 15, 0.18);
-    cursor: pointer;
-    transition: background 0.25s ease, width 0.25s ease;
-  }
-
-  .home-ad__dot--active {
-    width: 20px;
-    border-radius: var(--radius-pill);
-    background: var(--delivo-black);
-  }
-
-  .home-ad__lead {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
-    font-size: 0.8rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.92);
-  }
-
-  .home-ad__code {
-    padding: 3px 9px;
-    border-radius: var(--radius-pill);
-    background: #fff;
-    color: var(--delivo-orange);
-    font-size: 0.76rem;
-    font-weight: 800;
-  }
-
-  .home-ad__title {
-    max-width: 56%;
-    font-family: var(--font-display);
-    font-size: 1.3rem;
-    font-weight: 700;
-    line-height: 1.15;
-    color: #fff;
-  }
-
-  .home-ad__cta {
-    margin-top: 2px;
-    padding: 9px 17px;
-    border: none;
-    border-radius: var(--radius-pill);
-    background: var(--delivo-black);
-    color: #fff;
-    font-family: inherit;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .home-ad__cta:active {
-    transform: scale(0.97);
-  }
-
-  .home-pickup-banner {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    border-radius: 16px;
-    background: var(--delivo-black);
-    color: #fff;
-  }
-
-  .home-pickup-banner__icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 42px;
-    height: 42px;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.14);
-    font-size: 1.25rem;
-    line-height: 1;
-  }
-
-  .home-pickup-banner__text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-  }
-
-  .home-pickup-banner__text strong {
-    font-family: var(--font-display);
-    font-size: 0.95rem;
-    font-weight: 700;
-  }
-
-  .home-pickup-banner__text span {
-    font-size: 0.78rem;
-    color: rgba(255, 255, 255, 0.72);
-  }
-
   /* Ettei pikavalinnan hyppy jätä otsikkoa headerin JA sen alla roikkuvan
      sticky-kategoriarivin alle. */
   .category-row {
@@ -596,8 +502,8 @@
    kahdelta eri kortilta. */
 @media (max-width: 560px) {
   .page--home .restaurant-card {
-    width: 84vw;
-    max-width: 330px;
+    width: 74vw;
+    max-width: 290px;
   }
 }
 
@@ -623,7 +529,7 @@
     align-items: center;
     max-width: calc(100vw - 32px);
     border-radius: var(--radius-pill);
-    background: var(--delivo-orange);
+    background: var(--delivo-black);
     color: #fff;
     font-size: 0.92rem;
     font-weight: 700;
@@ -693,16 +599,17 @@
 
   .home-cart-fab__count {
     position: absolute;
-    top: -3px;
-    right: -3px;
+    top: -4px;
+    right: -4px;
     min-width: 17px;
     height: 17px;
     padding: 0 4px;
     border-radius: var(--radius-pill);
-    background: var(--delivo-black);
-    color: #fff;
+    border: 1.5px solid var(--delivo-black);
+    background: #fff;
+    color: var(--delivo-black);
     font-size: 0.68rem;
-    line-height: 17px;
+    line-height: 15px;
     text-align: center;
   }
 
@@ -807,4 +714,322 @@
 /* Aloitustilassa kategoriat rivittyvät ruudukkoon, eivät vaakavieritykseen. */
 .home-search-cats .home-cat-tile {
   width: 72px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Oranssi kampanjabanneri. Näkyy nyt myös työpöydällä: se on delivo-ilmeen
+   näkyvin elementti, ja työpöydän vanha tumma kuvakaruselli oli viimeisiä
+   jäänteitä vanhasta ilmeestä. Nämä säännöt olivat aiemmin mobiilin
+   media-lohkon sisällä.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.home-promo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Karusellin korkeus on kiinteä, koska radan diat ovat eri kuvasuhteissa:
+   kampanjabannerit ovat 1248x544 ja ruokakuvat 4:3. Kuva peittää dian kokonaan
+   (background-size: cover), koska kampanjakuvien oma liuku ei osu mihinkään
+   yksittäiseen taustaväriin ja vajaa peitto näkyisi saumana. */
+.home-ad {
+  position: relative;
+  width: 100%;
+  height: 385px;
+}
+
+/* Vierivä rata: bannerit vierekkäin, kaksi näkyvissä kerrallaan työpöydällä.
+   scroll-snap pitää dian aina reunassa myös käsin pyyhkäistäessä. */
+.home-ad__track {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.home-ad__track::-webkit-scrollbar {
+  display: none;
+}
+
+.home-ad__slide {
+  position: relative;
+  flex: 0 0 calc(50% - 8px);
+  display: flex;
+  align-items: center;
+  padding: 28px 36px;
+  border-radius: 20px;
+  overflow: hidden;
+  scroll-snap-align: start;
+  /* Oranssi tausta näkyy sellaisenaan diassa jolla ei vielä ole img-kenttää -
+     valkoinen teksti pysyy luettavana eikä dia näytä rikkinäiseltä. Kuvallisilla
+     dioilla tämä jää kuvan alle piiloon. */
+  background-color: var(--delivo-orange);
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.home-ad__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.home-ad__lead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.home-ad__code {
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: #fff;
+  color: var(--delivo-orange);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.home-ad__title {
+  max-width: 56%;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.home-ad__cta {
+  margin-top: 4px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--delivo-black);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.home-ad__cta:hover {
+  background: #000;
+  transform: translateY(-1px);
+}
+
+.home-ad__cta:active {
+  transform: scale(0.97);
+}
+
+/* Pallot bannerin ALLA sivun taustalla, kuten uudessa ilmeessä. */
+.home-ad__dots {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+}
+
+.home-ad__dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(20, 21, 15, 0.18);
+  cursor: pointer;
+  transition: background 0.25s ease, width 0.25s ease;
+}
+
+.home-ad__dot--active {
+  width: 20px;
+  border-radius: var(--radius-pill);
+  background: var(--delivo-black);
+}
+
+@media (max-width: 560px) {
+  /* Puhelimella yksi banneri kerrallaan koko leveydeltä. */
+  .home-ad {
+    height: 200px;
+  }
+
+  .home-ad__track {
+    gap: 10px;
+  }
+
+  .home-ad__slide {
+    flex: 0 0 100%;
+    padding: 16px 18px;
+    border-radius: 16px;
+  }
+
+  .home-ad__content {
+    gap: 6px;
+  }
+
+  .home-ad__lead {
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+
+  .home-ad__code {
+    padding: 3px 9px;
+    font-size: 0.76rem;
+  }
+
+  .home-ad__title {
+    font-size: 1.3rem;
+  }
+
+  .home-ad__cta {
+    margin-top: 2px;
+    padding: 9px 17px;
+    font-size: 0.85rem;
+  }
+
+  .home-promo {
+    gap: 10px;
+  }
+}
+
+/* Kortin kuva 16:9 myös työpöydällä - sama kuin mobiilissa. Vanha 2.4:1 oli
+   kirjelaatikkomaisen matala eikä ruoasta näkynyt tarpeeksi. */
+.page--home .restaurant-card__media,
+.category-page__list .restaurant-card__media {
+  aspect-ratio: 16 / 9;
+}
+
+/* Mobiilissa kortti on matalampi: kapeampana 16:9 teki kortista pystysuuntaisen
+   tornin, josta mahtui ruudulle vain yksi kerrallaan. */
+@media (max-width: 560px) {
+  .page--home .restaurant-card__media,
+  .category-page__list .restaurant-card__media {
+    aspect-ratio: 2.1 / 1;
+  }
+}
+
+/* Karusellin nuolet, kuten Woltissa: valkoiset pyöreät napit bannerin reunoilla.
+   Piilossa puhelimella - siellä pallot riittävät eivätkä nuolet peittäisi
+   bannerin omaa sisältöä kapealla näytöllä. */
+.home-ad__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  transform: translateY(-50%);
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--delivo-black);
+  cursor: pointer;
+  box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.25);
+  transition: background 0.18s ease, transform 0.15s ease;
+}
+
+.home-ad__arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+.home-ad__arrow:hover {
+  background: #fff;
+}
+
+.home-ad__arrow:active {
+  transform: translateY(-50%) scale(0.94);
+}
+
+.home-ad__arrow--prev {
+  left: 14px;
+}
+
+.home-ad__arrow--next {
+  right: 14px;
+}
+
+@media (max-width: 560px) {
+  .home-ad__arrow {
+    display: none;
+  }
+}
+
+/* Nouto-nosto kategoriarivien välissä. Oli aiemmin mobiilin media-lohkon
+   sisällä, joten työpöydällä se näkyi tyylittelemättömänä tekstirivinä nyt
+   kun kategoriarivit tulivat sinnekin. */
+.home-pickup-banner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 24px;
+  border-radius: 18px;
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+.home-pickup-banner__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.home-pickup-banner__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.home-pickup-banner__text strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.home-pickup-banner__text span {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-width: 560px) {
+  .home-pickup-banner {
+    gap: 14px;
+    padding: 14px 16px;
+    border-radius: 16px;
+  }
+
+  .home-pickup-banner__icon {
+    width: 42px;
+    height: 42px;
+    font-size: 1.25rem;
+  }
+
+  .home-pickup-banner__text strong {
+    font-size: 0.95rem;
+  }
+
+  .home-pickup-banner__text span {
+    font-size: 0.78rem;
+  }
 }

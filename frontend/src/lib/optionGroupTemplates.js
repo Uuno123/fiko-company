@@ -1,4 +1,4 @@
-// Valmiit pohjat valintaryhmille (PartnerDashboard.jsx, OptionGroupsSection) - yhdellä
+// Valmiit pohjat valintaryhmille (partner-dashboard/views/menu/OptionGroups.jsx) - yhdellä
 // klikkauksella luodaan koko ryhmä oletusvaihtoehtoineen ja -hintoineen, jotka kumppani voi
 // sitten muokata. Nopeuttaa yleisimpien ryhmien (koko, lisätäytteet) perustamista verrattuna
 // siihen että jokainen vaihtoehto pitäisi lisätä ja hinnoitella yksitellen tyhjästä.

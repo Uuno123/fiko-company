@@ -41,15 +41,21 @@
   gap: 16px 24px;
 }
 
-.site-footer__links a {
+.site-footer__links a,
+.site-footer__links button {
+  padding: 0;
+  border: none;
+  background: none;
   color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
+  cursor: pointer;
   transition: color 0.2s ease;
 }
 
-.site-footer__links a:hover {
+.site-footer__links a:hover,
+.site-footer__links button:hover {
   color: #fff;
 }
 

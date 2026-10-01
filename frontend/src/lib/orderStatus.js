@@ -16,7 +16,7 @@ export function orderStatusLabel(status, deliveryMethod) {
     case 'ready':
       return isDelivery ? 'Matkalla' : 'Valmis noudettavaksi'
     case 'completed':
-      return 'Noudettu'
+      return isDelivery ? 'Toimitettu' : 'Noudettu'
     case 'cancelled':
       return 'Peruttu'
     default:
@@ -59,6 +59,28 @@ export function estimatedArrivalAt(order) {
   const readyAt = new Date(order.estimated_ready_at)
   if (order.delivery_method !== 'delivery') return readyAt
   return new Date(readyAt.getTime() + DELIVERY_ETA_BUFFER_MINUTES * 60 * 1000)
+}
+
+// Lyhyt otsikko seurantanäkymään (Woltin "Super! ..." -tyyliin). Pidempi
+// selitys tulee sen alle trackingMessage-funktiosta.
+export function trackingHeadline(order) {
+  const isDelivery = order.delivery_method === 'delivery'
+  switch (order.status) {
+    case 'pending':
+      return 'Tilaus lähetetty!'
+    case 'confirmed':
+      return 'Ravintola hyväksyi tilauksesi'
+    case 'preparing':
+      return 'Tilaustasi valmistetaan'
+    case 'ready':
+      return isDelivery ? 'Tilaus on matkalla' : 'Tilaus on valmis noudettavaksi'
+    case 'completed':
+      return isDelivery ? 'Tilaus toimitettu' : 'Tilaus noudettu'
+    case 'cancelled':
+      return 'Tilaus peruttu'
+    default:
+      return ''
+  }
 }
 
 // Ystävällisempi, ihmisen kirjoittaman oloinen tilateksti seurantanäkymään - eri sanoitus

@@ -1,7 +1,7 @@
-import SettingsLayout from '../components/SettingsLayout.jsx'
+import { Navigate } from 'react-router-dom'
 
 function Settings() {
-  return <SettingsLayout />
+  return <Navigate to="/asetukset/tiedot" replace />
 }
 
 export default Settings

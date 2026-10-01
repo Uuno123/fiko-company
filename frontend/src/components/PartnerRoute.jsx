@@ -1,6 +1,9 @@
 import { Link, Navigate, useLocation } from 'react-router-dom'
+import { Store } from 'lucide-react'
 import PartnerHeader from './PartnerHeader.jsx'
 import { usePartnerAuth } from '../lib/PartnerAuthContext.jsx'
+import { EmptyState } from '../partner-dashboard/ui.jsx'
+import '../partner-dashboard/dashboard.css'
 
 function NotOwnerNotice() {
   const { signOut } = usePartnerAuth()
@@ -8,23 +11,22 @@ function NotOwnerNotice() {
   return (
     <div className="page">
       <PartnerHeader />
-      <main className="partner-dashboard">
-        <div className="partner-card">
-          <h2>Tämä tili ei ole kumppanitili</h2>
-          <p>
-            Kirjauduit sisään, mutta tähän tiliin ei ole liitetty kumppaniravintolaa. Jos kirjauduit delivon
-            asiakastilillä vahingossa, kirjaudu ulos ja käytä kumppanin omia tunnuksia. Jos et ole vielä jättänyt
-            kumppanuushakemusta, voit tehdä sen alta.
-          </p>
-          <div className="partner-menu-item-form__actions">
-            <button type="button" className="partner-btn partner-btn--ghost" onClick={() => signOut()}>
-              Kirjaudu ulos
-            </button>
-            <Link to="/kumppani/rekisteroidy" className="partner-btn partner-btn--primary">
-              Jätä kumppanuushakemus
-            </Link>
-          </div>
-        </div>
+      <main className="pd-loading">
+        <EmptyState
+          icon={Store}
+          title="Tämä tili ei ole kumppanitili"
+          text="Kirjauduit sisään, mutta tähän tiliin ei ole liitetty kumppaniravintolaa. Jos kirjauduit delivon asiakastilillä vahingossa, kirjaudu ulos ja käytä kumppanin omia tunnuksia."
+          action={
+            <div className="pd-button-row">
+              <button type="button" className="pd-btn pd-btn--secondary" onClick={() => signOut()}>
+                Kirjaudu ulos
+              </button>
+              <Link to="/kumppani/rekisteroidy" className="pd-btn pd-btn--primary">
+                Jätä kumppanuushakemus
+              </Link>
+            </div>
+          }
+        />
       </main>
     </div>
   )

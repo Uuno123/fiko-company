@@ -33,7 +33,7 @@ function SettingsNotifications() {
   const marketingOptIn = Boolean(customer?.marketing_opt_in)
 
   return (
-    <SettingsLayout>
+    <SettingsLayout title="Ilmoitukset" description="Valitse, mistä haluat kuulla sähköpostilla.">
       <section className="auth-card">
         <h2>Sähköposti-ilmoitukset</h2>
         {error && <p className="auth-error">{error}</p>}

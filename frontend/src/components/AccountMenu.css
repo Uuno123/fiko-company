@@ -11,38 +11,44 @@
   flex-shrink: 0;
 }
 
+/* Kirjaudu ja Rekisteröidy ovat pari: sama korkeus, sama pilleri, sama
+   kirjasinkoko. Ero on vain painoarvossa - ääriviiva vs. täyttö. 38 px on
+   sama mitta kuin headerin muissa napeissa (ostoskori, takaisin-nuoli), jotta
+   oikea reuna näyttää yhdeltä riviltä eikä kolmelta eri korkuiselta osalta. */
 .auth-ghost-btn,
 .auth-pill-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 42px;
+  justify-content: center;
+  gap: 7px;
+  height: 38px;
   padding: 0 18px;
   border-radius: var(--radius-pill);
-  font-size: 0.9rem;
+  font-family: inherit;
+  font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   text-decoration: none;
   white-space: nowrap;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  /* Ei nostoa hoverilla: mikään muu headerissa ei liiku, joten nouseva nappi
+     näytti irralliselta. Muutos on värissä. */
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .auth-ghost-btn {
   color: #fff;
   background: transparent;
-  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 .auth-ghost-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.55);
-  transform: translateY(-1px);
 }
 
 .auth-ghost-btn:active,
 .auth-pill-btn:active {
-  transform: translateY(0) scale(0.97);
+  transform: scale(0.97);
 }
 
 .auth-ghost-btn--overlay {
@@ -58,12 +64,7 @@
 .auth-pill-btn {
   background: #fff;
   color: var(--delivo-black);
-  border: 1.5px solid #fff;
-}
-
-.auth-pill-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.35);
+  border: 1px solid #fff;
 }
 
 .account-menu {

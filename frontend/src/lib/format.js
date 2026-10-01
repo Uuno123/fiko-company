@@ -22,7 +22,26 @@ export function formatDisplayAddress(address, city) {
     streetPart = `${parts[1]} ${parts[0]}`
   }
 
-  const cityPart = city || ''
+  // Ilman erikseen annettua kaupunkia se päätellään Nominatimin järjestyksestä:
+  // kaupunki on aina juuri ennen "X seutukunta" -osaa.
+  const regionIndex = parts.findIndex((part) => /seutukunta$/i.test(part))
+  const cityPart = city || (regionIndex > 0 ? parts[regionIndex - 1] : '')
   const tail = [postalCode, cityPart].filter(Boolean).join(' ')
   return [streetPart, tail].filter(Boolean).join(', ') || address
+}
+
+// "Metsurintie 27, 70150 Kuopio" -> { street: 'Metsurintie 27', postalCode: '70150', city: 'Kuopio' }.
+// Kassan osoitekentät esitäytetään tästä, ja tilauksen osoite kootaan takaisin joinAddress():lla.
+export function splitAddress(address) {
+  const [street = '', ...rest] = (formatDisplayAddress(address) || '').split(',').map((part) => part.trim())
+  const locality = rest.join(' ')
+  const postalCode = locality.match(/\b\d{5}\b/)?.[0] ?? ''
+  return { street, postalCode, city: locality.replace(postalCode, '').trim() }
+}
+
+// Porras ja asunto kuuluvat katuosoitteen perään: "Metsurintie 27 A 7, 70150 Kuopio".
+export function joinAddress({ street, apartment, postalCode, city }) {
+  const streetLine = [street, apartment].map((part) => part?.trim()).filter(Boolean).join(' ')
+  const locality = [postalCode, city].map((part) => part?.trim()).filter(Boolean).join(' ')
+  return [streetLine, locality].filter(Boolean).join(', ')
 }

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { openCookieSettings } from '../lib/cookieConsent.js'
 import './Footer.css'
 
 function Footer() {
@@ -17,6 +18,9 @@ function Footer() {
           <Link to="/kumppanina">Ravintoloille</Link>
           <Link to="/login">Kirjaudu</Link>
           <Link to="/register">Rekisteröidy</Link>
+          <button type="button" onClick={openCookieSettings}>
+            Evästeasetukset
+          </button>
         </nav>
 
         <p className="site-footer__copyright">© {year} delivo</p>

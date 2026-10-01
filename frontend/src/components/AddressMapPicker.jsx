@@ -1,189 +1,116 @@
-import { useEffect, useRef, useState } from 'react'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { MapPin } from 'lucide-react'
+import AddressPickerModal from './AddressPickerModal.jsx'
+import { geocodeAddress } from '../lib/geocode.js'
+import { formatDisplayAddress } from '../lib/format.js'
+import { useMapView } from '../lib/mapView.js'
 import './AddressMapPicker.css'
 
-delete L.Icon.Default.prototype._getIconUrl
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-})
+const DEFAULT_CENTER = { lat: 62.8924, lng: 27.677 } // Kuopio - delivon esimerkkidatan kaupunki
 
-const DEFAULT_CENTER = [62.8924, 27.677] // Kuopio - delivon esimerkkidatan kaupunki
-const DEFAULT_ZOOM = 13
-const SEARCH_DEBOUNCE_MS = 600
-
-async function fetchNominatim(url) {
-  const res = await fetch(url, { headers: { Accept: 'application/json' } })
-  if (!res.ok) throw new Error('Osoitehaku epäonnistui')
-  return res.json()
-}
-
-function AddressMapPicker({ id, value, onChange }) {
+// Lomakkeen osoitekenttä: valittu osoite + pieni esikatselukartta. Kumpikin avaa
+// osoiteikkunan (AddressPickerModal), jossa osoitteen voi hakea ja kohdan säätää.
+// onChange(address, coords, { interactive }) - interactive on false, kun
+// koordinaatit vain haettiin valmiiksi annetulle osoitteelle.
+function AddressMapPicker({ id, value, onChange, modalTitle = 'Valitse osoite' }) {
   const mapContainerRef = useRef(null)
-  const mapRef = useRef(null)
-  const markerRef = useRef(null)
-  const debounceRef = useRef(null)
+  // Viimeisin osoite, jonka tämä komponentti itse antoi vanhemmalle. Kun se
+  // kaikuu takaisin value-propina, sitä ei paikanneta uudelleen - muuten
+  // jokainen valinta maksaisi ylimääräisen osoitehaun ja korvaisi tarkennetun
+  // sijainnin osoitteen keskipisteellä.
+  const emittedRef = useRef(null)
+  // Vanhat osoitteet on voitu tallentaa Nominatimin pitkässä muodossa
+  // ("18, Puijonkatu, Multimäki, Kuopio, ..., Suomi") - näytetään lyhyenä.
+  const display = formatDisplayAddress(value) || ''
 
-  const [query, setQuery] = useState(value || '')
-  const [results, setResults] = useState([])
-  const [searching, setSearching] = useState(false)
+  // Valittu osoite ja sen sijainti: { address, lat, lng } tai null.
+  const [selected, setSelected] = useState(null)
+  const [open, setOpen] = useState(false)
+
+  const mapView = useMapView(mapContainerRef, {
+    center: DEFAULT_CENTER,
+    zoom: 12,
+    controls: false,
+    gestures: 'none',
+  })
+
+  function emit(address, coords, interactive) {
+    emittedRef.current = address
+    onChange(address, coords, { interactive })
+  }
 
   useEffect(() => {
-    if (mapRef.current || !mapContainerRef.current) return
+    if (!mapView || !selected) return
+    const pin = mapView.addPin(selected, 'dest')
+    mapView.setView(selected, 16)
+    return () => pin.remove()
+  }, [mapView, selected])
 
-    const map = L.map(mapContainerRef.current).setView(DEFAULT_CENTER, DEFAULT_ZOOM)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-tekijät',
-      maxZoom: 19,
-    }).addTo(map)
-
-    map.on('click', async (e) => {
-      placeMarker(e.latlng.lat, e.latlng.lng)
-      try {
-        const data = await fetchNominatim(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}&addressdetails=1`,
-        )
-        if (data.display_name) {
-          setQuery(data.display_name)
-          onChange(data.display_name, { lat: e.latlng.lat, lng: e.latlng.lng }, { interactive: true })
-        }
-      } catch {
-        // Osoitteen haku kartalta epäonnistui - marker jää silti näkyviin, käyttäjä voi kirjoittaa osoitteen käsin.
-      }
-    })
-
-    mapRef.current = map
-
-    return () => {
-      // map.stop() ennen remove():a - muuten Leafletin oma pan/zoom-animaatio (setView) voi
-      // yrittää päivittää DOM:ia komponentin purkamisen jälkeen ja kaataa koko sivun
-      // ("Cannot read properties of undefined (reading '_leaflet_pos')"). Tapahtuu helposti
-      // tässä, koska valinta (klikkaus/haku) usein sekä liikuttaa karttaa että vaihtaa
-      // näkymän pois tästä komponentista lähes samaan aikaan.
-      map.stop()
-      map.remove()
-      mapRef.current = null
+  // Ulkopuolelta tullut osoite (esim. tallennettu ravintolan osoite) paikannetaan
+  // esikatselua varten, ja lyhyt muoto koordinaatteineen palautetaan vanhemmalle.
+  useEffect(() => {
+    if (!display.trim()) {
+      setSelected(null)
+      return
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Pitää tekstikentän ja kartan pinnin synkassa kun value tulee ulkopuolelta
-  // (esim. "Käytä profiilin sijaintia" -nappi, tai kun tämä komponentti mountataan uudelleen
-  // "Muokkaa osoitetta" -painikkeesta jo tunnetulla osoitteella). interactive: false, koska
-  // tämä on passiivinen synkronointi eikä käyttäjän juuri tekemä valinta - vanhempi ei saa
-  // tulkita tätä signaaliksi sulkea muokkaustila (ks. Cart.jsx).
-  useEffect(() => {
-    setQuery(value || '')
-    if (value && value.trim()) {
-      geocodeAndPlace(value).then((coords) => {
-        // value ei muutu tästä (sama osoite kaiuu takaisin), joten tämä ei aiheuta silmukkaa -
-        // ainoastaan koordinaatit kulkevat vanhemmalle (esim. reitti+ETA-näkymää varten).
-        if (coords) onChange(value, coords, { interactive: false })
+    if (value === emittedRef.current) return
+    let cancelled = false
+    geocodeAddress(display)
+      .then((found) => {
+        if (cancelled || !found) return
+        const coords = { lat: found.lat, lng: found.lng }
+        setSelected({ address: display, ...coords })
+        // Sama osoite kaikuu takaisin, joten tämä ei aiheuta silmukkaa.
+        emit(display, coords, false)
       })
+      .catch(() => {
+        // Hiljainen epäonnistuminen - kenttä näyttää silti osoitteen.
+      })
+    return () => {
+      cancelled = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value])
 
-  async function geocodeAndPlace(address) {
-    try {
-      const data = await fetchNominatim(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=fi&limit=1`,
-      )
-      if (data[0]) {
-        const lat = parseFloat(data[0].lat)
-        const lng = parseFloat(data[0].lon)
-        placeMarker(lat, lng)
-        return { lat, lng }
-      }
-    } catch {
-      // Hiljainen epäonnistuminen - tekstikenttä näyttää silti oikean osoitteen.
-    }
-    return null
+  function confirm(picked) {
+    setOpen(false)
+    setSelected(picked)
+    emit(picked.address, { lat: picked.lat, lng: picked.lng }, true)
   }
 
-  function placeMarker(lat, lng) {
-    const map = mapRef.current
-    if (!map) return
-    if (markerRef.current) {
-      markerRef.current.setLatLng([lat, lng])
-    } else {
-      markerRef.current = L.marker([lat, lng]).addTo(map)
-    }
-    // animate: false - osoitteen valinta vaihtaa usein näkymän pois tästä kartasta lähes
-    // saman tien (esim. reittinäkymään), ja Leafletin oma zoom/pan-animaatio voi silloin
-    // yrittää päivittää DOM:ia sen jälkeen kun komponentti on jo purettu ja kaataa sivun.
-    map.setView([lat, lng], 16, { animate: false })
-  }
-
-  function handleQueryChange(e) {
-    const next = e.target.value
-    setQuery(next)
-
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-
-    if (!next.trim()) {
-      setResults([])
-      return
-    }
-
-    debounceRef.current = setTimeout(async () => {
-      setSearching(true)
-      try {
-        const data = await fetchNominatim(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(next)}&countrycodes=fi&limit=5&addressdetails=1`,
-        )
-        setResults(data)
-      } catch {
-        setResults([])
-      } finally {
-        setSearching(false)
-      }
-    }, SEARCH_DEBOUNCE_MS)
-  }
-
-  function selectResult(result) {
-    const lat = parseFloat(result.lat)
-    const lng = parseFloat(result.lon)
-    placeMarker(lat, lng)
-    setQuery(result.display_name)
-    setResults([])
-    onChange(result.display_name, { lat, lng }, { interactive: true })
-  }
+  const close = useCallback(() => setOpen(false), [])
 
   return (
     <div className="address-picker">
-      <div className="address-picker__search">
-        <input
-          id={id}
-          type="text"
-          value={query}
-          onChange={handleQueryChange}
-          placeholder="Hae osoitetta..."
-          autoComplete="off"
-        />
-        {searching && <span className="address-picker__spinner" aria-hidden="true" />}
+      <button id={id} type="button" className="address-picker__field" onClick={() => setOpen(true)}>
+        <MapPin size={18} strokeWidth={2} aria-hidden="true" />
+        <span className={`address-picker__value${display ? '' : ' address-picker__value--empty'}`}>
+          {display || 'Valitse osoite'}
+        </span>
+        <span className="address-picker__change">{display ? 'Muuta' : 'Valitse'}</span>
+      </button>
 
-        {results.length > 0 && (
-          <ul className="address-picker__results">
-            {results.map((result) => (
-              <li key={result.place_id}>
-                <button type="button" onClick={() => selectResult(result)}>
-                  {result.display_name}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+      {/* Esikatselu ei liiku itse - koko alue avaa osoiteikkunan. */}
+      <div className="address-picker__preview">
+        <div ref={mapContainerRef} className="address-picker__map" />
+        <button
+          type="button"
+          className="address-picker__adjust"
+          aria-label="Tarkenna sijaintia kartalla"
+          onClick={() => setOpen(true)}
+        >
+          <span className="address-picker__adjust-label">Tarkenna sijaintia</span>
+        </button>
       </div>
 
-      <div ref={mapContainerRef} className="address-picker__map" />
-
-      <p className="address-picker__hint">Voit myös klikata karttaa valitaksesi sijainnin.</p>
+      {open && (
+        <AddressPickerModal
+          title={modalTitle}
+          initial={selected?.address === display ? selected : display ? { address: display } : null}
+          onConfirm={confirm}
+          onClose={close}
+        />
+      )}
     </div>
   )
 }

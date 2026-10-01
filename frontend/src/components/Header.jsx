@@ -3,22 +3,22 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AccountMenu from './AccountMenu.jsx'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import SearchSuggest from './SearchSuggest.jsx'
-import { useAuth } from '../lib/AuthContext.jsx'
+import { openAddressPicker, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { supabase } from '../lib/supabaseClient.js'
 import './Header.css'
 
-function Header({ search, citySelector, cart, variant, back }) {
+// showAddress: toimitusosoite logon vieressä (selaussivut). Osoiteikkuna itse
+// on AddressGatessa, jotta sama ikkuna aukeaa myös ensikäynnillä.
+function Header({ search, showAddress, cart, variant, back }) {
   const location = useLocation()
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuth()
-  const [isCityOpen, setIsCityOpen] = useState(false)
+  const deliveryAddress = useDeliveryAddress()
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [cartBumped, setCartBumped] = useState(false)
   const [cartRestaurantImages, setCartRestaurantImages] = useState({})
   const searchInputRef = useRef(null)
-  const cityRef = useRef(null)
   const cartRef = useRef(null)
   const prevCartCount = useRef(cart?.count ?? 0)
 
@@ -77,24 +77,6 @@ function Header({ search, citySelector, cart, variant, back }) {
   const isTransparent = variant === 'overlay' && !isScrolled
 
   useEffect(() => {
-    if (!isCityOpen) return undefined
-
-    function handleClickOutside(e) {
-      if (cityRef.current && !cityRef.current.contains(e.target)) setIsCityOpen(false)
-    }
-    function handleKeyDown(e) {
-      if (e.key === 'Escape') setIsCityOpen(false)
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [isCityOpen])
-
-  useEffect(() => {
     if (!isCartOpen) return undefined
 
     function handleClickOutside(e) {
@@ -129,7 +111,7 @@ function Header({ search, citySelector, cart, variant, back }) {
     >
       <div className="site-header__inner">
         <div className="site-header__left">
-          {back ? (
+          {back && (
             <button
               type="button"
               className="site-header__back"
@@ -140,20 +122,23 @@ function Header({ search, citySelector, cart, variant, back }) {
                 <path d="m12 5-5 5 5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
-          ) : (
-            <Link to="/" className="site-header__logo">
-              delivo
-            </Link>
           )}
 
-          {citySelector && (
-            <div className="city-select" ref={cityRef}>
+          {/* Logo näkyy aina, myös nuolen vieressä - nuoli vie edelliselle sivulle,
+              logo etusivulle, eivät korvaa toisiaan (sama pari kuin CategoryPagen
+              omassa topbarissa). */}
+          <Link to="/" className="site-header__logo">
+            delivo
+          </Link>
+
+          {showAddress && (
+            <div className="city-select">
               <button
                 type="button"
                 className="city-select__trigger"
-                aria-haspopup="listbox"
-                aria-expanded={isCityOpen}
-                onClick={() => setIsCityOpen((open) => !open)}
+                aria-haspopup="dialog"
+                aria-label={deliveryAddress ? `Toimitusosoite: ${deliveryAddress.full}. Vaihda osoite` : 'Lisää toimitusosoite'}
+                onClick={openAddressPicker}
               >
                 <span className="city-select__badge">
                   <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -166,7 +151,7 @@ function Header({ search, citySelector, cart, variant, back }) {
                     <circle cx="10" cy="8" r="2.25" stroke="currentColor" strokeWidth="1.5" />
                   </svg>
                 </span>
-                <span className="city-select__value">{citySelector.value}</span>
+                <span className="city-select__value">{deliveryAddress?.label ?? 'Lisää osoite'}</span>
                 <svg className="city-select__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path
                     d="m6 8 4 4 4-4"
@@ -177,39 +162,6 @@ function Header({ search, citySelector, cart, variant, back }) {
                   />
                 </svg>
               </button>
-
-              {isCityOpen && (
-                <div className="city-select__panel" role="listbox" aria-label="Valitse kaupunki">
-                  {citySelector.options.map((city) => (
-                    <button
-                      type="button"
-                      key={city}
-                      role="option"
-                      aria-selected={citySelector.value === city}
-                      className={`city-select__option${
-                        citySelector.value === city ? ' city-select__option--active' : ''
-                      }`}
-                      onClick={() => {
-                        citySelector.onChange(city)
-                        setIsCityOpen(false)
-                      }}
-                    >
-                      {city}
-                      {citySelector.value === city && (
-                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                          <path
-                            d="m5 10 3.5 3.5L15 6.5"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -231,6 +183,10 @@ function Header({ search, citySelector, cart, variant, back }) {
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
                 onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    searchInputRef.current?.blur()
+                    return
+                  }
                   if (e.key === 'Enter' && search.value.trim()) {
                     searchInputRef.current?.blur()
                     setIsSearchFocused(false)
@@ -254,17 +210,14 @@ function Header({ search, citySelector, cart, variant, back }) {
             </div>
 
             {showSuggestions && (
-              <>
-                <div className="search-suggest-backdrop" />
-                <SearchSuggest
-                  query={search.value}
-                  variant="dropdown"
-                  onNavigate={() => {
-                    searchInputRef.current?.blur()
-                    setIsSearchFocused(false)
-                  }}
-                />
-              </>
+              <SearchSuggest
+                query={search.value}
+                variant="dropdown"
+                onNavigate={() => {
+                  searchInputRef.current?.blur()
+                  setIsSearchFocused(false)
+                }}
+              />
             )}
           </div>
         )}
@@ -427,17 +380,6 @@ function Header({ search, citySelector, cart, variant, back }) {
                 </>
               )}
             </div>
-          )}
-
-          {!isAuthenticated && (
-            <Link
-              to="/kumppanina"
-              className={`site-header__partner-link${
-                isTransparent || variant === 'dark' ? ' site-header__partner-link--overlay' : ''
-              }`}
-            >
-              Ravintoloille
-            </Link>
           )}
 
           <AccountMenu currentPath={location.pathname} variant={accountMenuVariant} />

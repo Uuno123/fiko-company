@@ -1,13 +1,58 @@
+/* Nuolet rivin yläpuolella oikeassa reunassa, kuten Woltissa. Koko lohko on
+   piilossa puhelimella - siellä kategoriat ovat omassa sticky-rivissään.
+   Rivi ei ole otsikollinen, joten nuolet ovat yksin omalla rivillään. */
+.category-filter-nav {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.cat-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--delivo-black);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.cat-nav svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cat-nav:hover {
+  background: var(--delivo-orange-soft);
+  border-color: var(--delivo-orange);
+  color: var(--delivo-orange);
+}
+
+.cat-nav:active {
+  transform: scale(0.94);
+}
+
+/* Työpöydän kategoriarivi: pieniä pyöristettyjä laatikoita, jotka levittyvät
+   tiiviiseen riviin. Laatikon koko on kiinteä eikä venyvä: venyvänä rivi
+   täyttäisi leveyden, mutta yhdeksän kategoriaa kasvaisi 150 px leveiksi
+   lätyiksi. Kun kategorioita on niin monta ettei rivi mahdu, se vierittyy. */
 .category-filter {
   display: flex;
   gap: 10px;
+  width: 100%;
   overflow-x: auto;
-  padding: 4px 0 4px;
+  padding: 4px 0 8px;
   scrollbar-width: none;
 }
 
 @media (max-width: 560px) {
-  .category-filter {
+  .category-filter-wrap {
     display: none;
   }
 }
@@ -16,31 +61,68 @@
   display: none;
 }
 
-.category-chip {
-  flex-shrink: 0;
-  padding: 10px 20px;
-  border-radius: var(--radius-pill);
-  border: 1.5px solid var(--border);
-  background: var(--surface);
-  color: var(--delivo-black);
+.cat-tile {
+  flex: 0 0 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
   font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 600;
+  color: var(--delivo-black);
+  text-decoration: none;
   cursor: pointer;
-  transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.category-chip:hover {
-  border-color: var(--delivo-black);
+/* Kuva täyttää laatikon ja tuo oman pastellitaustansa, joten laatikolla ei
+   ole omaa väriä. */
+.cat-tile__art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface-muted);
+  font-size: 1.7rem;
+  line-height: 1;
+  transition: background 0.22s ease, box-shadow 0.22s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.category-chip:active {
-  transform: scale(0.96);
+/* Kuva täyttää laatikon kokonaan; emoji-kategorioissa tausta jää näkyviin. */
+.cat-tile__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
 }
 
-.category-chip--active {
-  background: var(--delivo-black);
-  border-color: var(--delivo-black);
-  color: #fff;
+@media (hover: hover) and (pointer: fine) {
+  .cat-tile:hover .cat-tile__art {
+    transform: translateY(-3px);
+  }
+}
+
+.cat-tile:active .cat-tile__art {
+  transform: scale(0.97);
+}
+
+.cat-tile:focus-visible {
+  outline: none;
+}
+
+.cat-tile:focus-visible .cat-tile__art {
+  box-shadow: 0 0 0 3px var(--delivo-black);
+}
+
+.cat-tile__label {
+  width: 100%;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
 }

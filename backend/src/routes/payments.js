@@ -16,6 +16,7 @@ const MIN_CHARGE_CENTS = 50 // Stripe EUR-minimi
 const PROMO_CODES = {
   DELIVO10: { type: 'percent', value: 10 },
   TERVETULOA: { type: 'fixed', value: 300 },
+  SUURTILAUS: { type: 'percent', value: 30, maxDiscountCents: 700, minSubtotalCents: 5000 },
 }
 
 router.post('/create-intent', async (req, res) => {
@@ -78,9 +79,13 @@ router.post('/create-intent', async (req, res) => {
   let discountCents = 0
   let appliedPromoCode = null
   const promo = promoCode ? PROMO_CODES[String(promoCode).toUpperCase()] : null
-  if (promo) {
+  // minSubtotalCents täyttymättä -> koodia ei sovelleta, ei virhettä: tilaus
+  // syntyy silti, vain ilman alennusta. Frontend on jo estänyt tämän UI:ssa,
+  // mutta backend on se joka oikeasti veloittaa, joten se ei luota frontiin.
+  if (promo && (!promo.minSubtotalCents || subtotalCents >= promo.minSubtotalCents)) {
     appliedPromoCode = String(promoCode).toUpperCase()
     discountCents = promo.type === 'percent' ? Math.round((subtotalCents * promo.value) / 100) : promo.value
+    if (promo.maxDiscountCents) discountCents = Math.min(discountCents, promo.maxDiscountCents)
     discountCents = Math.min(discountCents, subtotalCents)
   }
 

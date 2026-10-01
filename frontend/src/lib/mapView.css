@@ -1,0 +1,35 @@
+.map-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-pin span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.map-pin svg {
+  width: 60%;
+  height: 60%;
+}
+
+.map-pin--store span {
+  border-radius: 50%;
+  background: var(--delivo-black);
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(20, 21, 15, 0.35);
+}
+
+.map-pin--dest {
+  color: var(--color-favorite);
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+}
+
+.map-pin--dest svg {
+  width: 100%;
+  height: 100%;
+}

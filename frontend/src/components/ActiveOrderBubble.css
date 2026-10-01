@@ -1,50 +1,96 @@
+/* "Seuraa tilausta": kelluva nappi käynnissä olevalle tilaukselle. Työpöydällä
+   oikeassa alakulmassa, puhelimella koko levyinen palkki alareunassa. */
 .active-order-bubble {
   position: fixed;
-  right: 18px;
-  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  right: 24px;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   z-index: 900;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 18px 10px 14px;
+  gap: 12px;
+  min-width: 280px;
+  padding: 10px 16px 10px 10px;
   border: none;
-  border-radius: 999px;
+  border-radius: 18px;
   background: var(--delivo-black);
   color: #fff;
-  box-shadow: 0 10px 28px rgba(20, 21, 15, 0.28);
-  cursor: pointer;
   font: inherit;
-  animation: active-order-bubble-in 0.25s ease-out;
+  text-align: left;
+  box-shadow: 0 14px 34px -10px rgba(20, 21, 15, 0.5);
+  cursor: pointer;
+  animation: active-order-bubble-in 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 0.15s ease;
 }
 
 .active-order-bubble:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+}
+
+.active-order-bubble:focus-visible {
+  outline: 2px solid var(--delivo-orange);
+  outline-offset: 3px;
+}
+
+/* Jäljellä oleva aika omassa laatassaan - näkyy vilkaisulla. */
+.active-order-bubble__time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: var(--delivo-orange);
+  line-height: 1;
+}
+
+.active-order-bubble__time strong {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.active-order-bubble__time span {
+  margin-top: 2px;
+  font-size: 0.62rem;
+  font-weight: 600;
+  opacity: 0.9;
 }
 
 .active-order-bubble__dot {
   width: 10px;
   height: 10px;
+  margin: 0;
   border-radius: 50%;
   background: #fff;
-  flex-shrink: 0;
   animation: active-order-bubble-pulse 1.8s ease-in-out infinite;
 }
 
 .active-order-bubble__text {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  align-items: flex-start;
-  line-height: 1.2;
+  gap: 2px;
+  min-width: 0;
 }
 
-.active-order-bubble__restaurant {
-  font-size: 0.8rem;
+.active-order-bubble__title {
+  font-size: 0.95rem;
   font-weight: 700;
 }
 
 .active-order-bubble__status {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.75);
+  overflow: hidden;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.72);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.active-order-bubble__chevron {
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 @keyframes active-order-bubble-pulse {
@@ -60,17 +106,32 @@
 @keyframes active-order-bubble-in {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(16px);
   }
 }
 
 @media (max-width: 560px) {
   .active-order-bubble {
+    left: 14px;
     right: 14px;
     bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    min-width: 0;
+  }
+
+  /* Etusivun kelluva ostoskorinappi on samassa kohdassa - nostetaan kupla
+     sen yläpuolelle, kun kori ei ole tyhjä. */
+  body:has(.home-cart-fab) .active-order-bubble {
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .active-order-bubble,
+  .active-order-bubble__dot {
+    animation: none;
+  }
+
+  .active-order-bubble:hover {
+    transform: none;
   }
 }

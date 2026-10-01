@@ -1,0 +1,249 @@
+/* Evästebanneri: työpöydällä kelluva kortti vasemmassa alakulmassa, puhelimella
+   alareunaan kiinnittyvä paneeli. z-index on kaiken muun yläpuolella (korkein
+   muu on 950), koska valinta pitää pystyä tekemään heti. */
+.cookie-consent {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(420px, calc(100vw - 48px));
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--delivo-black);
+  box-shadow: 0 24px 60px rgba(20, 21, 15, 0.18), 0 4px 14px rgba(20, 21, 15, 0.08);
+  font-family: var(--font-body);
+  animation: cookie-consent-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes cookie-consent-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+.cookie-consent__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cookie-consent__head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.cookie-consent__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--delivo-orange-soft);
+  color: var(--delivo-orange);
+}
+
+.cookie-consent__back {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-left: -6px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.cookie-consent__back:hover {
+  background: var(--surface-muted);
+}
+
+.cookie-consent__text {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.cookie-consent__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.cookie-consent__btn {
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+}
+
+.cookie-consent__btn:active {
+  transform: scale(0.98);
+}
+
+.cookie-consent__btn--primary {
+  border: 1px solid var(--delivo-black);
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+.cookie-consent__btn--primary:hover {
+  background: #2b2c25;
+}
+
+.cookie-consent__btn--secondary {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--delivo-black);
+}
+
+.cookie-consent__btn--secondary:hover {
+  border-color: var(--delivo-black);
+}
+
+.cookie-consent__btn:focus-visible,
+.cookie-consent__link:focus-visible,
+.cookie-consent__back:focus-visible,
+.cookie-consent__switch:focus-visible {
+  outline: 2px solid var(--delivo-orange);
+  outline-offset: 2px;
+}
+
+.cookie-consent__link {
+  align-self: center;
+  padding: 2px 4px;
+  border: none;
+  background: none;
+  color: var(--delivo-black);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.cookie-consent__list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cookie-consent__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+
+.cookie-consent__row:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.cookie-consent__row-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.cookie-consent__row-text strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.cookie-consent__row-text span {
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.cookie-consent__always {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-open);
+}
+
+.cookie-consent__switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 46px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: #d5d8ce;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.cookie-consent__switch span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.cookie-consent__switch.is-on {
+  background: var(--delivo-black);
+}
+
+.cookie-consent__switch.is-on span {
+  transform: translateX(18px);
+}
+
+/* Puhelin: koko levyinen paneeli alareunassa, kotipalkin tila huomioiden. */
+@media (max-width: 639px) {
+  .cookie-consent {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 85dvh;
+    padding: 20px 16px calc(16px + env(safe-area-inset-bottom));
+    border: none;
+    border-radius: 22px 22px 0 0;
+    box-shadow: 0 -12px 40px rgba(20, 21, 15, 0.18);
+    animation-name: cookie-consent-up;
+  }
+
+  @keyframes cookie-consent-up {
+    from {
+      transform: translateY(100%);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cookie-consent {
+    animation: none;
+  }
+}

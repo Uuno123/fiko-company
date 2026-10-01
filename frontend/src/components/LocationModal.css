@@ -1,0 +1,404 @@
+/* z-index on headerin, "Seuraa tilausta" -napin (900) ja seurantamodaalin (950)
+   yläpuolella mutta evästebannerin (1000) alapuolella - osoite kysytään vasta
+   evästevalinnan jälkeen. */
+.location-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 960;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(20, 21, 15, 0.45);
+  animation: location-modal-backdrop-in 0.15s ease;
+}
+
+@keyframes location-modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.location-modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  padding: 32px;
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.4);
+  animation: location-modal-in 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes location-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.location-modal__close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--delivo-black);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.location-modal__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.location-modal__close:hover {
+  background: var(--surface-muted);
+  border-color: var(--delivo-black);
+}
+
+.location-modal__hero {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 18px;
+  border-radius: 18px;
+  background: var(--delivo-orange-soft);
+  color: var(--delivo-orange);
+}
+
+.location-modal__title {
+  margin: 0;
+  padding-right: 48px;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--delivo-black);
+}
+
+.location-modal__lead {
+  margin: 8px 0 22px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Paikannus on nopein tapa, joten se on ensimmäinen ja isoin vaihtoehto. */
+.location-modal__geo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  font-family: inherit;
+  text-align: left;
+  color: var(--delivo-black);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.location-modal__geo:hover:not(:disabled) {
+  border-color: var(--delivo-black);
+}
+
+.location-modal__geo:disabled {
+  cursor: default;
+}
+
+.location-modal__geo-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+.location-modal__geo-text,
+.location-modal__option > span,
+.location-modal__results button > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.location-modal__geo-text strong,
+.location-modal__option strong {
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.location-modal__geo-text span,
+.location-modal__option > span > span {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-modal__option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  font-family: inherit;
+  text-align: left;
+  color: var(--delivo-black);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.location-modal__option svg {
+  flex-shrink: 0;
+  color: var(--delivo-orange);
+}
+
+button.location-modal__option:hover {
+  border-color: var(--delivo-black);
+}
+
+.location-modal__option--current {
+  border-style: dashed;
+  cursor: default;
+}
+
+.location-modal__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.location-modal__divider::before,
+.location-modal__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.location-modal__field {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  border: 1px solid #ececec;
+  border-radius: 14px;
+  background: var(--surface-muted);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.location-modal__field:focus-within {
+  border-color: var(--delivo-black);
+  background: var(--surface);
+}
+
+.location-modal__field input {
+  flex: 1;
+  min-width: 0;
+  height: 56px;
+  padding: 0 16px;
+  border: none;
+  outline: none;
+  background: none;
+  font-family: inherit;
+  /* 16px estää iOS:n automaattisen zoomauksen kenttään koskettaessa. */
+  font-size: 16px;
+  color: var(--delivo-black);
+}
+
+.location-modal__field input::placeholder {
+  color: var(--text-muted);
+}
+
+.location-modal__spinner {
+  width: 17px;
+  height: 17px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: location-modal-spin 0.7s linear infinite;
+}
+
+@keyframes location-modal-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.location-modal__searching {
+  margin-right: 16px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.location-modal__results {
+  margin: -4px 0 12px;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.location-modal__results button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.location-modal__results button:hover {
+  background: var(--surface-muted);
+}
+
+.location-modal__results svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.location-modal__results strong {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.location-modal__results button > span > span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.location-modal__attribution {
+  padding: 6px 10px 2px;
+  text-align: right;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.location-modal__error {
+  margin: 0 0 12px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #b3261e;
+}
+
+/* Ensisijainen nappi on musta, kuten muutkin CTA:t. Poissa käytöstä kunnes
+   osoite on valittu - muuten nappi lupaisi jotain mitä se ei voi tehdä. */
+.location-modal__submit {
+  width: 100%;
+  height: 54px;
+  margin-top: 4px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--delivo-black);
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.location-modal__submit:hover:not(:disabled) {
+  background: #26281d;
+}
+
+.location-modal__submit:disabled {
+  background: var(--surface-muted);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.location-modal__skip {
+  align-self: center;
+  margin-top: 14px;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.location-modal__close:focus-visible,
+.location-modal__geo:focus-visible,
+.location-modal__option:focus-visible,
+.location-modal__submit:focus-visible,
+.location-modal__skip:focus-visible {
+  outline: 2px solid var(--delivo-orange);
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .location-modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .location-modal {
+    max-width: none;
+    max-height: 92dvh;
+    padding: 24px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+    border-radius: 24px 24px 0 0;
+    animation-name: location-modal-up;
+  }
+
+  @keyframes location-modal-up {
+    from {
+      transform: translateY(100%);
+    }
+  }
+
+  .location-modal__title {
+    font-size: 1.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .location-modal-backdrop,
+  .location-modal {
+    animation: none;
+  }
+
+  .location-modal__spinner {
+    animation-duration: 2s;
+  }
+}
