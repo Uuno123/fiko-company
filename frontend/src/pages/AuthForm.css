@@ -1,5 +1,5 @@
 .auth-page {
-  max-width: 500px;
+  max-width: 560px;
   margin: 0 auto;
   padding: 48px 20px 40px;
   width: 100%;
@@ -271,4 +271,20 @@
 
 .auth-link-button:hover {
   color: var(--delivo-black);
+}
+
+/* Puhelimella kortti käyttää koko leveyden: ei reunusta, varjoa eikä pyöristystä
+   (sivun tausta on jo valkoinen), ja sisäreunus on kapeampi - muuten lomakkeelle
+   jäi alle 300 px. Rajattu .auth-pageen, koska asetussivut käyttävät samaa
+   .auth-card-luokkaa. */
+@media (max-width: 560px) {
+  .auth-page {
+    padding: 24px 0 32px;
+  }
+
+  .auth-page .auth-card {
+    padding: 28px 20px;
+    border-radius: 0;
+    box-shadow: none;
+  }
 }
