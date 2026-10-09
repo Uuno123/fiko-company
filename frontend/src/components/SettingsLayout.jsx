@@ -1,7 +1,8 @@
-import { Navigate, NavLink, useNavigate } from 'react-router-dom'
-import { Bell, CreditCard, Lock, LogOut, MessageCircle, Receipt, User } from 'lucide-react'
+import { Link, Navigate, NavLink, useNavigate } from 'react-router-dom'
+import { ArrowLeft, Bell, CreditCard, Lock, LogOut, MessageCircle, Receipt, User } from 'lucide-react'
 import Header from './Header.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { useIsMobile } from '../lib/useIsMobile.js'
 import { isSupabaseConfigured } from '../lib/supabaseClient.js'
 import './SettingsLayout.css'
 
@@ -13,9 +14,14 @@ const NAV = [
   { to: '/asetukset/salasana', label: 'Salasana', Icon: Lock },
 ]
 
-function SettingsLayout({ title, description, children }) {
+// Mobiilissa navigaatio on tilisivu (variant="hub", pages/AccountHub.jsx):
+// alasivuilla ei ole pilleririviä, vaan yläpalkin nuoli vie takaisin tilisivulle.
+// Tilisivulta nuoli vie etusivulle. Työpöydällä sivupalkki kuten ennenkin.
+function SettingsLayout({ title, description, children, variant }) {
   const { isAuthenticated, status, customer, signOut } = useAuth()
   const navigate = useNavigate()
+  const isMobile = useIsMobile()
+  const isHub = variant === 'hub'
 
   if (!isSupabaseConfigured || status === 'loading') {
     return (
@@ -38,50 +44,73 @@ function SettingsLayout({ title, description, children }) {
 
   return (
     <div className="page">
-      <Header />
+      {isMobile ? (
+        <div className="settings-topbar">
+          <Link
+            to={isHub ? '/' : '/asetukset'}
+            className="settings-topbar__back"
+            aria-label={isHub ? 'Takaisin etusivulle' : 'Takaisin tilisivulle'}
+          >
+            <ArrowLeft size={22} strokeWidth={1.75} aria-hidden="true" />
+          </Link>
+          <span className="settings-topbar__title">{title}</span>
+          <span aria-hidden="true" />
+        </div>
+      ) : (
+        <Header />
+      )}
 
-      <div className="account">
-        <aside className="account-side">
-          <div className="account-side__identity">
-            <span className="account-side__avatar" aria-hidden="true">
-              {initial}
-            </span>
-            <div className="account-side__who">
-              <span className="account-side__name">{customer?.name || 'Tili'}</span>
-              <span className="account-side__email">{customer?.email}</span>
+      <div className={`account${isMobile ? ' account--mobile' : ''}${isMobile && isHub ? ' account--hub' : ''}`}>
+        {!isMobile && (
+          <aside className="account-side">
+            <div className="account-side__identity">
+              <span className="account-side__avatar" aria-hidden="true">
+                {initial}
+              </span>
+              <div className="account-side__who">
+                <span className="account-side__name">{customer?.name || 'Tili'}</span>
+                <span className="account-side__email">{customer?.email}</span>
+              </div>
             </div>
-          </div>
 
-          <nav className="account-nav" aria-label="Tilin osiot">
-            {NAV.map(({ to, label, Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) => `account-nav__link${isActive ? ' account-nav__link--active' : ''}`}
-              >
-                <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
-                {label}
-              </NavLink>
-            ))}
-          </nav>
+            <nav className="account-nav" aria-label="Tilin osiot">
+              {NAV.map(({ to, label, Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) => `account-nav__link${isActive ? ' account-nav__link--active' : ''}`}
+                >
+                  <Icon size={18} strokeWidth={1.75} aria-hidden="true" />
+                  {label}
+                </NavLink>
+              ))}
+            </nav>
 
-          <div className="account-side__footer">
-            <a href="mailto:tuki@delivo.fi" className="account-side__action">
-              <MessageCircle size={18} strokeWidth={1.75} aria-hidden="true" />
-              Ota yhteyttä
-            </a>
-            <button type="button" className="account-side__action" onClick={handleSignOut}>
-              <LogOut size={18} strokeWidth={1.75} aria-hidden="true" />
-              Kirjaudu ulos
-            </button>
-          </div>
-        </aside>
+            <div className="account-side__footer">
+              <a href="mailto:tuki@delivo.fi" className="account-side__action">
+                <MessageCircle size={18} strokeWidth={1.75} aria-hidden="true" />
+                Ota yhteyttä
+              </a>
+              <button type="button" className="account-side__action" onClick={handleSignOut}>
+                <LogOut size={18} strokeWidth={1.75} aria-hidden="true" />
+                Kirjaudu ulos
+              </button>
+            </div>
+          </aside>
+        )}
 
         <main className="settings-page">
-          {title && (
+          {/* Mobiilissa otsikko on jo yläpalkissa, joten isoa otsikkoa ei toisteta -
+              alasivuilla näkyy vain kuvausteksti, tilisivulla ei kumpaakaan. */}
+          {title && !isMobile && (
             <header className="settings-page__head">
               <h1>{title}</h1>
               {description && <p>{description}</p>}
+            </header>
+          )}
+          {isMobile && !isHub && description && (
+            <header className="settings-page__head">
+              <p>{description}</p>
             </header>
           )}
           {children}

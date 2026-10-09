@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import AccountMenu from '../components/AccountMenu.jsx'
 import Footer from '../components/Footer.jsx'
 import Header from '../components/Header.jsx'
@@ -150,9 +150,6 @@ function CategoryPage() {
               <path d="M12 5 7 10l5 5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          <Link to="/" className="delivo-logo">
-            delivo
-          </Link>
         </div>
         <AccountMenu currentPath={`/kategoria/${slug}`} />
       </div>

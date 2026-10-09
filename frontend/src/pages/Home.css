@@ -346,33 +346,95 @@
     height: 12px;
   }
 
-  /* Tarttuu headerin alareunaan vieritettäessä. Tarvitsee oman peittävän
-     taustan, koska sisältö vierii sen alta. */
+  /* Tarttuu headerin alareunaan vieritettäessä. Kaksi valmista riviä
+     päällekkäin: pallot (omalla paikallaan) ja pillerit (kiinni headerissa).
+     Kaikki siirtymät ovat transform/opacity-siirtymiä, joita selain ei joudu
+     laskemaan sivun asettelusta uudelleen - aiempi kokoja animoiva versio nyki.
+     Kääre itse on läpinäkyvä eikä ota kosketuksia: pillerimuodossa pallorivin
+     paikka jää näkymättömäksi, ja sen alla oleva sisältö pitää voida painaa. */
   .home-quick-cats {
+    /* display kumoaa työpöydän display:none:n (tiedoston alussa). */
+    display: block;
     position: sticky;
     top: calc(var(--home-header-h) + env(safe-area-inset-top, 0px));
     z-index: 40;
+    margin: 0 -16px;
+    pointer-events: none;
+  }
+
+  .home-quick-cats__row {
     display: flex;
     align-items: flex-start;
     gap: 8px;
     overflow-x: auto;
     scrollbar-width: none;
-    margin: 0 -16px;
     /* Alareunan väljyys, ettei laatikoiden varjo leikkaudu vieritettävän
        säiliön reunaan (overflow-x:auto leikkaa myös pystysuunnassa). */
     padding: 8px 16px 15px;
     background: #ffffff;
     box-shadow: 0 1px 0 var(--border);
-    transition: padding 0.22s cubic-bezier(0.4, 0, 0.2, 1), gap 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: auto;
+    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
-  .home-quick-cats::-webkit-scrollbar {
+  .home-quick-cats__row::-webkit-scrollbar {
     display: none;
   }
 
+  /* Pilleririvi pallorivin päällä, levossa näkymätön. */
+  .home-quick-cats__row--pill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 16px 8px;
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+  }
+
+  .home-quick-cats--pill .home-quick-cats__row--round {
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+  }
+
+  .home-quick-cats--pill .home-quick-cats__row--pill {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  /* Pilleri: pieni pallokuva ja nimi vierekkäin reunuksellisessa kapselissa. */
+  .home-quick-cats__row--pill .home-cat-tile {
+    width: auto;
+    flex-direction: row;
+    gap: 7px;
+    padding: 4px 13px 4px 4px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+  }
+
+  .home-quick-cats__row--pill .home-cat-tile__art {
+    width: 28px;
+    height: 28px;
+    font-size: 1rem;
+    box-shadow: 0 1px 3px rgba(20, 21, 15, 0.14);
+  }
+
+  .home-quick-cats__row--pill .home-cat-tile__label {
+    font-size: 0.78rem;
+    white-space: nowrap;
+  }
+
+  .home-quick-cats__row--pill .home-cat-tile--active {
+    border-color: var(--delivo-orange);
+  }
+
   /* Kategorialaatikot: pastellitausta + kuvake, nimi laatikon alla. */
-  /* Läpinäkyvä reunus jo levossa: kompaktissa tilassa reunus tulee näkyviin,
-     ja kun leveys on molemmissa sama, siirtymä ei nytkähdä. */
   .home-cat-tile {
     flex-shrink: 0;
     width: 62px;
@@ -381,13 +443,8 @@
     align-items: center;
     gap: 5px;
     padding: 0;
-    border: 1.5px solid transparent;
-    border-radius: var(--radius-pill);
-    background: transparent;
     text-decoration: none;
     color: var(--delivo-black);
-    transition: gap 0.22s cubic-bezier(0.4, 0, 0.2, 1), padding 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-      background 0.22s ease, border-color 0.22s ease;
   }
 
   /* Kuva tuo oman pastellitaustansa, joten pallolla ei ole omaa väriä - musta
@@ -404,9 +461,7 @@
     background: var(--surface-muted);
     font-size: 1.5rem;
     line-height: 1;
-    transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), height 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-      background 0.22s ease, box-shadow 0.22s ease, font-size 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-      transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background 0.22s ease, box-shadow 0.22s ease, transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Kuva täyttää pallon kokonaan; emoji-kategorioissa tausta jää näkyviin. */
@@ -435,41 +490,8 @@
     font-weight: 600;
     line-height: 1.2;
     text-align: center;
-    transition: font-size 0.22s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* Vieritetty tila: laatikoista tulee matalia pillereitä (ikoni ja teksti
-     vierekkäin), jotta headeriin kiinni jäävä rivi vie mahdollisimman vähän
-     tilaa. */
-  .home-quick-cats--compact {
-    padding: 7px 16px 8px;
-    gap: 7px;
-  }
-
-  .home-quick-cats--compact .home-cat-tile {
-    width: auto;
-    flex-direction: row;
-    align-items: center;
-    gap: 7px;
-    padding: 4px 13px 4px 4px;
-    border-color: var(--border);
-    background: var(--surface);
-  }
-
-  /* Kompaktissa pillerissä kevyempi varjo - täysi varjo näyttäisi raskaalta
-     pienen ikonin alla, ja pillerillä on jo oma reunuksensa. */
-  .home-quick-cats--compact .home-cat-tile__art {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    font-size: 1rem;
-    box-shadow: 0 1px 3px rgba(20, 21, 15, 0.14);
-  }
-
-  .home-quick-cats--compact .home-cat-tile__label {
-    font-size: 0.78rem;
-    white-space: nowrap;
-  }
   /* Ettei pikavalinnan hyppy jätä otsikkoa headerin JA sen alla roikkuvan
      sticky-kategoriarivin alle. */
   .category-row {
@@ -479,6 +501,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .home-quick-cats,
+  .home-quick-cats__row,
   .home-cat-tile,
   .home-cat-tile__art,
   .home-cat-tile__label,

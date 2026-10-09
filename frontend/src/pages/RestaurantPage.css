@@ -1,100 +1,28 @@
-/* Ankkuri Headerin overlay-tilan (position: fixed) kelluvalle sijoittelulle
-   heron päällä. */
-.restaurant-hero-wrap {
-  position: relative;
-}
-
-/* Täysleveä kuvabanneri (ei tekstiä sen päällä) ja nimi/iskulause omana
-   normaalilevyisenä tekstipalstana sen alla - kuvan koko ei riipu tekstin
-   pituudesta eikä toisin päin, joten ei voi syntyä tyhjää väliä kuten
-   rinnakkain-asettelussa. */
-.restaurant-hero {
-  width: 100%;
-  background: var(--delivo-bg);
-}
-
-.restaurant-hero__image {
-  position: relative;
-  width: 100%;
-  height: clamp(200px, 26vw, 380px);
-}
-
-.restaurant-hero__image img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Kevyt tummennus kuvan päällä - ei tekstiä sen päällä enää, joten tämä on
-   puhtaasti tunnelmaa varten eikä luettavuutta. */
-.restaurant-hero__image::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.18);
-  pointer-events: none;
-}
-
-.restaurant-hero__text {
-  width: 100%;
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 20px 32px 8px;
-}
-
-.restaurant-hero__tagline {
-  display: inline-block;
-  margin: 0 0 10px;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  background: var(--delivo-orange-soft);
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--delivo-orange-dark);
-}
-
-.restaurant-hero__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.6rem, 2.6vw, 2.3rem);
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  color: var(--delivo-black);
-}
-
-@media (max-width: 780px) {
-  .restaurant-hero__text {
-    padding: 16px 20px;
-  }
-}
-
+/* Ravintolasivu: kuva, nimi ja perustiedot, kiinnittyvät osiovälilehdet ja
+   ruokalista - kaikki samassa sisältöleveydessä kuin headerin sisältö
+   (etusivun tapaan 1600 px asti), ei reunasta reunaan venyvää banneria. */
 .restaurant-page {
   width: 100%;
   margin: 0 auto;
-  padding: 8px 32px 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  padding: 24px 32px 48px;
+  box-sizing: border-box;
 }
 
-/* Sama raja kuin etusivun .home-content ja kategoriasivun .category-page:
-   leveys on vapaa asti erittäin leveillä näytöillä. */
 @media (min-width: 1900px) {
   .restaurant-page {
     max-width: 1600px;
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 560px) {
   .restaurant-page {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding: 12px 16px 40px;
   }
 }
 
 .restaurant-detail {
+  display: flex;
+  flex-direction: column;
   animation: delivo-card-in 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -105,16 +33,192 @@
   }
 }
 
-.restaurant-detail__body {
+/* Nimi ja tiedot vasemmalla, tarjouskortti oikealla. */
+.restaurant-info {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px 40px;
+  padding: 24px 0 8px;
+}
+
+.restaurant-info__main {
+  min-width: 0;
+}
+
+.restaurant-info__tagline {
+  display: inline-block;
+  margin: 0 0 10px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--delivo-orange-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--delivo-orange-dark);
+}
+
+.restaurant-info__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--delivo-black);
+}
+
+.restaurant-info__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.restaurant-info__meta li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.restaurant-info__meta svg {
+  flex-shrink: 0;
+}
+
+.restaurant-info__rating strong {
+  color: var(--delivo-black);
+}
+
+.restaurant-info__rating svg {
+  color: var(--delivo-orange);
+}
+
+.restaurant-info__free {
+  color: var(--delivo-orange-dark);
+  font-weight: 600;
+}
+
+.restaurant-info__address {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 780px) {
+  .restaurant-info {
+    flex-direction: column;
+    padding-top: 18px;
+  }
+}
+
+/* Ravintolan kuva tummennettuna tietojen taustana (käyttäjän pyyntö). Kuva ja
+   tummennus ovat omina kerroksinaan isolationin sisällä, jotta teksti ja
+   tarjouskortti pysyvät niiden päällä ilman z-index-säätöjä muualla. */
+.restaurant-info--banner {
+  position: relative;
+  isolation: isolate;
+  /* Tiedot kuvan alareunassa. Enintään 280px: korkeampana kuva täytti isolla
+     näytöllä koko ensimmäisen näkymän eikä yhtään tuotetta näkynyt. */
+  align-items: flex-end;
+  min-height: clamp(220px, 20vw, 280px);
+  /* Samassa linjassa välilehtien ja tarjouksen kanssa - reunojen yli venyvä
+     kuva sai vasemmat reunat osumaan eri kohtiin. */
+  margin: 8px 0 0;
+  padding: 32px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--delivo-black);
+}
+
+.restaurant-info--banner::before,
+.restaurant-info--banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.restaurant-info--banner::before {
+  z-index: -2;
+  background: var(--restaurant-banner) center / cover no-repeat;
+}
+
+/* Alaosa ja vasen reuna tummimmat, koska teksti on siellä - yläosassa kuva
+   näkyy kirkkaampana. */
+.restaurant-info--banner::after {
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(20, 21, 15, 0.15) 0%, rgba(20, 21, 15, 0.55) 55%, rgba(20, 21, 15, 0.85) 100%),
+    linear-gradient(90deg, rgba(20, 21, 15, 0.35) 0%, rgba(20, 21, 15, 0) 60%);
+}
+
+.restaurant-info--banner .restaurant-info__title,
+.restaurant-info--banner .restaurant-info__rating strong {
+  color: #fff;
+}
+
+.restaurant-info--banner .restaurant-info__meta {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.restaurant-info--banner .restaurant-info__address {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.restaurant-info--banner .restaurant-info__free {
+  color: #ffb59c;
+}
+
+@media (max-width: 780px) {
+  .restaurant-info--banner {
+    align-items: stretch;
+    justify-content: flex-end;
+    min-height: 0;
+    /* Puhelimella samassa linjassa muun sisällön kanssa - reunojen yli venyvä
+       kuva näytti kapealla näytöllä virheeltä. */
+    margin-inline: 0;
+    /* Matalampi kuin työpöydällä (käyttäjän pyyntö) - kuvaa jää näkyviin vain
+       kapea kaistale tekstien yläpuolelle. */
+    padding: 56px 20px 20px;
+    border-radius: 16px;
+  }
+
+  /* Mobiilissa kevyempi tummennus kuin työpöydällä (käyttäjän pyyntö: "ei
+     noin tumma"). Luettavuuden varmistaa tekstien pehmeä varjo alla. */
+  .restaurant-info--banner::after {
+    background: linear-gradient(180deg, rgba(20, 21, 15, 0.08) 0%, rgba(20, 21, 15, 0.42) 45%, rgba(20, 21, 15, 0.62) 100%);
+  }
+
+  .restaurant-info--banner .restaurant-info__title,
+  .restaurant-info--banner .restaurant-info__meta,
+  .restaurant-info--banner .restaurant-info__address {
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+  }
+}
+
+/* Tarjoukset omana lyhyenä osionaan kategoriavälilehtien ja tuotteiden välissä.
+   Väli ylös ja ohut viiva alle, jottei osio näytä kuuluvan ensimmäiseen
+   välilehteen (Burgerit) vaan koko ravintolaan. */
+.restaurant-offers {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   gap: 12px;
-  padding: 24px 0 32px;
+  padding: 32px 0 28px;
+  border-bottom: 1px solid var(--border);
+}
+
+.restaurant-offers__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--delivo-black);
 }
 
 .restaurant-closed-notice {
-  margin: 12px 0 0;
+  margin: 8px 0 0;
   padding: 10px 14px;
   border-radius: 10px;
   background: color-mix(in srgb, var(--color-closed) 14%, white);
@@ -123,23 +227,18 @@
   font-weight: 500;
 }
 
-.restaurant-detail__body--menu {
-  padding: 4px 0 0;
-}
-
-/* Kaikki tuotteet / Suosituimmat / Tarjoukset - kahdella jälkimmäisellä ei vielä ole oikeaa
-   dataa taustalla (ei suosituimmuus- tai tarjousjärjestelmää), joten ne näyttävät
-   "tulossa pian" -viestin sen sijaan että teeskentelisivät suodattavansa jotain oikeasti. */
-/* Alleviivaustabit pillereiden sijaan - erottuu selvästi Woltin/muiden
-   ruokasovellusten täytetyistä pillerivälilehdistä. */
+/* Ruokalistan osiot välilehtinä. Kiinnittyy headerin alle, jotta osiosta toiseen
+   pääsee missä kohtaa listaa tahansa. Alleviivaus aktiivisen osion alla. */
 .restaurant-menu-tabs {
+  position: sticky;
+  top: var(--site-header-height);
+  z-index: 20;
   display: flex;
   align-items: center;
   gap: 26px;
-  padding: 0;
-  margin: 0 0 2px;
-  border-bottom: 2px solid var(--border);
-  width: 100%;
+  margin: 16px 0 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--delivo-bg);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -152,12 +251,12 @@
   position: relative;
   flex-shrink: 0;
   white-space: nowrap;
-  padding: 14px 0;
+  padding: 16px 0 14px;
   border: none;
   background: transparent;
   color: var(--text-muted);
   font-family: inherit;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.3;
   cursor: pointer;
@@ -168,123 +267,125 @@
   color: var(--delivo-black);
 }
 
-.restaurant-menu-tabs .restaurant-menu-tabs__btn.restaurant-menu-tabs__btn--active {
-  background: none;
+.restaurant-menu-tabs__btn--active {
   color: var(--delivo-black);
 }
 
-.restaurant-menu-tabs .restaurant-menu-tabs__btn.restaurant-menu-tabs__btn--active::after {
+.restaurant-menu-tabs__btn--active::after {
   content: '';
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -2px;
+  bottom: -1px;
   height: 3px;
   border-radius: 2px;
   background: var(--delivo-orange);
 }
 
-/* Tarjouskortti kuten McDonald'sin "Tarjoukset ja edut" - oikea SUURTILAUS-koodi,
-   ei keksitty raja tai prosentti (katso kommentti JSX:ssä). */
+/* Tarjouskortti - oikea SUURTILAUS-koodi, ei keksitty raja tai prosentti
+   (katso kommentti JSX:ssä). Omassa Tarjoukset-osiossaan kuvan alla.
+   Malli Woltin tarjouskortista (käyttäjän referenssi), delivon väreissä:
+   vaalea lippu, jonka molemmissa reunoissa on keskellä pyöreä lovi.
+   Kiinteä enimmäisleveys: osio venyttäisi sen muuten koko sivun levyiseksi. */
 .menu-offer-card {
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 14px;
-  max-width: 620px;
-  padding: 18px 22px;
-  margin: 20px 0 4px;
+  align-self: flex-start;
+  width: min(360px, 100%);
+  box-sizing: border-box;
+  min-height: 76px;
+  padding: 14px 24px;
+  border-radius: 14px;
   background: var(--delivo-orange-soft);
-  border-radius: var(--radius-lg);
+  /* Lovet ovat oikeita reikiä (maski), eivät taustan värisiä ympyröitä, joten
+     ne toimivat minkä tahansa taustan päällä. Vasen ja oikea puolisko
+     maskataan erikseen, kumpikin omalla lovellaan. */
+  -webkit-mask:
+    radial-gradient(circle 8px at 0 50%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 8px at 100% 50%, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle 8px at 0 50%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle 8px at 100% 50%, #0000 98%, #000) right / 51% 100% no-repeat;
 }
 
 .menu-offer-card__icon {
   flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
   color: var(--delivo-orange);
 }
 
 .menu-offer-card__body {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   min-width: 0;
 }
 
 .menu-offer-card__title {
   margin: 0;
   font-size: 0.92rem;
-  font-weight: 700;
-  line-height: 1.4;
+  font-weight: 500;
+  line-height: 1.35;
   color: var(--delivo-black);
 }
 
 .menu-offer-card__toggle {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 6px;
+  gap: 6px;
   padding: 0;
   border: none;
   background: none;
-  color: var(--delivo-orange-dark);
   font-family: inherit;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 500;
+  color: var(--delivo-orange-dark);
   cursor: pointer;
 }
 
-.menu-offer-card__chevron {
+.menu-offer-card__arrow {
+  color: var(--delivo-black);
   transition: transform 0.2s ease;
 }
 
-.menu-offer-card__chevron--open {
-  transform: rotate(180deg);
+.menu-offer-card__arrow.is-open {
+  transform: rotate(90deg);
+}
+
+.menu-offer-card__toggle:focus-visible {
+  outline: 2px solid var(--delivo-orange);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .menu-offer-card__details {
-  margin: 8px 0 0;
-  font-size: 0.85rem;
-  line-height: 1.45;
+  margin: 4px 0 0;
+  font-size: 0.84rem;
+  line-height: 1.5;
   color: var(--text-muted);
 }
 
-.menu-section-heading {
-  margin: 0 0 00px;
-}
-
-.menu-section-heading h2 {
-  margin-top: 3.5rem;
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 700;
+.menu-offer-card__details strong {
   color: var(--delivo-black);
 }
 
-.menu-section-heading p {
-  margin: -10px 0 0;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.88rem;
-  color: var(--text-muted);
-  text-decoration: none;
-}
-
+/* Osioon vieritettäessä otsikko jää headerin ja välilehtien alle näkyviin -
+   sama luku kuin SECTION_OFFSET_PX RestaurantPage.jsx:ssä. */
 .menu-section {
-  scroll-margin-top: 84px;
+  scroll-margin-top: 136px;
 }
 
 .coming-soon {
-  margin-top: 12px;
+  margin-top: 24px;
   width: 100%;
   padding: 28px;
   border: 1.5px dashed var(--border);
   border-radius: var(--radius-lg);
   text-align: center;
   color: var(--text-muted);
+  box-sizing: border-box;
 }
 
 .coming-soon p {
@@ -294,17 +395,17 @@
 
 .menu {
   width: 100%;
-  margin-top: 2px;
+  padding-top: 28px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 32px;
 }
 
 .menu-section__title {
-  margin: 0 0 4px;
+  margin: 0;
   font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 600;
+  font-size: 1.35rem;
+  font-weight: 700;
   color: var(--delivo-black);
 }
 
@@ -315,13 +416,15 @@
   width: 100%;
   padding: 16px 0;
   display: grid;
-  grid-template-columns: 1fr;
+  /* minmax(0, ...): pelkkä 1fr ei kutistu sisältöään kapeammaksi, jolloin pitkä
+     tuotenimi venytti kortin 320px-puhelimella näytön yli. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
 }
 
 @media (min-width: 640px) {
   .menu-grid {
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
     gap: 14px;
   }
 }
@@ -334,6 +437,7 @@
   flex-direction: row-reverse;
   align-items: flex-start;
   gap: 16px;
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 18px;

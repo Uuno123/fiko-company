@@ -1,13 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { ChevronDown, Star, Tag } from 'lucide-react'
+import { BadgePercent, Bike, CircleArrowRight, Clock, MapPin, Star } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import Spinner from '../components/Spinner.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
 import { getRestaurantById } from '../lib/api.js'
 import { useCart } from '../lib/CartContext.jsx'
-import { formatPrice } from '../lib/format.js'
+import { DELIVERY_FEE_CENTS, formatEtaRange } from '../lib/delivery.js'
+import { formatDistance, restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
+import { formatDisplayAddress, formatPrice } from '../lib/format.js'
 import { MCDONALDS_DEMO_MENU } from '../lib/demoRestaurants.js'
 import { getTodayHours, formatHoursRange } from '../lib/openingHours.js'
 import {
@@ -20,13 +22,10 @@ import {
 } from '../lib/menuOptions.js'
 import './RestaurantPage.css'
 
-// TILAPÄINEN: pakotettu testikuva ja -teksti heroon, ohittaa Supabasen oman
-// image_url:n/name:n (Burger Tallilla on jo Unsplash-kuva, joten || ei koskaan
-// valinnut tätä). Poista nämä ja käytä restaurant.name/image_url kun testaus
-// on valmis.
-const TEMP_HERO_IMAGE_URL = 'https://imageproxy.wolt.com/assets/6735be5986f45b72713e2127'
-const TEMP_HERO_NAME = "McDonald's"
-const TEMP_HERO_TAGLINE = 'Kuumana nyt'
+// "Kuumana nyt" -merkki vain esittelyravintolalle (lib/demoRestaurants.js).
+// Aiemmin sekä merkki että nimi "McDonald's" oli pakotettu KAIKILLE
+// ravintoloille - oikealle ravintolalle merkki olisi keksitty väite.
+const DEMO_TAGLINE = 'Kuumana nyt'
 
 // TILAPÄINEN: sama id:t kuin supabase/migrations/0039_remove_burger_talli_placeholder_items.sql -
 // piilotetaan täältä heti esikatselua varten kunnes käyttäjä ajaa migraation Supabasessa.
@@ -62,20 +61,10 @@ function categoryId(category) {
   return 'menu-' + category.toLowerCase().replace(/\s+/g, '-')
 }
 
-// TILAPÄINEN: samat välilehtinimet kuin McDonald'sin referenssikuvassa - vain
-// "Tilatuimmat" (key 'all') näyttää oikeaa dataa, loput ovat vielä "tulossa
-// pian" -paikanpitäjiä samaan tapaan kuin Suosituimmat/Tarjoukset olivat ennen.
-const MENU_TABS = [
-  { key: 'all', label: 'Tilatuimmat' },
-  { key: 'world-menu', label: 'World Menu Mission' },
-  { key: 'campaign', label: 'Kampanja-ateriat -20%' },
-  { key: 'combos', label: 'Kombot' },
-  { key: 'burgers', label: 'Hampurilaiset' },
-  { key: 'chicken-veg', label: 'Kana & Kasvis' },
-  { key: 'salads-wraps', label: 'Salaatit & McWrap®' },
-  { key: 'happy-meal', label: 'Happy Meal®' },
-  { key: 'more', label: 'Lisää (4)' },
-]
+// Osion yläreunan etäisyys ikkunan yläreunasta, kun osioon on vieritetty:
+// header (--site-header-height) + kiinnittyvä välilehtirivi + pieni väli.
+// Sama luku on RestaurantPage.css:n .menu-section scroll-margin-topissa.
+const SECTION_OFFSET_PX = 136
 
 // Fikolla ei ole vielä oikeaa arvostelujärjestelmää (ei arvostelutaulua tietokannassa) -
 // tämä on visuaalinen placeholder käyttäjän hyväksymänä ("lisää visuaalinen placeholder"),
@@ -108,7 +97,8 @@ function RestaurantPage() {
   const [restaurant, setRestaurant] = useState(null)
   const [status, setStatus] = useState('loading')
   const [errorMessage, setErrorMessage] = useState('')
-  const [menuTab, setMenuTab] = useState('all')
+  const [activeCategory, setActiveCategory] = useState(null)
+  const deliveryAddress = useDeliveryAddress()
   const [selectedItem, setSelectedItem] = useState(null)
   const [quantity, setQuantity] = useState(1)
   const [optionSelections, setOptionSelections] = useState({})
@@ -145,6 +135,25 @@ function RestaurantPage() {
 
 
   const groupedMenu = groupByCategory(allMenuItems)
+  // Ennen ensimmäistä vieritystä korostetaan ensimmäinen osio.
+  const shownCategory = activeCategory ?? groupedMenu[0]?.[0] ?? null
+  const etaRange = formatEtaRange(restaurant?.pickup_estimate_minutes)
+  const distance = restaurant ? formatDistance(restaurantDistanceKm(restaurant, deliveryAddress)) : null
+
+  // Korostaa välilehden sen osion mukaan, jonka kohdalla ollaan: viimeinen osio,
+  // jonka yläreuna on ohittanut headerin ja välilehtirivin.
+  useEffect(() => {
+    if (status !== 'ready') return undefined
+    function updateActive() {
+      let current = null
+      document.querySelectorAll('.menu-section').forEach((section) => {
+        if (section.getBoundingClientRect().top <= SECTION_OFFSET_PX + 1) current = section.dataset.category
+      })
+      setActiveCategory(current)
+    }
+    window.addEventListener('scroll', updateActive, { passive: true })
+    return () => window.removeEventListener('scroll', updateActive)
+  }, [status])
 
   useEffect(() => {
     let cancelled = false
@@ -188,6 +197,7 @@ function RestaurantPage() {
   }, [justAdded])
 
   function scrollToCategory(category) {
+    setActiveCategory(category)
     document.getElementById(categoryId(category))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
@@ -240,36 +250,22 @@ function RestaurantPage() {
   }
 
   return (
-    <div className="page">
-      <div className="restaurant-hero-wrap">
-        <Header
-          showAddress
-          cart={
-            cart.count > 0
-              ? {
-                  count: cart.count,
-                  totalCents: cart.totalCents,
-                  groups: cart.groups,
-                  onClear: cart.clear,
-                  onClearRestaurant: cart.clearRestaurant,
-                  formatPrice,
-                }
-              : null
-          }
-        />
-
-        {status === 'ready' && restaurant && (
-          <div className="restaurant-hero">
-            <div className="restaurant-hero__image">
-              <img src={TEMP_HERO_IMAGE_URL} alt={restaurant.name} />
-            </div>
-            <div className="restaurant-hero__text">
-              <p className="restaurant-hero__tagline">{TEMP_HERO_TAGLINE}</p>
-              <h1 className="restaurant-hero__title">{TEMP_HERO_NAME}</h1>
-            </div>
-          </div>
-        )}
-      </div>
+    <div className="page page--restaurant">
+      <Header
+        showAddress
+        cart={
+          cart.count > 0
+            ? {
+                count: cart.count,
+                totalCents: cart.totalCents,
+                groups: cart.groups,
+                onClear: cart.clear,
+                onClearRestaurant: cart.clearRestaurant,
+                formatPrice,
+              }
+            : null
+        }
+      />
 
       <main className="restaurant-page">
         {status === 'loading' && <Spinner label="Ladataan ravintolaa" />}
@@ -279,159 +275,179 @@ function RestaurantPage() {
 
         {status === 'ready' && restaurant && (
           <article className="restaurant-detail">
-            {restaurantClosed && (
-              <div className="restaurant-detail__body">
-                <p className="restaurant-closed-notice">
-                  Ravintola on juuri nyt suljettu, eikä tilaaminen ole mahdollista.
-                  {todayHoursLabel ? ` Tänään avoinna ${todayHoursLabel}.` : ''}
-                </p>
+            {/* Nimi ja perustiedot vasemmalla, tarjous oikealla (puhelimella allekkain).
+                Erillinen yläkuva poistettiin käyttäjän pyynnöstä - ravintolan kuva on
+                nyt tummennettuna tämän osion taustana (CSS-muuttuja --restaurant-banner). */}
+            <div
+              className={`restaurant-info${restaurant.image_url ? ' restaurant-info--banner' : ''}`}
+              style={restaurant.image_url ? { '--restaurant-banner': `url("${restaurant.image_url}")` } : undefined}
+            >
+              <div className="restaurant-info__main">
+                {restaurant.isDemo && <p className="restaurant-info__tagline">{DEMO_TAGLINE}</p>}
+                <h1 className="restaurant-info__title">{restaurant.name}</h1>
+                <ul className="restaurant-info__meta">
+                  {restaurant.rating != null && (
+                    <li className="restaurant-info__rating">
+                      <Star size={15} fill="currentColor" aria-hidden="true" />
+                      <strong>{Number(restaurant.rating).toFixed(1)}</strong>
+                      <span>({pseudoReviewCount(restaurant.id)}+ arviota)</span>
+                    </li>
+                  )}
+                  {etaRange && (
+                    <li>
+                      <Clock size={15} aria-hidden="true" />
+                      {etaRange}
+                    </li>
+                  )}
+                  <li className={restaurant.free_delivery ? 'restaurant-info__free' : undefined}>
+                    <Bike size={15} aria-hidden="true" />
+                    {restaurant.free_delivery ? 'Ilmainen toimitus' : `Toimitus ${formatPrice(DELIVERY_FEE_CENTS)}`}
+                  </li>
+                  {distance && (
+                    <li>
+                      <MapPin size={15} aria-hidden="true" />
+                      {distance}
+                    </li>
+                  )}
+                  {todayHoursLabel && <li>Avoinna tänään {todayHoursLabel}</li>}
+                </ul>
+                {restaurant.address && (
+                  <p className="restaurant-info__address">{formatDisplayAddress(restaurant.address)}</p>
+                )}
               </div>
+            </div>
+
+            {restaurantClosed && (
+              <p className="restaurant-closed-notice">
+                Ravintola on juuri nyt suljettu, eikä tilaaminen ole mahdollista.
+                {todayHoursLabel ? ` Tänään avoinna ${todayHoursLabel}.` : ''}
+              </p>
             )}
 
             {allMenuItems.length > 0 ? (
               <>
-                <div className="restaurant-menu-tabs" role="tablist" aria-label="Tuotenäkymä">
-                  {MENU_TABS.map((tab) => (
+                {/* Ruokalistan oikeat osiot - klikkaus vierittää osioon, ja vieritys
+                    korostaa osion jossa ollaan. Kiinnittyy headerin alle. */}
+                <nav className="restaurant-menu-tabs" aria-label="Ruokalistan osiot">
+                  {groupedMenu.map(([category]) => (
                     <button
                       type="button"
-                      key={tab.key}
-                      role="tab"
-                      aria-selected={menuTab === tab.key}
-                      className={`restaurant-menu-tabs__btn${menuTab === tab.key ? ' restaurant-menu-tabs__btn--active' : ''}`}
-                      onClick={() => setMenuTab(tab.key)}
+                      key={category}
+                      aria-current={shownCategory === category ? 'true' : undefined}
+                      className={`restaurant-menu-tabs__btn${shownCategory === category ? ' restaurant-menu-tabs__btn--active' : ''}`}
+                      onClick={() => scrollToCategory(category)}
                     >
-                      {tab.label}
+                      {category}
                     </button>
                   ))}
-                </div>
+                </nav>
 
-                {/* Merkki on totta: SUURTILAUS antaa kassalla oikeasti 30 % (enint. 7 €)
-                    kun tilaus on vähintään 50 € - sama katto ja raja on sekä täällä
-                    (Cart.jsx) että backendin payments.js:ssä, joka veloittaa summan. */}
-                <div className="menu-offer-card">
-                  <span className="menu-offer-card__icon" aria-hidden="true">
-                    <Tag size={18} />
-                  </span>
-                  <div className="menu-offer-card__body">
-                    <p className="menu-offer-card__title">
-                      30 % alennus (enintään 7 €) tilauksille yli 50 € – koodilla SUURTILAUS kassalla
-                    </p>
-                    <button
-                      type="button"
-                      className="menu-offer-card__toggle"
-                      aria-expanded={offerDetailsOpen}
-                      onClick={() => setOfferDetailsOpen((v) => !v)}
-                    >
-                      {offerDetailsOpen ? 'Piilota tiedot' : 'Näytä lisätiedot'}
-                      <ChevronDown
-                        size={14}
-                        className={`menu-offer-card__chevron${offerDetailsOpen ? ' menu-offer-card__chevron--open' : ''}`}
-                      />
-                    </button>
-                    {offerDetailsOpen && (
-                      <p className="menu-offer-card__details">
-                        Alennus lasketaan tilauksen välisummasta ennen toimitusmaksua, enintään 7 €. Syötä koodi
-                        SUURTILAUS ostoskorissa ennen kassalle siirtymistä.
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {menuTab !== 'all' && (
-                  <div className="restaurant-detail__body">
-                    <p className="state-message">
-                      {MENU_TABS.find((tab) => tab.key === menuTab)?.label} tulossa pian.
-                    </p>
-                  </div>
-                )}
-
-                {menuTab === 'all' && (
-                  <>
-                    <div className="menu-section-heading">
-                      <h2>Kaikki tuotteet</h2>
-                      <p>Kattava valikoima ravintolan {restaurant.name} tuotteita.</p>
+                {/* Järjestys käyttäjän pyynnöstä: ensin kategoriat (välilehdet), sitten
+                    tarjoukset ja sitten tuotteet. Tarjous oli aiemmin kuvan päällä. */}
+                <section className="restaurant-offers" aria-label="Tarjoukset">
+                  <h2 className="restaurant-offers__title">Tarjoukset</h2>
+                  {/* Merkki on totta: SUURTILAUS antaa kassalla oikeasti 30 % (enint. 7 €)
+                      kun tilaus on vähintään 50 € - sama katto ja raja on sekä täällä
+                      (Cart.jsx) että backendin payments.js:ssä, joka veloittaa summan. */}
+                  {/* Woltin tarjouskortin mallin mukaan (käyttäjän referenssi): lippumainen
+                      kortti lovineen, prosenttimerkki, lyhyt otsikko ja lisätietolinkki. */}
+                  <div className="menu-offer-card">
+                    <BadgePercent className="menu-offer-card__icon" size={34} strokeWidth={1.9} aria-hidden="true" />
+                    <div className="menu-offer-card__body">
+                      <p className="menu-offer-card__title">−30 % vähintään 50 € tilauksista</p>
+                      <button
+                        type="button"
+                        className="menu-offer-card__toggle"
+                        aria-expanded={offerDetailsOpen}
+                        onClick={() => setOfferDetailsOpen((v) => !v)}
+                      >
+                        {offerDetailsOpen ? 'Piilota lisätiedot' : 'Näytä lisätiedot'}
+                        <CircleArrowRight
+                          size={15}
+                          strokeWidth={2}
+                          className={`menu-offer-card__arrow${offerDetailsOpen ? ' is-open' : ''}`}
+                          aria-hidden="true"
+                        />
+                      </button>
+                      {offerDetailsOpen && (
+                        <p className="menu-offer-card__details">
+                          Koodilla <strong>SUURTILAUS</strong> kassalla. Alennus lasketaan välisummasta ennen
+                          toimitusmaksua, enintään 7 €.
+                        </p>
+                      )}
                     </div>
+                  </div>
+                </section>
 
-                    <div className="restaurant-detail__body restaurant-detail__body--menu">
-                      <div className="menu">
-                        {groupedMenu.map(([category, items]) => (
-                          <section
-                            className="menu-section"
-                            id={categoryId(category)}
-                            data-category={category}
-                            key={category}
-                          >
-                            <h2 className="menu-section__title">{category}</h2>
-                            <ul className="menu-grid">
-                              {items.map((item) => (
-                                <li key={item.id}>
-                                  <div
-                                    className={`menu-card${item.is_available === false ? ' menu-card--unavailable' : ''}`}
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => openItem(item)}
-                                    onKeyDown={(e) => handleCardKeyDown(e, item)}
-                                  >
-                                    <div className="menu-card__media-wrap">
-                                      <div className="menu-card__media">
-                                        {item.image_url ? (
-                                          <img src={item.image_url} alt={item.name} />
-                                        ) : (
-                                          <RestaurantAvatarPlaceholder name={item.name} size="thumb" />
-                                        )}
-                                      </div>
-                                    </div>
+                <div className="menu">
+                  {groupedMenu.map(([category, items]) => (
+                    <section className="menu-section" id={categoryId(category)} data-category={category} key={category}>
+                      <h2 className="menu-section__title">{category}</h2>
+                      <ul className="menu-grid">
+                        {items.map((item) => (
+                          <li key={item.id}>
+                            <div
+                              className={`menu-card${item.is_available === false ? ' menu-card--unavailable' : ''}`}
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => openItem(item)}
+                              onKeyDown={(e) => handleCardKeyDown(e, item)}
+                            >
+                              <div className="menu-card__media-wrap">
+                                <div className="menu-card__media">
+                                  {item.image_url ? (
+                                    <img src={item.image_url} alt={item.name} />
+                                  ) : (
+                                    <RestaurantAvatarPlaceholder name={item.name} size="thumb" />
+                                  )}
+                                </div>
+                              </div>
 
-                                    <div className="menu-card__info">
-                                      <span className="menu-card__name">{item.name}</span>
-                                      {item.is_available !== false && (
-                                        <span className="menu-card__rating">
-                                          <Star size={12} fill="currentColor" aria-hidden="true" />
-                                          {pseudoItemRating(item.id).rating}
-                                          <span className="menu-card__rating-count">
-                                            ({pseudoItemRating(item.id).count}+)
-                                          </span>
-                                        </span>
-                                      )}
-                                      {item.description && (
-                                        <span className="menu-card__description">{item.description}</span>
-                                      )}
-                                      {item.tags?.length > 0 && (
-                                        <div className="menu-card__tag-list">
-                                          {item.tags.slice(0, 3).map((tag) => (
-                                            <span className="menu-card__tag-chip" key={tag}>
-                                              {tag}
-                                            </span>
-                                          ))}
-                                          {item.tags.length > 3 && (
-                                            <span className="menu-card__tag-chip menu-card__tag-chip--more">
-                                              +{item.tags.length - 3}
-                                            </span>
-                                          )}
-                                        </div>
-                                      )}
-                                      {item.is_available === false ? (
-                                        <span className="menu-card__sold-out">Loppu valikoimasta</span>
-                                      ) : (
-                                        <span className="menu-card__price">{formatPrice(item.price_cents)}</span>
-                                      )}
-                                    </div>
+                              <div className="menu-card__info">
+                                <span className="menu-card__name">{item.name}</span>
+                                {item.is_available !== false && (
+                                  <span className="menu-card__rating">
+                                    <Star size={12} fill="currentColor" aria-hidden="true" />
+                                    {pseudoItemRating(item.id).rating}
+                                    <span className="menu-card__rating-count">
+                                      ({pseudoItemRating(item.id).count}+)
+                                    </span>
+                                  </span>
+                                )}
+                                {item.description && (
+                                  <span className="menu-card__description">{item.description}</span>
+                                )}
+                                {item.tags?.length > 0 && (
+                                  <div className="menu-card__tag-list">
+                                    {item.tags.slice(0, 3).map((tag) => (
+                                      <span className="menu-card__tag-chip" key={tag}>
+                                        {tag}
+                                      </span>
+                                    ))}
+                                    {item.tags.length > 3 && (
+                                      <span className="menu-card__tag-chip menu-card__tag-chip--more">
+                                        +{item.tags.length - 3}
+                                      </span>
+                                    )}
                                   </div>
-                                </li>
-                              ))}
-                            </ul>
-                          </section>
+                                )}
+                                {item.is_available === false ? (
+                                  <span className="menu-card__sold-out">Loppu valikoimasta</span>
+                                ) : (
+                                  <span className="menu-card__price">{formatPrice(item.price_cents)}</span>
+                                )}
+                              </div>
+                            </div>
+                          </li>
                         ))}
-                      </div>
-                    </div>
-                  </>
-                )}
+                      </ul>
+                    </section>
+                  ))}
+                </div>
               </>
             ) : (
-              <div className="restaurant-detail__body">
-                <div className="coming-soon">
-                  <p>Ruokalista tulossa pian.</p>
-                </div>
+              <div className="coming-soon">
+                <p>Ruokalista tulossa pian.</p>
               </div>
             )}
           </article>

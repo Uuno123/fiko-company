@@ -94,7 +94,8 @@ function Home() {
   const [activeCategory, setActiveCategory] = useState(() => searchParams.get('category') ?? ALL)
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '')
   const deliveryAddress = useDeliveryAddress()
-  const [isScrolled, setIsScrolled] = useState(false)
+  const [catsPill, setCatsPill] = useState(false)
+  const quickCatsRef = useRef(null)
   const [adIndex, setAdIndex] = useState(0)
   const [favoriteIds, setFavoriteIds] = useState(() => new Set())
   const [activeRowSlug, setActiveRowSlug] = useState(null)
@@ -201,15 +202,35 @@ function Home() {
       ? [...(nearbyGroup ? [nearbyGroup] : []), ...mobileCategoryGroups]
       : mobileCategoryGroups.filter((group) => group.category === activeCategory)
 
-  // Vieritettäessä kategoriarivi kutistuu pillereiksi, jotta headeriin kiinni
-  // jäävä yläosa vie mahdollisimman vähän ruutua.
+  // Mobiilin kategoriarivi (käyttäjän toiveet): omalla paikallaan pyöreät
+  // pallot, ja kun rivi on tarttunut headeriin, siitä tulee pillerit - jotka
+  // pysyvät näkyvissä vieritettiin kumpaan suuntaan tahansa.
+  // Pallot ja pillerit ovat kaksi valmista riviä päällekkäin, ja tilanvaihto on
+  // pelkkää opacity/transform-siirtymää. Aiempi versio animoi kokoja (width,
+  // height, padding...) jokaisessa laatikossa, mikä nyki vierittäessä.
+  //
+  // "Kiinni" päätellään rivin edellisen sisaruksen (mainoskaruselli) alareunasta
+  // + flex-välistä: sticky-rivin oma sijainti on kiinni ollessaan aina sama.
   useEffect(() => {
-    function onScroll() {
-      setIsScrolled(window.scrollY > 64)
+    let frame = 0
+    function update() {
+      frame = 0
+      const row = quickCatsRef.current
+      const prev = row?.previousElementSibling
+      if (!row || !prev) return
+      const stickyTop = parseFloat(getComputedStyle(row).top) || 0
+      const gap = parseFloat(getComputedStyle(row.parentElement).rowGap) || 0
+      setCatsPill(prev.getBoundingClientRect().bottom + gap <= stickyTop + 1)
     }
-    onScroll()
+    function onScroll() {
+      if (!frame) frame = requestAnimationFrame(update)
+    }
+    update()
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(frame)
+    }
   }, [])
 
   // adIndex riippuvuutena: ajastin nollautuu myös kun palloa painetaan, jolloin
@@ -628,25 +649,38 @@ function Home() {
             pysyy vain oman vanhempansa laatikon sisällä, joten hakukentän
             vieressä se irtoaisi heti kun hakukenttä on vieritetty ohi. */}
         {mobileCategoryGroups.length > 0 && (
-          <div className={`home-quick-cats${isScrolled ? ' home-quick-cats--compact' : ''}`}>
-            {mobileCategoryGroups.map(({ category }) => {
-              const tile = CATEGORY_TILE_META[category] ?? DEFAULT_TILE_META
-              return (
-                <a
-                  key={category}
-                  href={`#cat-${categorySlug(category)}`}
-                  className={`home-cat-tile${
-                    activeRowSlug === categorySlug(category) ? ' home-cat-tile--active' : ''
-                  }`}
-                  onClick={(e) => scrollToCategory(e, category)}
-                >
-                  <span className="home-cat-tile__art" aria-hidden="true">
-                    {tile.img ? <img src={tile.img} alt="" loading="lazy" /> : tile.emoji}
-                  </span>
-                  <span className="home-cat-tile__label">{category}</span>
-                </a>
-              )
-            })}
+          <div
+            ref={quickCatsRef}
+            className={`home-quick-cats${catsPill ? ' home-quick-cats--pill' : ''}`}
+          >
+            {/* Pallorivi määrää korkeuden; pilleririvi on sen päällä. Näkymätön
+                rivi on inert, jottei sama linkki ole kahdesti näppäimistön tiellä. */}
+            {['round', 'pill'].map((variant) => (
+              <div
+                key={variant}
+                className={`home-quick-cats__row home-quick-cats__row--${variant}`}
+                inert={(variant === 'pill') !== catsPill || undefined}
+              >
+                {mobileCategoryGroups.map(({ category }) => {
+                  const tile = CATEGORY_TILE_META[category] ?? DEFAULT_TILE_META
+                  return (
+                    <a
+                      key={category}
+                      href={`#cat-${categorySlug(category)}`}
+                      className={`home-cat-tile${
+                        activeRowSlug === categorySlug(category) ? ' home-cat-tile--active' : ''
+                      }`}
+                      onClick={(e) => scrollToCategory(e, category)}
+                    >
+                      <span className="home-cat-tile__art" aria-hidden="true">
+                        {tile.img ? <img src={tile.img} alt="" loading="lazy" /> : tile.emoji}
+                      </span>
+                      <span className="home-cat-tile__label">{category}</span>
+                    </a>
+                  )
+                })}
+              </div>
+            ))}
           </div>
         )}
 

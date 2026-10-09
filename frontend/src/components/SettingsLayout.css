@@ -122,65 +122,53 @@
   flex-shrink: 0;
 }
 
+/* Mobiilin yläpalkki: takaisin-nuoli vasemmalla, otsikko keskellä. Sivupalkkia
+   ei mobiilissa piirretä lainkaan - navigaatio on tilisivu (AccountHub). */
+.settings-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  height: 56px;
+  padding: 0 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.settings-topbar__back {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--delivo-black);
+}
+
+.settings-topbar__back:active {
+  background: #f4f4f4;
+}
+
+.settings-topbar__title {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--delivo-black);
+}
+
 @media (max-width: 860px) {
-  /* minmax(0, 1fr) eikä 1fr: muuten vierivän pilleririvin koko leveys
-     lasketaan sarakkeen minimiksi ja koko sivu levenee näyttöä leveämmäksi. */
   .account {
     grid-template-columns: minmax(0, 1fr);
-    gap: 28px;
+    gap: 0;
     padding: 24px 16px 72px;
   }
 
-  .account-side {
-    position: static;
-    min-width: 0;
-    gap: 20px;
-  }
-
-  .account-side__identity {
-    padding: 0;
-  }
-
-  /* Kapealla näytöllä osiot vierivät pillereinä - ulos kirjautuminen löytyy
-     headerin tilivalikosta, joten sivupalkin alaosa jää pois. */
-  .account-nav {
-    flex-direction: row;
-    gap: 8px;
-    margin: 0 -16px;
-    padding: 0 16px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .account-nav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .account-nav__link {
-    flex-shrink: 0;
-    width: auto;
-    height: 32px;
-    padding: 0 11px;
-    gap: 6px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-pill);
-    font-size: 0.82rem;
-    white-space: nowrap;
-  }
-
-  .account-nav__link svg {
-    width: 15px;
-    height: 15px;
-  }
-
-  .account-nav__link--active,
-  .account-nav__link--active:hover {
-    border-color: var(--delivo-black);
-    background: var(--delivo-black);
-    color: #fff;
-  }
-
-  .account-side__footer {
-    display: none;
+  .account--hub {
+    padding: 16px 16px 48px;
   }
 }

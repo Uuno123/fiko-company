@@ -36,22 +36,6 @@
   transform: scale(0.94);
 }
 
-/* Sama koko kuin etusivun headerin logolla (Header.css, vaalea header -lohko) -
-   jos se muuttuu, muuta molemmat. */
-.category-topbar .delivo-logo {
-  padding: 5px 13px;
-  border-radius: 13px;
-  font-size: 1.25rem;
-}
-
-@media (max-width: 560px) {
-  .category-topbar .delivo-logo {
-    padding: 4px 11px;
-    border-radius: 12px;
-    font-size: 1.05rem;
-  }
-}
-
 .category-page {
   width: 100%;
   margin: 0 auto;

@@ -1,32 +1,9 @@
 import { useEffect, useState } from 'react'
 import SettingsLayout from '../components/SettingsLayout.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { loadCards, saveCards } from '../lib/demoCards.js'
 import './AuthForm.css'
 import './Settings.css'
-
-// TILAPÄINEN, käyttäjän pyynnöstä esittelykäyttöön: kortin "tallennus" ei ole
-// oikea maksupalvelu. Selaimeen jää vain kortin merkki, 4 viimeistä numeroa ja
-// voimassaolo - ei koskaan koko numeroa eikä turvakoodia. Oikeassa toteutuksessa
-// kortti tallennetaan Stripeen (SetupIntent), ei omaan tietokantaan.
-function storageKey(customerId) {
-  return `delivo-demo-cards-${customerId}`
-}
-
-function loadCards(customerId) {
-  try {
-    return JSON.parse(localStorage.getItem(storageKey(customerId))) ?? []
-  } catch {
-    return []
-  }
-}
-
-function saveCards(customerId, cards) {
-  try {
-    localStorage.setItem(storageKey(customerId), JSON.stringify(cards))
-  } catch {
-    // Selaimen tallennus estetty (esim. yksityinen ikkuna) - kortit näkyvät silti tämän käynnin ajan.
-  }
-}
 
 function cardBrand(digits) {
   if (/^4/.test(digits)) return 'Visa'

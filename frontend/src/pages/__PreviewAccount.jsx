@@ -3,6 +3,7 @@
    session) so it can be reviewed without hitting Supabase Auth. */
 import { AuthContext } from '../lib/AuthContext.jsx'
 import SettingsProfile from './SettingsProfile.jsx'
+import AccountHub from './AccountHub.jsx'
 
 const MOCK_CUSTOMER = {
   id: 'mock-customer-1',
@@ -21,10 +22,12 @@ const MOCK_AUTH_VALUE = {
   refreshCustomer: async () => {},
 }
 
+// ?view=hub näyttää mobiilin tilisivun (AccountHub) Omien tietojen sijaan.
 function PreviewAccount() {
+  const showHub = new URLSearchParams(window.location.search).get('view') === 'hub'
   return (
     <AuthContext.Provider value={MOCK_AUTH_VALUE}>
-      <SettingsProfile />
+      {showHub ? <AccountHub /> : <SettingsProfile />}
     </AuthContext.Provider>
   )
 }

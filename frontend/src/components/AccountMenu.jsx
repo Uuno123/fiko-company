@@ -108,7 +108,8 @@ function AccountMenu({ currentPath, variant }) {
 
       {open && (
         <div className="account-menu__dropdown" role="menu">
-          <Link to="/asetukset/tiedot" className="account-menu__profile-row" onClick={() => setOpen(false)}>
+          {/* /asetukset: mobiilissa tilisivu, työpöydällä ohjaus Omiin tietoihin. */}
+          <Link to="/asetukset" className="account-menu__profile-row" onClick={() => setOpen(false)}>
             <span className="account-menu__avatar account-menu__avatar--large">{initial}</span>
             <div className="account-menu__identity">
               <span className="account-menu__display-name">{customer?.name || 'Tili'}</span>

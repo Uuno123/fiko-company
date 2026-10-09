@@ -1,5 +1,7 @@
+/* Ilman laatikkoa leveä lomake näytti venyneeltä - 440px jättää sisällölle
+   400px, sama kuin tyypillinen kirjautumislomake. */
 .auth-page {
-  max-width: 560px;
+  max-width: 440px;
   margin: 0 auto;
   padding: 48px 20px 40px;
   width: 100%;
@@ -23,6 +25,16 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+
+/* Kirjautumis-, rekisteröinti- ja salasanasivuilla lomake on suoraan valkoisella
+   sivulla ilman laatikkoa (käyttäjän pyyntö). Rajattu .auth-pageen, koska
+   asetussivut käyttävät samaa .auth-card-luokkaa ja niissä kortti jää. */
+.auth-page .auth-card {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
 }
 
 .auth-card h1 {
@@ -273,18 +285,9 @@
   color: var(--delivo-black);
 }
 
-/* Puhelimella kortti käyttää koko leveyden: ei reunusta, varjoa eikä pyöristystä
-   (sivun tausta on jo valkoinen), ja sisäreunus on kapeampi - muuten lomakkeelle
-   jäi alle 300 px. Rajattu .auth-pageen, koska asetussivut käyttävät samaa
-   .auth-card-luokkaa. */
+/* Puhelimella sivun reunus on kapeampi, jotta lomakkeelle jää leveyttä. */
 @media (max-width: 560px) {
   .auth-page {
-    padding: 24px 0 32px;
-  }
-
-  .auth-page .auth-card {
-    padding: 28px 20px;
-    border-radius: 0;
-    box-shadow: none;
+    padding: 24px 20px 32px;
   }
 }
