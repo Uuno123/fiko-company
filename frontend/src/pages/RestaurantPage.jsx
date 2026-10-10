@@ -1,16 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import { BadgePercent, Bike, CircleArrowRight, Clock, MapPin, Star } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { BadgePercent, Bike, ChevronRight, CircleArrowRight, Clock, Heart, MapPin, Plus, Search, Star, X } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import Spinner from '../components/Spinner.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
+import MenuSearch, { matchesMenuQuery } from '../components/MenuSearch.jsx'
+import ReviewsModal from '../components/ReviewsModal.jsx'
 import { getRestaurantById } from '../lib/api.js'
+import { useAuth } from '../lib/AuthContext.jsx'
+import { addFavorite, isRestaurantFavorited, removeFavorite } from '../lib/favorites.js'
 import { useCart } from '../lib/CartContext.jsx'
 import { DELIVERY_FEE_CENTS, formatEtaRange } from '../lib/delivery.js'
 import { formatDistance, restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { formatDisplayAddress, formatPrice } from '../lib/format.js'
 import { MCDONALDS_DEMO_MENU } from '../lib/demoRestaurants.js'
+import { getDemoReviews } from '../lib/demoReviews.js'
 import { getTodayHours, formatHoursRange } from '../lib/openingHours.js'
 import {
   getOptionGroups,
@@ -91,9 +96,27 @@ function pseudoItemRating(id) {
   return { rating: rating.toFixed(1), count }
 }
 
+// Sama raja kuin RestaurantPage.css:n Wolt-tyylisellä mobiiliasettelulla (780px).
+const COMPACT_QUERY = '(max-width: 780px)'
+
+function useCompactLayout() {
+  const [compact, setCompact] = useState(() => window.matchMedia(COMPACT_QUERY).matches)
+  useEffect(() => {
+    const mql = window.matchMedia(COMPACT_QUERY)
+    const update = (event) => setCompact(event.matches)
+    mql.addEventListener('change', update)
+    return () => mql.removeEventListener('change', update)
+  }, [])
+  return compact
+}
+
 function RestaurantPage() {
   const { id } = useParams()
   const cart = useCart()
+  // Kapealla näytöllä sivu on Woltin/Uber Eatsin mallinen: kuva reunasta reunaan
+  // ylhäällä ja header läpinäkyvänä sen päällä (variant="overlay"), kunnes
+  // vieritetään - silloin header muuttuu valkoiseksi.
+  const compactLayout = useCompactLayout()
   const [restaurant, setRestaurant] = useState(null)
   const [status, setStatus] = useState('loading')
   const [errorMessage, setErrorMessage] = useState('')
@@ -104,6 +127,48 @@ function RestaurantPage() {
   const [optionSelections, setOptionSelections] = useState({})
   const [justAdded, setJustAdded] = useState(false)
   const [offerDetailsOpen, setOfferDetailsOpen] = useState(false)
+  const { customer } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [isFavorite, setIsFavorite] = useState(false)
+  const [menuSearchOpen, setMenuSearchOpen] = useState(false)
+  const closeMenuSearch = useCallback(() => setMenuSearchOpen(false), [])
+  const [reviewsOpen, setReviewsOpen] = useState(false)
+  const closeReviews = useCallback(() => setReviewsOpen(false), [])
+  // Työpöydän hakukenttä suodattaa ruokalistaa suoraan sivulla (Woltin
+  // verkkosivun malli). Mobiilissa haku on oma koko ruudun näkymänsä
+  // (MenuSearch), joten kenttä ja sen suodatus nollataan kapealle siirryttäessä.
+  const [menuQuery, setMenuQuery] = useState('')
+  useEffect(() => {
+    if (compactLayout) setMenuQuery('')
+  }, [compactLayout])
+
+  // Suosikkitila oikealle ravintolalle tietokannasta. Esittelyravintolan id ei
+  // ole uuid, joten sitä ei voi tallentaa customer_favorites-tauluun (sama
+  // rajaus kuin etusivulla) - sille sydän toimii vain tämän käynnin ajan.
+  useEffect(() => {
+    setIsFavorite(false)
+    if (!customer?.id || !restaurant || restaurant.isDemo) return undefined
+    let cancelled = false
+    isRestaurantFavorited(customer.id, restaurant.id).then((favorited) => {
+      if (!cancelled) setIsFavorite(favorited)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [customer?.id, restaurant])
+
+  async function toggleFavorite() {
+    if (!customer?.id) {
+      navigate('/login', { state: { from: location.pathname } })
+      return
+    }
+    const next = !isFavorite
+    setIsFavorite(next)
+    if (restaurant.isDemo) return
+    const ok = next ? await addFavorite(customer.id, restaurant.id) : await removeFavorite(customer.id, restaurant.id)
+    if (!ok) setIsFavorite(!next)
+  }
 
   // TILAPÄINEN yhdistelmä oikean datan ja TEMP_EXTRA_MENU_ITEMS-esikatselurivien
   // välillä - katso kommentti vakion määrittelyn kohdalla.
@@ -134,7 +199,11 @@ function RestaurantPage() {
   )
 
 
-  const groupedMenu = groupByCategory(allMenuItems)
+  const visibleMenuItems = menuQuery.trim()
+    ? allMenuItems.filter((item) => matchesMenuQuery(item, menuQuery))
+    : allMenuItems
+  const groupedMenu = groupByCategory(visibleMenuItems)
+  const reviews = restaurant ? getDemoReviews(restaurant.id) : []
   // Ennen ensimmäistä vieritystä korostetaan ensimmäinen osio.
   const shownCategory = activeCategory ?? groupedMenu[0]?.[0] ?? null
   const etaRange = formatEtaRange(restaurant?.pickup_estimate_minutes)
@@ -249,10 +318,44 @@ function RestaurantPage() {
     }
   }
 
+  // Sydän: mobiilissa headerissa, työpöydällä tietojen tasolla hakukentän vieressä.
+  const favoriteButton = (
+    <button
+      type="button"
+      className={`site-header__round-btn${isFavorite ? ' is-active' : ''}`}
+      aria-pressed={isFavorite}
+      aria-label={isFavorite ? 'Poista suosikeista' : 'Lisää suosikkeihin'}
+      onClick={toggleFavorite}
+    >
+      <Heart size={18} strokeWidth={2} fill={isFavorite ? 'currentColor' : 'none'} aria-hidden="true" />
+    </button>
+  )
+
   return (
     <div className="page page--restaurant">
       <Header
+        back
         showAddress
+        variant={compactLayout ? 'overlay' : undefined}
+        // Kapealla näytöllä sydän ja haku headerissa tilivalikon tilalla (Woltin
+        // malli). Työpöydällä ne ovat ravintolan tietojen tasolla oikealla
+        // (hakukenttä + sydän), ja headerissa on tilivalikko.
+        actions={
+          compactLayout && restaurant ? (
+            <div className="site-header__round-actions">
+              {favoriteButton}
+              <button
+                type="button"
+                className="site-header__round-btn"
+                aria-label="Hae ruokalistasta"
+                onClick={() => setMenuSearchOpen(true)}
+              >
+                <Search size={18} strokeWidth={2} aria-hidden="true" />
+              </button>
+            </div>
+          ) : undefined
+        }
+        hideAccount={compactLayout}
         cart={
           cart.count > 0
             ? {
@@ -275,9 +378,10 @@ function RestaurantPage() {
 
         {status === 'ready' && restaurant && (
           <article className="restaurant-detail">
-            {/* Nimi ja perustiedot vasemmalla, tarjous oikealla (puhelimella allekkain).
-                Erillinen yläkuva poistettiin käyttäjän pyynnöstä - ravintolan kuva on
-                nyt tummennettuna tämän osion taustana (CSS-muuttuja --restaurant-banner). */}
+            {/* Woltin / Uber Eatsin malli: ravintolan kuva tämän osion yläosassa
+                (CSS-muuttuja --restaurant-banner, ::before-kerros), nimi ja tiedot
+                sen alla. Työpöydällä hakukenttä ja sydän tietojen oikealla puolella,
+                mobiilissa headerissa. */}
             <div
               className={`restaurant-info${restaurant.image_url ? ' restaurant-info--banner' : ''}`}
               style={restaurant.image_url ? { '--restaurant-banner': `url("${restaurant.image_url}")` } : undefined}
@@ -288,9 +392,28 @@ function RestaurantPage() {
                 <ul className="restaurant-info__meta">
                   {restaurant.rating != null && (
                     <li className="restaurant-info__rating">
-                      <Star size={15} fill="currentColor" aria-hidden="true" />
-                      <strong>{Number(restaurant.rating).toFixed(1)}</strong>
-                      <span>({pseudoReviewCount(restaurant.id)}+ arviota)</span>
+                      {/* Arvosana on nappi arvosteluihin (käyttäjän pyyntö: arvostelut
+                          eivät näy sivulla, vaan avautuvat omaan ikkunaansa). Nappi
+                          vain kun arvosteluja on - ks. lib/demoReviews.js. */}
+                      {reviews.length > 0 ? (
+                        <button
+                          type="button"
+                          className="restaurant-info__rating-btn"
+                          onClick={() => setReviewsOpen(true)}
+                          aria-label={`Arvostelut: ${Number(restaurant.rating).toFixed(1)} tähteä, ${pseudoReviewCount(restaurant.id)}+ arviota`}
+                        >
+                          <Star size={15} fill="currentColor" aria-hidden="true" />
+                          <strong>{Number(restaurant.rating).toFixed(1)}</strong>
+                          <span>({pseudoReviewCount(restaurant.id)}+ arviota)</span>
+                          <ChevronRight size={15} strokeWidth={2.2} aria-hidden="true" />
+                        </button>
+                      ) : (
+                        <>
+                          <Star size={15} fill="currentColor" aria-hidden="true" />
+                          <strong>{Number(restaurant.rating).toFixed(1)}</strong>
+                          <span>({pseudoReviewCount(restaurant.id)}+ arviota)</span>
+                        </>
+                      )}
                     </li>
                   )}
                   {etaRange && (
@@ -315,6 +438,34 @@ function RestaurantPage() {
                   <p className="restaurant-info__address">{formatDisplayAddress(restaurant.address)}</p>
                 )}
               </div>
+
+              {/* Työpöytä: hakukenttä ja sydän tietojen tasolla oikealla
+                  (käyttäjän pyyntö). Mobiilissa ne ovat headerissa. */}
+              {!compactLayout && (
+                <div className="restaurant-info__tools">
+                  <label className="restaurant-menu-search">
+                    <Search size={18} strokeWidth={2} aria-hidden="true" />
+                    <input
+                      type="search"
+                      value={menuQuery}
+                      onChange={(e) => setMenuQuery(e.target.value)}
+                      placeholder={`Hae ravintolasta ${restaurant.name}`}
+                      aria-label="Hae ruokalistasta"
+                    />
+                    {menuQuery && (
+                      <button
+                        type="button"
+                        className="restaurant-menu-search__clear"
+                        aria-label="Tyhjennä haku"
+                        onClick={() => setMenuQuery('')}
+                      >
+                        <X size={15} strokeWidth={2.2} aria-hidden="true" />
+                      </button>
+                    )}
+                  </label>
+                  {favoriteButton}
+                </div>
+              )}
             </div>
 
             {restaurantClosed && (
@@ -380,6 +531,9 @@ function RestaurantPage() {
                 </section>
 
                 <div className="menu">
+                  {groupedMenu.length === 0 && (
+                    <p className="menu-search-empty">Ei tuotteita haulle "{menuQuery.trim()}".</p>
+                  )}
                   {groupedMenu.map(([category, items]) => (
                     <section className="menu-section" id={categoryId(category)} data-category={category} key={category}>
                       <h2 className="menu-section__title">{category}</h2>
@@ -401,6 +555,13 @@ function RestaurantPage() {
                                     <RestaurantAvatarPlaceholder name={item.name} size="thumb" />
                                   )}
                                 </div>
+                                {/* Woltin/Uber Eatsin "+" kuvan kulmassa. Koko rivi avaa
+                                    tuotteen, joten merkki on pelkkä vihje eikä oma nappinsa. */}
+                                {item.is_available !== false && (
+                                  <span className="menu-card__add" aria-hidden="true">
+                                    <Plus size={18} strokeWidth={2.4} />
+                                  </span>
+                                )}
                               </div>
 
                               <div className="menu-card__info">
@@ -455,6 +616,26 @@ function RestaurantPage() {
       </main>
 
       <Footer />
+
+      {reviewsOpen && restaurant && (
+        <ReviewsModal
+          restaurantName={restaurant.name}
+          rating={restaurant.rating}
+          reviewCount={pseudoReviewCount(restaurant.id)}
+          reviews={reviews}
+          onClose={closeReviews}
+        />
+      )}
+
+      {menuSearchOpen && restaurant && (
+        <MenuSearch
+          items={allMenuItems}
+          restaurantName={restaurant.name}
+          onPick={openItem}
+          onClose={closeMenuSearch}
+          modalOpen={Boolean(selectedItem)}
+        />
+      )}
 
       {selectedItem && (
         <div className="item-modal__backdrop" onClick={closeModal}>

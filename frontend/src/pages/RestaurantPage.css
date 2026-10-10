@@ -1,10 +1,13 @@
 /* Ravintolasivu: kuva, nimi ja perustiedot, kiinnittyvät osiovälilehdet ja
    ruokalista - kaikki samassa sisältöleveydessä kuin headerin sisältö
    (etusivun tapaan 1600 px asti), ei reunasta reunaan venyvää banneria. */
+/* --rp-gutter: sivun reunus, jota reunasta reunaan venyvä mobiilikuva käyttää
+   negatiivisena marginaalina. */
 .restaurant-page {
+  --rp-gutter: 32px;
   width: 100%;
   margin: 0 auto;
-  padding: 24px 32px 48px;
+  padding: 24px var(--rp-gutter) 48px;
   box-sizing: border-box;
 }
 
@@ -16,7 +19,8 @@
 
 @media (max-width: 560px) {
   .restaurant-page {
-    padding: 12px 16px 40px;
+    --rp-gutter: 16px;
+    padding: 12px var(--rp-gutter) 40px;
   }
 }
 
@@ -96,6 +100,40 @@
   color: var(--delivo-orange);
 }
 
+/* Arvosana on nappi arvosteluikkunaan (ReviewsModal): sama ulkoasu kuin muut
+   tietorivin kohdat, mutta alleviivattu määrä ja nuoli kertovat että se avautuu. */
+.restaurant-info__rating-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.restaurant-info__rating-btn > span {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(108, 112, 102, 0.45);
+}
+
+.restaurant-info__rating-btn:hover > span {
+  color: var(--delivo-black);
+}
+
+.restaurant-info__rating-btn:focus-visible {
+  outline: 2px solid var(--delivo-orange);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.restaurant-info__rating-btn svg:last-child {
+  color: var(--text-muted);
+}
+
 .restaurant-info__free {
   color: var(--delivo-orange-dark);
   font-weight: 600;
@@ -114,87 +152,152 @@
   }
 }
 
-/* Ravintolan kuva tummennettuna tietojen taustana (käyttäjän pyyntö). Kuva ja
-   tummennus ovat omina kerroksinaan isolationin sisällä, jotta teksti ja
-   tarjouskortti pysyvät niiden päällä ilman z-index-säätöjä muualla. */
+/* Ravintolan kuva Woltin / Uber Eatsin malliin (käyttäjän pyyntö): kuva omana
+   alueenaan ylhäällä ilman tekstiä päällä, nimi ja tiedot sen alla valkoisella.
+   Kuva on ::before-kerros, jonka korkeuden verran osio on pehmustettu ylhäältä.
+   Kuva on lähes koko näytön levyinen, pyöristetyin kulmin (käyttäjän pyynnöt);
+   teksti pysyy sisältöalueen linjassa, koska vain kuvakerros venytetään:
+   left/right calc(50% - 50vw + inset) levittää sen keskitetyn sisällön
+   reunoista lähelle näytön reunoja. Vierityspalkki jakautuu tasan molemmille
+   puolille, joten reunojen väli on symmetrinen. Mobiilissa kuva on aivan
+   reunasta reunaan ja header kelluu sen päällä (780px-lohko alla). */
+.restaurant-page:has(.restaurant-info--banner) {
+  padding-top: 0;
+}
+
 .restaurant-info--banner {
+  --rp-hero-h: clamp(240px, 22vw, 340px);
+  --rp-hero-inset: 24px;
+  --rp-hero-top: 16px;
   position: relative;
   isolation: isolate;
-  /* Tiedot kuvan alareunassa. Enintään 280px: korkeampana kuva täytti isolla
-     näytöllä koko ensimmäisen näkymän eikä yhtään tuotetta näkynyt. */
-  align-items: flex-end;
-  min-height: clamp(220px, 20vw, 280px);
-  /* Samassa linjassa välilehtien ja tarjouksen kanssa - reunojen yli venyvä
-     kuva sai vasemmat reunat osumaan eri kohtiin. */
-  margin: 8px 0 0;
-  padding: 32px;
-  border-radius: 20px;
-  overflow: hidden;
-  background: var(--delivo-black);
+  padding-top: calc(var(--rp-hero-top) + var(--rp-hero-h) + 28px);
 }
 
 .restaurant-info--banner::before,
 .restaurant-info--banner::after {
   content: '';
   position: absolute;
-  inset: 0;
+  top: var(--rp-hero-top);
+  left: calc(50% - 50vw + var(--rp-hero-inset));
+  right: calc(50% - 50vw + var(--rp-hero-inset));
+  height: var(--rp-hero-h);
+  border-radius: 20px;
+  pointer-events: none;
 }
 
 .restaurant-info--banner::before {
   z-index: -2;
-  background: var(--restaurant-banner) center / cover no-repeat;
+  background: #f4f4f4 var(--restaurant-banner) center / cover no-repeat;
 }
 
-/* Alaosa ja vasen reuna tummimmat, koska teksti on siellä - yläosassa kuva
-   näkyy kirkkaampana. */
+/* Työpöydällä kuvan päällä ei ole mitään, joten varjostusta ei tarvita
+   (mobiilissa se tulee headerin nappeja varten, ks. 780px-lohko). */
 .restaurant-info--banner::after {
   z-index: -1;
-  background:
-    linear-gradient(180deg, rgba(20, 21, 15, 0.15) 0%, rgba(20, 21, 15, 0.55) 55%, rgba(20, 21, 15, 0.85) 100%),
-    linear-gradient(90deg, rgba(20, 21, 15, 0.35) 0%, rgba(20, 21, 15, 0) 60%);
+  background: none;
 }
 
-.restaurant-info--banner .restaurant-info__title,
-.restaurant-info--banner .restaurant-info__rating strong {
-  color: #fff;
+/* Työpöydän hakukenttä ja sydän tietojen tasolla oikealla. */
+.restaurant-info__tools {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  align-self: center;
+  gap: 10px;
 }
 
-.restaurant-info--banner .restaurant-info__meta {
-  color: rgba(255, 255, 255, 0.85);
+.restaurant-menu-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 300px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  background: #f4f4f4;
+  color: var(--text-muted);
+  transition: box-shadow 0.15s ease, background 0.15s ease;
 }
 
-.restaurant-info--banner .restaurant-info__address {
-  color: rgba(255, 255, 255, 0.72);
+.restaurant-menu-search:focus-within {
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px var(--delivo-black);
 }
 
-.restaurant-info--banner .restaurant-info__free {
-  color: #ffb59c;
+.restaurant-menu-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.92rem;
+  color: var(--delivo-black);
 }
 
+.restaurant-menu-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.restaurant-menu-search__clear {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #d9d9d9;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.restaurant-info__tools .site-header__round-btn {
+  width: 44px;
+  height: 44px;
+}
+
+.menu-search-empty {
+  margin: 28px 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+/* ── Kapea näyttö: Woltin / Uber Eatsin malli (käyttäjän pyyntö) ──────────
+   Kuva reunasta reunaan sivun yläreunassa, header kelluu läpinäkyvänä sen
+   päällä (RestaurantPage: variant="overlay" alle 780px), tuotteet listana
+   ilman korttikehyksiä (tiedoston lopussa). Raja 780px on sama kuin
+   RestaurantPage.jsx:n COMPACT_QUERY. */
 @media (max-width: 780px) {
+  /* Header on overlay-tilassa position:fixed eli pois sivun virrasta - sisältö
+     alkaa headerin alta. Kuvallinen ravintola alkaa suoraan yläreunasta. */
+  .restaurant-page {
+    padding-top: calc(var(--site-header-height) + 12px);
+  }
+
+  /* Mobiilissa kuva aivan reunasta reunaan ja yläreunaan asti, ilman pyöristystä. */
   .restaurant-info--banner {
-    align-items: stretch;
-    justify-content: flex-end;
-    min-height: 0;
-    /* Puhelimella samassa linjassa muun sisällön kanssa - reunojen yli venyvä
-       kuva näytti kapealla näytöllä virheeltä. */
-    margin-inline: 0;
-    /* Matalampi kuin työpöydällä (käyttäjän pyyntö) - kuvaa jää näkyviin vain
-       kapea kaistale tekstien yläpuolelle. */
-    padding: 56px 20px 20px;
-    border-radius: 16px;
+    --rp-hero-h: clamp(220px, 58vw, 300px);
+    --rp-hero-inset: 0px;
+    --rp-hero-top: 0px;
+    margin: 0 calc(-1 * var(--rp-gutter));
+    padding: calc(var(--rp-hero-h) + 18px) var(--rp-gutter) 4px;
   }
 
-  /* Mobiilissa kevyempi tummennus kuin työpöydällä (käyttäjän pyyntö: "ei
-     noin tumma"). Luettavuuden varmistaa tekstien pehmeä varjo alla. */
+  .restaurant-info--banner::before,
   .restaurant-info--banner::after {
-    background: linear-gradient(180deg, rgba(20, 21, 15, 0.08) 0%, rgba(20, 21, 15, 0.42) 45%, rgba(20, 21, 15, 0.62) 100%);
+    border-radius: 0;
   }
 
-  .restaurant-info--banner .restaurant-info__title,
-  .restaurant-info--banner .restaurant-info__meta,
-  .restaurant-info--banner .restaurant-info__address {
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+  /* Vahvempi yläreunan varjostus: koko header-rivi kelluu kuvan päällä. */
+  .restaurant-info--banner::after {
+    background: linear-gradient(180deg, rgba(20, 21, 15, 0.4) 0%, rgba(20, 21, 15, 0) 45%);
+  }
+
+  .restaurant-info__title {
+    font-size: 1.75rem;
   }
 }
 
@@ -569,8 +672,30 @@
 }
 
 .menu-card__media-wrap {
+  position: relative;
   flex-shrink: 0;
   align-self: flex-end;
+}
+
+/* Woltin / Uber Eatsin "+" kuvan kulmassa - pelkkä vihje, koko kortti avaa
+   tuotteen. */
+.menu-card__add {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--delivo-black);
+  box-shadow: 0 2px 8px rgba(20, 21, 15, 0.18);
+  transition: transform 0.15s ease;
+}
+
+.menu-card:hover .menu-card__add {
+  transform: scale(1.08);
 }
 
 .menu-card__media {
@@ -914,3 +1039,47 @@
   }
 }
 
+/* Kapean näytön tuotelista (Woltin / Uber Eatsin malli). Tiedoston lopussa,
+   koska .menu-card-perussäännöt ovat yllä ja voittaisivat muuten järjestyksessä.
+   Raja sama kuin yläosan 780px-lohkossa. */
+@media (max-width: 780px) {
+  /* Tuotteet listana: ei kehyksiä eikä varjoja, ohut viiva rivien välissä,
+     neliökuva oikealla ja "+" sen kulmassa. */
+  .menu-grid {
+    gap: 0;
+    padding: 4px 0 8px;
+  }
+
+  .menu-grid > li + li {
+    border-top: 1px solid #ececec;
+  }
+
+  .menu-card {
+    gap: 14px;
+    padding: 16px 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .menu-card:hover {
+    box-shadow: none;
+    transform: none;
+  }
+
+  .menu-card__media-wrap {
+    align-self: flex-start;
+  }
+
+  .menu-card__media {
+    width: 104px;
+    height: 104px;
+    border-radius: 12px;
+    background: #f4f4f4;
+  }
+
+  .menu-card__name {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+}

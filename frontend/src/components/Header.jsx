@@ -9,7 +9,7 @@ import './Header.css'
 
 // showAddress: toimitusosoite logon vieressä (selaussivut). Osoiteikkuna itse
 // on AddressGatessa, jotta sama ikkuna aukeaa myös ensikäynnillä.
-function Header({ search, showAddress, cart, variant, back }) {
+function Header({ search, showAddress, cart, variant, back, actions, hideAccount }) {
   const location = useLocation()
   const navigate = useNavigate()
   const deliveryAddress = useDeliveryAddress()
@@ -111,25 +111,27 @@ function Header({ search, showAddress, cart, variant, back }) {
     >
       <div className="site-header__inner">
         <div className="site-header__left">
-          {back && (
+          {/* back: takaisin-nuoli logon tilalla (ravintolasivu, käyttäjän pyyntö).
+              Nuoli palaa edelliselle sivulle - paitsi jos sivu avattiin suoraan
+              linkistä, jolloin historiassa ei ole delivon sivua ja navigate(-1)
+              veisi pois sivustolta; silloin etusivulle. React Router pitää
+              historian indeksin history.state.idx:ssä. */}
+          {back ? (
             <button
               type="button"
               className="site-header__back"
               aria-label="Takaisin"
-              onClick={() => navigate(-1)}
+              onClick={() => (window.history.state?.idx > 0 ? navigate(-1) : navigate('/'))}
             >
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="m12 5-5 5 5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
+          ) : (
+            <Link to="/" className="site-header__logo">
+              delivo
+            </Link>
           )}
-
-          {/* Logo näkyy aina, myös nuolen vieressä - nuoli vie edelliselle sivulle,
-              logo etusivulle, eivät korvaa toisiaan (sama pari kuin CategoryPagen
-              omassa topbarissa). */}
-          <Link to="/" className="site-header__logo">
-            delivo
-          </Link>
 
           {showAddress && (
             <div className="city-select">
@@ -382,7 +384,11 @@ function Header({ search, showAddress, cart, variant, back }) {
             </div>
           )}
 
-          <AccountMenu currentPath={location.pathname} variant={accountMenuVariant} />
+          {/* actions: sivukohtaiset napit tilivalikon edessä (ravintolasivun sydän
+              ja haku). hideAccount piilottaa tilivalikon - ravintolasivu tekee sen
+              kapealla näytöllä, jossa tilaa on vain napeille (käyttäjän pyyntö). */}
+          {actions}
+          {!hideAccount && <AccountMenu currentPath={location.pathname} variant={accountMenuVariant} />}
         </div>
       </div>
     </header>
