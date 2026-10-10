@@ -1,6 +1,8 @@
-// Google Maps JavaScript API:n lataus. Avain tulee frontend/.env-tiedostosta
-// (VITE_GOOGLE_MAPS_API_KEY). Ilman avainta, tai jos Google hylkää avaimen,
-// kartat ja osoitehaku käyttävät OpenStreetMapia (lib/mapView.js, lib/geocode.js).
+// Google Maps JavaScript API:n lataus - nykyään vain osoitehakua varten
+// (lib/geocode.js). Itse kartat piirtää MapLibre + OpenFreeMap (lib/mapView.js).
+// Avain tulee frontend/.env-tiedostosta (VITE_GOOGLE_MAPS_API_KEY). Ilman
+// avainta, tai jos Google hylkää avaimen, osoitehaku käyttää OpenStreetMapin
+// Nominatimia.
 //
 // MVP käyttää Maps Demo Keytä: ei maksukorttia, mutta 100 kutsua päivässä per
 // rajapinta. Kun raja täyttyy, Google lakkaa vastaamasta loppupäiväksi - siksi

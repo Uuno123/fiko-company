@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { ChevronUp } from 'lucide-react'
+import { Minus } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import { orderStatusLabel, estimatedArrivalAt } from '../lib/orderStatus.js'
 import { loadDemoOrder } from '../lib/demoOrder.js'
+import { SIGNED_OUT_EVENT } from '../lib/signOutCleanup.js'
 import OrderTrackingModal from './OrderTrackingModal.jsx'
 import './ActiveOrderBubble.css'
 
@@ -14,6 +15,69 @@ function minutesLeft(order, now) {
   const arrival = estimatedArrivalAt(order)
   if (!arrival) return null
   return Math.max(Math.ceil((arrival.getTime() - now) / 60_000), 0)
+}
+
+// ── Raahaus (käyttäjän pyyntö: pitkä painallus ja sitten liikuttaminen) ─────
+// Pitkä painallus nostaa kuplan, minkä jälkeen sitä voi raahata. Puhelimella
+// (koko levyinen palkki) liike on vain pystysuunnassa, työpöydällä vapaa.
+// Paikka muistetaan selaimessa erikseen kummallekin asettelulle.
+const LONG_PRESS_MS = 350
+const MOVE_TOLERANCE_PX = 8
+const EDGE_MARGIN_PX = 8
+const POSITION_KEY = 'delivo-order-bubble-position'
+// Sama raja kuin ActiveOrderBubble.css:n palkkiasettelulla.
+const BAR_QUERY = '(max-width: 560px)'
+
+function loadPosition() {
+  try {
+    return JSON.parse(localStorage.getItem(POSITION_KEY)) ?? {}
+  } catch {
+    return {}
+  }
+}
+
+function savePosition(position) {
+  try {
+    localStorage.setItem(POSITION_KEY, JSON.stringify(position))
+  } catch {
+    // Ei tallennustilaa - paikka pätee vain tämän sivulatauksen ajan.
+  }
+}
+
+// Pienennetty tila (käyttäjän pyyntö: kuplan voi pienentää laatikoksi) muistetaan
+// sivulta toiselle.
+const MINIMIZED_KEY = 'delivo-order-bubble-minimized'
+
+function loadMinimized() {
+  try {
+    return localStorage.getItem(MINIMIZED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function saveMinimized(minimized) {
+  try {
+    if (minimized) localStorage.setItem(MINIMIZED_KEY, '1')
+    else localStorage.removeItem(MINIMIZED_KEY)
+  } catch {
+    // Ei tallennustilaa - tila pätee vain tämän sivulatauksen ajan.
+  }
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), Math.max(min, max))
+}
+
+function useBarLayout() {
+  const [bar, setBar] = useState(() => window.matchMedia(BAR_QUERY).matches)
+  useEffect(() => {
+    const mql = window.matchMedia(BAR_QUERY)
+    const update = (event) => setBar(event.matches)
+    mql.addEventListener('change', update)
+    return () => mql.removeEventListener('change', update)
+  }, [])
+  return bar
 }
 
 function ActiveOrderBubble() {
@@ -80,11 +144,57 @@ function ActiveOrderBubble() {
         : dbOrder
       : (dbOrder ?? activeDemo)
 
-  // Ei näytetä kumppanipuolella, tilausnäkymässä (jo siellä) eikä ostoskorissa/kassalla
-  // (siellä on jo oma seurantanäkymä tilauksen jälkeen).
+  const barLayout = useBarLayout()
+  const layoutKey = barLayout ? 'bar' : 'float'
+  const bubbleRef = useRef(null)
+  const pressRef = useRef(null)
+  // Raahauksen jälkeen selain laukaisee vielä click-tapahtuman - se ei saa avata seurantaa.
+  const suppressClickRef = useRef(false)
+  const [position, setPosition] = useState(loadPosition)
+  const [dragging, setDragging] = useState(false)
+  const [minimized, setMinimized] = useState(loadMinimized)
+
+  // Uloskirjautuessa (lib/signOutCleanup.js) paikka ja pienennys nollautuvat
+  // myös muistista, ettei seuraava kirjautuja saa edellisen asetuksia.
+  useEffect(() => {
+    function onSignedOut() {
+      setPosition({})
+      setMinimized(false)
+    }
+    window.addEventListener(SIGNED_OUT_EVENT, onSignedOut)
+    return () => window.removeEventListener(SIGNED_OUT_EVENT, onSignedOut)
+  }, [])
+  const hasOrder = Boolean(order)
+
+  // Tallennettu paikka pysyy näytön sisällä myös ikkunan koon muuttuessa
+  // (esim. puhelimen kääntö tai pienempi selainikkuna).
+  useEffect(() => {
+    if (!hasOrder) return undefined
+    function keepInside() {
+      const el = bubbleRef.current
+      if (!el) return
+      const { width, height } = el.getBoundingClientRect()
+      setPosition((current) => {
+        const saved = current[layoutKey]
+        if (!saved) return current
+        const y = clamp(saved.y, EDGE_MARGIN_PX, window.innerHeight - height - EDGE_MARGIN_PX)
+        const x = saved.x == null ? null : clamp(saved.x, EDGE_MARGIN_PX, window.innerWidth - width - EDGE_MARGIN_PX)
+        if (y === saved.y && (x == null || x === saved.x)) return current
+        return { ...current, [layoutKey]: x == null ? { y } : { x, y } }
+      })
+    }
+    keepInside()
+    window.addEventListener('resize', keepInside)
+    return () => window.removeEventListener('resize', keepInside)
+  }, [hasOrder, layoutKey, minimized])
+
+  // Ei näytetä kumppanipuolella (myös dashboardin esikatselu /__preview-dashboard -
+  // asiakkaan tilauskupla näkyi siellä ravintolan näkymän päällä), tilausnäkymässä
+  // (jo siellä) eikä ostoskorissa/kassalla (siellä on oma seurantanäkymä).
   if (
     !order ||
     location.pathname.startsWith('/kumppani') ||
+    location.pathname.startsWith('/__preview-dashboard') ||
     location.pathname === '/omat-tilaukset' ||
     location.pathname === '/ostoskori'
   ) {
@@ -92,33 +202,165 @@ function ActiveOrderBubble() {
   }
 
   const minutes = minutesLeft(order, now)
+  const timeTile = (
+    <span className="active-order-bubble__time" aria-hidden="true">
+      {minutes != null && minutes > 0 ? (
+        <>
+          <strong>{minutes}</strong>
+          <span>min</span>
+        </>
+      ) : (
+        <span className="active-order-bubble__dot" />
+      )}
+    </span>
+  )
+
+  const saved = position[layoutKey]
+  const positionStyle = saved
+    ? barLayout
+      ? { top: saved.y, bottom: 'auto' }
+      : { left: saved.x, top: saved.y, right: 'auto', bottom: 'auto' }
+    : undefined
+
+  function handlePointerDown(e) {
+    if (e.button !== 0) return
+    suppressClickRef.current = false
+    const el = bubbleRef.current
+    const rect = el.getBoundingClientRect()
+    const press = {
+      id: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      grabX: e.clientX - rect.left,
+      grabY: e.clientY - rect.top,
+      active: false,
+    }
+    press.timer = setTimeout(() => {
+      press.active = true
+      suppressClickRef.current = true
+      setDragging(true)
+      navigator.vibrate?.(12)
+      // Osoitin kaapataan vasta nostettaessa: kaappaus heti painalluksessa
+      // ohjaisi lyhyen napautuksen click-tapahtuman kääreelle, jolloin
+      // sisemmät napit (seuranta, pienennys) eivät reagoisi.
+      try {
+        el.setPointerCapture(press.id)
+      } catch {
+        // Osoitinkaappaus ei ole kaikissa selaimissa käytettävissä - raahaus toimii silti.
+      }
+    }, LONG_PRESS_MS)
+    pressRef.current = press
+  }
+
+  // Raahauksen aikana sijainti asetetaan suoraan elementille (ei Reactin
+  // tilaan joka liikkeellä), jotta liike pysyy sulavana. Tila päivittyy
+  // vasta irrotettaessa.
+  function handlePointerMove(e) {
+    const press = pressRef.current
+    if (!press || press.id !== e.pointerId) return
+    if (!press.active) {
+      // Liike ennen pitkää painallusta: ei raahausta eikä myöskään napautusta.
+      if (Math.hypot(e.clientX - press.startX, e.clientY - press.startY) > MOVE_TOLERANCE_PX) {
+        clearTimeout(press.timer)
+        pressRef.current = null
+        suppressClickRef.current = true
+      }
+      return
+    }
+    const el = bubbleRef.current
+    const { width, height } = el.getBoundingClientRect()
+    el.style.top = `${clamp(e.clientY - press.grabY, EDGE_MARGIN_PX, window.innerHeight - height - EDGE_MARGIN_PX)}px`
+    el.style.bottom = 'auto'
+    if (!barLayout) {
+      el.style.left = `${clamp(e.clientX - press.grabX, EDGE_MARGIN_PX, window.innerWidth - width - EDGE_MARGIN_PX)}px`
+      el.style.right = 'auto'
+    }
+  }
+
+  function finishPress(e) {
+    const press = pressRef.current
+    if (!press || press.id !== e.pointerId) return
+    clearTimeout(press.timer)
+    pressRef.current = null
+    if (!press.active) return
+    setDragging(false)
+    const el = bubbleRef.current
+    // Nostettiin mutta ei liikutettu - paikka ei muuttunut.
+    if (!el.style.top) return
+    const y = Math.round(parseFloat(el.style.top))
+    const next = barLayout ? { y } : { x: Math.round(parseFloat(el.style.left)), y }
+    setPosition((current) => {
+      const updated = { ...current, [layoutKey]: next }
+      savePosition(updated)
+      return updated
+    })
+  }
+
+  // Raahauksen jälkeen selaimen click ei saa avata seurantaa eikä pienentää.
+  function guarded(action) {
+    return () => {
+      if (suppressClickRef.current) {
+        suppressClickRef.current = false
+        return
+      }
+      action()
+    }
+  }
+
+  function changeMinimized(next) {
+    setMinimized(next)
+    saveMinimized(next)
+  }
 
   return (
     <>
-      <button
-        type="button"
-        className="active-order-bubble"
-        onClick={() => setShowModal(true)}
-        aria-haspopup="dialog"
+      <div
+        ref={bubbleRef}
+        className={`active-order-bubble${dragging ? ' is-dragging' : ''}${minimized ? ' is-minimized' : ''}`}
+        style={positionStyle}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={finishPress}
+        onPointerCancel={finishPress}
+        onContextMenu={(e) => e.preventDefault()}
       >
-        <span className="active-order-bubble__time" aria-hidden="true">
-          {minutes != null && minutes > 0 ? (
-            <>
-              <strong>{minutes}</strong>
-              <span>min</span>
-            </>
-          ) : (
-            <span className="active-order-bubble__dot" />
-          )}
-        </span>
-        <span className="active-order-bubble__text">
-          <span className="active-order-bubble__title">Seuraa tilausta</span>
-          <span className="active-order-bubble__status">
-            {order.restaurants?.name ?? 'Tilaus'} · {orderStatusLabel(order.status, order.delivery_method)}
-          </span>
-        </span>
-        <ChevronUp className="active-order-bubble__chevron" size={18} strokeWidth={2} aria-hidden="true" />
-      </button>
+        {minimized ? (
+          // Pienennettynä pelkkä aikalaatta; napautus palauttaa täyden kuplan.
+          <button
+            type="button"
+            className="active-order-bubble__box"
+            onClick={guarded(() => changeMinimized(false))}
+            aria-label={`Näytä tilauksen seuranta${minutes ? ` (${minutes} min)` : ''}`}
+          >
+            {timeTile}
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="active-order-bubble__main"
+              onClick={guarded(() => setShowModal(true))}
+              aria-haspopup="dialog"
+            >
+              {timeTile}
+              <span className="active-order-bubble__text">
+                <span className="active-order-bubble__title">Seuraa tilausta</span>
+                <span className="active-order-bubble__status">
+                  {order.restaurants?.name ?? 'Tilaus'} · {orderStatusLabel(order.status, order.delivery_method)}
+                </span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className="active-order-bubble__minimize"
+              onClick={guarded(() => changeMinimized(true))}
+              aria-label="Pienennä tilauksen seuranta"
+            >
+              <Minus size={18} strokeWidth={2.2} aria-hidden="true" />
+            </button>
+          </>
+        )}
+      </div>
 
       {showModal && <OrderTrackingModal order={order} onClose={() => setShowModal(false)} />}
     </>

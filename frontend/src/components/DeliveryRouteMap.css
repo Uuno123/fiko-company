@@ -16,6 +16,13 @@
   height: 100%;
 }
 
+/* Puhelimella zoomataan nipistämällä - napit vain hiirelle. */
+@media (hover: none) {
+  .delivery-route-map .maplibregl-ctrl-group {
+    display: none;
+  }
+}
+
 .delivery-route-map__placeholder {
   position: absolute;
   inset: 0;

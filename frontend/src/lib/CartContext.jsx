@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import { SIGNED_OUT_EVENT } from './signOutCleanup.js'
 
 const CartContext = createContext(null)
 const STORAGE_KEY = 'delivo-cart'
@@ -24,11 +25,22 @@ export function CartProvider({ children }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ groups }))
+      // Tyhjää koria ei tallenneta - uloskirjautumisen jälkeen selaimeen ei jää
+      // edes tyhjää koria (lib/signOutCleanup.js).
+      if (groups.length === 0) localStorage.removeItem(STORAGE_KEY)
+      else localStorage.setItem(STORAGE_KEY, JSON.stringify({ groups }))
     } catch {
       // localStorage ei käytettävissä (esim. yksityinen selaus) - kori toimii silti istunnon ajan.
     }
   }, [groups])
+
+  // Uloskirjautuessa kori tyhjenee myös muistista - muuten se kirjoittuisi
+  // takaisin selaimeen heti kun signOutCleanup on poistanut sen.
+  useEffect(() => {
+    const onSignedOut = () => setGroups([])
+    window.addEventListener(SIGNED_OUT_EVENT, onSignedOut)
+    return () => window.removeEventListener(SIGNED_OUT_EVENT, onSignedOut)
+  }, [])
 
   // options: valinnainen { selectedOptions: [{groupId, groupName, optionId, name, priceDeltaCents}], unitPriceCents }
   // - ks. lib/menuOptions.js. Eri optionsKey (eri valinnat) pitää rivit erillään, sama

@@ -1,3 +1,16 @@
+/* Zoomausnapit delivon tyyliin: pyöreämpi ja pehmeä varjo MapLibren
+   harmaan kehyksen tilalla, ja vähän isompi osuma-alue. */
+.maplibregl-ctrl-group:not(:empty) {
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(20, 21, 15, 0.16);
+}
+
+.maplibregl-ctrl-group button {
+  width: 34px;
+  height: 34px;
+}
+
 .map-pin {
   display: flex;
   align-items: center;

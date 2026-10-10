@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase, isSupabaseConfigured } from './supabaseClient.js'
+import { clearPersonalData } from './signOutCleanup.js'
 
 export const AuthContext = createContext(undefined)
 
@@ -33,8 +34,13 @@ export function AuthProvider({ children }) {
       setStatus('ready')
     })
 
-    const { data: subscription } = supabase.auth.onAuthStateChange(async (_event, nextSession) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange(async (event, nextSession) => {
       if (cancelled) return
+      // Uloskirjautuminen mistä tahansa (tilivalikko, asetukset, kumppanipuoli,
+      // vanhentunut istunto tai toinen välilehti) tyhjentää henkilökohtaiset tiedot
+      // selaimesta. Sivun latautuessa ilman istuntoa tulee INITIAL_SESSION, ei
+      // SIGNED_OUT, joten kirjautumattoman ostoskori ei tyhjene turhaan.
+      if (event === 'SIGNED_OUT') clearPersonalData()
       setSession(nextSession)
       if (nextSession) {
         const profile = await fetchCustomerProfile(nextSession.user.id)

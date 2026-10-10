@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Clock } from 'lucide-react'
+import { ChevronDown, Clock, MessageSquareText, Trash2, User } from 'lucide-react'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import AccountMenu from '../components/AccountMenu.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
@@ -92,6 +92,13 @@ const PROMO_CODES = {
   },
 }
 
+// Sama ehto kuin validateDetails-funktiossa: talon numero, 5-numeroinen
+// postinumero ja kaupunki. Osoitteen erilliset kentät näytetään vain kun tämä
+// ei täyty (käyttäjä: kassassa liikaa asioita).
+function addressPartsComplete({ street = '', postalCode = '', city = '' }) {
+  return /\d/.test(street) && /^\d{5}$/.test(postalCode.trim()) && Boolean(city.trim())
+}
+
 function groupCount(group) {
   return group.lines.reduce((sum, line) => sum + line.quantity, 0)
 }
@@ -144,7 +151,19 @@ const QUICK_PAY_METHODS = [
   { key: 'visa', icon: <VisaBadge />, label: '•••• 4242' },
 ]
 
+// Alennuskoodi linkin takana (käyttäjä: kassassa liikaa asioita) - kenttä
+// aukeaa vasta "Lisää alennuskoodi" -painalluksesta.
 function PromoCode({ promo, promoInput, setPromoInput, promoError, onApply, onRemove }) {
+  const [open, setOpen] = useState(false)
+
+  if (!promo && !open) {
+    return (
+      <button type="button" className="promo-code__toggle" onClick={() => setOpen(true)}>
+        Lisää alennuskoodi
+      </button>
+    )
+  }
+
   return (
     <div className="promo-code">
       {promo ? (
@@ -166,6 +185,7 @@ function PromoCode({ promo, promoInput, setPromoInput, promoError, onApply, onRe
             type="text"
             placeholder="Alennuskoodi"
             aria-label="Alennuskoodi"
+            autoFocus={!promo}
             value={promoInput}
             onChange={(e) => setPromoInput(e.target.value)}
             onKeyDown={(e) => {
@@ -294,6 +314,25 @@ function Cart() {
   const [addressModalOpen, setAddressModalOpen] = useState(false)
   const closeAddressModal = useCallback(() => setAddressModalOpen(false), [])
   const [addressExpanded, setAddressExpanded] = useState(false)
+  // Katu/postinumero/kaupunki-kentät vain kun valitusta osoitteesta puuttuu
+  // jotain. Kerran avattuna ne pysyvät auki, jottei kenttä katoa kesken
+  // kirjoittamisen heti kun puuttuva numero on lisätty. Uusi osoite ikkunasta
+  // päättää tilan uudelleen (onConfirm).
+  const addressIncomplete =
+    delivery.method === 'delivery' && Boolean(delivery.address) && !addressPartsComplete(delivery)
+  const [addressFieldsOpen, setAddressFieldsOpen] = useState(addressIncomplete)
+  useEffect(() => {
+    if (addressIncomplete) setAddressFieldsOpen(true)
+  }, [addressIncomplete])
+  // Yhteystiedot yhtenä rivinä, kentät vain muokattaessa tai kun profiilista
+  // puuttuu nimi/puhelin. Sama "pysyy auki" -periaate kuin osoitteella.
+  const [contactOpen, setContactOpen] = useState(false)
+  useEffect(() => {
+    if (customer && (!customer.name?.trim() || (customer.phone ?? '').trim().length < 6)) setContactOpen(true)
+  }, [customer])
+  // Ohjeet kuljettajalle -rivi on oletuksena kiinni; täytetyt tiedot näkyvät
+  // rivillä tiivistelmänä ("A 7 · ovikoodi 1234 · Jätä ovelle").
+  const [courierOpen, setCourierOpen] = useState(false)
   const [detailsErrors, setDetailsErrors] = useState({})
   const [cardName, setCardName] = useState('')
   const [payError, setPayError] = useState('')
@@ -317,11 +356,21 @@ function Cart() {
   const hasDeliveryCoords = Boolean(delivery.lat && delivery.lng)
   // Kuriirille menevä osoite: katu + porras/asunto, postinumero ja kaupunki.
   const fullDeliveryAddress = joinAddress(delivery)
+  const courierSummary = [
+    delivery.apartment.trim(),
+    delivery.notes.trim(),
+    delivery.leaveAtDoor ? 'Jätä ovelle' : '',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+  const contactComplete = delivery.name.trim().length >= 2 && delivery.phone.trim().length >= 6
+  const showContactFields = contactOpen || !contactComplete || Boolean(detailsErrors.name || detailsErrors.phone)
   const deliveryDistanceKm =
     activeRestaurant?.lat && activeRestaurant?.lng && delivery.lat && delivery.lng
       ? haversineKm({ lat: activeRestaurant.lat, lng: activeRestaurant.lng }, { lat: delivery.lat, lng: delivery.lng })
       : null
-  const deliveryDistanceLabel = deliveryDistanceKm != null ? ` (${deliveryDistanceKm.toFixed(1)} km)` : ''
+  const deliveryDistanceLabel =
+    deliveryDistanceKm != null ? ` (${deliveryDistanceKm.toFixed(1).replace('.', ',')} km)` : ''
 
   // Esitäyttää myös osoitteen profiilista. Vain jos osoitetta ei vielä ole -
   // säilyttää käyttäjän oman valinnan, jos hän ehti valita osoitteen ennen
@@ -404,6 +453,33 @@ function Cart() {
   }
 
   // Kentän virhe poistuu heti kun sitä korjataan, ei vasta seuraavalla maksuyrityksellä.
+  // "Valmis" palauttaa yhteystiedot tiivistelmäriviksi (käyttäjä: Muokkaa-
+  // painalluksen jälkeen kenttiä ei saanut piiloon). Puutteelliset tiedot
+  // näytetään virheinä eikä kenttiä suljeta.
+  function closeContact() {
+    if (contactComplete) {
+      setContactOpen(false)
+      setDetailsErrors(({ name: _name, phone: _phone, ...rest }) => rest)
+      return
+    }
+    setDetailsErrors((errors) => ({
+      ...errors,
+      ...(delivery.name.trim().length < 2 ? { name: 'Anna nimesi' } : {}),
+      ...(delivery.phone.trim().length < 6 ? { phone: 'Anna puhelinnumero' } : {}),
+    }))
+  }
+
+  // Yhteystietokenttiin kirjoittaminen pitää kentät auki: muuten ne
+  // vaihtuisivat tiivistelmäriviksi kesken kirjoittamisen heti kun tiedot
+  // ovat täydet (showContactFields).
+  function updateContact(field) {
+    const update = updateDelivery(field)
+    return (e) => {
+      setContactOpen(true)
+      update(e)
+    }
+  }
+
   function updateDelivery(field) {
     return (e) => {
       setDelivery((d) => ({ ...d, [field]: e.target.value }))
@@ -639,16 +715,18 @@ function Cart() {
       {/* Vahvistusnäkymässä on oma "Takaisin etusivulle" -nappi. */}
       {step !== 'success' && (
         <div className="cart-topbar">
+          {/* Pyöreä takaisin-nuoli kuten ravintola- ja kategoriasivuilla (käyttäjä
+              halusi vaihtaa "× Poistu ostoskorista" -napin). Palaa edelliselle
+              sivulle; jos kassalle tultiin suoraan linkistä, etusivulle. */}
           <button
             type="button"
-            className="cart-topbar__exit"
-            aria-label="Poistu ostoskorista"
-            onClick={() => navigate('/')}
+            className="cart-topbar__back"
+            aria-label="Takaisin"
+            onClick={() => (window.history.state?.idx > 0 ? navigate(-1) : navigate('/'))}
           >
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+              <path d="M12 5 7 10l5 5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span>Poistu ostoskorista</span>
           </button>
           <AccountMenu currentPath="/ostoskori" />
         </div>
@@ -713,17 +791,12 @@ function Cart() {
               <section className="checkout-section">
                 <div className="checkout-section__head">
                   <h2>{activeGroup.restaurantName}</h2>
+                  {/* "Tyhjennä" poistettu (käyttäjä: kassassa liikaa asioita) - tuotteen
+                      saa pois miinusnapista, joka muuttuu roskakoriksi kun määrä on 1. */}
                   <div className="checkout-section__actions">
                     <Link to={`/ravintola/${activeGroup.restaurantId}`} className="checkout-link">
                       Lisää tuotteita
                     </Link>
-                    <button
-                      type="button"
-                      className="checkout-link checkout-link--muted"
-                      onClick={() => cart.clearRestaurant(activeGroup.restaurantId)}
-                    >
-                      Tyhjennä
-                    </button>
                   </div>
                 </div>
 
@@ -744,6 +817,8 @@ function Cart() {
                         )}
                       </div>
 
+                      {/* Hinta nimen alla ja määrä oikealla - erillinen kpl-hinta ja
+                          ×-nappi poistettu (käyttäjä: liikaa asioita). */}
                       <div className="cart-item__info">
                         <span className="cart-item__name">{line.item.name}</span>
                         {line.selectedOptions?.length > 0 && (
@@ -751,18 +826,24 @@ function Cart() {
                             {line.selectedOptions.map((o) => o.name).join(', ')}
                           </span>
                         )}
-                        <span className="cart-item__unit-price">{formatPrice(lineUnitPriceCents(line))} / kpl</span>
+                        <span className="cart-item__price">{formatPrice(lineUnitPriceCents(line) * line.quantity)}</span>
                       </div>
 
                       <div className="quantity-stepper quantity-stepper--sm">
+                        {/* Määrällä 1 miinus poistaa tuotteen (setQuantity 0 poistaa rivin),
+                            joten se näytetään roskakorina. */}
                         <button
                           type="button"
-                          aria-label={`Vähennä tuotteen ${line.item.name} määrää`}
+                          aria-label={
+                            line.quantity === 1
+                              ? `Poista ${line.item.name} korista`
+                              : `Vähennä tuotteen ${line.item.name} määrää`
+                          }
                           onClick={() =>
                             cart.setQuantity(activeGroup.restaurantId, line.item.id, line.quantity - 1, line.optionsKey)
                           }
                         >
-                          −
+                          {line.quantity === 1 ? <Trash2 size={15} strokeWidth={2} aria-hidden="true" /> : '−'}
                         </button>
                         <span>{line.quantity}</span>
                         <button
@@ -775,21 +856,6 @@ function Cart() {
                           +
                         </button>
                       </div>
-
-                      <span className="cart-item__line-total">
-                        {formatPrice(lineUnitPriceCents(line) * line.quantity)}
-                      </span>
-
-                      <button
-                        type="button"
-                        className="cart-item__remove"
-                        aria-label={`Poista ${line.item.name} korista`}
-                        onClick={() => cart.removeItem(activeGroup.restaurantId, line.item.id, line.optionsKey)}
-                      >
-                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                          <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                        </svg>
-                      </button>
                     </li>
                   ))}
                 </ul>
@@ -843,13 +909,12 @@ function Cart() {
                 {delivery.method === 'delivery' ? (
                   <>
                     <div className="payment-field">
-                      <label htmlFor="delivery-address">Toimitusosoite</label>
-
                       {/* Ilman paikannettua osoitetta ei ole reittiä näytettäväksi, joten
                           rivi avaa suoraan osoiteikkunan. */}
                       <button
                         type="button"
                         id="delivery-address"
+                        aria-label={`Toimitusosoite: ${fullDeliveryAddress || 'ei valittu'}`}
                         className={`address-summary-row${addressExpanded ? ' address-summary-row--open' : ''}`}
                         onClick={() => (hasDeliveryCoords ? setAddressExpanded((v) => !v) : setAddressModalOpen(true))}
                       >
@@ -901,7 +966,9 @@ function Cart() {
                             delivery.address ? { address: delivery.address, lat: delivery.lat, lng: delivery.lng } : null
                           }
                           onConfirm={({ address, lat, lng }) => {
-                            setDelivery((d) => ({ ...d, address, ...splitAddress(address), lat, lng }))
+                            const parts = splitAddress(address)
+                            setDelivery((d) => ({ ...d, address, ...parts, lat, lng }))
+                            setAddressFieldsOpen(!addressPartsComplete(parts))
                             setAddressModalOpen(false)
                             setAddressExpanded(true)
                           }}
@@ -910,34 +977,44 @@ function Cart() {
                       )}
                     </div>
 
-                    {/* Valitun osoitteen tarkennus: kartalta valitusta kohdasta voi puuttua
-                        talon numero, eikä porrasta tai asuntoa saa kartalta lainkaan. */}
-                    {delivery.address && (
-                      <>
-                        <div className="payment-field-row">
-                          <div className="payment-field">
-                            <label htmlFor="delivery-street">Katuosoite</label>
-                            <input
-                              id="delivery-street"
-                              type="text"
-                              autoComplete="address-line1"
-                              placeholder="Esim. Metsurintie 27"
-                              value={delivery.street}
-                              onChange={updateDelivery('street')}
-                            />
-                            {detailsErrors.street && <span className="payment-field__error">{detailsErrors.street}</span>}
-                          </div>
-                          <div className="payment-field">
-                            <label htmlFor="delivery-apartment">Porras ja asunto (valinnainen)</label>
-                            <input
-                              id="delivery-apartment"
-                              type="text"
-                              autoComplete="address-line2"
-                              placeholder="Esim. A 7"
-                              value={delivery.apartment}
-                              onChange={updateDelivery('apartment')}
-                            />
-                          </div>
+                    {/* Osoitteen osat vain kun valitusta osoitteesta puuttuu jotain
+                        (esim. kartalta valitusta kohdasta talon numero). Muuten
+                        osoiterivi yllä riittää. */}
+                    {delivery.address && addressFieldsOpen && (
+                      <div className="checkout-address-fix">
+                        <div className="checkout-panel-head">
+                          <p
+                            className={`checkout-address-fix__hint${
+                              addressPartsComplete(delivery) ? ' checkout-address-fix__hint--ok' : ''
+                            }`}
+                          >
+                            {addressPartsComplete(delivery)
+                              ? 'Osoite on nyt kunnossa.'
+                              : 'Täydennä osoite, jotta kuljettaja löytää perille.'}
+                          </p>
+                          {/* Kun osoite on kunnossa, kentät saa piiloon - sama kuin
+                              yhteystietojen "Valmis". */}
+                          {addressPartsComplete(delivery) && (
+                            <button
+                              type="button"
+                              className="checkout-panel-head__done"
+                              onClick={() => setAddressFieldsOpen(false)}
+                            >
+                              Valmis
+                            </button>
+                          )}
+                        </div>
+                        <div className="payment-field">
+                          <label htmlFor="delivery-street">Katuosoite</label>
+                          <input
+                            id="delivery-street"
+                            type="text"
+                            autoComplete="address-line1"
+                            placeholder="Esim. Metsurintie 27"
+                            value={delivery.street}
+                            onChange={updateDelivery('street')}
+                          />
+                          {detailsErrors.street && <span className="payment-field__error">{detailsErrors.street}</span>}
                         </div>
                         <div className="payment-field-row">
                           <div className="payment-field">
@@ -969,35 +1046,63 @@ function Cart() {
                             {detailsErrors.city && <span className="payment-field__error">{detailsErrors.city}</span>}
                           </div>
                         </div>
-                      </>
+                      </div>
                     )}
 
-                    <div className="payment-field">
-                      <label htmlFor="delivery-notes">Ovikoodi tai lisätiedot (valinnainen)</label>
-                      <input
-                        id="delivery-notes"
-                        type="text"
-                        placeholder="Esim. ovikoodi tai kerros"
-                        value={delivery.notes}
-                        onChange={updateDelivery('notes')}
-                      />
-                    </div>
-
-                    <div className="checkout-toggle">
-                      <div className="checkout-toggle__text">
-                        <span className="checkout-toggle__label">Jätä tilaus ovelle</span>
-                        <span className="checkout-toggle__hint">Kuriiri jättää tilauksen ovelle ilman suoraa kontaktia.</span>
-                      </div>
+                    {/* Ohjeet kuljettajalle yhtenä rivinä (käyttäjä: toimitusosio häiritsi
+                        eniten). Porras, ohjeet ja "Jätä ovelle" aukeavat painamalla;
+                        täytetyt tiedot näkyvät rivillä tiivistelmänä. */}
+                    <div className="checkout-detail">
                       <button
                         type="button"
-                        role="switch"
-                        aria-checked={delivery.leaveAtDoor}
-                        aria-label="Jätä tilaus ovelle"
-                        className={`toggle-switch${delivery.leaveAtDoor ? ' toggle-switch--on' : ''}`}
-                        onClick={() => setDelivery((d) => ({ ...d, leaveAtDoor: !d.leaveAtDoor }))}
+                        className={`checkout-row${courierOpen ? ' checkout-row--open' : ''}`}
+                        aria-expanded={courierOpen}
+                        onClick={() => setCourierOpen((v) => !v)}
                       >
-                        <span className="toggle-switch__thumb" />
+                        <span className="checkout-row__icon" aria-hidden="true">
+                          <MessageSquareText size={17} strokeWidth={1.8} />
+                        </span>
+                        <span className={`checkout-row__text${courierSummary ? '' : ' checkout-row__text--muted'}`}>
+                          {courierSummary || 'Ohjeet kuljettajalle'}
+                        </span>
+                        <ChevronDown className="checkout-row__chevron" size={18} strokeWidth={1.8} aria-hidden="true" />
                       </button>
+
+                      {courierOpen && (
+                        <div className="checkout-row__panel">
+                          <div className="payment-field-row">
+                            <div className="payment-field">
+                              <label htmlFor="delivery-apartment">Porras ja asunto</label>
+                              <input
+                                id="delivery-apartment"
+                                type="text"
+                                autoComplete="address-line2"
+                                placeholder="Esim. A 7"
+                                value={delivery.apartment}
+                                onChange={updateDelivery('apartment')}
+                              />
+                            </div>
+                            <div className="payment-field">
+                              <label htmlFor="delivery-notes">Ohjeet</label>
+                              <input
+                                id="delivery-notes"
+                                type="text"
+                                placeholder="Esim. ovikoodi tai kerros"
+                                value={delivery.notes}
+                                onChange={updateDelivery('notes')}
+                              />
+                            </div>
+                          </div>
+                          <label className="checkout-check">
+                            <input
+                              type="checkbox"
+                              checked={delivery.leaveAtDoor}
+                              onChange={(e) => setDelivery((d) => ({ ...d, leaveAtDoor: e.target.checked }))}
+                            />
+                            <span>Jätä tilaus ovelle</span>
+                          </label>
+                        </div>
+                      )}
                     </div>
                   </>
                 ) : (
@@ -1019,97 +1124,58 @@ function Cart() {
                     </div>
                   </div>
                 )}
-              </section>
 
-              <section className="checkout-section">
-                <div className="checkout-section__head">
-                  <h2>Yhteystiedot</h2>
-                </div>
-                <div className="payment-field-row">
-                  <div className="payment-field">
-                    <label htmlFor="delivery-name">Nimi</label>
-                    <input
-                      id="delivery-name"
-                      type="text"
-                      autoComplete="name"
-                      placeholder="Etunimi Sukunimi"
-                      value={delivery.name}
-                      onChange={updateDelivery('name')}
-                    />
-                    {detailsErrors.name && <span className="payment-field__error">{detailsErrors.name}</span>}
-                  </div>
-                  <div className="payment-field">
-                    <label htmlFor="delivery-phone">Puhelin</label>
-                    <div className="phone-input">
-                      <span className="phone-input__prefix">+358</span>
-                      <input
-                        id="delivery-phone"
-                        type="tel"
-                        autoComplete="tel"
-                        placeholder="40 123 4567"
-                        value={delivery.phone}
-                        onChange={updateDelivery('phone')}
-                      />
-                    </div>
-                    {detailsErrors.phone && <span className="payment-field__error">{detailsErrors.phone}</span>}
-                  </div>
-                </div>
-              </section>
-
-              {/* TILAPÄINEN, käyttäjän pyynnöstä tarkoituksella täysin simuloitu - ei
-                  oikeaa Stripe-veloitusta eikä oikeaa order-riviä tietokantaan, katso
-                  simulateQuickPay. Yksi valittu maksutapa kerrallaan - rivi
-                  avaa/sulkee pienen valitsimen alle. */}
-              <section className="checkout-section">
-                <div className="checkout-section__head">
-                  <h2>Maksutapa</h2>
-                </div>
-                <div className="quick-pay-select">
-                  <button
-                    type="button"
-                    className="quick-pay-select__current"
-                    aria-expanded={quickPayPickerOpen}
-                    onClick={() => setQuickPayPickerOpen((v) => !v)}
-                  >
-                    <span className="quick-pay-select__icon">
-                      {QUICK_PAY_METHODS.find((m) => m.key === quickPayMethod)?.icon}
-                    </span>
-                    <span className="quick-pay-select__text">
-                      <strong>{QUICK_PAY_METHODS.find((m) => m.key === quickPayMethod)?.label}</strong>
-                      <span>Valittu maksutapa</span>
-                    </span>
-                    <svg
-                      className={`quick-pay-select__chevron${quickPayPickerOpen ? ' quick-pay-select__chevron--open' : ''}`}
-                      viewBox="0 0 20 20"
-                      fill="none"
-                      aria-hidden="true"
-                    >
-                      <path d="m6 8 4 4 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </button>
-
-                  {quickPayPickerOpen && (
-                    <div className="quick-pay-select__list">
-                      {QUICK_PAY_METHODS.map((method) => (
-                        <button
-                          type="button"
-                          key={method.key}
-                          className={`quick-pay-select__option${method.key === quickPayMethod ? ' quick-pay-select__option--active' : ''}`}
-                          onClick={() => {
-                            setQuickPayMethod(method.key)
-                            setQuickPayPickerOpen(false)
-                          }}
-                        >
-                          <span className="quick-pay-select__icon">{method.icon}</span>
-                          {method.label}
-                          {method.key === quickPayMethod && (
-                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                              <path d="m4 10 4 4 8-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
+                {/* Yhteystiedot samassa osiossa yhtenä rivinä - kentät vain muokattaessa,
+                    kun profiilista puuttuu tietoja tai tarkistus löysi virheen. */}
+                <div className="checkout-detail">
+                  {showContactFields ? (
+                    <div className="checkout-row__panel checkout-row__panel--flat">
+                      <div className="checkout-panel-head">
+                        <span>Yhteystiedot</span>
+                        <button type="button" className="checkout-panel-head__done" onClick={closeContact}>
+                          Valmis
                         </button>
-                      ))}
+                      </div>
+                      <div className="payment-field-row">
+                        <div className="payment-field">
+                          <label htmlFor="delivery-name">Nimi</label>
+                          <input
+                            id="delivery-name"
+                            type="text"
+                            autoComplete="name"
+                            placeholder="Etunimi Sukunimi"
+                            value={delivery.name}
+                            onChange={updateContact('name')}
+                          />
+                          {detailsErrors.name && <span className="payment-field__error">{detailsErrors.name}</span>}
+                        </div>
+                        <div className="payment-field">
+                          <label htmlFor="delivery-phone">Puhelin</label>
+                          <div className="phone-input">
+                            <span className="phone-input__prefix">+358</span>
+                            <input
+                              id="delivery-phone"
+                              type="tel"
+                              autoComplete="tel"
+                              placeholder="40 123 4567"
+                              value={delivery.phone}
+                              onChange={updateContact('phone')}
+                            />
+                          </div>
+                          {detailsErrors.phone && <span className="payment-field__error">{detailsErrors.phone}</span>}
+                        </div>
+                      </div>
                     </div>
+                  ) : (
+                    <button type="button" className="checkout-row" onClick={() => setContactOpen(true)}>
+                      <span className="checkout-row__icon" aria-hidden="true">
+                        <User size={17} strokeWidth={1.8} />
+                      </span>
+                      <span className="checkout-row__text">
+                        {delivery.name} · {delivery.phone}
+                      </span>
+                      <span className="checkout-row__action">Muokkaa</span>
+                    </button>
                   )}
                 </div>
               </section>
@@ -1156,6 +1222,59 @@ function Cart() {
                   <span>Yhteensä</span>
                   <span>{formatPrice(totalWithDelivery)}</span>
                 </div>
+              </div>
+
+              {/* Maksutapa yhteenvedossa suoraan maksunapin yläpuolella eikä omana
+                korttinaan (käyttäjä: kassassa liikaa asioita). TILAPÄINEN, käyttäjän
+                pyynnöstä tarkoituksella täysin simuloitu - ei oikeaa Stripe-veloitusta
+                eikä oikeaa order-riviä tietokantaan, katso simulateQuickPay. */}
+              <div className="quick-pay-select">
+                <button
+                  type="button"
+                  className="quick-pay-select__current"
+                  aria-expanded={quickPayPickerOpen}
+                  onClick={() => setQuickPayPickerOpen((v) => !v)}
+                >
+                  <span className="quick-pay-select__icon">
+                    {QUICK_PAY_METHODS.find((m) => m.key === quickPayMethod)?.icon}
+                  </span>
+                  <span className="quick-pay-select__text">
+                    <strong>{QUICK_PAY_METHODS.find((m) => m.key === quickPayMethod)?.label}</strong>
+                    <span>Valittu maksutapa</span>
+                  </span>
+                  <svg
+                    className={`quick-pay-select__chevron${quickPayPickerOpen ? ' quick-pay-select__chevron--open' : ''}`}
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <path d="m6 8 4 4 4-4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+
+                {quickPayPickerOpen && (
+                  <div className="quick-pay-select__list">
+                    {QUICK_PAY_METHODS.map((method) => (
+                      <button
+                        type="button"
+                        key={method.key}
+                        className={`quick-pay-select__option${method.key === quickPayMethod ? ' quick-pay-select__option--active' : ''}`}
+                        onClick={() => {
+                          setQuickPayMethod(method.key)
+                          setQuickPayPickerOpen(false)
+                        }}
+                      >
+                        <span className="quick-pay-select__icon">{method.icon}</span>
+                        {method.label}
+                        {method.key === quickPayMethod && (
+                          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                            <path d="m4 10 4 4 8-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                          </svg>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {payError && <p className="checkout-notice">{payError}</p>}

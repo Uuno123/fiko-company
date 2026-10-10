@@ -172,6 +172,14 @@
   align-items: end;
   width: 100%;
   margin: -108px 0 10px;
+  /* Rivi nousee kartan alareunan päälle koko leveydeltä. Läpinäkyvä osa ei saa
+     napata hiirtä ja kosketusta, muuten karttaa ei voisi vetää eikä zoomata
+     sen alaosasta eivätkä kartan napit toimisi. */
+  pointer-events: none;
+}
+
+.tracking__ring-row > * {
+  pointer-events: auto;
 }
 
 .tracking__ring-row > :first-child {

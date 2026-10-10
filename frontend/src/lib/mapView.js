@@ -1,31 +1,45 @@
 import { useEffect, useState } from 'react'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
-import { hasGoogleMaps, loadGoogleMaps, onGoogleMapsFailure } from './googleMaps.js'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import './mapView.css'
+import { tuneMapStyle } from './mapStyle.js'
 
 // Yhteinen karttapohja osoitevalitsimelle, sijainnin tarkennukselle ja
-// reittikartalle. Google Maps kun avain on (lib/googleMaps.js), muuten Leaflet +
-// OpenStreetMapin ilmainen pohjakartta. Molemmat toteuttavat saman pienen
-// rajapinnan, joten komponenttien ei tarvitse tietää kumpi on käytössä:
+// reittikartalle: MapLibre GL + OpenFreeMapin "Positron"-vektorikartta
+// (käyttäjän valinta: ilmainen, ei avainta, ei käyttörajaa, ei koskaan laskua)
+// delivon väreillä (lib/mapStyle.js).
+// Aiemmin Google Maps Demo Keyllä (100 latausta päivässä) ja varalla
+// OpenStreetMapin raskas perustaso, joka näkyi aina kun päiväraja täyttyi.
+//
+// Googlen osoitehaku (lib/geocode.js) jatkaa ennallaan. Googlen ETA-alueen
+// ehdoista on poistettu kielto käyttää Googlen tietoja muiden kuin Googlen
+// karttojen kanssa projekteilta, joiden laskutusosoite on ETA-alueella
+// (Google sitoutui olemaan palauttamatta sitä 8.7.2035 asti).
+//
+// Rajapinta on sama kuin ennen, joten komponentit eivät muuttuneet:
 //   onClick(handler) -> poista, onMoveEnd(handler) -> poista,
 //   setView(point, zoom), panTo(point), panBy(x, y),
 //   fitBounds(points, padding, maxZoom), addPin(point, kind, title) -> { remove },
 //   addDashedLine(points) -> { remove }, destroy()
 //
-// gestures: 'auto' (sivun sisällä), 'greedy' (koko näytön ikkunassa - yhden
-// sormen veto liikuttaa karttaa eikä sivua) tai 'none' (pelkkä esikatselu).
-//
-// Google-kartta pitää olla aina, kun kartalla näytetään Googlen osoitehaun
-// tuloksia - Googlen ehdot kieltävät niiden näyttämisen muiden karttojen päällä.
+// gestures:
+//   'auto'   - sivun sisällä: yksi sormi / hiiri liikuttaa karttaa, mutta hiiren
+//              rulla vierittää sivua eikä zoomaa karttaa
+//   'greedy' - koko näytön ikkuna: myös rulla zoomaa
+//   'none'   - pelkkä esikatselu
+// Kahden sormen pakkoa ("Siirrä karttaa kahdella sormella") ei käytetä missään -
+// Googlen kartassa se oli käyttäjästä ongelma tilauksen seurannassa.
 
-const OSM_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron'
 
 const LINE_COLOR = '#14150f'
 
-// Tavallinen värillinen Google-kartta, mutta yritysten (esim. kilpailevien
-// ravintoloiden) kuvakkeet piiloon.
-const GOOGLE_STYLES = [{ featureType: 'poi.business', stylers: [{ visibility: 'off' }] }]
+const LOCALE = {
+  'Map.Title': 'Kartta',
+  'Marker.Title': 'Karttamerkki',
+  'NavigationControl.ZoomIn': 'Lähennä',
+  'NavigationControl.ZoomOut': 'Loitonna',
+  'AttributionControl.ToggleAttribution': 'Näytä kartan tekijätiedot',
+}
 
 const PINS = {
   store: {
@@ -40,25 +54,65 @@ const PINS = {
   },
 }
 
-function leafletView(container, { center, zoom, maxZoom, controls, gestures }) {
-  const movable = gestures !== 'none'
-  const map = L.map(container, {
-    zoomControl: controls,
-    attributionControl: controls,
-    dragging: movable,
-    touchZoom: movable,
-    scrollWheelZoom: movable,
-    doubleClickZoom: movable,
-    boxZoom: movable,
-    keyboard: movable,
-  }).setView([center.lat, center.lng], zoom)
-  L.tileLayer(OSM_TILES, { maxZoom, attribution: '&copy; OpenStreetMap' }).addTo(map)
+// MapLibre (noin megatavu JavaScriptiä) ladataan vasta kun ensimmäinen kartta
+// tarvitaan - omana tiedostonaan eikä pääpaketissa, joten etusivu ja
+// ravintolasivut eivät lataa sitä turhaan.
+let maplibrePromise = null
 
-  // animate: false sivun sisäisissä siirroissa - valinta vaihtaa näkymän usein pois
-  // kartasta lähes saman tien, ja kesken jäävä animaatio kaataisi sivun puretun DOM:in päällä.
+function loadMapLibre() {
+  maplibrePromise ??= import('maplibre-gl').then((mod) => mod.default ?? mod)
+  return maplibrePromise
+}
+
+// MapLibre käyttää järjestystä [lng, lat], ja koordinaatit voivat tulla
+// tietokannasta merkkijonoina.
+function lngLat(point) {
+  return [Number(point.lng), Number(point.lat)]
+}
+
+let lineCounter = 0
+
+function maplibreView(maplibregl, container, { center, zoom, maxZoom, controls, gestures }) {
+  const interactive = gestures !== 'none'
+  const map = new maplibregl.Map({
+    container,
+    center: lngLat(center),
+    zoom,
+    maxZoom,
+    interactive,
+    // Ruoan toimituksessa kartta pysyy pohjoinen ylöspäin: ei kiertoa eikä kallistusta.
+    dragRotate: false,
+    pitchWithRotate: false,
+    touchPitch: false,
+    scrollZoom: gestures === 'greedy',
+    // Tekijätiedot (OpenFreeMap, OpenMapTiles, OpenStreetMap) ovat karttojen
+    // lisenssiehto, joten ne näkyvät aina - tiiviinä i-nappina.
+    attributionControl: { compact: true },
+    locale: LOCALE,
+  })
+  // Tyyli ladataan erikseen, jotta värit vaihtuvat ennen ensimmäistä piirtoa.
+  map.setStyle(STYLE_URL, { transformStyle: (_previous, next) => tuneMapStyle(next) })
+  if (interactive) map.touchZoomRotate.disableRotation()
+  if (controls) map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
+
+  // Tiivis tekijätietonappi alkaa MapLibressa auki (ja sulkeutuu vasta karttaa
+  // vedettäessä), jolloin pitkä teksti peitti kartan alareunan. Suljetaan se
+  // heti - tiedot saa auki i-napista.
+  function collapseAttribution() {
+    container.querySelector('.maplibregl-ctrl-attrib.maplibregl-compact')?.classList.remove('maplibregl-compact-show')
+  }
+  map.once('load', collapseAttribution)
+  map.once('idle', collapseAttribution)
+
+  // Viivat ovat karttatyylin tasoja, joten ne voi lisätä vasta kun tyyli on ladattu.
+  function whenStyleReady(callback) {
+    if (map.isStyleLoaded()) callback()
+    else map.once('load', callback)
+  }
+
   return {
     onClick(handler) {
-      const listener = (e) => handler({ lat: e.latlng.lat, lng: e.latlng.lng })
+      const listener = (e) => handler({ lat: e.lngLat.lat, lng: e.lngLat.lng })
       map.on('click', listener)
       return () => map.off('click', listener)
     },
@@ -71,186 +125,96 @@ function leafletView(container, { center, zoom, maxZoom, controls, gestures }) {
       return () => map.off('moveend', listener)
     },
     setView(point, nextZoom) {
-      map.setView([point.lat, point.lng], nextZoom, { animate: false })
+      map.jumpTo({ center: lngLat(point), zoom: nextZoom })
     },
     panTo(point) {
-      map.panTo([point.lat, point.lng])
+      map.panTo(lngLat(point))
     },
     panBy(x, y) {
       map.panBy([x, y], { animate: false })
     },
     fitBounds(points, padding, nextMaxZoom) {
-      map.fitBounds(
-        points.map((point) => [point.lat, point.lng]),
-        {
-          paddingTopLeft: [padding.left, padding.top],
-          paddingBottomRight: [padding.right, padding.bottom],
-          maxZoom: nextMaxZoom,
-          animate: false,
-        },
-      )
+      const bounds = new maplibregl.LngLatBounds()
+      points.forEach((point) => bounds.extend(lngLat(point)))
+      map.fitBounds(bounds, { padding, maxZoom: nextMaxZoom, animate: false })
     },
-    addPin(point, kind, title) {
-      const pin = PINS[kind]
-      const marker = L.marker([point.lat, point.lng], {
-        icon: L.divIcon({
-          className: `map-pin map-pin--${kind}`,
-          html: pin.html,
-          iconSize: [pin.size, pin.size],
-          iconAnchor: pin.anchor,
-        }),
-        title,
-      }).addTo(map)
-      return { remove: () => marker.remove() }
-    },
-    addDashedLine(points) {
-      const line = L.polyline(
-        points.map((point) => [point.lat, point.lng]),
-        { color: LINE_COLOR, weight: 3, opacity: 0.55, dashArray: '6 8' },
-      ).addTo(map)
-      return { remove: () => line.remove() }
-    },
-    destroy() {
-      // map.stop() ennen remove():a - muuten kesken jäävä pan/zoom-animaatio
-      // kaatuu ("Cannot read properties of undefined (reading '_leaflet_pos')").
-      map.stop()
-      map.remove()
-    },
-  }
-}
-
-// Googlen LatLngLiteral ei salli ylimääräisiä kenttiä (esim. { address, lat, lng }
-// heittää virheen), ja koordinaatit voivat tulla tietokannasta merkkijonoina.
-function latLng(point) {
-  return { lat: Number(point.lat), lng: Number(point.lng) }
-}
-
-function googleView(maps, container, { center, zoom, maxZoom, controls, gestures }) {
-  const map = new maps.Map(container, {
-    center: latLng(center),
-    zoom,
-    maxZoom,
-    styles: GOOGLE_STYLES,
-    disableDefaultUI: true,
-    zoomControl: controls,
-    keyboardShortcuts: gestures !== 'none',
-    gestureHandling: gestures,
-    clickableIcons: false,
-  })
-
-  return {
-    onClick(handler) {
-      const listener = map.addListener('click', (e) => handler({ lat: e.latLng.lat(), lng: e.latLng.lng() }))
-      return () => listener.remove()
-    },
-    onMoveEnd(handler) {
-      const listener = map.addListener('idle', () => handler(map.getCenter().toJSON()))
-      return () => listener.remove()
-    },
-    setView(point, nextZoom) {
-      map.setCenter(latLng(point))
-      map.setZoom(nextZoom)
-    },
-    panTo(point) {
-      map.panTo(latLng(point))
-    },
-    panBy(x, y) {
-      // Juuri luotu kartta ei vielä tiedä pikselimittojaan.
-      if (map.getProjection()) map.panBy(x, y)
-      else maps.event.addListenerOnce(map, 'projection_changed', () => map.panBy(x, y))
-    },
-    fitBounds(points, padding, nextMaxZoom) {
-      const bounds = new maps.LatLngBounds()
-      points.forEach((point) => bounds.extend(latLng(point)))
-      map.fitBounds(bounds, padding)
-      // Googlen fitBounds ei tunne maxZoomia - lähekkäiset pisteet zoomattaisiin
-      // korttelitasolle asti.
-      maps.event.addListenerOnce(map, 'idle', () => {
-        if (map.getZoom() > nextMaxZoom) map.setZoom(nextMaxZoom)
-      })
-    },
-    // Oma HTML-merkki OverlayView'lla: Googlen AdvancedMarkerElement vaatisi
-    // map ID:n, eikä karttatyyli (styles) toimi map ID:n kanssa.
     addPin(point, kind, title) {
       const pin = PINS[kind]
       const element = document.createElement('div')
       element.className = `map-pin map-pin--${kind}`
       element.innerHTML = pin.html
+      element.style.width = `${pin.size}px`
+      element.style.height = `${pin.size}px`
       if (title) element.title = title
-      Object.assign(element.style, { position: 'absolute', width: `${pin.size}px`, height: `${pin.size}px` })
-
-      const position = new maps.LatLng(latLng(point))
-      const overlay = new maps.OverlayView()
-      overlay.onAdd = () => overlay.getPanes().overlayMouseTarget.appendChild(element)
-      overlay.draw = () => {
-        const pixel = overlay.getProjection().fromLatLngToDivPixel(position)
-        element.style.left = `${pixel.x - pin.anchor[0]}px`
-        element.style.top = `${pixel.y - pin.anchor[1]}px`
-      }
-      overlay.onRemove = () => element.remove()
-      overlay.setMap(map)
-      return { remove: () => overlay.setMap(null) }
+      // anchor top-left + negatiivinen siirto: merkin kärki (pin.anchor) osuu pisteeseen.
+      const marker = new maplibregl.Marker({ element, anchor: 'top-left', offset: [-pin.anchor[0], -pin.anchor[1]] })
+        .setLngLat(lngLat(point))
+        .addTo(map)
+      return { remove: () => marker.remove() }
     },
     addDashedLine(points) {
-      // Katkoviiva toistuvana viivasymbolina: 6 px viiva, 8 px väli.
-      const line = new maps.Polyline({
-        map,
-        path: points.map(latLng),
-        strokeOpacity: 0,
-        clickable: false,
-        icons: [
-          {
-            icon: { path: 'M 0,-1 0,1', strokeColor: LINE_COLOR, strokeOpacity: 0.55, strokeWeight: 3, scale: 3 },
-            offset: '0',
-            repeat: '14px',
-          },
-        ],
+      const id = `delivo-line-${++lineCounter}`
+      let removed = false
+      whenStyleReady(() => {
+        if (removed) return
+        map.addSource(id, {
+          type: 'geojson',
+          data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: points.map(lngLat) } },
+        })
+        // Katkoviiva viivan leveyden kerrannaisina: 3 px viiva -> 6 px viiva, 8 px väli.
+        map.addLayer({
+          id,
+          type: 'line',
+          source: id,
+          paint: { 'line-color': LINE_COLOR, 'line-width': 3, 'line-opacity': 0.55, 'line-dasharray': [2, 2.7] },
+        })
       })
-      return { remove: () => line.setMap(null) }
+      return {
+        remove() {
+          removed = true
+          try {
+            if (map.getLayer(id)) map.removeLayer(id)
+            if (map.getSource(id)) map.removeSource(id)
+          } catch {
+            // Kartta purettiin jo (komponentti poistui) - poistettavaa ei ole.
+          }
+        },
+      }
     },
     destroy() {
-      maps.event.clearInstanceListeners(map)
-      container.replaceChildren()
+      map.remove()
     },
   }
 }
 
 // Luo kartan containerRef-elementtiin ja palauttaa sen rajapinnan, tai null
-// kun kartta ei ole vielä valmis (Google latautuu). Asetukset luetaan vain
-// luonnissa. Jos Google hylkää avaimen jälkikäteen, kartta vaihtuu Leafletiin.
+// kun kartta ei ole vielä valmis (MapLibre latautuu). Asetukset luetaan vain
+// luonnissa.
 export function useMapView(containerRef, { center, zoom, maxZoom = 18, controls = true, gestures = 'auto' }) {
   const [mapView, setMapView] = useState(null)
-  const [googleFailed, setGoogleFailed] = useState(false)
 
   useEffect(() => {
     const container = containerRef.current
-    if (!container) return
-    const options = { center, zoom, maxZoom, controls, gestures }
+    if (!container) return undefined
     let cancelled = false
     let created = null
-    let unsubscribe = () => {}
 
-    function mount(maps) {
-      if (cancelled) return
-      created = maps ? googleView(maps, container, options) : leafletView(container, options)
-      setMapView(created)
-    }
-
-    if (hasGoogleMaps && !googleFailed) {
-      loadGoogleMaps().then(mount, () => mount(null))
-      unsubscribe = onGoogleMapsFailure(() => setGoogleFailed(true))
-    } else {
-      mount(null)
-    }
+    loadMapLibre().then(
+      (maplibregl) => {
+        if (cancelled) return
+        created = maplibreView(maplibregl, container, { center, zoom, maxZoom, controls, gestures })
+        setMapView(created)
+      },
+      (err) => console.error('[delivo] Kartan lataus epäonnistui:', err),
+    )
 
     return () => {
       cancelled = true
-      unsubscribe()
       created?.destroy()
       setMapView(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [googleFailed])
+  }, [])
 
   return mapView
 }

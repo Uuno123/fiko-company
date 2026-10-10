@@ -180,11 +180,6 @@
   color: var(--text-muted);
 }
 
-.cart-item__unit-price {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-}
-
 .quantity-stepper {
   display: flex;
   align-items: center;
@@ -217,37 +212,20 @@
   font-weight: 600;
 }
 
-.cart-item__line-total {
-  width: 72px;
-  text-align: right;
-  font-weight: 700;
-  font-size: 0.9rem;
-  flex-shrink: 0;
+/* Rivin hinta nimen alla (kpl-hinta ja erillinen rivisumma poistettu,
+   käyttäjä: kassassa liikaa asioita). */
+.cart-item__price {
+  margin-top: 2px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--delivo-black);
 }
 
-.cart-item__remove {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  display: flex;
+/* Stepperin miinus on määrällä 1 roskakori-ikoni. */
+.quantity-stepper button {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  border-radius: 50%;
-  transition: color 0.2s ease, background 0.2s ease;
-}
-
-.cart-item__remove:hover {
-  color: var(--color-favorite);
-  background: var(--surface-muted);
-}
-
-.cart-item__remove svg {
-  width: 13px;
-  height: 13px;
 }
 
 @keyframes delivo-fade-in {
@@ -809,38 +787,7 @@
   background: var(--border);
 }
 
-/* Vaihtokytkin (esim. "Jätä tilaus ovelle") */
-.checkout-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 24px;
-  min-height: 72px;
-  padding: 16px 20px;
-  border-radius: 14px;
-  background: var(--surface-muted);
-  box-sizing: border-box;
-}
-
-.checkout-toggle__text {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.checkout-toggle__label {
-  font-size: 0.92rem;
-  font-weight: 700;
-  line-height: 1.3;
-}
-
-.checkout-toggle__hint {
-  font-size: 0.82rem;
-  line-height: 1.45;
-  color: var(--text-muted);
-}
-
+/* Vaihtokytkin (asetussivujen ilmoitusvalinnat). */
 .toggle-switch {
   position: relative;
   flex-shrink: 0;
@@ -1139,57 +1086,26 @@
     padding: 18px 14px;
   }
 
-  /* Pääkori: kuva+nimi ylärivillä, stepperi ja hinta alarivillä (mahtuu kapealle näytölle) */
+  /* Kori: kuva, nimi + hinta ja stepperi yhdellä rivillä myös puhelimella. */
   .cart-item {
-    display: grid;
-    grid-template-columns: 44px 1fr auto;
-    grid-template-areas:
-      'media info remove'
-      'stepper stepper total';
-    align-items: center;
-    column-gap: 10px;
-    row-gap: 8px;
-    padding: 16px 0;
+    gap: 12px;
+    padding: 14px 0;
   }
 
   .cart-item__media {
-    grid-area: media;
-    width: 44px;
-    height: 44px;
-  }
-
-  .cart-item__info {
-    grid-area: info;
-  }
-
-  .cart-item__remove {
-    grid-area: remove;
-    width: 36px;
-    height: 36px;
-  }
-
-  .cart-item__remove svg {
-    width: 15px;
-    height: 15px;
+    width: 48px;
+    height: 48px;
   }
 
   .quantity-stepper--sm {
-    grid-area: stepper;
-    justify-self: start;
-    gap: 14px;
-    padding: 6px 12px;
+    gap: 8px;
+    padding: 4px 8px;
   }
 
   .quantity-stepper--sm button {
-    width: 30px;
-    height: 30px;
-    font-size: 1.2rem;
-  }
-
-  .cart-item__line-total {
-    grid-area: total;
-    justify-self: end;
-    width: auto;
+    width: 28px;
+    height: 28px;
+    font-size: 1.15rem;
   }
 
   .payment-field-row {
@@ -1256,52 +1172,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
   border: none;
   border-radius: 50%;
   background: var(--delivo-black);
   color: #fff;
   cursor: pointer;
-}
-
-/* Erillinen "poistu"-nappi selkeyttää: takaisin-nuoli perii yhden vaiheen
-   kerrallaan (ostoskori/toimitus/maksu), tämä vie suoraan pois kassalta
-   riippumatta kesken olevasta vaiheesta. */
-.cart-topbar__exit {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 12px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--text-muted);
-  font-family: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.15s ease, color 0.15s ease;
-}
-
-.cart-topbar__exit svg {
-  width: 13px;
-  height: 13px;
-}
-
-.cart-topbar__exit:hover {
-  border-color: var(--delivo-black);
-  color: var(--delivo-black);
-}
-
-@media (max-width: 420px) {
-  .cart-topbar__exit span,
-  .cart-topbar__exit {
-    font-size: 0.78rem;
-    padding: 0 10px;
-  }
 }
 
 .cart-topbar__back svg {
@@ -1473,10 +1351,6 @@
   cursor: pointer;
 }
 
-.checkout-link--muted {
-  color: var(--text-muted);
-}
-
 .checkout-link:hover {
   color: var(--delivo-black);
 }
@@ -1615,4 +1489,187 @@
   width: 19px;
   height: 19px;
   margin-top: -3px;
+}
+
+/* ── Toimitusosio rivilistana (käyttäjä: toimitus häiritsi eniten) ─────────
+   Osoite, ohjeet kuljettajalle ja yhteystiedot ovat kukin yksi rivi samalla
+   ulkoasulla kuin osoiterivi. Kentät avautuvat vain tarvittaessa. */
+.checkout-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.checkout-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid #ececec;
+  border-radius: 14px;
+  background: var(--surface);
+  font-family: inherit;
+  font-size: 0.92rem;
+  text-align: left;
+  color: var(--delivo-black);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.checkout-row:hover {
+  border-color: #d4d4d4;
+}
+
+.checkout-row:focus-visible {
+  outline: 2px solid var(--delivo-black);
+  outline-offset: 2px;
+}
+
+.checkout-row__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #f4f4f4;
+}
+
+.checkout-row__text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.checkout-row__text--muted {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.checkout-row__chevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.checkout-row--open .checkout-row__chevron {
+  transform: rotate(180deg);
+}
+
+.checkout-row__action {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.checkout-row__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 2px 2px;
+}
+
+.checkout-row__panel--flat {
+  padding: 0;
+}
+
+.checkout-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.checkout-check input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--delivo-black);
+  cursor: pointer;
+}
+
+/* Osoitteen osat vain kun valitusta osoitteesta puuttuu jotain. */
+.checkout-address-fix {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: #fff7f3;
+}
+
+.checkout-address-fix__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--delivo-orange-dark);
+}
+
+/* Alennuskoodi linkin takana. */
+.promo-code__toggle {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* Maksutapa yhteenvedossa maksunapin yläpuolella. */
+.checkout-summary .quick-pay-select {
+  margin-top: 2px;
+}
+
+/* Avattujen kenttien otsikkorivi ja "Valmis", joka palauttaa ne
+   tiivistelmäriviksi (yhteystiedot, osoitteen täydennys). */
+.checkout-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.checkout-panel-head > span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+.checkout-panel-head__done {
+  flex-shrink: 0;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.checkout-panel-head__done:focus-visible {
+  outline: 2px solid var(--delivo-black);
+  outline-offset: 2px;
+}
+
+.checkout-address-fix__hint--ok {
+  color: #1f7a36;
 }

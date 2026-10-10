@@ -16,8 +16,17 @@ function estimateEtaMinutes(distanceKm) {
 
 // bottomInset: kartan alareunan päällä on jotain (seurantanäkymän aikalaskuri),
 // joten merkit rajataan sen yläpuolelle. showEta: kartan oma matka-arvio pois,
-// kun näkymässä on jo koko tilauksen aika-arvio.
-function DeliveryRouteMap({ restaurant, destination, pickupOnly = false, bottomInset = 0, showEta = true }) {
+// kun näkymässä on jo koko tilauksen aika-arvio. gestures: 'auto' (hiiren rulla
+// vierittää sivua) tai 'greedy' (rulla zoomaa karttaa), ks. lib/mapView.js.
+// Zoomausnapit näkyvät hiirellä käytettäessä, puhelimella zoomataan nipistämällä.
+function DeliveryRouteMap({
+  restaurant,
+  destination,
+  pickupOnly = false,
+  bottomInset = 0,
+  showEta = true,
+  gestures = 'auto',
+}) {
   const containerRef = useRef(null)
 
   const hasRestaurantCoords = Boolean(restaurant?.lat && restaurant?.lng)
@@ -29,8 +38,7 @@ function DeliveryRouteMap({ restaurant, destination, pickupOnly = false, bottomI
   const mapView = useMapView(containerRef, {
     center: hasRestaurantCoords ? { lat: Number(restaurant.lat), lng: Number(restaurant.lng) } : DEFAULT_CENTER,
     zoom: 13,
-    maxZoom: 16,
-    controls: false,
+    gestures,
   })
 
   useEffect(() => {

@@ -48,6 +48,9 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
           pickupOnly={!isDelivery}
           bottomInset={showRing ? 120 : 0}
           showEta={false}
+          // Seurannassa kartta on näkymän pääosa, joten hiiren rulla ja
+          // kosketuslevyn nipistys zoomaavat sitä kuten Woltissa.
+          gestures="greedy"
         />
         <button type="button" className="tracking__close" aria-label="Sulje" onClick={onClose}>
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">

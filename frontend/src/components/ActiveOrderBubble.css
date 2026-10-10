@@ -1,5 +1,7 @@
-/* "Seuraa tilausta": kelluva nappi käynnissä olevalle tilaukselle. Työpöydällä
-   oikeassa alakulmassa, puhelimella koko levyinen palkki alareunassa. */
+/* "Seuraa tilausta": kelluva kupla käynnissä olevalle tilaukselle. Työpöydällä
+   oikeassa alakulmassa, puhelimella koko levyinen palkki alareunassa. Kääre
+   (raahattava, ActiveOrderBubble.jsx), jonka sisällä seurantanappi ja
+   pienennysnappi - pienennettynä pelkkä aikalaatta. */
 .active-order-bubble {
   position: fixed;
   right: 24px;
@@ -9,26 +11,96 @@
   align-items: center;
   gap: 12px;
   min-width: 280px;
-  padding: 10px 16px 10px 10px;
-  border: none;
+  padding: 8px 8px 8px 10px;
   border-radius: 18px;
   background: var(--delivo-black);
   color: #fff;
-  font: inherit;
-  text-align: left;
   box-shadow: 0 14px 34px -10px rgba(20, 21, 15, 0.5);
-  cursor: pointer;
+  /* Pitkä painallus + raahaus (ActiveOrderBubble.jsx): selain ei saa aloittaa
+     sivun vieritystä, tekstinvalintaa eikä pitkän painalluksen valikkoa. */
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
   animation: active-order-bubble-in 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .active-order-bubble:hover {
   transform: translateY(-2px);
 }
 
-.active-order-bubble:focus-visible {
+/* Nostettu raahattavaksi: hieman suurempi ja syvempi varjo. */
+.active-order-bubble.is-dragging {
+  transform: scale(1.03);
+  box-shadow: 0 24px 48px -12px rgba(20, 21, 15, 0.6);
+  cursor: grabbing;
+}
+
+.active-order-bubble button:focus-visible {
   outline: 2px solid var(--delivo-orange);
   outline-offset: 3px;
+}
+
+/* Seurantanappi: aikalaatta + teksti, vie koko jäljelle jäävän leveyden. */
+.active-order-bubble__main,
+.active-order-bubble__box {
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  animation: active-order-bubble-pop 0.2s ease;
+}
+
+.active-order-bubble__main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  border-radius: 12px;
+}
+
+.active-order-bubble__minimize {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.active-order-bubble__minimize:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* Pienennetty: pelkkä aikalaatta tummassa laatikossa. */
+.active-order-bubble.is-minimized {
+  min-width: 0;
+  padding: 6px;
+  border-radius: 16px;
+}
+
+.active-order-bubble__box {
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+}
+
+@keyframes active-order-bubble-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
 }
 
 /* Jäljellä oleva aika omassa laatassaan - näkyy vilkaisulla. */
@@ -88,11 +160,6 @@
   white-space: nowrap;
 }
 
-.active-order-bubble__chevron {
-  flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.72);
-}
-
 @keyframes active-order-bubble-pulse {
   0%,
   100% {
@@ -118,6 +185,11 @@
     min-width: 0;
   }
 
+  /* Pienennettynä ei koko levyinen - laatikko oikeaan reunaan. */
+  .active-order-bubble.is-minimized {
+    left: auto;
+  }
+
   /* Etusivun kelluva ostoskorinappi on samassa kohdassa - nostetaan kupla
      sen yläpuolelle, kun kori ei ole tyhjä. */
   body:has(.home-cart-fab) .active-order-bubble {
@@ -127,7 +199,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .active-order-bubble,
-  .active-order-bubble__dot {
+  .active-order-bubble__dot,
+  .active-order-bubble__main,
+  .active-order-bubble__box {
     animation: none;
   }
 
