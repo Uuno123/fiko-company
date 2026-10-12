@@ -20,7 +20,7 @@ export const FILLER_TEMPLATES_BY_CATEGORY = {
   // puuttuu, joten rivin voi jättää tyhjäksi ilman että mikään hajoaa.
   Burgerit: [
     // demoId: tilattavissa esittelyä varten (lib/demoRestaurants.js), ei pelkkä täytekortti.
-    { name: "McDonald's", keywords: ['mäkkäri', 'mäkki', 'mcd'], rating: 4.1, pickup_estimate_minutes: 15, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6735be5986f45b72713e2127', demoId: 'demo-mcdonalds' },
+    { name: "McDonald's", keywords: ['mäkkäri', 'mäkki', 'mcd'], rating: 4.1, pickup_estimate_minutes: 15, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6735be5986f45b72713e2127', demoId: 'b42ac227-e8eb-4086-8de4-f2d7043465fd' },
     { name: 'Hesburger', keywords: ['hese'], rating: 4.0, pickup_estimate_minutes: 14, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67ea79d0e3aca1debaea9cdd' },
     { name: 'Burger King', rating: 4.2, pickup_estimate_minutes: 16, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/673206fbae168d77add71220' },
     { name: 'Friends & Burgers', rating: 4.5, pickup_estimate_minutes: 20, free_delivery: false, image_url: 'https://www.friendsandbrgrs.fi/app/uploads/2026/09/mushroommaniac-kansikuva-1024x576.png' },
@@ -179,6 +179,9 @@ export function padWithFillers(category, items, minCount = 12) {
   const fillers = FILLER_TEMPLATES_BY_CATEGORY[category] ?? []
   const padded = [...items]
   for (let i = 0; padded.length < minCount && i < fillers.length; i++) {
+    // Esittelyravintola on myös tietokannassa: jos se tuli jo oikeiden
+    // ravintoloiden mukana, sitä ei lisätä toista kertaa.
+    if (fillers[i].demoId && padded.some((restaurant) => restaurant.id === fillers[i].demoId)) continue
     padded.push(buildFillerRestaurant(category, i, fillers[i]))
   }
   return padded

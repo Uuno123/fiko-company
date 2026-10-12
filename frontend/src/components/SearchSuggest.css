@@ -9,7 +9,8 @@
    Woltissa) - ei pientä pudotusvalikkoa sivun päällä. */
 .search-suggest-panel--dropdown {
   position: fixed;
-  top: calc(var(--site-header-height) + env(safe-area-inset-top, 0px));
+  /* Headerin mitattu korkeus (Header.jsx), muuten oletus. */
+  top: var(--site-header-actual-height, calc(var(--site-header-height) + env(safe-area-inset-top, 0px)));
   left: 0;
   right: 0;
   bottom: 0;

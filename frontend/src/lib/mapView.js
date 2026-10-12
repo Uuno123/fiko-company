@@ -18,7 +18,7 @@ import { tuneMapStyle } from './mapStyle.js'
 // Rajapinta on sama kuin ennen, joten komponentit eivät muuttuneet:
 //   onClick(handler) -> poista, onMoveEnd(handler) -> poista,
 //   setView(point, zoom), panTo(point), panBy(x, y),
-//   fitBounds(points, padding, maxZoom), addPin(point, kind, title) -> { remove },
+//   fitBounds(points, padding, maxZoom), addPin(point, kind, title) -> { remove, move },
 //   addDashedLine(points) -> { remove }, destroy()
 //
 // gestures:
@@ -51,6 +51,12 @@ const PINS = {
     size: 26,
     anchor: [13, 24],
     html: '<span><svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10Z"/></svg></span>',
+  },
+  // Kuljettaja (kuljettaja-appin lähettämä sijainti, liikkuu kartalla).
+  courier: {
+    size: 34,
+    anchor: [17, 17],
+    html: '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18.5" cy="17.5" r="3.5"/><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="15" cy="5" r="1"/><path d="M12 17.5V14l-3-3 4-3 2 3h2"/></svg></span>',
   },
 }
 
@@ -150,7 +156,7 @@ function maplibreView(maplibregl, container, { center, zoom, maxZoom, controls, 
       const marker = new maplibregl.Marker({ element, anchor: 'top-left', offset: [-pin.anchor[0], -pin.anchor[1]] })
         .setLngLat(lngLat(point))
         .addTo(map)
-      return { remove: () => marker.remove() }
+      return { remove: () => marker.remove(), move: (next) => marker.setLngLat(lngLat(next)) }
     },
     addDashedLine(points) {
       const id = `delivo-line-${++lineCounter}`

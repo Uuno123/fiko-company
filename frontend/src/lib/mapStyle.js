@@ -5,6 +5,9 @@
 // linjaa kuin Woltin ja Uber Eatsin kartoissa. Värit vaihdetaan tyylin
 // JSONiin ennen kuin kartta piirtää mitään (mapView.js: setStyle +
 // transformStyle), joten harmaa versio ei välähdä ruudulla.
+//
+// Myös kuljettaja-app käyttää tätä tiedostoa (kuljettaja-app/src/lib/mapHtml.js),
+// joten pidä se riippumattomana: ei importteja eikä selaimen/Viten rajapintoja.
 
 const COLORS = {
   land: '#f2f3f5',

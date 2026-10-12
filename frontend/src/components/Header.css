@@ -417,6 +417,21 @@
   border-left: 1px solid rgba(255, 255, 255, 0.14);
 }
 
+/* Hakiessa hakukenttä levenee (700 px). Kapeammalla näytöllä logo ja osoite
+   eivät silloin mahtuneet riville, osoite rivittyi logon alle ja header kasvoi
+   kaksiriviseksi hakutulosten alle. Hakiessa vasen reuna pysyy yhdellä rivillä
+   ja osoite lyhenee "…"-loppuiseksi. min-width: max-content pitää vasemmalle
+   reunalle sen tarvitseman tilan - muuten laajeneva hakukenttä peitti osoitteen -
+   ja hakukenttä kapenee tarvittaessa (max-width: 100 %). */
+.site-header--searching .site-header__left {
+  flex-wrap: nowrap;
+  min-width: max-content;
+}
+
+.site-header--searching .city-select__value {
+  max-width: 96px;
+}
+
 
 .site-header__right {
   grid-column: 3;

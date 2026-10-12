@@ -8,7 +8,7 @@ import OrderCountdownRing from '../components/OrderCountdownRing.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import { formatPrice } from '../lib/format.js'
-import { orderStatusLabel, estimatedArrivalAt, trackingMessage } from '../lib/orderStatus.js'
+import { customerStatusLabel, estimatedArrivalAt, trackingMessage } from '../lib/orderStatus.js'
 import './AuthForm.css'
 import './Settings.css'
 
@@ -77,7 +77,7 @@ function PastOrderRow({ order, isOpen, onToggle }) {
         <span className="past-order__side">
           <span className="past-order__total">{formatPrice(order.total_cents)}</span>
           <span className={`past-order__status past-order__status--${order.status}`}>
-            {orderStatusLabel(order.status, order.delivery_method)}
+            {customerStatusLabel(order)}
           </span>
         </span>
         <ChevronDown className="past-order__chevron" size={18} strokeWidth={1.75} aria-hidden="true" />
@@ -183,7 +183,7 @@ function OrderHistory() {
                   </span>
                 </div>
                 <span className={`order-status-badge order-status-badge--${order.status}`}>
-                  {orderStatusLabel(order.status, order.delivery_method)}
+                  {customerStatusLabel(order)}
                 </span>
               </button>
 

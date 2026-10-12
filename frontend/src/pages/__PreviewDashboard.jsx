@@ -130,6 +130,7 @@ function useMockApi() {
         return wait()
       },
       updateRestaurant: () => wait(),
+      fetchPickupCode: () => wait('4821'),
       fetchPlatformCategories: () => wait(['Aasialainen', 'Burgerit', 'Italialainen', 'Kahvila', 'Kebab & Pizza', 'Kotiruoka', 'Salaatit']),
       fetchMenu: () => wait(menu),
       createMenuItem: (_restaurantId, fields) => {

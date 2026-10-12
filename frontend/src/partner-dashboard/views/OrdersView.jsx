@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Bike, ChefHat, Inbox, PackageCheck, ShoppingBag } from 'lucide-react'
-import { nextOrderActionLabel, nextOrderStatus, orderStatusLabel } from '../../lib/orderStatus.js'
+import { nextOrderStatus, orderStatusLabel } from '../../lib/orderStatus.js'
 import { useDashboard } from '../context.js'
 import { useNow } from '../hooks.js'
-import OrderDetail, { DueLabel, PendingCountdown } from '../OrderDetail.jsx'
+import OrderDetail, { CourierStatus, DueLabel, PendingCountdown, restaurantActionLabel } from '../OrderDetail.jsx'
 import { EmptyState, PageHeader, Segmented } from '../ui.jsx'
 import { formatPrice, itemCount, restaurantShareCents, shortAddress } from '../utils.js'
 
@@ -20,7 +20,7 @@ function minutesSince(value, now) {
 function OrderTicket({ order, onOpen, onAdvance, busy }) {
   const now = useNow(30_000)
   const isDelivery = order.delivery_method === 'delivery'
-  const actionLabel = order.status === 'pending' ? 'Avaa ja hyväksy' : nextOrderActionLabel(order.status)
+  const actionLabel = order.status === 'pending' ? 'Avaa ja hyväksy' : restaurantActionLabel(order)
   const firstLines = (order.order_items ?? []).slice(0, 3)
   const more = (order.order_items ?? []).length - firstLines.length
 
@@ -48,6 +48,11 @@ function OrderTicket({ order, onOpen, onAdvance, busy }) {
           {more > 0 && <li className="pd-ticket__more">+ {more} muuta tuotetta</li>}
         </ul>
         {order.delivery_notes && <p className="pd-ticket__note">{order.delivery_notes}</p>}
+        {isDelivery && order.status !== 'pending' && (
+          <div className="pd-ticket__courier">
+            <CourierStatus order={order} />
+          </div>
+        )}
         <div className="pd-ticket__foot">
           <span>
             {itemCount(order)} tuotetta · {formatPrice(restaurantShareCents(order))}

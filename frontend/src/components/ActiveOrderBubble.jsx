@@ -1,15 +1,53 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Minus } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
-import { orderStatusLabel, estimatedArrivalAt } from '../lib/orderStatus.js'
-import { loadDemoOrder } from '../lib/demoOrder.js'
+import { customerStatusLabel, estimatedArrivalAt, isOrderInProgress } from '../lib/orderStatus.js'
 import { SIGNED_OUT_EVENT } from '../lib/signOutCleanup.js'
+import OrderChangeNotice from './OrderChangeNotice.jsx'
 import OrderTrackingModal from './OrderTrackingModal.jsx'
 import './ActiveOrderBubble.css'
 
-const ACTIVE_STATUSES = ['pending', 'confirmed', 'preparing', 'ready']
+// Kesken oleva tilaus: ravintolan tila tai kuljettajan toimitus vielä kesken
+// (ravintola voi merkitä tilauksen luovutetuksi ennen kuin kuljettaja on perillä).
+const IN_PROGRESS_FILTER =
+  'status.in.(pending,confirmed,preparing,ready),courier_status.in.(assigned,at_restaurant,picked_up)'
+
+// ── Ilmoitukset muutoksista, joita asiakas ei itse tehnyt ────────────────────
+// Ravintola perui tilauksen tai kuljettaja luopui keikasta (migraatio 0045).
+// Kukin tapahtuma näytetään kerran: kuitatut tallennetaan selaimeen.
+const SEEN_NOTICES_KEY = 'delivo-order-notices-seen'
+// Peruutus ilmoitetaan myös, jos asiakas avaa sivun vasta myöhemmin.
+const CANCELLED_LOOKBACK_MS = 6 * 60 * 60_000
+const RELEASE_NOTICE_MS = 10 * 60_000
+
+function loadSeenNotices() {
+  try {
+    return JSON.parse(localStorage.getItem(SEEN_NOTICES_KEY)) ?? []
+  } catch {
+    return []
+  }
+}
+
+function markNoticeSeen(key) {
+  try {
+    const seen = loadSeenNotices().filter((item) => item !== key)
+    localStorage.setItem(SEEN_NOTICES_KEY, JSON.stringify([key, ...seen].slice(0, 50)))
+  } catch {
+    // Ei tallennustilaa - ilmoitus voi näkyä uudelleen seuraavalla latauksella.
+  }
+}
+
+function noticeForOrder(row) {
+  if (!row?.id) return null
+  if (row.status === 'cancelled') return { key: `cancelled:${row.id}`, kind: 'cancelled', order: row }
+  const releasedAt = row.courier_released_at ? Date.parse(row.courier_released_at) : NaN
+  if (!row.courier_id && Date.now() - releasedAt < RELEASE_NOTICE_MS && isOrderInProgress(row)) {
+    return { key: `released:${row.id}:${row.courier_released_at}`, kind: 'released', order: row }
+  }
+  return null
+}
 
 function minutesLeft(order, now) {
   const arrival = estimatedArrivalAt(order)
@@ -85,6 +123,7 @@ function ActiveOrderBubble() {
   const location = useLocation()
   const [dbOrder, setDbOrder] = useState(null)
   const [showModal, setShowModal] = useState(false)
+  const [notice, setNotice] = useState(null)
   const [now, setNow] = useState(() => Date.now())
 
   // Minuutit ja simuloidun tilauksen tila päivittyvät ilman sivun latausta.
@@ -104,10 +143,10 @@ function ActiveOrderBubble() {
       supabase
         .from('orders')
         .select(
-          'id, order_number, status, delivery_method, created_at, estimated_ready_at, delivery_lat, delivery_lng, delivery_address, total_cents, order_items(*), restaurants(name, lat, lng, address)',
+          'id, order_number, status, delivery_method, created_at, estimated_ready_at, delivery_lat, delivery_lng, delivery_address, total_cents, courier_id, courier_status, courier_arrive_by, courier_released_at, delivery_eta, order_items(*), restaurants(name, lat, lng, address)',
         )
         .eq('customer_id', session.user.id)
-        .in('status', ACTIVE_STATUSES)
+        .or(IN_PROGRESS_FILTER)
         .order('created_at', { ascending: false })
         .limit(1)
         .then(({ data }) => {
@@ -116,14 +155,35 @@ function ActiveOrderBubble() {
         })
     }
 
+    function showNoticeFor(row) {
+      const next = noticeForOrder(row)
+      if (next && !loadSeenNotices().includes(next.key)) setNotice(next)
+    }
+
     fetchActiveOrder()
+
+    // Peruutus, joka tapahtui kun asiakas ei ollut sivulla.
+    supabase
+      .from('orders')
+      .select('id, order_number, status')
+      .eq('customer_id', session.user.id)
+      .eq('status', 'cancelled')
+      .gte('updated_at', new Date(Date.now() - CANCELLED_LOOKBACK_MS).toISOString())
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (!cancelled) showNoticeFor(data?.[0])
+      })
 
     const channel = supabase
       .channel(`active-order-${session.user.id}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders', filter: `customer_id=eq.${session.user.id}` },
-        () => fetchActiveOrder(),
+        (payload) => {
+          if (payload.eventType === 'UPDATE') showNoticeFor(payload.new)
+          fetchActiveOrder()
+        },
       )
       .subscribe()
 
@@ -133,16 +193,7 @@ function ActiveOrderBubble() {
     }
   }, [isAuthenticated, session])
 
-  // Luetaan joka renderöinnillä (sivunvaihto tai 30 s tikitys): simuloitu
-  // tilaus tallentuu kassalla, ja tila etenee ajan mukana.
-  const demoOrder = isAuthenticated && session ? loadDemoOrder(session.user.id, now) : null
-  const activeDemo = demoOrder && ACTIVE_STATUSES.includes(demoOrder.status) ? demoOrder : null
-  const order =
-    dbOrder && activeDemo
-      ? Date.parse(activeDemo.created_at) > Date.parse(dbOrder.created_at)
-        ? activeDemo
-        : dbOrder
-      : (dbOrder ?? activeDemo)
+  const order = dbOrder
 
   const barLayout = useBarLayout()
   const layoutKey = barLayout ? 'bar' : 'float'
@@ -165,6 +216,11 @@ function ActiveOrderBubble() {
     return () => window.removeEventListener(SIGNED_OUT_EVENT, onSignedOut)
   }, [])
   const hasOrder = Boolean(order)
+
+  const dismissNotice = useCallback(() => {
+    if (notice) markNoticeSeen(notice.key)
+    setNotice(null)
+  }, [notice])
 
   // Tallennettu paikka pysyy näytön sisällä myös ikkunan koon muuttuessa
   // (esim. puhelimen kääntö tai pienempi selainikkuna).
@@ -191,6 +247,10 @@ function ActiveOrderBubble() {
   // Ei näytetä kumppanipuolella (myös dashboardin esikatselu /__preview-dashboard -
   // asiakkaan tilauskupla näkyi siellä ravintolan näkymän päällä), tilausnäkymässä
   // (jo siellä) eikä ostoskorissa/kassalla (siellä on oma seurantanäkymä).
+  const onPartnerSide =
+    location.pathname.startsWith('/kumppani') || location.pathname.startsWith('/__preview-dashboard')
+  const noticeElement = notice && !onPartnerSide ? <OrderChangeNotice notice={notice} onClose={dismissNotice} /> : null
+
   if (
     !order ||
     location.pathname.startsWith('/kumppani') ||
@@ -198,7 +258,7 @@ function ActiveOrderBubble() {
     location.pathname === '/omat-tilaukset' ||
     location.pathname === '/ostoskori'
   ) {
-    return null
+    return noticeElement
   }
 
   const minutes = minutesLeft(order, now)
@@ -346,7 +406,7 @@ function ActiveOrderBubble() {
               <span className="active-order-bubble__text">
                 <span className="active-order-bubble__title">Seuraa tilausta</span>
                 <span className="active-order-bubble__status">
-                  {order.restaurants?.name ?? 'Tilaus'} · {orderStatusLabel(order.status, order.delivery_method)}
+                  {order.restaurants?.name ?? 'Tilaus'} · {customerStatusLabel(order)}
                 </span>
               </span>
             </button>
@@ -363,6 +423,7 @@ function ActiveOrderBubble() {
       </div>
 
       {showModal && <OrderTrackingModal order={order} onClose={() => setShowModal(false)} />}
+      {noticeElement}
     </>
   )
 }

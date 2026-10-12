@@ -1,0 +1,94 @@
+/* Tilausmuutoksen ilmoitus. z-index tilauskuplan ja seurantamodaalin (950)
+   ja osoiteikkunan (960) yläpuolella, evästebannerin (1000) alapuolella. */
+.order-change-notice-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 980;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(20, 21, 15, 0.45);
+  animation: order-change-notice-fade 0.15s ease;
+}
+
+@keyframes order-change-notice-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.order-change-notice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 400px;
+  padding: 28px 24px 22px;
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  box-sizing: border-box;
+  animation: order-change-notice-in 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes order-change-notice-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.order-change-notice__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 14px;
+  border-radius: 50%;
+  background: #fdecef;
+  color: var(--color-favorite);
+}
+
+.order-change-notice--released .order-change-notice__icon {
+  background: var(--delivo-orange-soft);
+  color: var(--delivo-orange);
+}
+
+.order-change-notice__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+.order-change-notice__text {
+  margin: 8px 0 20px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.order-change-notice__ok {
+  width: 100%;
+  height: 50px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--delivo-black);
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.order-change-notice__ok:hover {
+  background: #26281d;
+}
+
+.order-change-notice__ok:focus-visible {
+  outline: 2px solid var(--delivo-orange);
+  outline-offset: 2px;
+}

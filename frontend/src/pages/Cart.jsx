@@ -4,12 +4,12 @@ import { ChevronDown, Clock, MessageSquareText, Trash2, User } from 'lucide-reac
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import AccountMenu from '../components/AccountMenu.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
-import { saveDemoOrder } from '../lib/demoOrder.js'
-import { estimatedArrivalAt } from '../lib/orderStatus.js'
+import { coordinate, deliveryLegMinutes, hasCoords } from '../lib/deliveryTime.js'
+import { DELIVERY_ETA_BUFFER_MINUTES, estimatedArrivalAt } from '../lib/orderStatus.js'
 import LoginModal from '../components/LoginModal.jsx'
 import AddressPickerModal from '../components/AddressPickerModal.jsx'
 import DeliveryRouteMap from '../components/DeliveryRouteMap.jsx'
-import { haversineKm } from '../lib/geocode.js'
+import { geocodeAddress, haversineKm } from '../lib/geocode.js'
 import { getDeliveryAddress } from '../lib/deliveryAddress.js'
 import { useCart } from '../lib/CartContext.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -143,7 +143,7 @@ function VisaBadge() {
   return <span className="quick-pay__visa">VISA</span>
 }
 
-// TILAPÄINEN - katso kommentti simulateQuickPay:n määrittelyn kohdalla Cart()-
+// TILAPÄINEN - katso kommentti placeOrderWithSimulatedPayment:n kohdalla Cart()-
 // komponentissa. Yksi rivi kerrallaan valittavissa, ei kolme rinnakkaista nappia.
 const QUICK_PAY_METHODS = [
   { key: 'google', icon: <GooglePayIcon />, label: 'Google Pay' },
@@ -343,6 +343,7 @@ function Cart() {
   const [promoError, setPromoError] = useState('')
   const [paymentIntent, setPaymentIntent] = useState(null)
   const [creatingIntent, setCreatingIntent] = useState(false)
+  const [placingOrder, setPlacingOrder] = useState(false)
   const paymentElementRef = useRef(null)
   const [quickPayMethod, setQuickPayMethod] = useState('visa')
   const [quickPayPickerOpen, setQuickPayPickerOpen] = useState(false)
@@ -409,7 +410,17 @@ function Cart() {
 
   const activeSubtotal = activeGroup ? groupTotalCents(activeGroup) : 0
   const activePickupMinutes = activeRestaurant?.pickup_estimate_minutes ?? 25
-  const activeEtaMinutes = delivery.method === 'delivery' ? activePickupMinutes + 15 : activePickupMinutes
+  // Toimitusaika samalla mallilla kuin tilauksen seurannassa: valmistus + kuljetus
+  // ravintolasta osoitteeseen (lib/deliveryTime.js), ilman sijaintia +15 min.
+  const restaurantPoint = { lat: coordinate(activeRestaurant?.lat), lng: coordinate(activeRestaurant?.lng) }
+  const deliveryPoint = { lat: coordinate(delivery.lat), lng: coordinate(delivery.lng) }
+  const activeEtaMinutes =
+    delivery.method !== 'delivery'
+      ? activePickupMinutes
+      : activePickupMinutes +
+        (hasCoords(restaurantPoint) && hasCoords(deliveryPoint)
+          ? deliveryLegMinutes(restaurantPoint, deliveryPoint, 'bike')
+          : DELIVERY_ETA_BUFFER_MINUTES)
   const deliveryFee = activeGroup && delivery.method === 'delivery' ? DELIVERY_FEE_CENTS : 0
   const serviceFee = activeGroup ? SERVICE_FEE_CENTS : 0
   const discountCents = promo ? Math.min(promo.discountCents, activeSubtotal) : 0
@@ -491,6 +502,30 @@ function Cart() {
     }
   }
 
+  // Kuljettaja tarvitsee osoitteen sijainnin: reitti, aika-arvio ja todiste
+  // perillä (toimitus kuitataan kuljettajan sijainnilla osoitteessa). Profiilista
+  // esitäytetyllä osoitteella sitä ei välttämättä ole, joten se haetaan ennen
+  // maksua. Palauttaa { lat, lng } tai null - silloin osoitekenttään tulee virhe,
+  // ja osoitteen voi valita kartalta.
+  async function locateDeliveryAddress() {
+    if (delivery.method !== 'delivery') return { lat: null, lng: null }
+    if (delivery.lat != null && delivery.lng != null) return { lat: delivery.lat, lng: delivery.lng }
+    try {
+      const found = await geocodeAddress(fullDeliveryAddress)
+      if (Number.isFinite(found?.lat) && Number.isFinite(found?.lng)) {
+        setDelivery((d) => ({ ...d, lat: found.lat, lng: found.lng }))
+        return { lat: found.lat, lng: found.lng }
+      }
+    } catch (err) {
+      console.warn('[delivo-frontend] Toimitusosoitteen sijainnin haku epäonnistui:', err?.message ?? err)
+    }
+    setDetailsErrors((errors) => ({
+      ...errors,
+      address: 'Osoitetta ei löytynyt kartalta. Valitse osoite kartalta, jotta kuljettaja löytää perille.',
+    }))
+    return null
+  }
+
   function validateDetails() {
     const next = {}
     if (delivery.name.trim().length < 2) next.name = 'Anna nimesi'
@@ -514,6 +549,7 @@ function Cart() {
     setCreatingIntent(true)
     setPayError('')
     try {
+      if (!(await locateDeliveryAddress())) return
       const lines = activeGroup.lines.map((line) => ({
         menuItemId: line.item.id,
         quantity: line.quantity,
@@ -537,19 +573,20 @@ function Cart() {
   // Seurantanäkymä (OrderTrackingModal) lukee samaa muotoa kuin tietokannan
   // orders-rivi, jotta sama näkymä toimii heti tilauksen jälkeen ja myöhemmin
   // aktiivisen tilauksen kuplasta. estimated_ready_at on ruoan valmistumisaika -
-  // toimituksen +15 min lisää estimatedArrivalAt itse.
-  function buildTrackingOrder({ orderNumber, readyAt, totalCents, group }) {
+  // kuljetusajan lisää estimatedArrivalAt itse. orderRow on tallennettu rivi
+  // (osoitteen koordinaatit voivat olla haettu vasta tallennettaessa).
+  function buildTrackingOrder({ orderRow, readyAt, totalCents, group }) {
     const restaurant = restaurants[group.restaurantId]
     const isDelivery = delivery.method === 'delivery'
     return {
-      order_number: orderNumber,
+      order_number: orderRow.order_number,
       status: 'pending',
       delivery_method: delivery.method,
       created_at: new Date().toISOString(),
       estimated_ready_at: readyAt.toISOString(),
       delivery_address: isDelivery ? fullDeliveryAddress : null,
-      delivery_lat: isDelivery ? delivery.lat : null,
-      delivery_lng: isDelivery ? delivery.lng : null,
+      delivery_lat: isDelivery ? orderRow.delivery_lat : null,
+      delivery_lng: isDelivery ? orderRow.delivery_lng : null,
       total_cents: totalCents,
       restaurants: {
         name: group.restaurantName,
@@ -567,39 +604,31 @@ function Cart() {
     }
   }
 
-  // TILAPÄINEN, käyttäjän pyynnöstä tarkoituksella täysin simuloitu - ei luo
-  // oikeaa Stripe-maksua eikä oikeaa order-riviä tietokantaan (toisin kuin
-  // handlePaymentSucceeded, joka on oikea reitti). "DEMO-"-etuliite order
-  // numerossa erottaa tämän oikeasta tilauksesta jos joku joskus etsii sitä.
-  function simulateQuickPay() {
-    if (activeRestaurantClosed || !activeGroup || !validateDetails()) return
-    const demoOrder = buildTrackingOrder({
-      orderNumber: `DEMO-${Math.floor(1000 + Math.random() * 9000)}`,
-      readyAt: new Date(Date.now() + activePickupMinutes * 60 * 1000),
-      totalCents: totalWithDelivery,
-      group: activeGroup,
-    })
-    setOrder(demoOrder)
-    // Simuloitua tilausta ei ole tietokannassa - talteen selaimeen, jotta
-    // "Seuraa tilausta" -kupla löytää sen etusivulla (ks. lib/demoOrder.js).
-    saveDemoOrder(customer?.id, demoOrder)
-    cart.clearRestaurant(activeGroup.restaurantId)
-    setStep('success')
-  }
-
-  async function handlePaymentSucceeded() {
-    if (!activeGroup || !customer || !paymentIntent) return
-    const { restaurantId, lines } = activeGroup
-
-    // Ruoan valmistumisaika - ei toimitusaikaa, jonka estimatedArrivalAt lisää
-    // toimitustilauksille itse (muuten +15 min laskettaisiin kahdesti).
-    const estimatedReadyAt = new Date(Date.now() + activePickupMinutes * 60 * 1000)
-    const deliveryNotes = [
-      delivery.method === 'delivery' && delivery.leaveAtDoor ? 'Jätä ovelle' : null,
-      delivery.notes.trim() || null,
-    ]
+  // Tilausrivi ja tilausrivit tietokantaan - yhteinen pikamaksulle ja
+  // Stripe-maksulle. Palauttaa tallennetun orders-rivin tai heittää virheen.
+  // estimatedReadyAt on ruoan valmistumisaika - ei toimitusaikaa, jonka
+  // estimatedArrivalAt lisää toimitustilauksille itse.
+  async function saveOrderRows({ restaurantId, lines, totals, estimatedReadyAt, deliveryCoords }) {
+    const isDelivery = delivery.method === 'delivery'
+    const deliveryNotes = [isDelivery && delivery.leaveAtDoor ? 'Jätä ovelle' : null, delivery.notes.trim() || null]
       .filter(Boolean)
       .join(' - ')
+
+    // Koordinaatit haetaan jo ennen maksua (locateDeliveryAddress). Tässä vain
+    // varmistus: jo maksettu tilaus tallennetaan, vaikka haku epäonnistuisi.
+    let deliveryLat = deliveryCoords?.lat ?? delivery.lat
+    let deliveryLng = deliveryCoords?.lng ?? delivery.lng
+    if (isDelivery && (deliveryLat == null || deliveryLng == null) && fullDeliveryAddress) {
+      try {
+        const found = await geocodeAddress(fullDeliveryAddress)
+        if (Number.isFinite(found?.lat) && Number.isFinite(found?.lng)) {
+          deliveryLat = found.lat
+          deliveryLng = found.lng
+        }
+      } catch (err) {
+        console.warn('[delivo-frontend] Toimitusosoitteen koordinaattien haku epäonnistui:', err?.message ?? err)
+      }
+    }
 
     const { data: orderRow, error: orderError } = await supabase
       .from('orders')
@@ -609,28 +638,21 @@ function Cart() {
         delivery_method: delivery.method,
         delivery_name: delivery.name.trim(),
         delivery_phone: delivery.phone.trim(),
-        delivery_address: delivery.method === 'delivery' ? fullDeliveryAddress : null,
-        delivery_lat: delivery.method === 'delivery' ? delivery.lat : null,
-        delivery_lng: delivery.method === 'delivery' ? delivery.lng : null,
+        delivery_address: isDelivery ? fullDeliveryAddress : null,
+        delivery_lat: isDelivery ? deliveryLat : null,
+        delivery_lng: isDelivery ? deliveryLng : null,
         delivery_notes: deliveryNotes || null,
-        subtotal_cents: paymentIntent.subtotalCents,
-        delivery_fee_cents: paymentIntent.deliveryFeeCents,
-        service_fee_cents: paymentIntent.serviceFeeCents,
-        discount_cents: paymentIntent.discountCents,
-        promo_code: paymentIntent.promoCode,
-        total_cents: paymentIntent.totalCents,
+        subtotal_cents: totals.subtotalCents,
+        delivery_fee_cents: totals.deliveryFeeCents,
+        service_fee_cents: totals.serviceFeeCents,
+        discount_cents: totals.discountCents,
+        promo_code: totals.promoCode,
+        total_cents: totals.totalCents,
         estimated_ready_at: estimatedReadyAt.toISOString(),
       })
       .select()
       .single()
-
-    if (orderError || !orderRow) {
-      setPayError(
-        'Maksu onnistui, mutta tilauksen tallennus epäonnistui. Älä maksa uudelleen - ota yhteyttä asiakaspalveluun.',
-      )
-      setStep('payment')
-      return
-    }
+    if (orderError || !orderRow) throw orderError ?? new Error('Tilausriviä ei palautettu')
 
     const { error: itemsError } = await supabase.from('order_items').insert(
       lines.map((line) => ({
@@ -643,8 +665,93 @@ function Cart() {
         quantity: line.quantity,
       })),
     )
+    if (itemsError) throw itemsError
 
-    if (itemsError) {
+    return orderRow
+  }
+
+  // Pikamaksu (Google Pay / Apple Pay / kortti -napit): maksu on vielä
+  // simuloitu, mutta tilaus on oikea orders-rivi, jonka ravintolan dashboard,
+  // kuljettaja-app ja "Seuraa tilausta" -kupla näkevät. Summat samat kuin kassan
+  // yhteenvedossa.
+  async function placeOrderWithSimulatedPayment() {
+    if (activeRestaurantClosed || !activeGroup || placingOrder || !validateDetails()) return
+    if (!customer) {
+      setPayError('Kirjaudu sisään tehdäksesi tilauksen.')
+      return
+    }
+    setPlacingOrder(true)
+    setPayError('')
+    const { restaurantId, lines } = activeGroup
+    const estimatedReadyAt = new Date(Date.now() + activePickupMinutes * 60 * 1000)
+    try {
+      const deliveryCoords = await locateDeliveryAddress()
+      if (!deliveryCoords) return
+      const orderRow = await saveOrderRows({
+        restaurantId,
+        lines,
+        estimatedReadyAt,
+        deliveryCoords,
+        totals: {
+          subtotalCents: activeSubtotal,
+          deliveryFeeCents: deliveryFee,
+          serviceFeeCents: serviceFee,
+          discountCents,
+          promoCode: promo?.code ?? null,
+          totalCents: totalWithDelivery,
+        },
+      })
+      setOrder(
+        buildTrackingOrder({
+          orderRow,
+          readyAt: estimatedReadyAt,
+          totalCents: totalWithDelivery,
+          group: activeGroup,
+        }),
+      )
+      cart.clearRestaurant(restaurantId)
+      setActiveRestaurantId(null)
+      setStep('success')
+    } catch (err) {
+      // Ravintola sulkeutui kassan ollessa auki: tietokanta hylkää tilauksen
+      // (migraatio 0045). Merkitään ravintola kiinni, jolloin kassa näyttää
+      // kiinni-ilmoituksen ja maksunappi lukittuu.
+      if (err?.message === 'restaurant_closed') {
+        setRestaurants((current) => ({ ...current, [restaurantId]: { ...current[restaurantId], is_open: false } }))
+        return
+      }
+      console.error('[delivo-frontend] Tilauksen tallennus epäonnistui:', err?.message ?? err)
+      setPayError('Tilauksen tallennus epäonnistui. Yritä uudelleen.')
+    } finally {
+      setPlacingOrder(false)
+    }
+  }
+
+  async function handlePaymentSucceeded() {
+    if (!activeGroup || !customer || !paymentIntent) return
+    const { restaurantId, lines } = activeGroup
+    const estimatedReadyAt = new Date(Date.now() + activePickupMinutes * 60 * 1000)
+
+    let orderRow
+    try {
+      orderRow = await saveOrderRows({
+        restaurantId,
+        lines,
+        estimatedReadyAt,
+        totals: {
+          subtotalCents: paymentIntent.subtotalCents,
+          deliveryFeeCents: paymentIntent.deliveryFeeCents,
+          serviceFeeCents: paymentIntent.serviceFeeCents,
+          discountCents: paymentIntent.discountCents,
+          promoCode: paymentIntent.promoCode,
+          totalCents: paymentIntent.totalCents,
+        },
+      })
+    } catch {
+      orderRow = null
+    }
+
+    if (!orderRow) {
       setPayError(
         'Maksu onnistui, mutta tilauksen tallennus epäonnistui. Älä maksa uudelleen - ota yhteyttä asiakaspalveluun.',
       )
@@ -654,7 +761,7 @@ function Cart() {
 
     setOrder(
       buildTrackingOrder({
-        orderNumber: orderRow.order_number,
+        orderRow,
         readyAt: estimatedReadyAt,
         totalCents: paymentIntent.totalCents,
         group: activeGroup,
@@ -1226,8 +1333,8 @@ function Cart() {
 
               {/* Maksutapa yhteenvedossa suoraan maksunapin yläpuolella eikä omana
                 korttinaan (käyttäjä: kassassa liikaa asioita). TILAPÄINEN, käyttäjän
-                pyynnöstä tarkoituksella täysin simuloitu - ei oikeaa Stripe-veloitusta
-                eikä oikeaa order-riviä tietokantaan, katso simulateQuickPay. */}
+                pyynnöstä simuloitu maksu - ei oikeaa Stripe-veloitusta,
+                mutta tilaus on oikea, katso placeOrderWithSimulatedPayment. */}
               <div className="quick-pay-select">
                 <button
                   type="button"
@@ -1286,8 +1393,8 @@ function Cart() {
               <button
                 type="button"
                 className={`payment-submit payment-submit--${quickPayMethod}`}
-                disabled={activeRestaurantClosed}
-                onClick={simulateQuickPay}
+                disabled={activeRestaurantClosed || placingOrder}
+                onClick={placeOrderWithSimulatedPayment}
                 aria-label={
                   quickPayMethod === 'google'
                     ? `Maksa ${formatPrice(totalWithDelivery)} Google Paylla`

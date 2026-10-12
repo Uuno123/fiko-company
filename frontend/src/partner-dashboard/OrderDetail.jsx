@@ -1,6 +1,12 @@
-import { useState } from 'react'
-import { Ban, Bike, MapPin, MessageSquareText, Phone, Printer, ShoppingBag, Timer } from 'lucide-react'
-import { isOrderCancellable, nextOrderActionLabel, nextOrderStatus, orderStatusLabel } from '../lib/orderStatus.js'
+import { useEffect, useState } from 'react'
+import { Ban, Bike, KeyRound, MapPin, MessageSquareText, Phone, Printer, ShoppingBag, Timer } from 'lucide-react'
+import {
+  courierPickupAt,
+  isOrderCancellable,
+  nextOrderActionLabel,
+  nextOrderStatus,
+  orderStatusLabel,
+} from '../lib/orderStatus.js'
 import { useDashboardApi } from './api.js'
 import { useDashboard } from './context.js'
 import { useNow } from './hooks.js'
@@ -62,6 +68,102 @@ export function DueLabel({ order }) {
   )
 }
 
+// Kuljettajan tila toimitustilauksessa (kuljettaja-app, migraatio 0043). Saapumisaika
+// ei ole ennen valmistumisaikaa, vaikka valmistusaikaa lisättäisiin keikan jälkeen.
+export function CourierStatus({ order }) {
+  if (order.delivery_method !== 'delivery' || order.status === 'cancelled') return null
+  switch (order.courier_status) {
+    case 'assigned': {
+      const pickupAt = courierPickupAt(order)
+      return (
+        <Badge tone="info">
+          <Bike size={13} aria-hidden="true" />
+          {pickupAt ? `Kuljettaja saapuu klo ${formatTime(pickupAt)}` : 'Kuljettaja tulossa'}
+        </Badge>
+      )
+    }
+    case 'at_restaurant':
+      return (
+        <Badge tone="accent">
+          <Bike size={13} aria-hidden="true" />
+          Kuljettaja paikalla
+        </Badge>
+      )
+    case 'picked_up':
+      return (
+        <Badge tone="success">
+          <Bike size={13} aria-hidden="true" />
+          Kuljettaja noutanut
+        </Badge>
+      )
+    case 'delivered':
+      return (
+        <Badge tone="neutral">
+          <Bike size={13} aria-hidden="true" />
+          {order.delivered_at ? `Toimitettu klo ${formatTime(order.delivered_at)}` : 'Toimitettu'}
+        </Badge>
+      )
+    default:
+      if (!['confirmed', 'preparing', 'ready'].includes(order.status)) return null
+      // Kuljettaja luopui keikasta (migraatio 0045): tilaus on taas muiden tarjolla.
+      return order.courier_released_at ? (
+        <Badge tone="warning">
+          <Bike size={13} aria-hidden="true" />
+          Kuljettaja luopui - etsitään uutta
+        </Badge>
+      ) : (
+        <Badge tone="neutral">
+          <Bike size={13} aria-hidden="true" />
+          Etsitään kuljettajaa
+        </Badge>
+      )
+  }
+}
+
+// Ravintolan seuraava toiminto. Toimitustilauksessa kuljettaja kuittaa noudon
+// itse noutokoodilla - ravintola voi silti merkitä tilauksen luovutetuksi.
+export function restaurantActionLabel(order) {
+  if (order.delivery_method === 'delivery' && order.status === 'ready') {
+    if (order.courier_status === 'picked_up') return null
+    if (order.courier_status === 'assigned' || order.courier_status === 'at_restaurant') return 'Luovutettu kuljettajalle'
+  }
+  return nextOrderActionLabel(order.status)
+}
+
+// Noutokoodi kuljettajalle - todiste siitä, että tilaus luovutettiin oikealle kuljettajalle.
+function PickupCode({ order }) {
+  const api = useDashboardApi()
+  const [code, setCode] = useState(null)
+  const needed =
+    order.delivery_method === 'delivery' && (order.courier_status === 'assigned' || order.courier_status === 'at_restaurant')
+
+  useEffect(() => {
+    if (!needed) return undefined
+    let cancelled = false
+    api
+      .fetchPickupCode(order.id)
+      .then((value) => !cancelled && setCode(typeof value === 'string' ? value : null))
+      .catch((err) => console.error('Noutokoodin haku epäonnistui', err))
+    return () => {
+      cancelled = true
+    }
+  }, [api, needed, order.id])
+
+  if (!needed || !code) return null
+  return (
+    <div className="pd-detail-block pd-pickup-code">
+      <h3>
+        <KeyRound size={16} aria-hidden="true" /> Noutokoodi kuljettajalle
+      </h3>
+      <strong className="pd-pickup-code__value">{code}</strong>
+      <p className="pd-muted">
+        Anna koodi kuljettajalle, kun luovutat tilauksen - hän kuittaa noudon sillä. Voit myös merkitä tilauksen
+        luovutetuksi.
+      </p>
+    </div>
+  )
+}
+
 function RejectModal({ order, onConfirm, onClose, busy }) {
   const [reason, setReason] = useState(REJECT_REASONS[0])
   return (
@@ -108,7 +210,7 @@ export default function OrderDetail({ order, onClose }) {
   const [soldOut, setSoldOut] = useState([])
 
   const isDelivery = order.delivery_method === 'delivery'
-  const actionLabel = nextOrderActionLabel(order.status)
+  const actionLabel = restaurantActionLabel(order)
   const active = ['confirmed', 'preparing', 'ready'].includes(order.status)
 
   async function update(fields, successMessage) {
@@ -205,7 +307,10 @@ export default function OrderDetail({ order, onClose }) {
           </Badge>
           {order.status === 'pending' && <PendingCountdown createdAt={order.created_at} />}
           {active && <DueLabel order={order} />}
+          <CourierStatus order={order} />
         </div>
+
+        <PickupCode order={order} />
 
         {order.status === 'pending' && (
           <div className="pd-detail-block">

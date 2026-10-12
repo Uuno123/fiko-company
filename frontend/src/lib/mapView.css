@@ -46,3 +46,14 @@
   width: 100%;
   height: 100%;
 }
+
+/* Kuljettaja: oranssi pallo pyöräkuvakkeella, erottuu ravintolasta (musta)
+   ja kodista (punainen nuppineula). */
+.map-pin--courier span {
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-sizing: border-box;
+  background: var(--delivo-orange);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(20, 21, 15, 0.35);
+}

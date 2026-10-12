@@ -19,6 +19,7 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
   const [cartBumped, setCartBumped] = useState(false)
   const [cartRestaurantImages, setCartRestaurantImages] = useState({})
   const searchInputRef = useRef(null)
+  const headerRef = useRef(null)
   const cartRef = useRef(null)
   const prevCartCount = useRef(cart?.count ?? 0)
 
@@ -103,11 +104,25 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
 
   const showSuggestions = Boolean(isSearchFocused && search?.value?.trim())
 
+  // Hakutulokset (SearchSuggest.css) avautuvat headerin alle. Paneelin yläreuna
+  // seuraa headerin todellista korkeutta, ei oletettua --site-header-height-arvoa:
+  // kapealla näytöllä header voi olla korkeampi, ja paneeli peitti sen alaosan.
+  useEffect(() => {
+    const header = headerRef.current
+    if (!header || typeof ResizeObserver === 'undefined') return undefined
+    const update = () => header.style.setProperty('--site-header-actual-height', `${header.offsetHeight}px`)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(header)
+    return () => observer.disconnect()
+  }, [])
+
   return (
     <header
+      ref={headerRef}
       className={`site-header${variant === 'overlay' ? ' site-header--overlay' : ''}${
         variant === 'dark' ? ' site-header--dark' : ''
-      }${isTransparent ? ' site-header--transparent' : ''}`}
+      }${isTransparent ? ' site-header--transparent' : ''}${isSearchFocused ? ' site-header--searching' : ''}`}
     >
       <div className="site-header__inner">
         <div className="site-header__left">

@@ -1,4 +1,5 @@
 import { getDemoRestaurant } from './demoRestaurants.js'
+import { supabase } from './supabaseClient.js'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
 
@@ -15,11 +16,15 @@ export function getRestaurants() {
   return request('/api/restaurants')
 }
 
-export function getRestaurantById(id) {
-  // Esittelyravintolat (lib/demoRestaurants.js) eivät ole tietokannassa.
+export async function getRestaurantById(id) {
+  // Esittelyravintolan (lib/demoRestaurants.js) tiedot ja ruokalista tulevat
+  // tiedostosta, mutta auki/kiinni-tila tietokannasta: ravintola voi sulkeutua
+  // dashboardista, eikä suljettuun saa voida tilata.
   const demo = getDemoRestaurant(id)
-  if (demo) return Promise.resolve(demo)
-  return request(`/api/restaurants/${id}`)
+  if (!demo) return request(`/api/restaurants/${id}`)
+  if (!supabase) return demo
+  const { data } = await supabase.from('restaurants').select('is_open, opening_hours').eq('id', id).maybeSingle()
+  return data ? { ...demo, is_open: data.is_open, opening_hours: data.opening_hours } : demo
 }
 
 export function createPaymentIntent(payload) {

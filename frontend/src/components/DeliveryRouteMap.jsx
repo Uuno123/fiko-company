@@ -19,6 +19,8 @@ function estimateEtaMinutes(distanceKm) {
 // kun näkymässä on jo koko tilauksen aika-arvio. gestures: 'auto' (hiiren rulla
 // vierittää sivua) tai 'greedy' (rulla zoomaa karttaa), ks. lib/mapView.js.
 // Zoomausnapit näkyvät hiirellä käytettäessä, puhelimella zoomataan nipistämällä.
+// courier: kuljettajan sijainti { lat, lng } (asiakkaan seuranta, päivittyy
+// reaaliajassa) tai null.
 function DeliveryRouteMap({
   restaurant,
   destination,
@@ -26,8 +28,10 @@ function DeliveryRouteMap({
   bottomInset = 0,
   showEta = true,
   gestures = 'auto',
+  courier = null,
 }) {
   const containerRef = useRef(null)
+  const courierPinRef = useRef(null)
 
   const hasRestaurantCoords = Boolean(restaurant?.lat && restaurant?.lng)
   const hasRoute = hasRestaurantCoords && Boolean(destination?.lat && destination?.lng)
@@ -74,6 +78,41 @@ function DeliveryRouteMap({
     restaurant?.name,
     destination?.address,
   ])
+
+  // Kuljettajan merkki liikkuu sijainnin mukana. Ensimmäisellä kerralla kartta
+  // rajataan niin, että kuljettaja näkyy ravintolan ja kodin kanssa.
+  const courierLat = courier?.lat
+  const courierLng = courier?.lng
+  const hasCourier = courierLat != null && courierLng != null
+  useEffect(() => {
+    if (!mapView || !hasCourier) return
+    const point = { lat: courierLat, lng: courierLng }
+    if (courierPinRef.current) {
+      courierPinRef.current.move(point)
+      return
+    }
+    courierPinRef.current = mapView.addPin(point, 'courier', 'Kuljettaja')
+    const points = [point]
+    if (hasRestaurantCoords) points.push({ lat: Number(restaurant.lat), lng: Number(restaurant.lng) })
+    if (destination?.lat && destination?.lng) points.push({ lat: Number(destination.lat), lng: Number(destination.lng) })
+    if (points.length > 1) mapView.fitBounds(points, { top: 28, right: 28, bottom: 28 + bottomInset, left: 28 }, 16)
+    // Rajaus vain ensimmäisellä kerralla - sen jälkeen merkki vain liikkuu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapView, hasCourier, courierLat, courierLng])
+
+  // Kuljettaja poistuu kartalta kun toimitus on valmis tai kartta puretaan.
+  useEffect(() => {
+    if (hasCourier) return
+    courierPinRef.current?.remove()
+    courierPinRef.current = null
+  }, [hasCourier])
+  useEffect(
+    () => () => {
+      courierPinRef.current?.remove()
+      courierPinRef.current = null
+    },
+    [mapView],
+  )
 
   const distanceKm = hasRoute ? haversineKm(restaurant, destination) : null
   const eta = distanceKm != null ? estimateEtaMinutes(distanceKm) : null

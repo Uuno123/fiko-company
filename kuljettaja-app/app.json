@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "delivo kuljettaja",
+    "slug": "delivo-kuljettaja",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "fi.delivo.kuljettaja"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "fi.delivo.kuljettaja",
+      "userInterfaceStyle": "light"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-system-ui",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "delivo näyttää sijaintisi kartalla ja tarjoaa sinulle lähimpiä keikkoja."
+        }
+      ],
+      "expo-font"
+    ],
+    "scheme": "delivo-kuljettaja",
+    "backgroundColor": "#ffffff"
+  }
+}

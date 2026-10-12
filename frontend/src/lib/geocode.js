@@ -208,16 +208,9 @@ export async function reverseGeocode(lat, lng) {
 }
 
 // Linnuntie-etäisyys kilometreinä. Jaettu, koska kassan reittikartta ja
-// etusivun "lähimmät ravintolat" laskevat saman asian.
-export function haversineKm(a, b) {
-  const R = 6371
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180
-  const lat1 = (a.lat * Math.PI) / 180
-  const lat2 = (b.lat * Math.PI) / 180
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h))
-}
+// etusivun "lähimmät ravintolat" laskevat saman asian - ja kuljetusajan malli
+// (deliveryTime.js, myös kuljettaja-appissa), jossa toteutus on.
+export { haversineKm } from './deliveryTime.js'
 
 // Selaimen paikannusvirheet (GeolocationPositionError.code) käyttäjän kielellä.
 // Aiemmin kaikki kolme näkyivät samana "Paikannus ei onnistunut" -viestinä,

@@ -49,6 +49,12 @@ export const supabaseApi = {
     check(await supabase.from('orders').update(fields).eq('id', orderId))
   },
 
+  // Noutokoodi, jonka henkilökunta antaa kuljettajalle todisteeksi noudosta
+  // (migraatio 0043). Vain oman ravintolan tilauksille.
+  async fetchPickupCode(orderId) {
+    return check(await supabase.rpc('order_pickup_code', { p_order_id: orderId }))
+  },
+
   async updateRestaurant(restaurantId, fields) {
     check(await supabase.from('restaurants').update(fields).eq('id', restaurantId))
   },

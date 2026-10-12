@@ -6,11 +6,13 @@ import OrderCountdownRing from './OrderCountdownRing.jsx'
 import { formatPrice } from '../lib/format.js'
 import {
   ORDER_STATUS_FLOW,
-  orderStatusLabel,
+  customerStatusLabel,
   estimatedArrivalAt,
+  isOrderInProgress,
   trackingHeadline,
   trackingMessage,
 } from '../lib/orderStatus.js'
+import { useCourierPosition } from '../lib/courierTracking.js'
 import '../pages/Settings.css'
 import './OrderTrackingModal.css'
 
@@ -31,10 +33,14 @@ const TRACKED_STEPS = ORDER_STATUS_FLOW.slice(0, 4)
 export function OrderTrackingView({ order, onClose, variant = 'modal', children }) {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const arrivalAt = estimatedArrivalAt(order)
-  const showRing = Boolean(order.estimated_ready_at) && order.status !== 'cancelled' && order.status !== 'completed'
+  const showRing = Boolean(arrivalAt) && order.status !== 'cancelled' && isOrderInProgress(order)
   const isDelivery = order.delivery_method === 'delivery'
+  // Kuljettajan nouto ja ravintolan luovutusmerkintä täyttävät viimeisen vaiheen.
   const stepIndex =
-    order.status === 'completed' ? TRACKED_STEPS.length - 1 : TRACKED_STEPS.indexOf(order.status)
+    order.status === 'completed' || order.courier_status === 'picked_up' || order.courier_status === 'delivered'
+      ? TRACKED_STEPS.length - 1
+      : TRACKED_STEPS.indexOf(order.status)
+  const courierPosition = useCourierPosition(order)
   const destination = isDelivery ? order.delivery_address : order.restaurants?.address
 
   return (
@@ -48,6 +54,7 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
           pickupOnly={!isDelivery}
           bottomInset={showRing ? 120 : 0}
           showEta={false}
+          courier={courierPosition}
           // Seurannassa kartta on näkymän pääosa, joten hiiren rulla ja
           // kosketuslevyn nipistys zoomaavat sitä kuten Woltissa.
           gestures="greedy"
@@ -74,7 +81,7 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
             />
           ) : (
             <div className={`tracking__state tracking__state--${order.status}`}>
-              {orderStatusLabel(order.status, order.delivery_method)}
+              {customerStatusLabel(order)}
             </div>
           )}
 

@@ -4,7 +4,7 @@
 // ja arviointipyynnön tilauksen jälkeen - siihen asti oikeille ravintoloille
 // ei näytetä arvosteluosiota lainkaan, ettei niille keksitä arvosteluja.
 const DEMO_REVIEWS = {
-  'demo-mcdonalds': [
+  'b42ac227-e8eb-4086-8de4-f2d7043465fd': [
     { id: 'r1', name: 'Aino K.', rating: 5, daysAgo: 1, text: 'Ruoka tuli lämpimänä ja nopeasti. Maple BBQ -burgeri oli tosi hyvä!' },
     { id: 'r2', name: 'Mikko L.', rating: 4, daysAgo: 3, text: 'Ranskalaiset olisivat saaneet olla rapeampia, muuten erinomainen tilaus.' },
     { id: 'r3', name: 'Sanna P.', rating: 5, daysAgo: 6, text: 'Big Arch on uusi suosikkini. Kuljettaja oli ystävällinen ja tilaus tuli ajallaan.' },

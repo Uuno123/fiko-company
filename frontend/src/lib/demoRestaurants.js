@@ -11,7 +11,7 @@
 // Sama sisältö kuin supabase/migrations/0038_add_burger_talli_mcdonalds_items.sql.
 export const MCDONALDS_DEMO_MENU = [
   {
-    id: 'temp-maple-bbq-bacon-double-qp',
+    id: '093e4d5c-ed7a-470e-94a9-a60d0582aa6e',
     name: 'Maple BBQ & Bacon Double Quarter Pounder®',
     description:
       'Seesaminsiemensämpylä, kaksi isoa 100 % naudanlihapihviä, kaksi cheddarsulatejuustosiivua, pekonia, Maple BBQ -kastiketta ja sipulia.',
@@ -23,7 +23,7 @@ export const MCDONALDS_DEMO_MENU = [
     tags: [],
   },
   {
-    id: 'temp-maple-bbq-bacon-double-qp-ateria',
+    id: '7855b43a-a6ff-46d3-8b76-a893596ff4ba',
     name: 'Maple BBQ & Bacon Double Quarter Pounder® -ateria',
     description:
       'Seesaminsiemensämpylä, kaksi isoa 100 % naudanlihapihviä, kaksi cheddarsulatejuustosiivua, pekonia, Maple BBQ -kastiketta ja sipulia. Ateriaan kuuluu ranskalaiset ja juoma.',
@@ -35,7 +35,7 @@ export const MCDONALDS_DEMO_MENU = [
     tags: [],
   },
   {
-    id: 'temp-maple-bbq-bacon-qp',
+    id: 'fe0d6b72-9b01-4f62-b3c0-da29e8bcf3f9',
     name: 'Maple BBQ & Bacon Quarter Pounder®',
     description:
       'Seesaminsiemensämpylä, iso 100 % naudanlihapihvi, kaksi cheddarsulatejuustosiivua, pekonia, Maple BBQ -kastiketta ja sipulia.',
@@ -47,7 +47,7 @@ export const MCDONALDS_DEMO_MENU = [
     tags: [],
   },
   {
-    id: 'temp-maple-bbq-bacon-qp-ateria',
+    id: '92c062c0-3b1e-4247-874b-a4c4315a0d1b',
     name: 'Maple BBQ & Bacon Quarter Pounder® -ateria',
     description:
       'Seesaminsiemensämpylä, iso 100 % naudanlihapihvi, kaksi cheddarsulatejuustosiivua, pekonia, Maple BBQ -kastiketta ja sipulia. Ateriaan kuuluu ranskalaiset ja juoma.',
@@ -59,7 +59,7 @@ export const MCDONALDS_DEMO_MENU = [
     tags: [],
   },
   {
-    id: 'temp-big-arch',
+    id: 'deeb5773-8aeb-43b9-bf92-a35b964a0887',
     name: 'Big Arch®',
     description:
       'Big Arch -sämpylä, kaksi 100 % naudanlihapihviä, vaaleaa cheddarsulatejuustoa, salaattia, sipulia ja Big Arch -kastiketta.',
@@ -71,7 +71,7 @@ export const MCDONALDS_DEMO_MENU = [
     tags: [],
   },
   {
-    id: 'temp-big-arch-ateria',
+    id: '33caa326-c30b-4436-a5c0-4e1715acd15d',
     name: 'Big Arch® -ateria',
     description:
       'Big Arch -sämpylä, kaksi 100 % naudanlihapihviä, vaaleaa cheddarsulatejuustoa, salaattia, sipulia ja Big Arch -kastiketta. Ateriaan kuuluu ranskalaiset ja juoma.',
@@ -83,7 +83,7 @@ export const MCDONALDS_DEMO_MENU = [
     tags: [],
   },
   {
-    id: 'temp-double-big-tasty-bacon',
+    id: '3bbf839a-4d73-4753-8ddf-1825edbee865',
     name: 'Double Big Tasty® Bacon',
     description:
       'Seesaminsiemensämpylä, kaksi 100 % naudanlihapihviä, vaaleaa cheddarsulatejuustoa, tomaattia, salaattia ja pekonia.',
@@ -95,7 +95,7 @@ export const MCDONALDS_DEMO_MENU = [
     tags: [],
   },
   {
-    id: 'temp-double-big-tasty-bacon-ateria',
+    id: '35155c6f-72f3-4ed0-9a33-47aa2ce9b528',
     name: 'Double Big Tasty® Bacon -ateria',
     description:
       'Seesaminsiemensämpylä, kaksi 100 % naudanlihapihviä, vaaleaa cheddarsulatejuustoa, tomaattia, salaattia ja pekonia. Ateriaan kuuluu ranskalaiset ja juoma.',
@@ -107,7 +107,7 @@ export const MCDONALDS_DEMO_MENU = [
     tags: [],
   },
   {
-    id: 'temp-double-qp-with-cheese',
+    id: 'c59181de-b136-44dd-b92c-f819069e4122',
     name: 'Double Quarter Pounder® with Cheese',
     description:
       'Seesaminsiemensämpylä, kaksi isoa 100 % naudanlihapihviä, cheddarsulatejuustoa, tuoretta sipulia, suolakurkkua ja ketsuppia.',
@@ -120,13 +120,18 @@ export const MCDONALDS_DEMO_MENU = [
   },
 ]
 
+// Sama id kuin tietokannassa (migraatio 0043): tilaukset ovat oikeita
+// orders-rivejä, jotka ravintolan dashboard, kuljettaja-app ja asiakkaan
+// seuranta näkevät. Vain maksu on vielä simuloitu.
+export const DEMO_MCDONALDS_ID = 'b42ac227-e8eb-4086-8de4-f2d7043465fd'
+
 const DEMO_RESTAURANTS = {
-  'demo-mcdonalds': {
-    id: 'demo-mcdonalds',
+  [DEMO_MCDONALDS_ID]: {
+    id: DEMO_MCDONALDS_ID,
     name: "McDonald's",
     category: 'Burgerit',
     image_url: 'https://imageproxy.wolt.com/assets/6735be5986f45b72713e2127',
-    description: 'Esittelyravintola - tilaukset ovat simuloituja.',
+    description: 'Esittelyravintola - tilaukset ovat oikeita, maksu on simuloitu.',
     // Kuvitteellinen osoite Kuopion keskustassa, jotta etäisyys, reittikartta
     // ja tilauksen seuranta toimivat.
     address: 'Kauppakatu 40, 70110 Kuopio',

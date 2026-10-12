@@ -3242,3 +3242,22 @@ a.pd-contact:hover {
     animation: none;
   }
 }
+
+/* Kuljettaja (migraatio 0043): tila tilauskortissa ja noutokoodi tilauksen tiedoissa. */
+.pd-ticket__courier {
+  margin-top: 6px;
+}
+
+.pd-pickup-code h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pd-pickup-code__value {
+  display: block;
+  margin: 4px 0 6px;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+}
