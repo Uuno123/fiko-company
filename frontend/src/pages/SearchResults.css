@@ -322,3 +322,15 @@
     display: none;
   }
 }
+
+/* Puhelimella takaisin-nuoli ilman mustaa palloa (käyttäjän toive: ei isoja
+   mustia nappeja). Sama kategoriasivulla ja ostoskorissa. */
+@media (max-width: 560px) {
+  .search-topbar__back {
+    width: 32px;
+    height: 32px;
+    margin-left: -6px;
+    background: none;
+    color: var(--delivo-black);
+  }
+}

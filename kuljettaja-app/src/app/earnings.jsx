@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
-import { ChevronLeft, ChevronRight } from 'lucide-react-native'
-import { Card, ListRow, Screen, SectionTitle } from '../components/ui'
+import { ChevronLeft, ChevronRight, Landmark } from 'lucide-react-native'
+import { Card, ListRow, Screen, StatRow } from '../components/ui'
 import {
   addDays,
   dayKey,
@@ -21,8 +21,8 @@ const CHART_HEIGHT = 120
 // Keikkoja on HISTORY_DAYS päivää taaksepäin - sitä vanhempia viikkoja ei näytetä.
 const MAX_WEEKS_BACK = Math.floor(HISTORY_DAYS / 7) - 1
 
-// Ansiot viikoittain: summa, pylväät päivittäin, tunnusluvut ja päivät,
-// joista pääsee sen päivän keikkoihin.
+// Ansiot viikoittain: summa ja pylväät päivittäin samassa ryhmässä,
+// tunnusluvut yhtenä rivinä ja päivät, joista pääsee sen päivän keikkoihin.
 export default function EarningsScreen() {
   const router = useRouter()
   const [weeksBack, setWeeksBack] = useState(0)
@@ -69,7 +69,6 @@ export default function EarningsScreen() {
       </View>
 
       <Card style={styles.totalCard}>
-        <Text style={styles.totalLabel}>Ansiot yhteensä</Text>
         <Text style={styles.total}>{formatEuro(week.total)}</Text>
         <Text style={styles.totalMeta}>
           {week.count} {week.count === 1 ? 'keikka' : 'keikkaa'} · {formatKm(week.km)}
@@ -81,9 +80,6 @@ export default function EarningsScreen() {
             const height = summary.total ? Math.max(6, Math.round((summary.total / maxDay) * CHART_HEIGHT)) : 4
             return (
               <View key={dayKey(day)} style={styles.chartColumn}>
-                <Text style={styles.chartValue} numberOfLines={1}>
-                  {summary.total ? Math.round(summary.total / 100) : ''}
-                </Text>
                 <View
                   style={[
                     styles.chartBar,
@@ -98,50 +94,37 @@ export default function EarningsScreen() {
         </View>
       </Card>
 
-      <View style={styles.tiles}>
-        <Tile label="Keikat" value={String(week.count)} />
-        <Tile label="Keskimäärin / keikka" value={formatEuro(week.average)} />
-        <Tile label="Tipit" value={formatEuro(week.tips)} />
-        <Tile label="Kilometrit" value={formatKm(week.km)} />
-      </View>
+      <StatRow
+        items={[
+          { label: 'Keikat', value: String(week.count) },
+          { label: 'Keskimäärin', value: formatEuro(week.average) },
+          { label: 'Matka', value: formatKm(week.km) },
+        ]}
+      />
 
-      <SectionTitle>Päivät</SectionTitle>
-      {days.some((entry) => entry.summary.count) ? (
-        <Card>
-          {days
+      <Card title="Päivät">
+        {days.some((entry) => entry.summary.count) ? (
+          days
             .filter((entry) => entry.summary.count)
             .reverse()
-            .map(({ day, summary }, index, list) => (
+            .map(({ day, summary }) => (
               <ListRow
                 key={dayKey(day)}
                 label={formatDayLabel(day, now)}
                 detail={`${summary.count} ${summary.count === 1 ? 'keikka' : 'keikkaa'} · ${formatKm(summary.km)}`}
                 value={formatEuro(summary.total)}
                 onPress={() => router.push({ pathname: '/history', params: { day: dayKey(day) } })}
-                last={index === list.length - 1}
               />
-            ))}
-        </Card>
-      ) : (
-        <Card style={styles.empty}>
+            ))
+        ) : (
           <Text style={styles.emptyText}>Ei keikkoja tällä viikolla.</Text>
-        </Card>
-      )}
+        )}
+      </Card>
 
+      <Card>
+        <ListRow icon={Landmark} label="Laskutustiedot" onPress={() => router.push('/billing')} />
+      </Card>
     </Screen>
-  )
-}
-
-function Tile({ label, value }) {
-  return (
-    <Card style={styles.tile}>
-      <Text style={styles.tileValue} numberOfLines={1}>
-        {value}
-      </Text>
-      <Text style={styles.tileLabel} numberOfLines={1}>
-        {label}
-      </Text>
-    </Card>
   )
 }
 
@@ -150,7 +133,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 12,
+    marginTop: 4,
   },
   weekArrow: {
     alignItems: 'center',
@@ -158,12 +141,10 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.gray200,
+    backgroundColor: '#f4f4f4',
   },
   weekArrowPressed: {
-    backgroundColor: colors.gray100,
+    backgroundColor: colors.gray200,
   },
   weekArrowDisabled: {
     opacity: 0.35,
@@ -185,20 +166,14 @@ const styles = StyleSheet.create({
   totalCard: {
     padding: 18,
   },
-  totalLabel: {
-    fontFamily: fonts.medium,
-    fontSize: 14,
-    color: colors.textMuted,
-  },
   total: {
-    marginTop: 2,
     fontFamily: fonts.display,
     fontSize: 40,
     letterSpacing: -1,
     color: colors.black,
   },
   totalMeta: {
-    fontFamily: fonts.medium,
+    fontFamily: fonts.regular,
     fontSize: 14,
     color: colors.textMuted,
   },
@@ -212,18 +187,12 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'flex-end',
-    height: CHART_HEIGHT + 44,
-  },
-  chartValue: {
-    marginBottom: 4,
-    fontFamily: fonts.semibold,
-    fontSize: 11,
-    color: colors.textMuted,
+    height: CHART_HEIGHT + 24,
   },
   chartBar: {
     width: '100%',
-    maxWidth: 30,
-    borderRadius: 8,
+    maxWidth: 28,
+    borderRadius: 6,
   },
   chartBarFilled: {
     backgroundColor: colors.black,
@@ -232,7 +201,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.orange,
   },
   chartBarEmpty: {
-    backgroundColor: colors.gray200,
+    backgroundColor: colors.gray100,
   },
   chartDay: {
     marginTop: 6,
@@ -244,34 +213,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bold,
     color: colors.orange,
   },
-  tiles: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 10,
-  },
-  tile: {
-    flexGrow: 1,
-    flexBasis: '45%',
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-  },
-  tileValue: {
-    fontFamily: fonts.display,
-    fontSize: 20,
-    letterSpacing: -0.3,
-    color: colors.black,
-  },
-  tileLabel: {
-    marginTop: 2,
-    fontFamily: fonts.medium,
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-  empty: {
-    padding: 18,
-  },
   emptyText: {
+    paddingVertical: 10,
     fontFamily: fonts.regular,
     fontSize: 14,
     color: colors.textMuted,

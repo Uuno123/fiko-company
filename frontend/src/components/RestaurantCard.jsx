@@ -25,6 +25,7 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
     free_delivery: freeDelivery,
     pickup_estimate_minutes: pickupEstimateMinutes,
     distance_km: distanceKm,
+    sponsored,
   } = restaurant
 
   const etaRange = formatEtaRange(pickupEstimateMinutes)
@@ -104,6 +105,8 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
       <div className="restaurant-card__body">
         <div className="restaurant-card__heading">
           <h3>{name}</h3>
+          {/* Maksettu näkyvyys merkitään aina (lib/ranking.js). */}
+          {sponsored && <span className="restaurant-card__sponsored">Sponsoroitu</span>}
         </div>
 
         <div className="restaurant-card__meta">

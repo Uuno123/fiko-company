@@ -5,7 +5,7 @@ import { DEMO_CAMPAIGNS } from '../demo.js'
 import { useDashboard } from '../context.js'
 import { useMenu } from '../hooks.js'
 import { Badge, Card, Drawer, EmptyState, ErrorNote, Field, PageHeader, Segmented, Stat } from '../ui.jsx'
-import { euroInputToCents, formatDate, formatPrice, planForCommission } from '../utils.js'
+import { euroInputToCents, formatDate, formatPrice, restaurantPlan } from '../utils.js'
 
 const TYPES = [
   { value: 'percent', label: 'Prosenttialennus' },
@@ -105,7 +105,7 @@ function NewCampaignDrawer({ categories, onClose, onCreate }) {
           <input type="date" className="pd-input" value={form.ends} onChange={(e) => set('ends', e.target.value)} />
         </Field>
       </div>
-      <p className="pd-muted">delivo ei ota alennuksesta erillistä maksua - välityspalkkio lasketaan alennetusta hinnasta.</p>
+      <p className="pd-muted">delivo ei ota alennuksesta erillistä maksua eikä provisiota.</p>
       <ErrorNote>{error}</ErrorNote>
     </Drawer>
   )
@@ -116,7 +116,7 @@ export default function MarketingView() {
   const menu = useMenu(restaurant.id)
   const [campaigns, setCampaigns] = useState(DEMO_CAMPAIGNS)
   const [creating, setCreating] = useState(false)
-  const plan = planForCommission(restaurant.commission_rate_percent)
+  const plan = restaurantPlan(restaurant)
   const categories = [...new Set(menu.items.map((i) => i.category || 'Ruokalista'))]
 
   const running = campaigns.filter((c) => c.status === 'active')
@@ -210,14 +210,14 @@ export default function MarketingView() {
             <Rocket size={22} strokeWidth={1.75} aria-hidden="true" />
           </span>
           <h2>Nostettu näkyvyys</h2>
-          {plan.key === 'pro' || plan.key === 'business' ? (
+          {plan.key === 'iso' ? (
             <>
               <p>Ravintolasi näkyy korkeammalla etusivulla ja hakutuloksissa {plan.name}-paketin ansiosta.</p>
               <Badge tone="success">Käytössä</Badge>
             </>
           ) : (
             <>
-              <p>Pro-paketissa ravintolasi näkyy korkeammalla etusivulla ja haussa - ja välityspalkkio laskee 10 %:iin.</p>
+              <p>Iso ravintola -paketissa ravintolasi näkyy korkeammalla etusivulla ja haussa.</p>
               <Link to={`${basePath}/talous`} className="pd-btn pd-btn--secondary">
                 Katso paketit
               </Link>

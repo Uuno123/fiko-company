@@ -72,13 +72,17 @@
   display: none;
 }
 
+/* Sanamerkki tummassa sivupalkissa: valkoiset kirjaimet, oranssi ruksi. */
 .pd-rail__brand {
+  display: flex;
+  justify-content: center;
   margin: 0 auto 18px;
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
   color: #fff;
+  line-height: 0;
+}
+
+.pd-rail__brand .delivo-logo {
+  height: 18px;
 }
 
 .pd-rail__group {

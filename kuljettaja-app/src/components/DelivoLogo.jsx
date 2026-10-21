@@ -1,51 +1,38 @@
-import { StyleSheet, Text, View } from 'react-native'
-import { colors, fonts } from '../theme'
+import { View } from 'react-native'
+import Svg, { Path } from 'react-native-svg'
+import {
+  LOGO_CHECK_PATH,
+  LOGO_CHECK_STROKE,
+  LOGO_HEIGHT,
+  LOGO_LETTERS_PATH,
+  LOGO_ORANGE,
+  LOGO_VIEWBOX,
+  LOGO_WIDTH,
+} from '../../../frontend/src/lib/logoPaths'
+import { colors } from '../theme'
 
-// delivon logo samanlaisena kuin verkkosivun yläpalkissa
-// (frontend/src/components/Header.css, .site-header__logo): valkoinen "delivo"
-// Space Grotesk -fontilla oranssin pyöristetyn pillerin sisällä. Mittasuhteet
-// samat kuin sivulla (20 px teksti, 5/13 px reunat, 13 px pyöristys).
-// inverted: oranssilla pohjalla valkoinen pilleri ja oranssi teksti.
+// delivon sanamerkki samoista vektoreista kuin verkkosivulla
+// (frontend/src/lib/logoPaths.js): "deli" + oranssi ruksi v:n paikalla + "o".
+// size: suunnilleen sama näkyvä koko kuin vanhalla pillerilogolla.
+// inverted: oranssille pohjalle, kaikki valkoista (oranssi ruksi ei erottuisi).
 export default function DelivoLogo({ size = 20, inverted = false, style }) {
+  const height = Math.round(size * 1.15)
+  const width = (height * LOGO_WIDTH) / LOGO_HEIGHT
+  const letters = inverted ? '#ffffff' : colors.black
+  const check = inverted ? '#ffffff' : LOGO_ORANGE
   return (
-    <View
-      style={[
-        styles.pill,
-        inverted && styles.pillInverted,
-        { paddingVertical: size * 0.25, paddingHorizontal: size * 0.65, borderRadius: size * 0.65 },
-        style,
-      ]}
-      accessible
-      accessibilityRole="image"
-      accessibilityLabel="delivo"
-    >
-      <Text
-        style={[
-          styles.text,
-          inverted && styles.textInverted,
-          { fontSize: size, lineHeight: Math.round(size * 1.2), letterSpacing: -0.02 * size },
-        ]}
-      >
-        delivo
-      </Text>
+    <View style={[{ width, height, alignSelf: 'flex-start' }, style]} accessible accessibilityRole="image" accessibilityLabel="delivo">
+      <Svg width={width} height={height} viewBox={LOGO_VIEWBOX}>
+        <Path d={LOGO_LETTERS_PATH} fill={letters} />
+        <Path
+          d={LOGO_CHECK_PATH}
+          fill="none"
+          stroke={check}
+          strokeWidth={LOGO_CHECK_STROKE}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </Svg>
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  pill: {
-    alignSelf: 'flex-start',
-    backgroundColor: colors.orange,
-  },
-  pillInverted: {
-    backgroundColor: '#ffffff',
-  },
-  text: {
-    fontFamily: fonts.display,
-    color: '#ffffff',
-    includeFontPadding: false,
-  },
-  textInverted: {
-    color: colors.orange,
-  },
-})

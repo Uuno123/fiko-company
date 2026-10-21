@@ -143,7 +143,7 @@ function ActiveOrderBubble() {
       supabase
         .from('orders')
         .select(
-          'id, order_number, status, delivery_method, created_at, estimated_ready_at, delivery_lat, delivery_lng, delivery_address, total_cents, courier_id, courier_status, courier_arrive_by, courier_released_at, delivery_eta, order_items(*), restaurants(name, lat, lng, address)',
+          'id, order_number, status, delivery_method, created_at, estimated_ready_at, delivery_lat, delivery_lng, delivery_address, total_cents, courier_id, courier_status, courier_arrive_by, courier_released_at, delivery_eta, cancel_reason, order_items(*), restaurants(name, lat, lng, address)',
         )
         .eq('customer_id', session.user.id)
         .or(IN_PROGRESS_FILTER)
@@ -165,7 +165,7 @@ function ActiveOrderBubble() {
     // Peruutus, joka tapahtui kun asiakas ei ollut sivulla.
     supabase
       .from('orders')
-      .select('id, order_number, status')
+      .select('id, order_number, status, cancel_reason')
       .eq('customer_id', session.user.id)
       .eq('status', 'cancelled')
       .gte('updated_at', new Date(Date.now() - CANCELLED_LOOKBACK_MS).toISOString())

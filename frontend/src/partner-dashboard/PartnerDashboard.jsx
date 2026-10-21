@@ -19,6 +19,7 @@ import {
   Wallet,
   WifiOff,
 } from 'lucide-react'
+import DelivoLogo from '../components/DelivoLogo.jsx'
 import { usePartnerAuth } from '../lib/PartnerAuthContext.jsx'
 import { useDashboardApi } from './api.js'
 import { DashboardContext } from './context.js'
@@ -256,7 +257,9 @@ function Shell({ basePath, restaurants, signOut, refreshRestaurants }) {
     <DashboardContext.Provider value={contextValue}>
       <div className="pd">
         <nav className="pd-rail" aria-label="Kojelaudan osiot">
-          <span className="pd-rail__brand">delivo</span>
+          <span className="pd-rail__brand">
+            <DelivoLogo />
+          </span>
           <div className="pd-rail__group">{mainNav.map((item) => renderNavItem(item))}</div>
           <div className="pd-rail__group pd-rail__group--bottom">{bottomNav.map((item) => renderNavItem(item))}</div>
         </nav>

@@ -145,16 +145,12 @@ button {
   font-weight: 500;
 }
 
-/* delivo-brändimerkki: valkoinen teksti oranssilla pyöristetyllä taustalla. */
+/* delivo-sanamerkki (components/DelivoLogo.jsx): kirjaimet currentColor-värillä,
+   ruksi oranssi. Korkeus määrätään käyttöpaikassa, leveys tulee kuvasuhteesta. */
 .delivo-logo {
-  padding: 5px 13px;
-  border-radius: 14px;
-  background: var(--delivo-orange);
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  color: #fff;
-  text-decoration: none;
+  display: block;
+  height: 22px;
+  width: auto;
+  flex-shrink: 0;
+  overflow: visible;
 }

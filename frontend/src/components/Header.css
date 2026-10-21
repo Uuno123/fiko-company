@@ -164,14 +164,10 @@
   color: #fff;
 }
 
-/* Punainen pilleritausta logolle vain skrollattuna (valkoisella headerilla) -
-   kuvan päällä (--transparent) logo pysyy pelkkänä valkoisena tekstinä. */
+/* Skrollattuna (valkoinen header) logon kirjaimet mustina, kuvan päällä
+   (--transparent) valkoisina. Ruksi on aina oranssi. */
 .site-header--overlay:not(.site-header--transparent) .site-header__logo {
-  padding: 4px 12px;
-  border-radius: 12px;
-  background: var(--delivo-orange);
-  color: #fff;
-  font-size: 1.25rem;
+  color: var(--delivo-black);
 }
 
 .site-header--transparent .city-select__value,
@@ -889,24 +885,25 @@
    Fredoka oli tässä jäänyt vahingossa - koko sääntö oli tavoittamattomissa
    ennen kuin nuoli ja logo alkoivat näkyä yhtä aikaa, joten kukaan ei
    huomannut sitä vielä vaihdetun Space Grotesk -päätöksen jälkeen. */
+/* Sanamerkki (DelivoLogo): kirjaimet currentColor, ruksi oranssi. */
 .site-header__logo {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.6rem;
+  display: inline-flex;
+  align-items: center;
   color: #fff;
   text-decoration: none;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  display: inline-block;
+  line-height: 0;
   transform-origin: left center;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease, letter-spacing 0.25s ease;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease;
   animation: delivo-logo-in 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.site-header__logo .delivo-logo {
+  height: 22px;
 }
 
 .site-header__logo:hover,
 .site-header__logo:focus-visible {
-  transform: scale(1.06);
-  letter-spacing: -0.01em;
+  transform: scale(1.05);
 }
 
 .site-header__logo:active {
@@ -1116,8 +1113,8 @@
    määritellään ylempänä, ja koska spesifisyys on sama, myöhempi sääntö voittaa kaskadissa.
    Jos tämä siirretään ylemmäs uudelleen, display: none lakkaa taas toimimasta puhelimella. */
 @media (max-width: 640px) {
-  .site-header__logo {
-    font-size: 1.9rem;
+  .site-header__logo .delivo-logo {
+    height: 20px;
   }
 
 }
@@ -1157,22 +1154,9 @@
   box-shadow: 0 2px 6px -2px rgba(20, 21, 15, 0.12);
 }
 
-/* Logo: valkoinen teksti oranssilla pyöristetyllä taustalla, sama merkki kuin
-   mobiilissa - vain isompana. Fredoka oli liian pyöreä tähän ilmeeseen. */
+/* Logo valkoisella headerilla: mustat kirjaimet ja oranssi ruksi. */
 .site-header:not(.site-header--dark):not(.site-header--overlay) .site-header__logo {
-  padding: 5px 13px;
-  border-radius: 13px;
-  background: var(--delivo-orange);
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: #fff;
-}
-
-.site-header:not(.site-header--dark):not(.site-header--overlay) .site-header__logo:hover,
-.site-header:not(.site-header--dark):not(.site-header--overlay) .site-header__logo:focus-visible {
-  background: var(--delivo-orange-dark);
+  color: var(--delivo-black);
 }
 
 /* Sijainti: pehmeä oranssi ympyrä oranssilla nuppineulalla, teksti mustana. */
@@ -1275,9 +1259,7 @@
    tarkkuudella kuin yllä oleva perussääntö - Home.css:n .page--home-rajaus
    ei enää riitä voittamaan sitä. */
 @media (max-width: 560px) {
-  .site-header:not(.site-header--dark):not(.site-header--overlay) .site-header__logo {
-    padding: 4px 11px;
-    border-radius: 12px;
-    font-size: 1.05rem;
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .site-header__logo .delivo-logo {
+    height: 19px;
   }
 }

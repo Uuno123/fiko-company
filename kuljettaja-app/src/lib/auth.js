@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { supabase } from './supabase'
 
 // Kuljettajan kirjautuminen. Kuljettaja kirjautuu samoilla tunnuksilla kuin
@@ -59,6 +59,19 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  // Kuljettajatiedot uudelleen (esim. kun delivo on hyväksynyt muutospyynnön).
+  // Pysyvä funktio, jotta näkymät voivat kutsua sitä tullessaan esiin.
+  const userId = session?.user.id ?? null
+  const refreshCourier = useCallback(async () => {
+    if (!supabase || !userId) return
+    try {
+      const row = await fetchCourier(userId)
+      if (row) setCourier(row)
+    } catch {
+      // Verkkovirhe: vanhat tiedot jäävät näkyviin.
+    }
+  }, [userId])
+
   const value = {
     session,
     user: session?.user ?? null,
@@ -72,6 +85,15 @@ export function AuthProvider({ children }) {
     },
     async signOut() {
       await supabase?.auth.signOut()
+    },
+    refreshCourier,
+    // Kuljettaja saa päivittää itse vain puhelinnumeronsa ja kielensä (0051).
+    async updateCourier(patch) {
+      if (!supabase || !courier) throw new Error('Ei kirjautunutta kuljettajaa.')
+      const { data, error: updateError } = await supabase.from('couriers').update(patch).eq('id', courier.id).select().single()
+      if (updateError) throw updateError
+      setCourier(data)
+      return data
     },
   }
 

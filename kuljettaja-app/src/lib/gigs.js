@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { coordinate } from '../../../frontend/src/lib/deliveryTime'
+import { COURIER_PAY, coordinate } from '../../../frontend/src/lib/deliveryTime'
 import { dayKey, startOfDay } from './format'
 import { useAuth } from './auth'
 import { supabase } from './supabase'
@@ -15,7 +15,7 @@ export const HISTORY_DAYS = 28
 
 // Palkkiomalli: perusmaksu + matkalisä kilometreistä. Sama kuin kuljettaja-app
 // laskee tarjoukseen ja tallentaa keikalle (orders.courier_fee_cents).
-export const PAY = { baseCents: 320, perKmCents: 70 }
+export const PAY = COURIER_PAY
 
 const GIG_FIELDS =
   'id, order_number, delivery_address, delivery_lat, delivery_lng, courier_assigned_at, picked_up_at, delivered_at, courier_fee_cents, restaurants(name, address, lat, lng)'

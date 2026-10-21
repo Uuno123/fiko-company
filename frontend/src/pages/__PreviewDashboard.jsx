@@ -20,7 +20,8 @@ const MOCK_RESTAURANT = {
   image_url: '/burger.jpg',
   pickup_estimate_minutes: 15,
   is_open: true,
-  commission_rate_percent: 10,
+  plan: 'kuljetus',
+  commission_rate_percent: 0,
   opening_hours: null,
 }
 

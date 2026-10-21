@@ -1,16 +1,24 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { AppState, Platform } from 'react-native'
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useAuth } from './auth'
 import { readJson, writeJson } from './storage'
 
 // Kuljettajan tila koko sovellukselle: online/offline, ajastettu offline,
-// asetukset ja profiili. Asetukset ja profiili tallentuvat puhelimeen
-// (kirjautumista ja tietokantaa kuljettajille ei ole vielä). Online-tilaa ei
-// tallenneta: sovellus käynnistyy aina offline-tilassa.
+// laitteen asetukset ja profiili.
+//
+// Profiili (nimi, puhelin, sähköposti, kulkuneuvo, kaupunki, laskutustiedot)
+// tulee kuljettajan riviltä tietokannasta (couriers, lib/auth.js). Lukitut
+// tiedot muuttuvat vain muutospyynnöllä (migraatio 0051), puhelinnumeron ja
+// kielen kuljettaja vaihtaa itse. Puhelimeen tallentuvat vain laitekohtaiset
+// asetukset. Online-tilaa ei tallenneta: sovellus käynnistyy aina offline-tilassa.
 
 const SETTINGS_KEY = 'delivo-courier-settings'
-const PROFILE_KEY = 'delivo-courier-profile'
 const KEEP_AWAKE_TAG = 'delivo-online'
+
+// Aiempi versio tallensi profiilin puhelimeen - tieto on nyt tietokannassa.
+AsyncStorage.removeItem('delivo-courier-profile').catch(() => {})
 
 export const VEHICLES = [
   { key: 'bike', label: 'Polkupyörä' },
@@ -20,13 +28,31 @@ export const VEHICLES = [
 ]
 
 export const DEFAULT_SETTINGS = {
-  vehicle: 'bike',
   navigationApp: Platform.OS === 'ios' ? 'apple' : 'google',
   haptics: true,
   keepAwake: true,
+  // Ääni uudesta keikkatarjouksesta (lib/sound.js).
+  sound: true,
+  // Sovelluksen kieli myös puhelimessa, jotta se vaihtuu heti ja toimii ennen
+  // kuin kuljettajatiedot on ladattu (tallentuu myös couriers.language).
+  language: null,
 }
 
-export const DEFAULT_PROFILE = { name: 'Demo-kuljettaja', phone: '', email: '' }
+export const BILLING_METHODS = [
+  { key: 'own_company', label: 'Oma yritys (Y-tunnus)' },
+  { key: 'ukko', label: 'UKKO.fi' },
+  { key: 'eezy', label: 'Eezy' },
+]
+
+export function billingMethodLabel(key) {
+  return BILLING_METHODS.find((method) => method.key === key)?.label ?? null
+}
+
+// Kaupungit, joissa delivo toimii (aluksi vain Kuopio).
+export function cityLabel(key) {
+  const city = String(key ?? 'kuopio')
+  return city.charAt(0).toUpperCase() + city.slice(1)
+}
 
 export function vehicleLabel(key) {
   return VEHICLES.find((vehicle) => vehicle.key === key)?.label ?? VEHICLES[0].label
@@ -37,16 +63,19 @@ const CourierContext = createContext(null)
 export function CourierProvider({ children }) {
   const [online, setOnlineState] = useState(false)
   const [offlineAt, setOfflineAt] = useState(null)
+  const { courier, user } = useAuth()
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
-  const [profile, setProfile] = useState(DEFAULT_PROFILE)
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([readJson(SETTINGS_KEY), readJson(PROFILE_KEY)]).then(([savedSettings, savedProfile]) => {
+    readJson(SETTINGS_KEY).then((saved) => {
       if (cancelled) return
-      if (savedSettings) setSettings((current) => ({ ...current, ...savedSettings }))
-      if (savedProfile) setProfile((current) => ({ ...current, ...savedProfile }))
+      if (saved) {
+        // Kulkuneuvo oli ennen puhelimen asetus - nyt se on kuljettajatiedoissa.
+        const { vehicle: _vehicle, ...rest } = saved
+        setSettings((current) => ({ ...current, ...rest }))
+      }
       setLoaded(true)
     })
     return () => {
@@ -58,10 +87,6 @@ export function CourierProvider({ children }) {
   useEffect(() => {
     if (loaded) writeJson(SETTINGS_KEY, settings)
   }, [loaded, settings])
-
-  useEffect(() => {
-    if (loaded) writeJson(PROFILE_KEY, profile)
-  }, [loaded, profile])
 
   // Ajastettu offline: kun aika koittaa, kuljettaja siirtyy offline-tilaan.
   useEffect(() => {
@@ -108,24 +133,39 @@ export function CourierProvider({ children }) {
     if (!value) setOfflineAt(null)
   }
 
+  // Kulkuneuvo kuljettajatiedoista: reitit ja keikkojen haku käyttävät sitä
+  // asetusten kautta (settings.vehicle), kuten ennenkin.
+  const vehicle = courier?.vehicle ?? 'bike'
+  const language = settings.language ?? courier?.language ?? 'fi'
+  const profile = {
+    name: courier?.name?.trim() || '',
+    phone: courier?.phone?.trim() || '',
+    email: courier?.email || user?.email || '',
+    city: courier?.city ?? 'kuopio',
+    vehicle,
+    businessId: courier?.business_id ?? null,
+    billingMethod: courier?.billing_method ?? null,
+    iban: courier?.iban ?? null,
+    ibanHolder: courier?.iban_holder ?? null,
+  }
+
   const value = {
     online,
     setOnline,
     offlineAt,
     scheduleOffline: setOfflineAt,
-    settings,
+    settings: { ...settings, vehicle, language },
     updateSettings: (patch) => setSettings((current) => ({ ...current, ...patch })),
     profile,
-    updateProfile: (patch) => setProfile((current) => ({ ...current, ...patch })),
-    resetAll: () => {
+    // "Palauta oletukset" koskee vain tämän puhelimen asetuksia, ei profiilia.
+    resetSettings: () => {
       setSettings(DEFAULT_SETTINGS)
-      setProfile(DEFAULT_PROFILE)
       setOfflineAt(null)
     },
   }
 
-  // Näkymät piirretään vasta kun tallennetut asetukset ja profiili on luettu,
-  // ettei oletusarvo välähdä. Luku puhelimen muistista kestää vain hetken.
+  // Näkymät piirretään vasta kun tallennetut asetukset on luettu, ettei
+  // oletusarvo välähdä. Luku puhelimen muistista kestää vain hetken.
   return <CourierContext.Provider value={value}>{loaded ? children : null}</CourierContext.Provider>
 }
 

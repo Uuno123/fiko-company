@@ -3,11 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom'
 import AccountMenu from '../components/AccountMenu.jsx'
 import Footer from '../components/Footer.jsx'
 import Header from '../components/Header.jsx'
+import RankingInfo from '../components/RankingInfo.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import Spinner from '../components/Spinner.jsx'
 import { getRestaurants } from '../lib/api.js'
 import { CATEGORY_NAMES, categorySlug, padWithFillers } from '../lib/categories.js'
 import { restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
+import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { useCart } from '../lib/CartContext.jsx'
 import { formatPrice } from '../lib/format.js'
@@ -25,6 +27,7 @@ function CategoryPage() {
   const [favoriteIds, setFavoriteIds] = useState(() => new Set())
   const [sortBy, setSortBy] = useState('suositellut')
   const deliveryAddress = useDeliveryAddress()
+  const { popularity } = useRankingSignals()
 
   useEffect(() => {
     let cancelled = false
@@ -80,20 +83,18 @@ function CategoryPage() {
 
   const title = canonicalCategory
 
-  // Samat kaksi oikeaa kenttää kuin hakutuloksissa (SearchResults.jsx) - ei
-  // keksittyä järjestystä, molemmat lukevat kortin jo näyttämää dataa.
-  const sortedMatching = useMemo(() => {
-    if (sortBy === 'rating') return [...matching].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-    if (sortBy === 'eta') {
-      return [...matching].sort(
-        (a, b) => (a.pickup_estimate_minutes ?? Infinity) - (b.pickup_estimate_minutes ?? Infinity),
-      )
-    }
-    if (sortBy === 'distance') {
-      return [...matching].sort((a, b) => (a.distance_km ?? Infinity) - (b.distance_km ?? Infinity))
-    }
-    return matching
-  }, [matching, sortBy])
+  // "Suositellut" = delivon järjestys (lib/ranking.js: sponsorit paikoille 1 ja 4,
+  // muut pisteiden mukaan). Asiakkaan oma valinta järjestää tarkasti valinnan
+  // mukaan, ylimpänä enintään yksi sponsori.
+  const sortedMatching = useMemo(
+    () =>
+      rankRestaurants(matching, {
+        address: deliveryAddress,
+        popularity,
+        compare: SORT_COMPARATORS[sortBy] ?? null,
+      }),
+    [matching, sortBy, deliveryAddress, popularity],
+  )
 
   async function toggleFavorite(restaurantId) {
     if (!customer?.id) return
@@ -205,6 +206,7 @@ function CategoryPage() {
             ))}
           </div>
         )}
+        {matching.length > 0 && <RankingInfo />}
       </main>
 
       <Footer />

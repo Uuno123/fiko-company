@@ -2,7 +2,7 @@ import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ChevronRight } from 'lucide-react-native'
-import { ScreenHeader } from '../components/ui'
+import { PAGE_BACKGROUND, ScreenHeader } from '../components/ui'
 import { dayKey, formatDayLabel, formatEuro, formatKm, formatTime, parseDayKey } from '../lib/format'
 import { groupByDay, useGigs } from '../lib/gigs'
 import { colors, fonts } from '../theme'
@@ -24,10 +24,7 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader
-        title={day ? formatDayLabel(parseDayKey(day), now) : 'Keikkahistoria'}
-        subtitle={day ? 'Päivän keikat' : `Viimeiset 4 viikkoa · ${gigs.length} keikkaa`}
-      />
+      <ScreenHeader title={day ? formatDayLabel(parseDayKey(day), now) : 'Keikkahistoria'} />
       <SectionList
         sections={sections}
         keyExtractor={(gig) => gig.id}
@@ -44,7 +41,8 @@ export default function HistoryScreen() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{section.title}</Text>
             <Text style={styles.sectionMeta}>
-              {section.summary.count} {section.summary.count === 1 ? 'keikka' : 'keikkaa'} · {formatEuro(section.summary.total)}
+              {section.summary.count} {section.summary.count === 1 ? 'keikka' : 'keikkaa'} ·{' '}
+              {formatEuro(section.summary.total)}
             </Text>
           </View>
         )}
@@ -53,8 +51,7 @@ export default function HistoryScreen() {
             onPress={() => router.push(`/gig/${gig.id}`)}
             style={({ pressed }) => [
               styles.gig,
-              index === 0 && styles.gigFirst,
-              index === section.data.length - 1 ? styles.gigLast : styles.gigDivider,
+              index === section.data.length - 1 && styles.gigLast,
               pressed && styles.gigPressed,
             ]}
             accessibilityRole="button"
@@ -65,11 +62,11 @@ export default function HistoryScreen() {
                 {gig.restaurant.name}
               </Text>
               <Text style={styles.gigMeta} numberOfLines={1}>
-                → {gig.dropoff.area} · {formatKm(gig.distanceKm)}
+                {gig.dropoff.address} · {formatKm(gig.distanceKm)}
               </Text>
             </View>
             <Text style={styles.gigPay}>{formatEuro(gig.pay.total)}</Text>
-            <ChevronRight size={18} strokeWidth={2} color={colors.gray400} />
+            <ChevronRight size={20} strokeWidth={1.75} color={colors.textMuted} />
           </Pressable>
         )}
         ListEmptyComponent={
@@ -82,78 +79,83 @@ export default function HistoryScreen() {
   )
 }
 
+const CARD_LINE = '#ececec'
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: colors.gray50,
+    backgroundColor: PAGE_BACKGROUND,
   },
   content: {
     paddingHorizontal: 16,
   },
   showAll: {
     alignSelf: 'flex-start',
-    marginBottom: 4,
+    marginTop: 16,
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 18,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.gray200,
+    backgroundColor: '#f4f4f4',
   },
   showAllText: {
     fontFamily: fonts.semibold,
     fontSize: 14,
     color: colors.black,
   },
+  // Päivän kortin yläosa: reunus ylhäällä ja sivuilla, otsikko ja yhteenveto.
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'space-between',
-    marginTop: 20,
-    marginBottom: 8,
-    paddingHorizontal: 4,
+    gap: 12,
+    marginTop: 14,
+    paddingTop: 18,
+    paddingHorizontal: 16,
+    paddingBottom: 4,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: CARD_LINE,
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    backgroundColor: colors.surface,
   },
   sectionTitle: {
     fontFamily: fonts.display,
-    fontSize: 17,
+    fontSize: 21,
+    letterSpacing: -0.2,
     color: colors.black,
   },
   sectionMeta: {
-    fontFamily: fonts.medium,
-    fontSize: 13,
+    fontFamily: fonts.regular,
+    fontSize: 14,
     color: colors.textMuted,
   },
   gig: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    minHeight: 64,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    backgroundColor: colors.surface,
+    minHeight: 60,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderLeftWidth: 1,
     borderRightWidth: 1,
-    borderColor: colors.gray200,
+    borderColor: CARD_LINE,
+    backgroundColor: colors.surface,
   },
-  gigFirst: {
-    borderTopWidth: 1,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-  },
+  // Päivän viimeinen keikka sulkee kortin.
   gigLast: {
+    paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  gigDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
   },
   gigPressed: {
-    backgroundColor: colors.gray50,
+    opacity: 0.6,
   },
   gigTime: {
     width: 44,
-    fontFamily: fonts.display,
+    fontFamily: fonts.medium,
     fontSize: 15,
     color: colors.black,
   },
@@ -161,8 +163,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gigRestaurant: {
-    fontFamily: fonts.semibold,
-    fontSize: 15,
+    fontFamily: fonts.medium,
+    fontSize: 16,
     color: colors.black,
   },
   gigMeta: {
@@ -172,8 +174,8 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   gigPay: {
-    fontFamily: fonts.display,
-    fontSize: 16,
+    fontFamily: fonts.semibold,
+    fontSize: 15,
     color: colors.black,
   },
   empty: {

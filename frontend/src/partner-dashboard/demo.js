@@ -37,10 +37,11 @@ export const DEMO_PAYOUTS = [
   { id: 'p4', period: 'Viikko 35', date: ago(19), amountCents: 190910, status: 'paid' },
 ]
 
+// Kuljetus-paketti (lib/partnerPlans.js): kuukausimaksu ja kesällä 12 lisäkuljetusta.
 export const DEMO_INVOICES = [
-  { id: 'i1', number: 'DLV-2026-0912', title: 'Kuukausimaksu ja välityspalkkiot, elokuu', date: ago(27), amountCents: 43210, status: 'paid' },
-  { id: 'i2', number: 'DLV-2026-0815', title: 'Kuukausimaksu ja välityspalkkiot, heinäkuu', date: ago(58), amountCents: 39880, status: 'paid' },
-  { id: 'i3', number: 'DLV-2026-0718', title: 'Kuukausimaksu ja välityspalkkiot, kesäkuu', date: ago(89), amountCents: 41150, status: 'paid' },
+  { id: 'i1', number: 'DLV-2026-0912', title: 'Kuukausimaksu, elokuu', date: ago(27), amountCents: 7999, status: 'paid' },
+  { id: 'i2', number: 'DLV-2026-0815', title: 'Kuukausimaksu ja lisäkuljetukset, heinäkuu', date: ago(58), amountCents: 8587, status: 'paid' },
+  { id: 'i3', number: 'DLV-2026-0718', title: 'Kuukausimaksu, kesäkuu', date: ago(89), amountCents: 7999, status: 'paid' },
 ]
 
 export const DEMO_STAFF = [

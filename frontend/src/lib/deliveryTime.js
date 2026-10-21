@@ -15,6 +15,15 @@ export const DROPOFF_MIN = 2
 // Ajoaika ravintolasta asiakkaalle, kun toisen pään koordinaatteja ei tiedetä.
 export const DEFAULT_RIDE_MIN = 12
 
+// Kuljettajan palkkio keikasta: perusmaksu + matkalisä ajetuilta kilometreiltä
+// (kuljettajalta ravintolaan ja perille). Kuljettaja-app laskee tarjouksen tällä,
+// kumppanisivun ansiolaskuri samalla.
+export const COURIER_PAY = { baseCents: 320, perKmCents: 70 }
+
+export function courierPayCents(routeKm) {
+  return COURIER_PAY.baseCents + Math.round(routeKm * COURIER_PAY.perKmCents)
+}
+
 // Tietokannan tyhjä koordinaatti on null - Number(null) olisi 0 (Afrikan edusta),
 // joten tyhjästä tulee NaN, jonka hasCoords hylkää.
 export function coordinate(value) {

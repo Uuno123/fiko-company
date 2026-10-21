@@ -5,6 +5,9 @@ import { House, Utensils } from 'lucide-react-native'
 import CollapsibleCard from './CollapsibleCard'
 import { formatEuro, formatKm, formatTime } from '../lib/format'
 import { OFFER_SECONDS, plannedSchedule } from '../lib/jobs'
+import { useCourier } from '../lib/courier'
+import { useT } from '../lib/i18n'
+import { useOfferSound } from '../lib/sound'
 import { colors, fonts } from '../theme'
 
 const useNativeDriver = Platform.OS !== 'web'
@@ -20,6 +23,10 @@ function secondsLeft(expiresAt) {
 // näkyviin, reitin tiedot piiloutuvat.
 export default function OfferCard({ offer, onAccept, onHeightChange }) {
   const insets = useSafeAreaInsets()
+  const t = useT()
+  const { settings } = useCourier()
+  // Ääni uudesta tarjouksesta (Asetukset > Ääni uudesta keikasta).
+  useOfferSound(offer.id, settings.sound)
   const enter = useRef(new Animated.Value(1)).current
   const timeLeft = useRef(new Animated.Value(1)).current
   const [seconds, setSeconds] = useState(() => secondsLeft(offer.expiresAt))
@@ -44,11 +51,11 @@ export default function OfferCard({ offer, onAccept, onHeightChange }) {
     <>
       <View style={styles.badge}>
         <View style={styles.badgeDot} />
-        <Text style={styles.badgeText}>Uusi keikka</Text>
+        <Text style={styles.badgeText}>{t('offer.new')}</Text>
       </View>
 
       <Text style={styles.pay}>{formatEuro(offer.pay.total)}</Text>
-      <Text style={styles.payLabel}>Arvioitu ansio koko toimituksesta</Text>
+      <Text style={styles.payLabel}>{t('offer.payLabel')}</Text>
     </>
   )
 
@@ -57,12 +64,12 @@ export default function OfferCard({ offer, onAccept, onHeightChange }) {
       onPress={onAccept}
       style={({ pressed }) => [styles.accept, pressed && styles.acceptPressed]}
       accessibilityRole="button"
-      accessibilityLabel={`Hyväksy keikka, ${seconds} sekuntia aikaa`}
+      accessibilityLabel={t('offer.acceptA11y', { seconds })}
     >
       {/* Kirkas oranssi osa kutistuu vasemmalle sitä mukaa kuin aika kuluu. */}
       <Animated.View style={[styles.acceptTime, { transform: [{ scaleX: timeLeft }] }]} />
       <View style={styles.acceptContent}>
-        <Text style={styles.acceptText}>Hyväksy</Text>
+        <Text style={styles.acceptText}>{t('offer.accept')}</Text>
         <Text style={styles.acceptSeconds}>{seconds} s</Text>
       </View>
     </Pressable>
@@ -80,15 +87,19 @@ export default function OfferCard({ offer, onAccept, onHeightChange }) {
         <Place
           Icon={Utensils}
           iconStyle={styles.placeIconPickup}
-          label={`Nouto klo ${formatTime(schedule.arriveBy)}`}
+          label={t('offer.pickupAt', { time: formatTime(schedule.arriveBy) })}
           name={offer.restaurant.name}
-          detail={offer.approachKnown ? `${offer.restaurant.address} · ${formatKm(offer.approachKm)} sinusta` : offer.restaurant.address}
+          detail={
+            offer.approachKnown
+              ? t('offer.fromYou', { address: offer.restaurant.address, km: formatKm(offer.approachKm) })
+              : offer.restaurant.address
+          }
         />
         <View style={styles.placeLine} />
         <Place
           Icon={House}
           iconStyle={styles.placeIconDropoff}
-          label={`Toimitus viimeistään klo ${formatTime(schedule.deliverBy)}`}
+          label={t('offer.deliverBy', { time: formatTime(schedule.deliverBy) })}
           name={offer.dropoff.area}
           detail={offer.dropoff.address}
         />
@@ -96,12 +107,12 @@ export default function OfferCard({ offer, onAccept, onHeightChange }) {
 
       <View style={styles.facts}>
         <View style={styles.fact}>
-          <Text style={styles.factLabel}>Reitin pituus</Text>
-          <Text style={styles.factValue}>{offer.deliveryKnown ? formatKm(offer.routeKm) : 'Ei tiedossa'}</Text>
+          <Text style={styles.factLabel}>{t('offer.routeLength')}</Text>
+          <Text style={styles.factValue}>{offer.deliveryKnown ? formatKm(offer.routeKm) : t('offer.unknown')}</Text>
         </View>
         <View style={styles.factDivider} />
         <View style={styles.fact}>
-          <Text style={styles.factLabel}>Arvioitu aika</Text>
+          <Text style={styles.factLabel}>{t('offer.estimatedTime')}</Text>
           <Text style={styles.factValue}>
             {offer.minMinutes}–{offer.maxMinutes} min
           </Text>

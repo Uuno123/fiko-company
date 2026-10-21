@@ -7,6 +7,12 @@ import { COURIER_ACTIVE_STATUSES } from './orderStatus.js'
 // Asiakkaalla ei ole koodia: kuljettaja todistaa toimituksen sijainnillaan
 // osoitteessa, ja ainoa koodi on ravintolan noutokoodi (migraatio 0044).
 
+// Kuljettaja on noutanut tilauksen: ravintolaa ei enää näytetä asiakkaan kartalla,
+// vain kuljettaja ja koti.
+export function courierHasFood(order) {
+  return order?.delivery_method === 'delivery' && ['picked_up', 'delivered'].includes(order?.courier_status)
+}
+
 // Kuljettajan sijainti { lat, lng } tai null. Päivittyy reaaliajassa, kun
 // kuljettaja-app tallentaa uuden sijainnin.
 export function useCourierPosition(order) {

@@ -2,9 +2,9 @@ import { Linking, StyleSheet, Text, View } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { CircleAlert, MapPin, Navigation, Store } from 'lucide-react-native'
 import MapView from '../../components/MapView'
-import { Button, Card, Screen } from '../../components/ui'
+import { Card, ListRow, Screen, StatRow } from '../../components/ui'
 import { useCourier } from '../../lib/courier'
-import { formatDayLabel, formatEuro, formatKm, formatMinutes, formatTime } from '../../lib/format'
+import { formatEuro, formatKm, formatMinutes, formatTime } from '../../lib/format'
 import { PAY, useGigs } from '../../lib/gigs'
 import { navigationAppLabel, openRoute } from '../../lib/navigationApps'
 import { colors, fonts } from '../../theme'
@@ -37,7 +37,7 @@ export default function GigScreen() {
   }
 
   return (
-    <Screen title={`Keikka #${gig.number}`} subtitle={`${formatDayLabel(gig.deliveredAt)} klo ${formatTime(gig.acceptedAt)}`}>
+    <Screen title={`Keikka #${gig.number}`}>
       {/* Pelkkä esikatselukuva: kosketukset menevät sivun vieritykselle. */}
       <View style={[styles.map, { pointerEvents: 'none' }]}>
         <MapView route={route} interactive={false} />
@@ -63,41 +63,38 @@ export default function GigScreen() {
         />
       </Card>
 
-      <View style={styles.stats}>
-        <Card style={styles.stat}>
-          <Text style={styles.statValue}>{formatKm(gig.distanceKm)}</Text>
-          <Text style={styles.statLabel}>Matka</Text>
-        </Card>
-        <Card style={styles.stat}>
-          <Text style={styles.statValue}>{formatMinutes(gig.durationMin)}</Text>
-          <Text style={styles.statLabel}>Kesto</Text>
-        </Card>
-      </View>
+      <StatRow
+        items={[
+          { label: 'Matka', value: formatKm(gig.distanceKm) },
+          { label: 'Kesto', value: formatMinutes(gig.durationMin) },
+          { label: 'Ansio', value: formatEuro(gig.pay.total) },
+        ]}
+      />
 
-      <Card style={styles.pay}>
-        <PayRow label="Perusmaksu" value={formatEuro(gig.pay.base)} />
-        <PayRow
-          label={`Matkalisä (${formatKm(gig.distanceKm)} × ${formatEuro(PAY.perKmCents)})`}
-          value={formatEuro(gig.pay.distance)}
-        />
-        <PayRow label="Tippi" value={gig.pay.tip ? formatEuro(gig.pay.tip) : '–'} />
-        <View style={styles.payDivider} />
-        <View style={styles.payTotalRow}>
-          <Text style={styles.payTotalLabel}>Yhteensä</Text>
-          <Text style={styles.payTotal}>{formatEuro(gig.pay.total)}</Text>
+      <Card title="Ansio">
+        <View style={styles.pay}>
+          <PayRow label="Perusmaksu" value={formatEuro(gig.pay.base)} />
+          <PayRow
+            label={`Matkalisä (${formatKm(gig.distanceKm)} × ${formatEuro(PAY.perKmCents)})`}
+            value={formatEuro(gig.pay.distance)}
+          />
+          <View style={styles.payDivider} />
+          <View style={styles.payTotalRow}>
+            <Text style={styles.payTotalLabel}>Yhteensä</Text>
+            <Text style={styles.payTotal}>{formatEuro(gig.pay.total)}</Text>
+          </View>
         </View>
       </Card>
 
-      <View style={styles.actions}>
-        <Button
-          title={`Näytä reitti: ${navigationAppLabel(settings.navigationApp)}`}
+      <Card>
+        <ListRow
           icon={Navigation}
-          variant="secondary"
+          label="Näytä reitti"
+          value={navigationAppLabel(settings.navigationApp)}
           onPress={() => openRoute(settings.navigationApp, route.from, route.to, settings.vehicle)}
         />
-        <Button title="Ilmoita ongelmasta" icon={CircleAlert} variant="secondary" onPress={reportProblem} />
-      </View>
-
+        <ListRow icon={CircleAlert} label="Ilmoita ongelmasta" onPress={reportProblem} />
+      </Card>
     </Screen>
   )
 }
@@ -131,13 +128,10 @@ function PayRow({ label, value }) {
 const styles = StyleSheet.create({
   map: {
     height: 200,
-    borderRadius: 20,
+    borderRadius: 16,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: colors.gray200,
   },
   steps: {
-    marginTop: 12,
     padding: 16,
   },
   step: {
@@ -183,30 +177,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
   },
-  stats: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 10,
-  },
-  stat: {
-    flex: 1,
-    padding: 14,
-  },
-  statValue: {
-    fontFamily: fonts.display,
-    fontSize: 20,
-    color: colors.black,
-  },
-  statLabel: {
-    marginTop: 2,
-    fontFamily: fonts.medium,
-    fontSize: 12,
-    color: colors.textMuted,
-  },
   pay: {
-    marginTop: 10,
-    padding: 16,
     gap: 10,
+    paddingBottom: 8,
   },
   payRow: {
     flexDirection: 'row',
@@ -242,10 +215,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
     fontSize: 22,
     color: colors.black,
-  },
-  actions: {
-    gap: 10,
-    marginTop: 16,
   },
   missing: {
     padding: 18,

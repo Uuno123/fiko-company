@@ -22,11 +22,15 @@
   max-width: 320px;
 }
 
+/* Sanamerkki mustalla: valkoiset kirjaimet, oranssi ruksi. */
 .site-footer__logo {
-  font-family: 'Fredoka', var(--font-display);
-  font-weight: 700;
-  font-size: 1.5rem;
-  letter-spacing: -0.02em;
+  display: inline-flex;
+  color: #fff;
+  line-height: 0;
+}
+
+.site-footer__logo .delivo-logo {
+  height: 22px;
 }
 
 .site-footer__tagline {

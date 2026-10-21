@@ -24,6 +24,7 @@ import OrderHistory from './pages/OrderHistory.jsx'
 import PartnerLanding from './pages/PartnerLanding.jsx'
 import PartnerLogin from './pages/PartnerLogin.jsx'
 import PartnerRegister from './pages/PartnerRegister.jsx'
+import CourierApplication from './pages/CourierApplication.jsx'
 import PartnerDashboard from './partner-dashboard/PartnerDashboard.jsx'
 import PreviewDashboard from './pages/__PreviewDashboard.jsx'
 import PreviewAccount from './pages/__PreviewAccount.jsx'
@@ -97,6 +98,7 @@ function App() {
               <Route path="/kumppanina" element={<PartnerLanding />} />
               <Route path="/kumppani/kirjaudu" element={<PartnerLogin />} />
               <Route path="/kumppani/rekisteroidy" element={<PartnerRegister />} />
+              <Route path="/kumppani/kuljettajaksi" element={<CourierApplication />} />
               <Route
                 path="/kumppani/dashboard/*"
                 element={

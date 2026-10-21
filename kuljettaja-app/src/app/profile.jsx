@@ -1,121 +1,134 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useRouter } from 'expo-router'
-import { Check } from 'lucide-react-native'
-import { Button, Card, ListRow, Screen, SectionTitle } from '../components/ui'
+import { Check, FileText, Landmark, Mail, MapPin, User } from 'lucide-react-native'
+import { Button, Card, ListRow, LockedRow, Screen, StatRow } from '../components/ui'
 import { vehicleIcon } from '../components/vehicleIcons'
-import { vehicleLabel, useCourier } from '../lib/courier'
-import { formatEuro, formatKm, initials } from '../lib/format'
+import { useAuth } from '../lib/auth'
+import { billingMethodLabel, cityLabel, useCourier } from '../lib/courier'
+import { useChangeRequests } from '../lib/changeRequests'
+import { formatEuro, formatKm } from '../lib/format'
 import { summarize, useGigs } from '../lib/gigs'
+import { useT } from '../lib/i18n'
 import { colors, fonts } from '../theme'
 
-// Profiili: nimi, puhelin ja sähköposti tallentuvat puhelimeen (kirjautumista
-// ei vielä ole). Kulkuneuvo vaihdetaan asetuksista.
+// Profiili. Nimi, sähköposti, kulkuneuvo ja kaupunki ovat lukittuja: rivi avaa
+// muutospyynnön, jonka delivo hyväksyy (migraatio 0051). Puhelinnumeron
+// kuljettaja vaihtaa itse, ja se tallentuu kuljettajatietoihin.
 export default function ProfileScreen() {
   const router = useRouter()
-  const { profile, updateProfile, settings } = useCourier()
-  const [draft, setDraft] = useState(profile)
-  const [saved, setSaved] = useState(false)
+  const t = useT()
+  const { profile } = useCourier()
+  const { pendingFor, rejectedFor } = useChangeRequests()
   const stats = summarize(useGigs())
 
-  // Profiili voi latautua muistista vasta näkymän avauduttua.
-  useEffect(() => setDraft(profile), [profile])
+  // Pyydetty uusi arvo luettavassa muodossa (kulkuneuvo ja kaupunki nimenä).
+  const display = (field, value) => {
+    if (field === 'vehicle') return t(`vehicle.${value}`)
+    if (field === 'city') return cityLabel(value)
+    if (field === 'billing_method') return billingMethodLabel(value) ?? value
+    return value
+  }
 
-  useEffect(() => {
-    if (!saved) return undefined
-    const timer = setTimeout(() => setSaved(false), 2000)
-    return () => clearTimeout(timer)
-  }, [saved])
-
-  const changed = ['name', 'phone', 'email'].some((field) => draft[field].trim() !== profile[field])
-  const valid = draft.name.trim().length > 0
-  const save = () => {
-    updateProfile({ name: draft.name.trim(), phone: draft.phone.trim(), email: draft.email.trim() })
-    setSaved(true)
+  const lockedRow = (field, Icon, label, value) => {
+    const pending = pendingFor(field)
+    const rejected = rejectedFor(field)
+    let detail = t('profile.requestChange')
+    if (pending) detail = t('profile.pending', { value: display(field, pending.new_value) })
+    else if (rejected?.admin_note) detail = t('profile.rejected', { note: rejected.admin_note })
+    return (
+      <LockedRow
+        icon={Icon}
+        label={label}
+        value={value}
+        note={detail}
+        noteAccent={!pending && !rejected?.admin_note}
+        onPress={() => router.push({ pathname: '/change-request', params: { field } })}
+      />
+    )
   }
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Screen title="Profiili">
-        <View style={styles.hero}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials(draft.name || profile.name)}</Text>
-          </View>
-          <Text style={styles.name}>{profile.name}</Text>
-          <Text style={styles.vehicle}>{vehicleLabel(settings.vehicle)}</Text>
-        </View>
-
-        <SectionTitle>Omat tiedot</SectionTitle>
-        <Card style={styles.form}>
-          <Field label="Nimi" value={draft.name} onChangeText={(name) => setDraft((d) => ({ ...d, name }))} autoComplete="name" />
-          <Field
-            label="Puhelinnumero"
-            value={draft.phone}
-            onChangeText={(phone) => setDraft((d) => ({ ...d, phone }))}
-            keyboardType="phone-pad"
-            autoComplete="tel"
-            placeholder="+358 40 123 4567"
-          />
-          <Field
-            label="Sähköposti"
-            value={draft.email}
-            onChangeText={(email) => setDraft((d) => ({ ...d, email }))}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoComplete="email"
-            placeholder="nimi@esimerkki.fi"
-            last
-          />
-        </Card>
-        <View style={styles.saveRow}>
-          {saved ? (
-            <View style={styles.savedNote}>
-              <Check size={18} strokeWidth={2.4} color={colors.open} />
-              <Text style={styles.savedText}>Tallennettu</Text>
-            </View>
-          ) : (
-            <Button title="Tallenna" onPress={save} disabled={!changed || !valid} />
-          )}
-        </View>
-
-        <SectionTitle>Kulkuneuvo</SectionTitle>
-        <Card>
-          <ListRow
-            icon={vehicleIcon(settings.vehicle)}
-            label={vehicleLabel(settings.vehicle)}
-            detail="Vaihda asetuksista"
-            onPress={() => router.push('/settings')}
-            last
-          />
+      <Screen title={t('profile.title')}>
+        <Card title={t('profile.details')}>
+          {lockedRow('name', User, t('profile.name'), profile.name)}
+          {lockedRow('email', Mail, t('profile.email'), profile.email)}
+          {lockedRow('vehicle', vehicleIcon(profile.vehicle), t('profile.vehicle'), t(`vehicle.${profile.vehicle}`))}
+          {lockedRow('city', MapPin, t('profile.city'), cityLabel(profile.city))}
         </Card>
 
-        <SectionTitle>Viimeiset 4 viikkoa</SectionTitle>
-        <View style={styles.stats}>
-          <Stat label="Keikat" value={String(stats.count)} />
-          <Stat label="Ansiot" value={formatEuro(stats.total)} />
-          <Stat label="Matka" value={formatKm(stats.km)} />
-        </View>
+        {/* Uusi avain, kun tallennettu numero muuttuu: kenttä alkaa siitä. */}
+        <PhoneCard key={profile.phone} phone={profile.phone} />
+
+        <Card title={t('profile.account')}>
+          <ListRow icon={Landmark} label={t('profile.billing')} onPress={() => router.push('/billing')} />
+          <ListRow icon={FileText} label={t('profile.documents')} onPress={() => router.push('/documents')} />
+        </Card>
+
+        <StatRow
+          title={t('profile.stats')}
+          items={[
+            { label: t('profile.gigs'), value: String(stats.count) },
+            { label: t('profile.earnings'), value: formatEuro(stats.total) },
+            { label: t('common.distance'), value: formatKm(stats.km) },
+          ]}
+        />
       </Screen>
     </KeyboardAvoidingView>
   )
 }
 
-function Field({ label, last = false, ...inputProps }) {
-  return (
-    <View style={[styles.field, !last && styles.fieldDivider]}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <TextInput style={styles.input} placeholderTextColor={colors.gray400} {...inputProps} />
-    </View>
-  )
-}
+// Puhelinnumero: ainoa tieto, jonka kuljettaja muuttaa itse (couriers.phone).
+function PhoneCard({ phone }) {
+  const t = useT()
+  const { updateCourier } = useAuth()
+  const [draft, setDraft] = useState(phone)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState('')
+  const changed = draft.trim() !== phone
 
-function Stat({ label, value }) {
+  const save = async () => {
+    setSaving(true)
+    setError('')
+    try {
+      await updateCourier({ phone: draft.trim() })
+      setSaved(true)
+    } catch {
+      setError(t('profile.saveError'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
-    <Card style={styles.stat}>
-      <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>
-        {value}
-      </Text>
-      <Text style={styles.statLabel}>{label}</Text>
+    <Card title={t('profile.phone')}>
+      <TextInput
+        style={styles.input}
+        value={draft}
+        onChangeText={(value) => {
+          setDraft(value)
+          setSaved(false)
+          setError('')
+        }}
+        keyboardType="phone-pad"
+        autoComplete="tel"
+        placeholder="+358 40 123 4567"
+        placeholderTextColor={colors.gray400}
+        accessibilityLabel={t('profile.phone')}
+      />
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {saved && !changed ? (
+        <View style={styles.saved}>
+          <Check size={18} strokeWidth={2.4} color={colors.open} />
+          <Text style={styles.savedText}>{t('profile.saved')}</Text>
+        </View>
+      ) : changed ? (
+        <View style={styles.saveRow}>
+          <Button title={t('profile.save')} onPress={save} disabled={saving} />
+        </View>
+      ) : null}
     </Card>
   )
 }
@@ -124,93 +137,38 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  hero: {
-    alignItems: 'center',
-    paddingTop: 8,
-  },
-  avatar: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: colors.orangeSoft,
-  },
-  avatarText: {
-    fontFamily: fonts.display,
-    fontSize: 32,
-    color: colors.orange,
-  },
-  name: {
-    marginTop: 12,
-    fontFamily: fonts.display,
-    fontSize: 24,
-    letterSpacing: -0.4,
-    color: colors.black,
-  },
-  vehicle: {
-    marginTop: 2,
-    fontFamily: fonts.medium,
-    fontSize: 14,
-    color: colors.textMuted,
-  },
-  form: {
-    paddingHorizontal: 16,
-  },
-  field: {
-    paddingVertical: 12,
-  },
-  fieldDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.gray200,
-  },
-  fieldLabel: {
-    fontFamily: fonts.medium,
-    fontSize: 13,
-    color: colors.textMuted,
-  },
   input: {
+    height: 52,
     marginTop: 4,
-    paddingVertical: 4,
+    marginBottom: 8,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ececec',
+    backgroundColor: colors.gray50,
     fontFamily: fonts.medium,
     fontSize: 16,
     color: colors.black,
+    ...Platform.select({ web: { outlineStyle: 'none' }, default: null }),
+  },
+  error: {
+    marginBottom: 8,
+    fontFamily: fonts.medium,
+    fontSize: 13,
+    color: colors.danger,
   },
   saveRow: {
-    marginTop: 12,
-    minHeight: 52,
-    justifyContent: 'center',
+    marginBottom: 8,
   },
-  savedNote: {
+  saved: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 6,
+    marginBottom: 10,
   },
   savedText: {
     fontFamily: fonts.semibold,
     fontSize: 15,
     color: colors.open,
-  },
-  stats: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  stat: {
-    flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 10,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontFamily: fonts.display,
-    fontSize: 18,
-    color: colors.black,
-  },
-  statLabel: {
-    marginTop: 2,
-    fontFamily: fonts.medium,
-    fontSize: 12,
-    color: colors.textMuted,
   },
 })

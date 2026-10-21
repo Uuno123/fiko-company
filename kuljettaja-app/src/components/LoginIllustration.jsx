@@ -1,6 +1,7 @@
 import { View } from 'react-native'
-import Svg, { Circle, Ellipse, G, Line, Path, Rect, Text as SvgText } from 'react-native-svg'
-import { colors, fonts } from '../theme'
+import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg'
+import { LOGO_CHECK_PATH, LOGO_CHECK_STROKE, LOGO_LETTERS_PATH } from '../../../frontend/src/lib/logoPaths'
+import { colors } from '../theme'
 
 // Kirjautumisnäkymän kuvitus: delivo-kuljettaja polkupyörällä, selässä
 // delivo-reppu, taustalla kaupungin siluetti ja Puijon torni oranssilla
@@ -146,10 +147,18 @@ export default function LoginIllustration({ style }) {
         <G rotation={-40} originX={190} originY={80}>
           <Rect x={164} y={60} width={52} height={40} rx={8} fill="#ffffff" />
           <Rect x={164} y={60} width={52} height={10} rx={5} fill={BAG_SHADE} />
-          <Rect x={171} y={77} width={38} height={15} rx={7.5} fill={ORANGE} />
-          <SvgText x={190} y={88.2} fontSize={10} fontFamily={fonts.display} fill="#ffffff" textAnchor="middle">
-            delivo
-          </SvgText>
+          {/* Sama sanamerkki kuin logossa (frontend/src/lib/logoPaths.js). */}
+          <G transform="translate(170 79.8) scale(0.1345)">
+            <Path d={LOGO_LETTERS_PATH} fill={INK} />
+            <Path
+              d={LOGO_CHECK_PATH}
+              fill="none"
+              stroke={ORANGE}
+              strokeWidth={LOGO_CHECK_STROKE}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </G>
         </G>
         <Path d="M212 82 Q222 86 228 96" stroke={RIM} strokeWidth={3} strokeLinecap="round" fill="none" />
 
