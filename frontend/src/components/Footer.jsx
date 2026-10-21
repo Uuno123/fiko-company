@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { openCookieSettings } from '../lib/cookieConsent.js'
+import DelivoLogo from './DelivoLogo.jsx'
 import './Footer.css'
 
 function Footer() {
@@ -9,7 +10,9 @@ function Footer() {
     <footer className="site-footer">
       <div className="site-footer__inner">
         <div className="site-footer__brand">
-          <span className="site-footer__logo">delivo</span>
+          <span className="site-footer__logo">
+            <DelivoLogo />
+          </span>
           <p className="site-footer__tagline">Nouda tai tilaa kuljetuksella suoraan lähiravintoloista.</p>
         </div>
 

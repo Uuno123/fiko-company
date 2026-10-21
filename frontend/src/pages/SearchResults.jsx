@@ -2,12 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
+import RankingInfo from '../components/RankingInfo.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import Spinner from '../components/Spinner.jsx'
 import { useCart } from '../lib/CartContext.jsx'
 import { formatPrice } from '../lib/format.js'
 import { searchFillerRestaurants } from '../lib/categories.js'
 import { restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
+import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { supabase } from '../lib/supabaseClient.js'
 import './SearchResults.css'
 
@@ -27,6 +29,10 @@ function SearchResults() {
   const cart = useCart()
   const navigate = useNavigate()
   const deliveryAddress = useDeliveryAddress()
+  const { popularity } = useRankingSignals()
+  // Järjestykseen tarvittavat kentät, joita hakufunktiot eivät palauta
+  // (sponsorointi, ikä, aukioloajat, sijainti) - id -> rivi.
+  const [rankingDetails, setRankingDetails] = useState(() => new Map())
 
   useEffect(() => {
     setInputValue(query)
@@ -66,6 +72,22 @@ function SearchResults() {
     }
   }, [query])
 
+  useEffect(() => {
+    const ids = [...new Set([...restaurants.map((r) => r.id), ...items.map((item) => item.restaurant_id)].filter(Boolean))]
+    if (ids.length === 0 || !supabase) return undefined
+    let cancelled = false
+    supabase
+      .from('restaurants')
+      .select('id, plan, featured_until, created_at, opening_hours, lat, lng')
+      .in('id', ids)
+      .then(({ data }) => {
+        if (!cancelled && data) setRankingDetails(new Map(data.map((row) => [row.id, row])))
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [restaurants, items])
+
   // Sivu näyttää vain ravintoloita (samat kuin hakunäkymässä, ks. SearchSuggest):
   // annoshaku kertoo vain mitkä ravintolat myyvät haettua ruokaa, ja perään tulevat
   // hakuun liittyvät täyteravintolat.
@@ -85,28 +107,24 @@ function SearchResults() {
         pickup_estimate_minutes: item.restaurant_pickup_estimate_minutes,
       })
     }
-    const real = [...restaurants, ...fromItems]
+    const real = [...restaurants, ...fromItems].map((r) => ({ ...rankingDetails.get(r.id), ...r }))
     const realNames = new Set(real.map((r) => r.name?.toLowerCase()))
     const fillers = searchFillerRestaurants(query).filter((f) => !realNames.has(f.name.toLowerCase()))
     return [...real, ...fillers].map((r) => ({ ...r, distance_km: restaurantDistanceKm(r, deliveryAddress) }))
-  }, [restaurants, items, query, deliveryAddress])
+  }, [restaurants, items, query, deliveryAddress, rankingDetails])
 
-  // "Suositellut" on RPC:n oma järjestys (osuvuus haulle) - ainoa järjestys jota
-  // ei voi laskea selaimessa. Muut kaksi ovat oikeita kenttiä datassa, ei arvattuja.
-  const sortedRestaurants = useMemo(() => {
-    if (restaurantSort === 'rating') {
-      return [...allRestaurants].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-    }
-    if (restaurantSort === 'eta') {
-      return [...allRestaurants].sort(
-        (a, b) => (a.pickup_estimate_minutes ?? Infinity) - (b.pickup_estimate_minutes ?? Infinity),
-      )
-    }
-    if (restaurantSort === 'distance') {
-      return [...allRestaurants].sort((a, b) => (a.distance_km ?? Infinity) - (b.distance_km ?? Infinity))
-    }
-    return allRestaurants
-  }, [allRestaurants, restaurantSort])
+  // Haku päättää mitkä ravintolat näytetään, järjestys tulee delivon säännöstä
+  // (lib/ranking.js): "Suositellut" = sponsorit paikoille 1 ja 4 ja muut pisteiden
+  // mukaan, asiakkaan oma valinta tarkasti valinnan mukaan (enintään 1 sponsori).
+  const sortedRestaurants = useMemo(
+    () =>
+      rankRestaurants(allRestaurants, {
+        address: deliveryAddress,
+        popularity,
+        compare: SORT_COMPARATORS[restaurantSort] ?? null,
+      }),
+    [allRestaurants, restaurantSort, deliveryAddress, popularity],
+  )
 
   return (
     <div className="page page--search">
@@ -227,6 +245,7 @@ function SearchResults() {
                 <RestaurantCard key={r.id} restaurant={r} disabled={r.isPlaceholder} />
               ))}
             </div>
+            <RankingInfo />
           </section>
         )}
       </main>

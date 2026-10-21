@@ -1673,3 +1673,28 @@
 .checkout-address-fix__hint--ok {
   color: #1f7a36;
 }
+
+/* Puhelimella ei isoja mustia nappeja (käyttäjän toive): takaisin-nuoli ilman
+   palloa, ja tyhjän korin / tilausvahvistuksen jatkolinkki pelkkänä tekstinä.
+   Maksunappi pysyy nappina - se on sivun päätoiminto. */
+@media (max-width: 560px) {
+  .cart-topbar__back {
+    width: 32px;
+    height: 32px;
+    margin-left: -6px;
+    background: none;
+    color: var(--delivo-black);
+  }
+
+  .cart-empty__cta,
+  .cart-empty__cta:hover {
+    padding: 4px 0;
+    background: none;
+    color: var(--delivo-black);
+    font-size: 0.95rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    transform: none;
+    box-shadow: none;
+  }
+}

@@ -1,23 +1,43 @@
 import { useCallback, useState } from 'react'
-import { Alert, Linking, Platform, Pressable, StyleSheet, Switch, Text, View } from 'react-native'
-import { useFocusEffect } from 'expo-router'
+import { Alert, Linking, Platform, StyleSheet, Switch, Text, View } from 'react-native'
+import { useFocusEffect, useRouter } from 'expo-router'
 import Constants from 'expo-constants'
 import * as Location from 'expo-location'
-import { ExternalLink, LocateFixed, Map as MapIcon, RotateCcw, SunMedium, Vibrate } from 'lucide-react-native'
-import { Card, ListRow, Screen, SectionTitle } from '../components/ui'
+import {
+  BellRing,
+  ExternalLink,
+  Languages,
+  LocateFixed,
+  Lock,
+  Map as MapIcon,
+  Navigation,
+  SunMedium,
+  Vibrate,
+} from 'lucide-react-native'
+import ChoiceSheet from '../components/ChoiceSheet'
+import { Card, ListRow, ProfileCard, Screen } from '../components/ui'
 import { vehicleIcon } from '../components/vehicleIcons'
-import { VEHICLES, useCourier } from '../lib/courier'
-import { NAVIGATION_APPS } from '../lib/navigationApps'
+import { useAuth } from '../lib/auth'
+import { useCourier } from '../lib/courier'
+import { LANGUAGES, useT } from '../lib/i18n'
+import { NAVIGATION_APPS, navigationAppLabel } from '../lib/navigationApps'
 import { colors, fonts } from '../theme'
 
-const PERMISSION_LABELS = { granted: 'Sallittu', denied: 'Estetty', undetermined: 'Ei kysytty' }
+const PERMISSION_COLORS = { granted: colors.open, denied: colors.danger, undetermined: colors.gray400 }
 
-// Asetukset tallentuvat puhelimeen (lib/courier.js) ja vaikuttavat heti:
-// kulkuneuvo ja navigointisovellus reitin avaamiseen, värinä liukukytkimeen
-// ja "näyttö päällä" online-tilaan.
+const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0'
+
+// Asetukset. Kuljettaja vaihtaa itse vain sovelluksen käyttöön liittyvät
+// asetukset (navigointi, värinä, ääni, näyttö päällä, kieli). Ne tallentuvat
+// tähän puhelimeen (lib/courier.js), kieli myös kuljettajatietoihin.
+// Kulkuneuvo on lukittu: rivi avaa muutospyynnön, jonka delivo hyväksyy.
 export default function SettingsScreen() {
-  const { settings, updateSettings, resetAll } = useCourier()
+  const router = useRouter()
+  const t = useT()
+  const { settings, updateSettings, resetSettings, profile } = useCourier()
+  const { courier, updateCourier } = useAuth()
   const [permission, setPermission] = useState(null)
+  const [sheet, setSheet] = useState(null)
 
   // Sijaintilupa tarkistetaan aina kun näkymään palataan (esim. puhelimen
   // asetuksista, joissa luvan on voinut muuttaa).
@@ -33,98 +53,115 @@ export default function SettingsScreen() {
     }, []),
   )
 
+  // Kieli vaihtuu heti tässä puhelimessa ja tallentuu kuljettajatietoihin.
+  const chooseLanguage = (language) => {
+    updateSettings({ language })
+    if (courier) updateCourier({ language }).catch(() => {})
+  }
+
   const confirmReset = () => {
-    const title = 'Palautetaanko oletukset?'
-    const message = 'Asetukset ja profiilin tiedot palautetaan alkuperäisiksi.'
+    const title = t('settings.resetTitle')
+    const message = t('settings.resetMessage')
     if (Platform.OS === 'web') {
-      if (window.confirm(`${title}\n${message}`)) resetAll()
+      if (window.confirm(`${title}\n${message}`)) resetSettings()
       return
     }
     Alert.alert(title, message, [
-      { text: 'Peruuta', style: 'cancel' },
-      { text: 'Palauta', style: 'destructive', onPress: resetAll },
+      { text: t('common.cancel'), style: 'cancel' },
+      { text: t('settings.resetConfirm'), style: 'destructive', onPress: resetSettings },
     ])
   }
 
-  return (
-    <Screen title="Asetukset">
-      <SectionTitle style={styles.firstTitle}>Kulkuneuvo</SectionTitle>
-      <View style={styles.vehicles}>
-        {VEHICLES.map(({ key, label }) => {
-          const Icon = vehicleIcon(key)
-          const selected = settings.vehicle === key
-          return (
-            <Pressable
-              key={key}
-              onPress={() => updateSettings({ vehicle: key })}
-              style={({ pressed }) => [styles.vehicle, selected && styles.vehicleSelected, pressed && styles.vehiclePressed]}
-              accessibilityRole="radio"
-              aria-checked={selected}
-            >
-              <Icon size={26} strokeWidth={1.8} color={selected ? colors.orange : colors.black} />
-              <Text style={[styles.vehicleLabel, selected && styles.vehicleLabelSelected]}>{label}</Text>
-            </Pressable>
-          )
-        })}
-      </View>
+  const languageLabel = LANGUAGES.find((language) => language.key === settings.language)?.label ?? LANGUAGES[0].label
 
-      <SectionTitle>Navigointisovellus</SectionTitle>
-      <Card>
-        {NAVIGATION_APPS.map(({ key, label }, index) => (
-          <ListRow
-            key={key}
-            icon={MapIcon}
-            label={label}
-            onPress={() => updateSettings({ navigationApp: key })}
-            right={<Radio selected={settings.navigationApp === key} />}
-            last={index === NAVIGATION_APPS.length - 1}
-          />
-        ))}
+  return (
+    <Screen title={t('settings.title')}>
+      <ProfileCard
+        tag={t('common.courier')}
+        name={profile.name}
+        lines={[profile.email, profile.phone]}
+        onPress={() => router.push('/profile')}
+      />
+
+      <Card title={t('settings.driving')}>
+        <ListRow
+          icon={vehicleIcon(settings.vehicle)}
+          label={t('settings.vehicle')}
+          value={t(`vehicle.${settings.vehicle}`)}
+          onPress={() => router.push({ pathname: '/change-request', params: { field: 'vehicle' } })}
+          right={<Lock size={16} strokeWidth={2} color={colors.textMuted} />}
+        />
+        <ListRow
+          icon={MapIcon}
+          label={t('settings.navigation')}
+          value={navigationAppLabel(settings.navigationApp)}
+          onPress={() => setSheet('navigation')}
+        />
       </Card>
 
-      <SectionTitle>Sovellus</SectionTitle>
-      <Card>
+      <Card title={t('settings.app')}>
         <ListRow
           icon={Vibrate}
-          label="Värinä"
-          detail="Puhelin värähtää kun vaihdat online- ja offline-tilan välillä."
-          right={<Toggle value={settings.haptics} onValueChange={(haptics) => updateSettings({ haptics })} />}
+          label={t('settings.haptics')}
+          right={<Toggle label={t('settings.haptics')} value={settings.haptics} onValueChange={(haptics) => updateSettings({ haptics })} />}
+        />
+        <ListRow
+          icon={BellRing}
+          label={t('settings.sound')}
+          right={<Toggle label={t('settings.sound')} value={settings.sound} onValueChange={(sound) => updateSettings({ sound })} />}
         />
         <ListRow
           icon={SunMedium}
-          label="Pidä näyttö päällä"
-          detail="Kun olet online, näyttö ei sammu itsestään."
-          right={<Toggle value={settings.keepAwake} onValueChange={(keepAwake) => updateSettings({ keepAwake })} />}
-          last
+          label={t('settings.keepAwake')}
+          right={
+            <Toggle
+              label={t('settings.keepAwake')}
+              value={settings.keepAwake}
+              onValueChange={(keepAwake) => updateSettings({ keepAwake })}
+            />
+          }
         />
-      </Card>
-
-      <SectionTitle>Sijainti</SectionTitle>
-      <Card>
         <ListRow
           icon={LocateFixed}
-          label="Sijaintilupa"
-          detail="Sijaintia tarvitaan kartalle ja lähimpien keikkojen tarjoamiseen."
-          value={permission ? PERMISSION_LABELS[permission] ?? permission : 'Tarkistetaan…'}
+          label={t('settings.location')}
+          right={
+            permission ? (
+              <View style={styles.status}>
+                <View style={[styles.statusDot, { backgroundColor: PERMISSION_COLORS[permission] ?? colors.gray400 }]} />
+                <Text style={styles.statusText}>{t(`permission.${permission}`)}</Text>
+              </View>
+            ) : null
+          }
         />
-        <ListRow
-          icon={ExternalLink}
-          label="Avaa puhelimen asetukset"
-          onPress={() => Linking.openSettings().catch(() => {})}
-          last
-        />
+        <ListRow icon={ExternalLink} label={t('settings.phoneSettings')} onPress={() => Linking.openSettings().catch(() => {})} />
       </Card>
 
-      <SectionTitle>Tietoja</SectionTitle>
-      <Card>
-        <ListRow label="Versio" value={Constants.expoConfig?.version ?? '1.0.0'} />
-        <ListRow
-          label="Karttatiedot"
-          detail="© OpenStreetMapin tekijät, OpenMapTiles, OpenFreeMap"
-          onPress={() => Linking.openURL('https://www.openstreetmap.org/copyright').catch(() => {})}
-        />
-        <ListRow icon={RotateCcw} label="Palauta oletukset" onPress={confirmReset} danger last />
+      <Card title={t('settings.language')}>
+        <ListRow icon={Languages} label={t('settings.language')} value={languageLabel} onPress={() => setSheet('language')} />
       </Card>
+
+      <Card title={t('settings.about')}>
+        <ListRow label={t('common.version')} value={APP_VERSION} />
+        <ListRow label={t('settings.mapData')} onPress={() => Linking.openURL('https://www.openstreetmap.org/copyright').catch(() => {})} />
+        <ListRow label={t('settings.reset')} onPress={confirmReset} right={null} danger />
+      </Card>
+
+      <ChoiceSheet
+        visible={sheet === 'navigation'}
+        title={t('settings.navigationApp')}
+        options={NAVIGATION_APPS.map(({ key, label }) => ({ key, label, icon: key === 'waze' ? Navigation : MapIcon }))}
+        value={settings.navigationApp}
+        onSelect={(navigationApp) => updateSettings({ navigationApp })}
+        onClose={() => setSheet(null)}
+      />
+      <ChoiceSheet
+        visible={sheet === 'language'}
+        title={t('settings.language')}
+        options={LANGUAGES.map(({ key, label }) => ({ key, label }))}
+        value={settings.language}
+        onSelect={chooseLanguage}
+        onClose={() => setSheet(null)}
+      />
     </Screen>
   )
 }
@@ -133,7 +170,7 @@ export default function SettingsScreen() {
 // oletuksena turkoosi - sille oma väri vain siellä.
 const WEB_SWITCH_COLORS = Platform.OS === 'web' ? { activeThumbColor: '#ffffff' } : {}
 
-function Toggle({ value, onValueChange }) {
+function Toggle({ label, value, onValueChange }) {
   return (
     <Switch
       value={value}
@@ -141,66 +178,27 @@ function Toggle({ value, onValueChange }) {
       trackColor={{ false: colors.gray200, true: colors.orange }}
       thumbColor="#ffffff"
       ios_backgroundColor={colors.gray200}
+      accessibilityLabel={label}
       {...WEB_SWITCH_COLORS}
     />
   )
 }
 
-function Radio({ selected }) {
-  return <View style={[styles.radio, selected && styles.radioSelected]}>{selected ? <View style={styles.radioDot} /> : null}</View>
-}
-
 const styles = StyleSheet.create({
-  firstTitle: {
-    marginTop: 8,
-  },
-  vehicles: {
+  status: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  vehicle: {
-    flexGrow: 1,
-    flexBasis: '45%',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: 18,
-    borderWidth: 2,
-    borderColor: colors.gray200,
-    backgroundColor: colors.surface,
+    gap: 6,
   },
-  vehicleSelected: {
-    borderColor: colors.orange,
-    backgroundColor: colors.orangeSoft,
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
-  vehiclePressed: {
-    transform: [{ scale: 0.98 }],
+  statusText: {
+    fontFamily: fonts.regular,
+    fontSize: 15,
+    color: colors.textMuted,
   },
-  vehicleLabel: {
-    fontFamily: fonts.semibold,
-    fontSize: 14,
-    color: colors.black,
-  },
-  vehicleLabelSelected: {
-    color: colors.orangeDark,
-  },
-  radio: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    borderColor: colors.gray400,
-  },
-  radioSelected: {
-    borderColor: colors.orange,
-  },
-  radioDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.orange,
-  },
+
 })

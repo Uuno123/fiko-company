@@ -5,6 +5,7 @@ import {
   HANDOVER_MIN,
   coordinate,
   hasCoords,
+  haversineKm,
   rideMinutes,
   routeKm as routeLengthKm,
   travelMinutes,
@@ -12,10 +13,12 @@ import {
 import { PAY, refreshGigs } from './gigs'
 import { supabase } from './supabase'
 
-// Oikeat keikat tietokannasta (migraatio 0043). Kulku:
+// Oikeat keikat tietokannasta (migraatiot 0043-0046). Kulku:
 //   1. Asiakas tilaa verkkosivulta, ravintola hyväksyy ja valitsee valmistusajan.
-//   2. Online-tilassa kuljettaja saa tarjouksen hyväksytystä toimitustilauksesta
-//      (reaaliajassa). Ensimmäinen hyväksyjä saa keikan (courier_claim_order).
+//   2. Palvelin jakaa keikan (migraatio 0046): lähin online-kuljettaja 8 km
+//      säteellä saa tarjouksen yksin, 60 s aikaa. Hylkäys tai vastaamatta
+//      jättäminen siirtää sen seuraavaksi lähimmälle. Appi kertoo palvelimelle
+//      online-tilan ja sijainnin (courier_set_online, courier_heartbeat).
 //   3. Kuljettajan pitää olla ravintolassa ruoan valmistuttua tai ajomatkan
 //      jälkeen - kumpi on myöhemmin. Jos ravintola sanoo 40 min, aikaa on 40 min.
 //   4. Nouto vaatii ravintolan noutokoodin (tai ravintolan luovutusmerkinnän),
@@ -30,10 +33,13 @@ const MOVING_PHASES = ['toRestaurant', 'atRestaurant', 'toCustomer']
 
 // Ajoajat ja -matkat: sama malli kuin asiakkaan saapumisarviossa verkkosivulla
 // (frontend/src/lib/deliveryTime.js).
-// Hylätty tilaus tarjotaan uudelleen vasta tämän jälkeen (jos kukaan muu ei ota).
-const DECLINE_COOLDOWN_MS = 2 * 60_000
 const LOCATION_INTERVAL_MS = 5000
 const OFFER_RECHECK_MS = 10_000
+// Online-tilassa sijainti palvelimelle näin usein (keikkajako käyttää vain alle
+// 2 min vanhaa sijaintia), ja heti kun on liikuttu tarpeeksi.
+const HEARTBEAT_MS = 30_000
+const HEARTBEAT_MIN_MS = 10_000
+const HEARTBEAT_MOVE_KM = 0.05
 // Arvioiden yläraja: virheellinen sijainti ei saa tuottaa päivien arvioita.
 const MAX_PLAN_MS = 3 * 60 * 60 * 1000
 
@@ -45,7 +51,7 @@ const PHASE_BY_COURIER_STATUS = { assigned: 'toRestaurant', at_restaurant: 'atRe
 const ERROR_TEXTS = {
   not_a_courier: 'Tiliäsi ei ole hyväksytty kuljettajaksi.',
   courier_busy: 'Sinulla on jo keikka kesken.',
-  order_not_available: 'Keikka ehti mennä toiselle kuljettajalle.',
+  order_not_available: 'Tarjous ei ole enää voimassa.',
   invalid_state: 'Keikan tila ehti muuttua.',
   order_cancelled: 'Ravintola perui tilauksen.',
   order_not_found: 'Keikkaa ei löytynyt.',
@@ -189,15 +195,16 @@ export function jobSchedule(job) {
 
 // phase: 'idle' (offline) | 'waiting' | 'offer' | 'toRestaurant' | 'atRestaurant'
 // | 'toCustomer' | 'completed'. notice: lyhyt ilmoitus näytön yläreunaan.
-export function useCourierJobs({ courierId, online, position, settings }) {
+// onForcedOffline: palvelin siirsi kuljettajan offline-tilaan (vastaamatta jääneet tarjoukset).
+export function useCourierJobs({ courierId, online, position, settings, onForcedOffline }) {
   const [phase, setPhase] = useState('idle')
   const [job, setJob] = useState(null)
   const [busy, setBusy] = useState(false)
   const [notice, setNotice] = useState(null)
-  const declined = useRef(new Map())
   const lastPublish = useRef(0)
-  const latest = useRef({ position, settings, phase, job, online })
-  latest.current = { position, settings, phase, job, online }
+  const lastHeartbeat = useRef({ at: 0, point: null })
+  const latest = useRef({ position, settings, phase, job, online, onForcedOffline })
+  latest.current = { position, settings, phase, job, online, onForcedOffline }
 
   const showNotice = useCallback((text) => setNotice({ text, at: Date.now() }), [])
 
@@ -263,6 +270,62 @@ export function useCourierJobs({ courierId, online, position, settings }) {
     }
   }, [courierId, loadItemCount])
 
+  // Palvelin siirsi offline-tilaan (kaksi tarjousta jäi vastaamatta).
+  const forcedOffline = useCallback(() => {
+    showNotice('Sinut siirrettiin offline-tilaan, koska tarjouksiin ei vastattu.')
+    latest.current.onForcedOffline?.()
+  }, [showNotice])
+
+  // Online-tila palvelimelle: vain online-tilassa saa tarjouksia. Myös
+  // käynnistyksessä (offline), jottei edellisen kerran tila jää voimaan.
+  useEffect(() => {
+    if (!courierId) return
+    const point = latest.current.position
+    supabase
+      .rpc('courier_set_online', {
+        p_online: online,
+        p_lat: hasCoords(point) ? point.lat : null,
+        p_lng: hasCoords(point) ? point.lng : null,
+        p_vehicle: latest.current.settings.vehicle,
+      })
+      .then(({ error }) => {
+        if (!error || !online) return
+        // Pakollisia dokumentteja ei ole hyväksytty (migraatio 0053): takaisin offline-tilaan.
+        if (String(error.message ?? '').includes('documents_not_approved')) {
+          showNotice('Dokumenttejasi ei ole vielä hyväksytty. Online-tilaan pääset hyväksynnän jälkeen.')
+          latest.current.onForcedOffline?.()
+          return
+        }
+        showNotice('Keikkajako ei ole käytössä palvelimella (migraatio 0046 puuttuu).')
+      })
+    lastHeartbeat.current = { at: Date.now(), point }
+  }, [courierId, online, showNotice])
+
+  // Sijainti palvelimelle online-tilassa: 30 s välein ja kun on liikuttu.
+  const heartbeat = useCallback(async () => {
+    const point = latest.current.position
+    lastHeartbeat.current = { at: Date.now(), point }
+    const { data, error } = await supabase.rpc('courier_heartbeat', {
+      p_lat: hasCoords(point) ? point.lat : null,
+      p_lng: hasCoords(point) ? point.lng : null,
+    })
+    if (!error && data && data.online === false && latest.current.online) forcedOffline()
+  }, [forcedOffline])
+
+  useEffect(() => {
+    if (!courierId || !online) return undefined
+    const timer = setInterval(heartbeat, HEARTBEAT_MS)
+    return () => clearInterval(timer)
+  }, [courierId, online, heartbeat])
+
+  useEffect(() => {
+    if (!courierId || !online || !hasCoords(position)) return
+    const { at, point } = lastHeartbeat.current
+    // Ensimmäinen sijainti heti (online-tilaan mentäessä sitä ei ehkä vielä ollut).
+    if (!hasCoords(point)) heartbeat()
+    else if (haversineKm(point, position) > HEARTBEAT_MOVE_KM && Date.now() - at > HEARTBEAT_MIN_MS) heartbeat()
+  }, [courierId, online, position?.lat, position?.lng, heartbeat])
+
   // Online/offline. Käynnissä oleva keikka viedään loppuun, vaikka ajastettu
   // offline laukeaisi kesken.
   useEffect(() => {
@@ -273,40 +336,66 @@ export function useCourierJobs({ courierId, online, position, settings }) {
     }
   }, [online, phase])
 
-  // Etsii vanhimman tarjolla olevan tilauksen, jota ei ole juuri hylätty.
+  // Palvelimen tälle kuljettajalle tekemä voimassa oleva tarjous (migraatio 0046).
   const findOffer = useCallback(async () => {
     if (latest.current.phase !== 'waiting' || !courierId) return
-    const { data, error } = await supabase
-      .from('orders')
-      .select(ORDER_FIELDS)
-      .is('courier_id', null)
-      .eq('delivery_method', 'delivery')
-      .in('status', ['confirmed', 'preparing', 'ready'])
-      .order('created_at', { ascending: true })
-      .limit(20)
-    if (error || latest.current.phase !== 'waiting') return
-    const now = Date.now()
-    const next = (data ?? []).find((order) => {
-      const declinedAt = declined.current.get(order.id)
-      return !declinedAt || now - declinedAt > DECLINE_COOLDOWN_MS
-    })
-    if (!next) return
+    const { data: offers, error } = await supabase
+      .from('courier_offers')
+      .select('id, order_id, expires_at')
+      .eq('courier_id', courierId)
+      .eq('status', 'pending')
+      .gt('expires_at', new Date().toISOString())
+      .order('offered_at', { ascending: false })
+      .limit(1)
+    const offer = offers?.[0]
+    if (error || !offer || latest.current.phase !== 'waiting') return
+    const { data: order } = await supabase.from('orders').select(ORDER_FIELDS).eq('id', offer.order_id).maybeSingle()
+    if (!order || latest.current.phase !== 'waiting') return
     const { position: currentPosition, settings: currentSettings } = latest.current
-    setJob({ ...buildJob(next, currentPosition, currentSettings.vehicle), expiresAt: now + OFFER_SECONDS * 1000 })
+    // Palvelimen aikaraja, mutta korkeintaan 60 s (puhelimen kello voi olla jäljessä).
+    const expiresAt = Math.min(Date.parse(offer.expires_at), Date.now() + OFFER_SECONDS * 1000)
+    setJob({ ...buildJob(order, currentPosition, currentSettings.vehicle), offerId: offer.id, expiresAt })
     setPhase('offer')
     // Tarjous huomataan myös taskussa: kaksi pitkää värähdystä (asetus).
     if (currentSettings.haptics) Vibration.vibrate([0, 400, 200, 400])
   }, [courierId])
 
-  // Haku heti kun vapaana, ja varmuuden vuoksi puolen minuutin välein.
+  // Haku heti kun vapaana, ja varmuuden vuoksi 15 s välein (reaaliaika voi katketa).
   useEffect(() => {
     if (phase !== 'waiting') return undefined
     findOffer()
-    const timer = setInterval(findOffer, 30_000)
+    const timer = setInterval(findOffer, 15_000)
     return () => clearInterval(timer)
   }, [phase, findOffer])
 
-  // Reaaliaikaiset muutokset: uudet tilaukset tarjolle, oman keikan peruutus ja
+  // Uusi tarjous heti, ja tarjouksen peruutus (tilaus peruttiin tai siirtyi).
+  useEffect(() => {
+    if (!courierId || !online) return undefined
+    const channel = supabase
+      .channel(`courier-offers-${courierId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'courier_offers', filter: `courier_id=eq.${courierId}` },
+        (payload) => {
+          const row = payload.new
+          const { phase: currentPhase, job: currentJob } = latest.current
+          if (row?.status === 'pending' && currentPhase === 'waiting') {
+            findOffer()
+            return
+          }
+          if (currentPhase === 'offer' && currentJob?.offerId === row?.id && row.status !== 'pending') {
+            if (row.status === 'withdrawn') showNotice('Tarjous peruttiin.')
+            backToSearch()
+          }
+        },
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [courierId, online, findOffer, backToSearch, showNotice])
+
+  // Reaaliaikaiset muutokset omaan keikkaan: peruutus, valmistusajan muutos ja
   // ravintolan luovutusmerkintä (nouto kuittautuu silloin automaattisesti).
   const keepListening = online || MOVING_PHASES.includes(phase)
   useEffect(() => {
@@ -315,7 +404,7 @@ export function useCourierJobs({ courierId, online, position, settings }) {
       .channel(`courier-orders-${courierId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
         const row = payload.new
-        const { phase: currentPhase, job: currentJob } = latest.current
+        const { job: currentJob } = latest.current
         // Tilaus poistettiin kokonaan (esim. testihistorian tyhjennys).
         if (payload.eventType === 'DELETE') {
           if (currentJob && payload.old?.id === currentJob.id) {
@@ -344,28 +433,31 @@ export function useCourierJobs({ courierId, online, position, settings }) {
                 }
               : current,
           )
-          return
         }
-        if (currentPhase === 'waiting') findOffer()
       })
       .subscribe()
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [courierId, keepListening, findOffer, backToSearch, showNotice])
+  }, [courierId, keepListening, backToSearch, showNotice])
 
-  // Tarjous vanhenee, tai poistuu jos toinen kuljettaja ehti ottaa sen.
+  // Tarjous vanhenee (palvelin siirtää sen seuraavalle ja laskee vastaamatta
+  // jääneen), tai poistuu jos tilaus peruttiin. Tarkistus varmuuden vuoksi myös
+  // kyselyllä, jos reaaliaikainen ilmoitus ei tullut.
   useEffect(() => {
     if (phase !== 'offer' || !job) return undefined
-    const expire = setTimeout(() => {
-      declined.current.set(job.id, Date.now())
+    const expire = setTimeout(async () => {
       backToSearch()
+      showNotice('Tarjous vanheni.')
+      const { data } = await supabase.rpc('courier_decline_offer', { p_order_id: job.id, p_timed_out: true })
+      if (data && data.online === false && latest.current.online) forcedOffline()
     }, Math.max(0, job.expiresAt - Date.now()))
     const recheck = setInterval(async () => {
-      const { data } = await supabase.from('orders').select('id, courier_id, status').eq('id', job.id).maybeSingle()
-      if (latest.current.phase !== 'offer' || latest.current.job?.id !== job.id) return
-      if (!data || data.courier_id || data.status === 'cancelled') {
-        showNotice('Keikka ehti mennä toiselle kuljettajalle.')
+      if (!job.offerId) return
+      const { data } = await supabase.from('courier_offers').select('status').eq('id', job.offerId).maybeSingle()
+      if (latest.current.phase !== 'offer' || latest.current.job?.offerId !== job.offerId) return
+      if (!data || data.status !== 'pending') {
+        showNotice('Tarjous ei ole enää voimassa.')
         backToSearch()
       }
     }, OFFER_RECHECK_MS)
@@ -373,7 +465,7 @@ export function useCourierJobs({ courierId, online, position, settings }) {
       clearTimeout(expire)
       clearInterval(recheck)
     }
-  }, [phase, job, backToSearch, showNotice])
+  }, [phase, job, backToSearch, showNotice, forcedOffline])
 
   // Ravintola merkitsi tilauksen luovutetuksi: nouto kuittautuu ilman koodia.
   useEffect(() => {
@@ -408,7 +500,6 @@ export function useCourierJobs({ courierId, online, position, settings }) {
       p_fee_cents: current.pay.total,
     })
     if (error) {
-      declined.current.set(current.id, Date.now())
       showNotice(error)
       backToSearch()
       return
@@ -424,10 +515,11 @@ export function useCourierJobs({ courierId, online, position, settings }) {
     loadItemCount(current.id)
   }
 
+  // Hylkäys: palvelin tarjoaa keikan heti seuraavaksi lähimmälle.
   function decline() {
     const current = latest.current.job
-    if (current) declined.current.set(current.id, Date.now())
     backToSearch()
+    if (current) supabase.rpc('courier_decline_offer', { p_order_id: current.id, p_timed_out: false }).then(() => {})
   }
 
   async function arrivedAtRestaurant() {
@@ -485,7 +577,7 @@ export function useCourierJobs({ courierId, online, position, settings }) {
       showNotice(error)
       return
     }
-    declined.current.set(current.id, Date.now())
+    // Palvelin tarjoaa keikan seuraavalle (ei sinulle samalla kierroksella).
     backToSearch()
   }
 

@@ -2,20 +2,22 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Easing, Modal, PanResponder, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Constants from 'expo-constants'
-import { ChevronRight, CircleHelp, History, LogOut, Settings, Wallet, X } from 'lucide-react-native'
+import { ChevronRight, CircleHelp, FileText, History, LogOut, Settings, Wallet, X } from 'lucide-react-native'
 import DelivoLogo from './DelivoLogo'
 import { useAuth } from '../lib/auth'
 import { useCourier } from '../lib/courier'
-import { formatEuro, initials, isSameDay } from '../lib/format'
+import { formatEuro, isSameDay } from '../lib/format'
 import { summarize, useGigs } from '../lib/gigs'
+import { useT } from '../lib/i18n'
 import { colors, fonts } from '../theme'
 
-// Profiili avautuu valikon yläosan kortista.
+// Profiili avautuu valikon yläosan kuljettajakortista.
 const ITEMS = [
-  { key: 'earnings', label: 'Ansiot', Icon: Wallet, path: '/earnings' },
-  { key: 'history', label: 'Keikkahistoria', Icon: History, path: '/history' },
-  { key: 'settings', label: 'Asetukset', Icon: Settings, path: '/settings' },
-  { key: 'help', label: 'Tuki ja ohjeet', Icon: CircleHelp, path: '/help' },
+  { key: 'earnings', label: 'menu.earnings', Icon: Wallet, path: '/earnings' },
+  { key: 'history', label: 'menu.history', Icon: History, path: '/history' },
+  { key: 'documents', label: 'menu.documents', Icon: FileText, path: '/documents' },
+  { key: 'settings', label: 'menu.settings', Icon: Settings, path: '/settings' },
+  { key: 'help', label: 'menu.help', Icon: CircleHelp, path: '/help' },
 ]
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0'
@@ -25,12 +27,16 @@ const useNativeDriver = Platform.OS !== 'web'
 // Vasemmalta liukuva sivuvalikko. Sulkeutuu kun napauttaa karttaa valikon
 // vieressä, pyyhkäisee valikkoa vasemmalle, painaa ruksia tai Androidin
 // takaisin-nappia. onNavigate(path): avaa valikon kohdan näkymän.
+//
+// Ulkoasu sama kuin pääsivun alapaneelissa: "Kuljettaja / nimi" kuten
+// "Toimitusalue / Kuopio", tila pallolla kuten alueen kysyntä ja rivit kuin
+// pääsivun lista (ikoni + teksti, hiusviivat).
 export default function SideMenu({ open, onClose, onNavigate }) {
   const insets = useSafeAreaInsets()
-  const { online, profile: localProfile } = useCourier()
-  const { courier, signOut } = useAuth()
-  // Nimi kuljettajatiedoista (tietokanta), muuten puhelimeen tallennettu profiili.
-  const profile = { ...localProfile, name: courier?.name?.trim() || localProfile.name }
+  const t = useT()
+  // Nimi ja kulkuneuvo kuljettajatiedoista (tietokanta, lib/courier.js).
+  const { online, profile } = useCourier()
+  const { signOut } = useAuth()
   // Päivän luvut samoista keikoista kuin Ansiot-näkymä.
   const gigs = useGigs()
   const today = useMemo(() => {
@@ -103,23 +109,23 @@ export default function SideMenu({ open, onClose, onNavigate }) {
           onResponderGrant={onClose}
           accessible
           accessibilityRole="button"
-          accessibilityLabel="Sulje valikko"
+          accessibilityLabel={t('menu.close')}
           onAccessibilityTap={onClose}
         />
 
         <Animated.View
           style={[
             styles.panel,
-            { width: panelWidth, paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16, transform: [{ translateX }] },
+            { width: panelWidth, paddingTop: insets.top + 14, paddingBottom: insets.bottom + 12, transform: [{ translateX }] },
           ]}
         >
           <View style={styles.top}>
-            <DelivoLogo size={22} />
+            <DelivoLogo size={20} />
             <Pressable
               onPress={onClose}
               style={({ pressed }) => [styles.closeButton, pressed && styles.closeButtonPressed]}
               accessibilityRole="button"
-              accessibilityLabel="Sulje valikko"
+              accessibilityLabel={t('menu.close')}
               hitSlop={8}
             >
               <X size={20} strokeWidth={2.2} color={colors.black} />
@@ -128,69 +134,59 @@ export default function SideMenu({ open, onClose, onNavigate }) {
 
           <Pressable
             onPress={() => onNavigate('/profile')}
-            style={({ pressed }) => [styles.profile, pressed && styles.profilePressed]}
+            style={({ pressed }) => [styles.identity, pressed && styles.identityPressed]}
             accessibilityRole="button"
-            accessibilityLabel={`Profiili, ${profile.name}`}
+            accessibilityLabel={t('menu.profile', { name: profile.name })}
           >
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{initials(profile.name)}</Text>
-            </View>
-            <View style={styles.profileText}>
-              <Text style={styles.profileName} numberOfLines={1}>
+            <Text style={styles.label}>{t('common.courier')}</Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.name} numberOfLines={1}>
                 {profile.name}
               </Text>
-              <View style={styles.statusRow}>
-                <View style={[styles.statusDot, { backgroundColor: online ? colors.open : colors.gray400 }]} />
-                <Text style={styles.statusText}>{online ? 'Online' : 'Offline'}</Text>
-              </View>
+              <ChevronRight size={22} strokeWidth={2} color={colors.gray400} />
             </View>
-            <ChevronRight size={20} strokeWidth={2} color={colors.gray400} />
+            <View style={styles.statusRow}>
+              <View style={[styles.statusDot, { backgroundColor: online ? colors.open : colors.gray400 }]} />
+              <Text style={styles.statusText} numberOfLines={1}>
+                {online ? t('common.online') : t('common.offline')} · {t(`vehicle.${profile.vehicle}`)}
+              </Text>
+            </View>
+            <Text style={styles.today}>
+              {t('menu.today')} <Text style={styles.todayValue}>{formatEuro(today.total)}</Text> · {today.count}{' '}
+              {today.count === 1 ? t('common.gig.one') : t('common.gig.other')}
+            </Text>
           </Pressable>
 
-          <View style={styles.stats}>
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>{formatEuro(today.total)}</Text>
-              <Text style={styles.statLabel}>Ansaittu tänään</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>{today.count}</Text>
-              <Text style={styles.statLabel}>Keikkaa tänään</Text>
-            </View>
-          </View>
-
-          <View style={styles.items}>
+          <View style={styles.rows}>
             {ITEMS.map(({ key, label, Icon, path }) => (
               <Pressable
                 key={key}
                 onPress={() => onNavigate(path)}
-                style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+                style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
                 accessibilityRole="button"
               >
-                <View style={styles.itemIcon}>
-                  <Icon size={20} strokeWidth={1.9} color={colors.black} />
-                </View>
-                <Text style={styles.itemLabel}>{label}</Text>
-                <ChevronRight size={18} strokeWidth={2} color={colors.gray400} />
+                <Icon size={22} strokeWidth={1.9} color={colors.black} />
+                <Text style={styles.rowLabel}>{t(label)}</Text>
               </Pressable>
             ))}
           </View>
 
-          <Pressable
-            onPress={() => {
-              onClose()
-              signOut()
-            }}
-            style={({ pressed }) => [styles.item, styles.logout, pressed && styles.itemPressed]}
-            accessibilityRole="button"
-          >
-            <View style={styles.itemIcon}>
-              <LogOut size={20} strokeWidth={1.9} color={colors.danger} />
-            </View>
-            <Text style={[styles.itemLabel, styles.logoutLabel]}>Kirjaudu ulos</Text>
-          </Pressable>
-
-          <Text style={styles.version}>Versio {APP_VERSION}</Text>
+          <View style={styles.footer}>
+            <Pressable
+              onPress={() => {
+                onClose()
+                signOut()
+              }}
+              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+              accessibilityRole="button"
+            >
+              <LogOut size={22} strokeWidth={1.9} color={colors.black} />
+              <Text style={styles.rowLabel}>{t('menu.signOut')}</Text>
+            </Pressable>
+            <Text style={styles.version}>
+              {t('common.version')} {APP_VERSION}
+            </Text>
+          </View>
         </Animated.View>
       </View>
     </Modal>
@@ -205,23 +201,22 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(20, 21, 15, 0.45)',
   },
+  // Kulmat kuten pääsivun alapaneelissa (BottomSheet).
   panel: {
     position: 'absolute',
     top: 0,
     bottom: 0,
     left: 0,
-    paddingHorizontal: 16,
     backgroundColor: colors.surface,
-    borderTopRightRadius: 28,
-    borderBottomRightRadius: 28,
+    borderTopRightRadius: 24,
+    borderBottomRightRadius: 24,
     boxShadow: '8px 0 32px rgba(20, 21, 15, 0.18)',
   },
   top: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingLeft: 4,
-    marginBottom: 22,
+    paddingHorizontal: 20,
   },
   closeButton: {
     alignItems: 'center',
@@ -234,123 +229,91 @@ const styles = StyleSheet.create({
   closeButtonPressed: {
     backgroundColor: colors.gray200,
   },
-  profile: {
+  // Samat tekstityylit kuin pääsivun "Toimitusalue / Kuopio / Alueen kysyntä".
+  identity: {
+    marginTop: 22,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  identityPressed: {
+    opacity: 0.6,
+  },
+  label: {
+    fontFamily: fonts.medium,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    padding: 14,
-    borderRadius: 20,
-    backgroundColor: colors.gray50,
+    gap: 8,
+    marginTop: 2,
   },
-  profilePressed: {
-    backgroundColor: colors.gray100,
-  },
-  avatar: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.orangeSoft,
-  },
-  avatarText: {
-    fontFamily: fonts.display,
-    fontSize: 17,
-    color: colors.orange,
-  },
-  profileText: {
+  name: {
     flex: 1,
-  },
-  profileName: {
     fontFamily: fonts.display,
-    fontSize: 18,
-    letterSpacing: -0.2,
+    fontSize: 28,
+    letterSpacing: -0.6,
     color: colors.black,
   },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginTop: 3,
+    gap: 8,
+    marginTop: 4,
   },
   statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
   },
   statusText: {
+    flex: 1,
     fontFamily: fonts.medium,
     fontSize: 13,
     color: colors.textMuted,
   },
-  stats: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-    paddingVertical: 14,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.gray200,
-  },
-  stat: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statDivider: {
-    width: 1,
-    alignSelf: 'stretch',
-    backgroundColor: colors.gray200,
-  },
-  statValue: {
-    fontFamily: fonts.display,
-    fontSize: 22,
-    letterSpacing: -0.4,
-    color: colors.black,
-  },
-  statLabel: {
-    marginTop: 2,
-    fontFamily: fonts.medium,
-    fontSize: 12,
+  today: {
+    marginTop: 10,
+    fontFamily: fonts.regular,
+    fontSize: 15,
     color: colors.textMuted,
   },
-  items: {
-    marginTop: 18,
-    gap: 2,
+  todayValue: {
+    fontFamily: fonts.semibold,
+    color: colors.black,
   },
-  item: {
+  // Rivit kuin pääsivun listassa (app/index.jsx: rows, row, rowLabel).
+  rows: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.gray200,
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderRadius: 16,
+    gap: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.gray200,
   },
-  itemPressed: {
+  rowPressed: {
     backgroundColor: colors.gray50,
   },
-  itemIcon: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.gray100,
-  },
-  itemLabel: {
+  rowLabel: {
     flex: 1,
-    fontFamily: fonts.semibold,
+    fontFamily: fonts.medium,
     fontSize: 16,
     color: colors.black,
   },
-  logout: {
+  footer: {
     marginTop: 'auto',
-  },
-  logoutLabel: {
-    color: colors.danger,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.gray200,
   },
   version: {
-    marginTop: 8,
-    paddingLeft: 8,
+    marginTop: 10,
+    paddingHorizontal: 20,
     fontFamily: fonts.regular,
     fontSize: 12,
     color: colors.gray400,

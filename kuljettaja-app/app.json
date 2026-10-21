@@ -33,7 +33,23 @@
           "locationWhenInUsePermission": "delivo näyttää sijaintisi kartalla ja tarjoaa sinulle lähimpiä keikkoja."
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-audio",
+        {
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "delivo tarvitsee kuvan dokumentista, jonka lähetät tarkastettavaksi (esim. henkilökortti tai ajokortti).",
+          "cameraPermission": "delivo käyttää kameraa, kun kuvaat dokumentin tarkastettavaksi.",
+          "microphonePermission": false
+        }
+      ],
+      "expo-asset"
     ],
     "scheme": "delivo-kuljettaja",
     "backgroundColor": "#ffffff"

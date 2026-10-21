@@ -4,6 +4,7 @@ import { ShoppingBag, Trash2 } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import CategoryFilter from '../components/CategoryFilter.jsx'
+import RankingInfo from '../components/RankingInfo.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import Spinner from '../components/Spinner.jsx'
 import SearchSuggest, { RestaurantResultCard } from '../components/SearchSuggest.jsx'
@@ -20,7 +21,8 @@ import {
 import { useAuth } from '../lib/AuthContext.jsx'
 import { getFavoriteRestaurantIds, addFavorite, removeFavorite } from '../lib/favorites.js'
 import { useCart } from '../lib/CartContext.jsx'
-import { sortByDistance, useDeliveryAddress, withDistance } from '../lib/deliveryAddress.js'
+import { useDeliveryAddress, withDistance } from '../lib/deliveryAddress.js'
+import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { formatPrice } from '../lib/format.js'
 import './Home.css'
 
@@ -94,6 +96,7 @@ function Home() {
   const [activeCategory, setActiveCategory] = useState(() => searchParams.get('category') ?? ALL)
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '')
   const deliveryAddress = useDeliveryAddress()
+  const { popularity } = useRankingSignals()
   const [catsPill, setCatsPill] = useState(false)
   const quickCatsRef = useRef(null)
   const [adIndex, setAdIndex] = useState(0)
@@ -170,14 +173,17 @@ function Home() {
     .filter((category) => !HIDDEN_MOBILE_CATEGORIES.includes(category))
     .map((category) => ({
       category,
-      // Järjestys pysyy ennallaan (mainospaikat), kortit vain saavat etäisyyden.
-      // Etäisyysjärjestys on ainoastaan Lähelläsi-rivillä.
-      items: withDistance(
-        padWithFillers(
-          category,
-          baseFiltered.filter((r) => r.category === category),
+      // Järjestys lib/ranking.js:n säännöllä: sponsoroidut paikoille 1 ja 4,
+      // muut pisteiden mukaan, kiinni olevat ja täytepohjat lopussa.
+      items: rankRestaurants(
+        withDistance(
+          padWithFillers(
+            category,
+            baseFiltered.filter((r) => r.category === category),
+          ),
+          deliveryAddress,
         ),
-        deliveryAddress,
+        { address: deliveryAddress, popularity },
       ),
     }))
     .filter((group) => group.items.length > 0)
@@ -187,9 +193,11 @@ function Home() {
   const nearbyGroup = deliveryAddress
     ? {
         category: NEARBY_ROW,
-        items: sortByDistance(
-          mobileCategoryGroups.flatMap((group) => group.items),
-          deliveryAddress,
+        // Lähin ensin (asiakkaan kannalta valmis järjestys), ylimpänä enintään yksi
+        // sponsori. Kategoriarivien sponsorimerkit pois - tämä rivi valitsee omansa.
+        items: rankRestaurants(
+          mobileCategoryGroups.flatMap((group) => group.items.map(({ sponsored: _sponsored, ...r }) => r)),
+          { address: deliveryAddress, popularity, compare: SORT_COMPARATORS.distance },
         ).slice(0, NEARBY_COUNT),
       }
     : null
@@ -373,11 +381,14 @@ function Home() {
       .map(([category]) => category)
   }, [restaurants])
 
-  const popularRestaurants = useMemo(() => {
-    const open = restaurants.filter((r) => r.is_open !== false)
-    const pool = open.length > 0 ? open : restaurants
-    return [...pool].sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0)).slice(0, 8)
-  }, [restaurants])
+  // Samalla järjestyssäännöllä kuin rivit (lib/ranking.js).
+  const popularRestaurants = useMemo(
+    () =>
+      rankRestaurants(withDistance(restaurants, deliveryAddress), { address: deliveryAddress, popularity })
+        .filter((r) => !r.isPlaceholder)
+        .slice(0, 8),
+    [restaurants, deliveryAddress, popularity],
+  )
 
   async function toggleFavorite(restaurantId) {
     if (!customer?.id) return
@@ -594,13 +605,6 @@ function Home() {
                       {ad.code && ' kassalla'}
                     </span>
                     <strong className="home-ad__title">{ad.title}</strong>
-                    <button
-                      type="button"
-                      className="home-ad__cta"
-                      onClick={(e) => mobileCategoryGroups[0] && scrollToCategory(e, mobileCategoryGroups[0].category)}
-                    >
-                      Tilaa nyt
-                    </button>
                   </div>
                 </article>
               ))}
@@ -766,6 +770,7 @@ function Home() {
                   </Fragment>
                 ),
             )}
+            <RankingInfo />
           </div>
         )}
 

@@ -71,7 +71,16 @@ export function DueLabel({ order }) {
 // Kuljettajan tila toimitustilauksessa (kuljettaja-app, migraatio 0043). Saapumisaika
 // ei ole ennen valmistumisaikaa, vaikka valmistusaikaa lisättäisiin keikan jälkeen.
 export function CourierStatus({ order }) {
-  if (order.delivery_method !== 'delivery' || order.status === 'cancelled') return null
+  if (order.delivery_method !== 'delivery') return null
+  // Järjestelmä perui: kahdella hakukierroksella kukaan kuljettaja ei ottanut keikkaa (0046).
+  if (order.status === 'cancelled') {
+    return order.cancel_reason === 'no_courier' ? (
+      <Badge tone="danger">
+        <Bike size={13} aria-hidden="true" />
+        Ei kuljettajaa - peruttu
+      </Badge>
+    ) : null
+  }
   switch (order.courier_status) {
     case 'assigned': {
       const pickupAt = courierPickupAt(order)
@@ -114,10 +123,21 @@ export function CourierStatus({ order }) {
       ) : (
         <Badge tone="neutral">
           <Bike size={13} aria-hidden="true" />
-          Etsitään kuljettajaa
+          {dispatchLabel(order)}
         </Badge>
       )
   }
+}
+
+// Kuljettajahaku (migraatio 0046): alkaa noin 15 min ennen valmistumista, sitten
+// kierrokset lähimmästä kuljettajasta alkaen.
+function dispatchLabel(order) {
+  const startsAt = order.dispatch_next_at ? new Date(order.dispatch_next_at) : null
+  if (!order.dispatch_round && startsAt && startsAt.getTime() > Date.now()) {
+    return `Kuljettajaa haetaan klo ${formatTime(startsAt)}`
+  }
+  if (order.dispatch_round > 1) return `Etsitään kuljettajaa (kierros ${order.dispatch_round})`
+  return 'Etsitään kuljettajaa'
 }
 
 // Ravintolan seuraava toiminto. Toimitustilauksessa kuljettaja kuittaa noudon

@@ -12,7 +12,7 @@ import {
   trackingHeadline,
   trackingMessage,
 } from '../lib/orderStatus.js'
-import { useCourierPosition } from '../lib/courierTracking.js'
+import { courierHasFood, useCourierPosition } from '../lib/courierTracking.js'
 import '../pages/Settings.css'
 import './OrderTrackingModal.css'
 
@@ -55,6 +55,7 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
           bottomInset={showRing ? 120 : 0}
           showEta={false}
           courier={courierPosition}
+          hideRestaurant={courierHasFood(order)}
           // Seurannassa kartta on näkymän pääosa, joten hiiren rulla ja
           // kosketuslevyn nipistys zoomaavat sitä kuten Woltissa.
           gestures="greedy"

@@ -3,7 +3,8 @@ import { Check, Download, FileText } from 'lucide-react'
 import { DEMO_COMPANY, DEMO_INVOICES, DEMO_PAYOUTS } from '../demo.js'
 import { useDashboard } from '../context.js'
 import { Badge, Card, DemoTag, ErrorNote, Field, Modal, PageHeader, Segmented, Stat } from '../ui.jsx'
-import { PLANS, formatDate, formatPrice, planForCommission, restaurantShareCents, sumSales } from '../utils.js'
+import { COMMITMENT_MONTHS, EXTRA_DELIVERY_CENTS, monthlyPlanCharges, planOrdersLabel } from '../../lib/partnerPlans.js'
+import { PLANS, formatDate, formatPrice, restaurantPlan, restaurantShareCents, sumSales } from '../utils.js'
 
 const PERIODS = [
   { value: 'this', label: 'Tämä kuukausi' },
@@ -15,6 +16,11 @@ function monthRange(which) {
   const start = new Date(now.getFullYear(), now.getMonth() - (which === 'last' ? 1 : 0), 1)
   const end = new Date(start.getFullYear(), start.getMonth() + 1, 1)
   return { start, end }
+}
+
+// Paketin lyhyt kuvaus: kuljetuskiintiö tai vanhojen ehtojen välityspalkkio.
+function planSummary(plan) {
+  return plan.key === 'custom' ? `${plan.commission} % välityspalkkio` : planOrdersLabel(plan)
 }
 
 function PlanModal({ current, onClose, onChoose }) {
@@ -46,8 +52,8 @@ function PlanModal({ current, onClose, onChoose }) {
               {plan.name}
               {current.key === plan.key && <Badge tone="neutral">Nykyinen</Badge>}
             </span>
-            <strong>{formatPrice(plan.priceCents)} / kk</strong>
-            <span className="pd-muted">{plan.commission === 0 ? 'Ei välityspalkkiota' : `+ ${plan.commission} % välityspalkkio`}</span>
+            <strong>{formatPrice(plan.priceCents)} / kk + alv</strong>
+            <span className="pd-muted">{planOrdersLabel(plan)} · ei provisiota</span>
             {selected === plan.key && <Check className="pd-plan__check" size={18} aria-hidden="true" />}
           </button>
         ))}
@@ -105,10 +111,11 @@ export default function FinanceView() {
   const { restaurant, ordersState, toast } = useDashboard()
   const { orders } = ordersState
   const [period, setPeriod] = useState('this')
-  const [planKey, setPlanKey] = useState(() => planForCommission(restaurant.commission_rate_percent).key)
+  const [planKey, setPlanKey] = useState(() => restaurantPlan(restaurant).key)
   const [showPlans, setShowPlans] = useState(false)
-  const currentPlan = PLANS.find((p) => p.key === planKey) ?? planForCommission(restaurant.commission_rate_percent)
-  const commissionPercent = Number(restaurant.commission_rate_percent ?? 25)
+  const currentPlan = useMemo(() => PLANS.find((p) => p.key === planKey) ?? restaurantPlan(restaurant), [planKey, restaurant])
+  // Uusissa paketeissa ei provisiota; välityspalkkio vain vanhoilla ehdoilla.
+  const commissionPercent = currentPlan.key === 'custom' ? currentPlan.commission : 0
 
   const month = useMemo(() => {
     const { start, end } = monthRange(period)
@@ -117,9 +124,11 @@ export default function FinanceView() {
       return t >= start && t < end && o.status !== 'cancelled'
     })
     const sales = sumSales(list)
+    const deliveries = list.filter((o) => o.delivery_method === 'delivery').length
     const commission = Math.round((sales * commissionPercent) / 100)
-    return { list, sales, commission, net: sales - commission, start }
-  }, [orders, period, commissionPercent])
+    const charges = currentPlan.priceCents != null ? monthlyPlanCharges(currentPlan, deliveries) : null
+    return { list, sales, deliveries, commission, charges, net: sales - commission - (charges?.totalCents ?? 0), start }
+  }, [orders, period, commissionPercent, currentPlan])
 
   const monthName = month.start.toLocaleDateString('fi-FI', { month: 'long', year: 'numeric' })
 
@@ -127,18 +136,36 @@ export default function FinanceView() {
     <div className="pd-view">
       <PageHeader
         title="Talous"
-        description="Myynti, välityspalkkiot, tilitykset ja laskut."
+        description="Myynti, kuukausimaksu, tilitykset ja laskut."
         actions={<Segmented value={period} onChange={setPeriod} options={PERIODS} label="Kausi" />}
       />
 
       <div className="pd-summary">
         <Stat label={`Myynti, ${monthName}`} value={formatPrice(month.sales)} hint={`${month.list.length} tilausta`} />
-        <Stat label={`Välityspalkkio ${commissionPercent} %`} value={`−${formatPrice(month.commission)}`} />
-        <Stat label="Kuukausimaksu" value={currentPlan.priceCents != null ? `−${formatPrice(currentPlan.priceCents)}` : 'Sopimuksen mukaan'} />
+        {currentPlan.key === 'custom' ? (
+          <Stat label={`Välityspalkkio ${commissionPercent} %`} value={`−${formatPrice(month.commission)}`} />
+        ) : currentPlan.delivery ? (
+          <Stat
+            label="Kuljetustilaukset"
+            value={`${month.deliveries} / ${currentPlan.includedDeliveries}`}
+            hint={
+              month.charges.extraDeliveries > 0
+                ? `Yli paketin ${month.charges.extraDeliveries} × ${formatPrice(EXTRA_DELIVERY_CENTS)}`
+                : 'Sisältyy kuukausimaksuun'
+            }
+          />
+        ) : (
+          <Stat label="Välityspalkkio" value={formatPrice(0)} hint="Ei provisiota" />
+        )}
+        <Stat
+          label="Kuukausimaksu"
+          value={month.charges ? `−${formatPrice(month.charges.totalCents)}` : 'Sopimuksen mukaan'}
+          hint={month.charges?.extraCents ? `sis. lisäkuljetukset ${formatPrice(month.charges.extraCents)}` : undefined}
+        />
         <Stat
           label="Arvioitu tilitys"
-          value={formatPrice(month.net - (currentPlan.priceCents ?? 0))}
-          hint="Myynti − palkkio − kuukausimaksu"
+          value={formatPrice(month.net)}
+          hint={currentPlan.key === 'custom' ? 'Myynti − palkkio' : 'Myynti − kuukausimaksu'}
         />
       </div>
 
@@ -151,8 +178,9 @@ export default function FinanceView() {
                   <tr>
                     <th>Tilaus</th>
                     <th>Päivä</th>
+                    <th>Tapa</th>
                     <th className="pd-num">Myynti</th>
-                    <th className="pd-num">Palkkio</th>
+                    {commissionPercent > 0 && <th className="pd-num">Palkkio</th>}
                     <th className="pd-num">Sinulle</th>
                   </tr>
                 </thead>
@@ -164,15 +192,16 @@ export default function FinanceView() {
                       <tr key={o.id}>
                         <td className="pd-strong">{o.order_number}</td>
                         <td>{formatDate(o.created_at)}</td>
+                        <td>{o.delivery_method === 'delivery' ? 'Kuljetus' : 'Nouto'}</td>
                         <td className="pd-num">{formatPrice(share)}</td>
-                        <td className="pd-num pd-muted">−{formatPrice(fee)}</td>
+                        {commissionPercent > 0 && <td className="pd-num pd-muted">−{formatPrice(fee)}</td>}
                         <td className="pd-num pd-strong">{formatPrice(share - fee)}</td>
                       </tr>
                     )
                   })}
                   {month.list.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="pd-muted">
+                      <td colSpan={commissionPercent > 0 ? 6 : 5} className="pd-muted">
                         Ei tilauksia tällä kaudella.
                       </td>
                     </tr>
@@ -205,14 +234,14 @@ export default function FinanceView() {
             <div className="pd-current-plan">
               <strong>{currentPlan.name}</strong>
               <span>
-                {currentPlan.priceCents != null ? `${formatPrice(currentPlan.priceCents)} / kk` : 'Oma sopimus'} ·{' '}
-                {currentPlan.commission === 0 ? 'ei välityspalkkiota' : `${currentPlan.commission} % välityspalkkio`}
+                {currentPlan.priceCents != null ? `${formatPrice(currentPlan.priceCents)} / kk + alv` : 'Oma sopimus'} ·{' '}
+                {planSummary(currentPlan)}
               </span>
             </div>
             <button type="button" className="pd-btn pd-btn--secondary pd-btn--block" onClick={() => setShowPlans(true)}>
               Vaihda pakettia
             </button>
-            <p className="pd-muted">Ei sitoutumisaikaa - voit vaihtaa tai perua milloin vain.</p>
+            <p className="pd-muted">Sitoutumisaika {COMMITMENT_MONTHS} kk. Pakettia voit vaihtaa sopimuksen aikana.</p>
           </Card>
 
           <Card title="Laskut" demo padded={false}>

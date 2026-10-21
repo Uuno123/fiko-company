@@ -8,6 +8,7 @@ import OrderCountdownRing from '../components/OrderCountdownRing.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import { formatPrice } from '../lib/format.js'
+import { courierHasFood } from '../lib/courierTracking.js'
 import { customerStatusLabel, estimatedArrivalAt, trackingMessage } from '../lib/orderStatus.js'
 import './AuthForm.css'
 import './Settings.css'
@@ -222,6 +223,7 @@ function OrderHistory() {
                         : undefined
                     }
                     pickupOnly={order.delivery_method === 'pickup'}
+                    hideRestaurant={courierHasFood(order)}
                   />
                 </div>
               )}

@@ -1,10 +1,13 @@
-import { Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { Menu, X } from 'lucide-react'
 import { usePartnerAuth } from '../lib/PartnerAuthContext.jsx'
+import DelivoLogo from './DelivoLogo.jsx'
 import './PartnerHeader.css'
 
 const NAV_ITEMS = [
-  { href: '/kumppanina#alkuun', label: 'Näin se toimii' },
-  { href: '/kumppanina#ominaisuudet', label: 'Ominaisuudet' },
+  { href: '/kumppanina#ravintoloille', label: 'Ravintoloille' },
+  { href: '/kumppanina#kuljettajille', label: 'Kuljettajille' },
   { href: '/kumppanina#hinnoittelu', label: 'Hinnoittelu' },
   { href: '/kumppanina#ukk', label: 'UKK' },
 ]
@@ -20,13 +23,31 @@ function PersonIcon() {
 
 function PartnerHeader() {
   const { isOwner, signOut } = usePartnerAuth()
+  const location = useLocation()
+  // Kapealla näytöllä osiolinkit ovat valikossa, joka aukeaa headerin alle.
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname, location.hash])
+
+  useEffect(() => {
+    if (!menuOpen) return undefined
+    function onKey(e) {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [menuOpen])
 
   return (
-    <header className="partner-header">
+    <header className={`partner-header${menuOpen ? ' partner-header--menu-open' : ''}`}>
       <div className="partner-header__inner">
+        {/* Sama sanamerkki kuin asiakaspuolen headerissa (DelivoLogo). */}
         <Link to="/kumppanina" className="partner-header__brand">
-          <span className="partner-header__wordmark">delivo</span>
-          <span className="partner-header__divider" aria-hidden="true" />
+          <span className="partner-header__logo">
+            <DelivoLogo />
+          </span>
           <span className="partner-header__sublabel">Kumppanit</span>
         </Link>
 
@@ -61,8 +82,40 @@ function PartnerHeader() {
               </Link>
             </>
           )}
+          <button
+            type="button"
+            className="partner-header__menu-btn"
+            aria-expanded={menuOpen}
+            aria-controls="partner-mobile-menu"
+            aria-label={menuOpen ? 'Sulje valikko' : 'Avaa valikko'}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? <X size={20} strokeWidth={2.2} /> : <Menu size={20} strokeWidth={2.2} />}
+          </button>
         </div>
       </div>
+
+      {menuOpen && (
+        <>
+          <nav id="partner-mobile-menu" className="partner-header__mobile-nav" aria-label="Kumppanisivun osiot">
+            {NAV_ITEMS.map((item) => (
+              <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+                {item.label}
+              </a>
+            ))}
+            <Link to="/kumppani/kuljettajaksi" className="partner-header__mobile-cta">
+              Hae kuljettajaksi
+            </Link>
+          </nav>
+          <button
+            type="button"
+            className="partner-header__backdrop"
+            aria-label="Sulje valikko"
+            tabIndex={-1}
+            onClick={() => setMenuOpen(false)}
+          />
+        </>
+      )}
     </header>
   )
 }

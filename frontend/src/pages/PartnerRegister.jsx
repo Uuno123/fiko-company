@@ -1,9 +1,26 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Check } from 'lucide-react'
 import PartnerHeader from '../components/PartnerHeader.jsx'
+import ApplicationAside from '../components/partner/ApplicationAside.jsx'
 import Footer from '../components/Footer.jsx'
+import { formatPrice } from '../lib/format.js'
+import { COMMITMENT_MONTHS, DEVICE_SETUP_CENTS, PARTNER_PLANS, formatWholePrice } from '../lib/partnerPlans.js'
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js'
 import './PartnerApplication.css'
+
+// Sivukortti: hakemuksen kulku ja tärkeimmät ehdot.
+const APPLICATION_STEPS = [
+  { title: 'Lähetä hakemus', body: 'Yrityksen, yhteyshenkilön ja ravintolan tiedot.' },
+  { title: 'Käsittelemme hakemuksen', body: 'Olemme sinuun yhteydessä sähköpostitse.' },
+  { title: 'Avaa ravintolasi', body: 'Tilauslaite asennetaan ja saat tunnukset kojelaudalle.' },
+]
+
+const APPLICATION_FACTS = [
+  { value: '0 %', label: `provisiota, kuukausimaksu alkaen ${formatPrice(PARTNER_PLANS[0].priceCents)} + alv` },
+  { value: formatWholePrice(DEVICE_SETUP_CENTS), label: 'tilauslaite + asennus, kertamaksu + alv' },
+  { value: `${COMMITMENT_MONTHS} kk`, label: 'sitoutumisaika' },
+]
 
 function PartnerRegister() {
   const [businessId, setBusinessId] = useState('')
@@ -71,190 +88,204 @@ function PartnerRegister() {
     <div className="page">
       <PartnerHeader />
       <main className="application-page">
-        <div className="application-card">
-          <h1>Kumppanuushakemus</h1>
-          <p className="application-card__subtitle">
-            Täytä yrityksesi ja ravintolasi tiedot alle mahdollisimman kattavasti - se nopeuttaa käsittelyä.
-            Käsittelemme hakemuksen ja otamme sinuun yhteyttä sähköpostitse. Kirjautumistunnukset kojelaudalle
-            saat vasta hakemuksen hyväksynnän jälkeen.
-          </p>
-
-          {status === 'submitted' ? (
-            <p className="application-success">
-              Kiitos! Kumppanuushakemuksesi on vastaanotettu. Otamme sinuun yhteyttä osoitteeseen {email}, kun
-              hakemus on käsitelty.
+        <div className="application-layout">
+          <div className="application-card">
+            <h1>Kumppanuushakemus</h1>
+            <p className="application-card__subtitle">
+              Täytä yrityksesi ja ravintolasi tiedot alle mahdollisimman kattavasti - se nopeuttaa käsittelyä.
+              Käsittelemme hakemuksen ja otamme sinuun yhteyttä sähköpostitse. Kirjautumistunnukset kojelaudalle saat
+              vasta hakemuksen hyväksynnän jälkeen.
             </p>
-          ) : (
-            <form className="application-form" onSubmit={handleSubmit}>
-              {errorMessage && <p className="application-error">{errorMessage}</p>}
 
-              <section className="application-section">
-                <h2>Yrityksen tiedot</h2>
-                <div className="application-field-grid">
-                  <div className="application-field">
-                    <label htmlFor="business-id">Y-tunnus</label>
-                    <input
-                      id="business-id"
-                      type="text"
-                      placeholder="1234567-8"
-                      pattern="\d{7}-\d"
-                      title="Y-tunnus muodossa 1234567-8"
-                      required
-                      value={businessId}
-                      onChange={(e) => setBusinessId(e.target.value)}
-                    />
+            {status === 'submitted' ? (
+              <div className="application-success" role="status">
+                <span className="application-success__icon" aria-hidden="true">
+                  <Check size={18} strokeWidth={3} />
+                </span>
+                <p>
+                  Kiitos! Kumppanuushakemuksesi on vastaanotettu. Otamme sinuun yhteyttä osoitteeseen {email}, kun
+                  hakemus on käsitelty.
+                </p>
+              </div>
+            ) : (
+              <form className="application-form" onSubmit={handleSubmit}>
+                {errorMessage && <p className="application-error">{errorMessage}</p>}
+
+                <section className="application-section">
+                  <h2>Yrityksen tiedot</h2>
+                  <div className="application-field-grid">
+                    <div className="application-field">
+                      <label htmlFor="business-id">Y-tunnus</label>
+                      <input
+                        id="business-id"
+                        type="text"
+                        placeholder="1234567-8"
+                        pattern="\d{7}-\d"
+                        title="Y-tunnus muodossa 1234567-8"
+                        required
+                        value={businessId}
+                        onChange={(e) => setBusinessId(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="application-field">
+                      <label htmlFor="legal-name">Yrityksen virallinen nimi</label>
+                      <input
+                        id="legal-name"
+                        type="text"
+                        placeholder="Esim. Ravintola Oy"
+                        required
+                        value={legalName}
+                        onChange={(e) => setLegalName(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="application-field application-field--full">
+                      <label htmlFor="website">Verkkosivu tai somelinkki (valinnainen)</label>
+                      <input
+                        id="website"
+                        type="text"
+                        placeholder="https://..."
+                        value={website}
+                        onChange={(e) => setWebsite(e.target.value)}
+                      />
+                    </div>
                   </div>
+                </section>
 
-                  <div className="application-field">
-                    <label htmlFor="legal-name">Yrityksen virallinen nimi</label>
-                    <input
-                      id="legal-name"
-                      type="text"
-                      placeholder="Esim. Ravintola Oy"
-                      required
-                      value={legalName}
-                      onChange={(e) => setLegalName(e.target.value)}
-                    />
+                <section className="application-section">
+                  <h2>Yhteyshenkilö</h2>
+                  <div className="application-field-grid">
+                    <div className="application-field">
+                      <label htmlFor="owner-name">Nimi</label>
+                      <input
+                        id="owner-name"
+                        type="text"
+                        autoComplete="name"
+                        required
+                        value={ownerName}
+                        onChange={(e) => setOwnerName(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="application-field">
+                      <label htmlFor="owner-phone">Puhelinnumero</label>
+                      <input
+                        id="owner-phone"
+                        type="tel"
+                        autoComplete="tel"
+                        required
+                        value={ownerPhone}
+                        onChange={(e) => setOwnerPhone(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="application-field">
+                      <label htmlFor="email">Sähköposti</label>
+                      <input
+                        id="email"
+                        type="email"
+                        autoComplete="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                    </div>
                   </div>
+                </section>
 
-                  <div className="application-field application-field--full">
-                    <label htmlFor="website">Verkkosivu tai somelinkki (valinnainen)</label>
-                    <input
-                      id="website"
-                      type="text"
-                      placeholder="https://..."
-                      value={website}
-                      onChange={(e) => setWebsite(e.target.value)}
-                    />
+                <section className="application-section">
+                  <h2>Ravintola</h2>
+                  <div className="application-field-grid">
+                    <div className="application-field">
+                      <label htmlFor="restaurant-name">Ravintolan nimi</label>
+                      <input
+                        id="restaurant-name"
+                        type="text"
+                        required
+                        value={restaurantName}
+                        onChange={(e) => setRestaurantName(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="application-field">
+                      <label htmlFor="restaurant-category">Kategoria</label>
+                      <input
+                        id="restaurant-category"
+                        type="text"
+                        placeholder="Esim. Pizza, Sushi, Kotiruoka"
+                        required
+                        value={restaurantCategory}
+                        onChange={(e) => setRestaurantCategory(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="application-field">
+                      <label htmlFor="restaurant-city">Kaupunki</label>
+                      <input
+                        id="restaurant-city"
+                        type="text"
+                        required
+                        value={restaurantCity}
+                        onChange={(e) => setRestaurantCity(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="application-field">
+                      <label htmlFor="restaurant-postal-code">Postinumero</label>
+                      <input
+                        id="restaurant-postal-code"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="70100"
+                        required
+                        value={restaurantPostalCode}
+                        onChange={(e) => setRestaurantPostalCode(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="application-field application-field--full">
+                      <label htmlFor="restaurant-address">Osoite</label>
+                      <input
+                        id="restaurant-address"
+                        type="text"
+                        required
+                        value={restaurantAddress}
+                        onChange={(e) => setRestaurantAddress(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="application-field application-field--full">
+                      <label htmlFor="restaurant-description">Kerro lyhyesti ravintolastasi</label>
+                      <textarea
+                        id="restaurant-description"
+                        rows={4}
+                        placeholder="Minkälaista ruokaa tarjoatte, minkä kokoinen ravintola on, kuinka kauan olette toimineet..."
+                        required
+                        value={restaurantDescription}
+                        onChange={(e) => setRestaurantDescription(e.target.value)}
+                      />
+                    </div>
                   </div>
-                </div>
-              </section>
+                </section>
 
-              <section className="application-section">
-                <h2>Yhteyshenkilö</h2>
-                <div className="application-field-grid">
-                  <div className="application-field">
-                    <label htmlFor="owner-name">Nimi</label>
-                    <input
-                      id="owner-name"
-                      type="text"
-                      autoComplete="name"
-                      required
-                      value={ownerName}
-                      onChange={(e) => setOwnerName(e.target.value)}
-                    />
-                  </div>
+                <button type="submit" className="application-submit" disabled={status === 'submitting'}>
+                  {status === 'submitting' ? 'Lähetetään hakemusta...' : 'Lähetä kumppanuushakemus'}
+                </button>
+              </form>
+            )}
 
-                  <div className="application-field">
-                    <label htmlFor="owner-phone">Puhelinnumero</label>
-                    <input
-                      id="owner-phone"
-                      type="tel"
-                      autoComplete="tel"
-                      required
-                      value={ownerPhone}
-                      onChange={(e) => setOwnerPhone(e.target.value)}
-                    />
-                  </div>
+            <p className="application-footer">
+              Onko hakemuksesi jo hyväksytty? <Link to="/kumppani/kirjaudu">Kirjaudu sisään</Link>
+            </p>
+          </div>
 
-                  <div className="application-field">
-                    <label htmlFor="email">Sähköposti</label>
-                    <input
-                      id="email"
-                      type="email"
-                      autoComplete="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </section>
-
-              <section className="application-section">
-                <h2>Ravintola</h2>
-                <div className="application-field-grid">
-                  <div className="application-field">
-                    <label htmlFor="restaurant-name">Ravintolan nimi</label>
-                    <input
-                      id="restaurant-name"
-                      type="text"
-                      required
-                      value={restaurantName}
-                      onChange={(e) => setRestaurantName(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="application-field">
-                    <label htmlFor="restaurant-category">Kategoria</label>
-                    <input
-                      id="restaurant-category"
-                      type="text"
-                      placeholder="Esim. Pizza, Sushi, Kotiruoka"
-                      required
-                      value={restaurantCategory}
-                      onChange={(e) => setRestaurantCategory(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="application-field">
-                    <label htmlFor="restaurant-city">Kaupunki</label>
-                    <input
-                      id="restaurant-city"
-                      type="text"
-                      required
-                      value={restaurantCity}
-                      onChange={(e) => setRestaurantCity(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="application-field">
-                    <label htmlFor="restaurant-postal-code">Postinumero</label>
-                    <input
-                      id="restaurant-postal-code"
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="70100"
-                      required
-                      value={restaurantPostalCode}
-                      onChange={(e) => setRestaurantPostalCode(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="application-field application-field--full">
-                    <label htmlFor="restaurant-address">Osoite</label>
-                    <input
-                      id="restaurant-address"
-                      type="text"
-                      required
-                      value={restaurantAddress}
-                      onChange={(e) => setRestaurantAddress(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="application-field application-field--full">
-                    <label htmlFor="restaurant-description">Kerro lyhyesti ravintolastasi</label>
-                    <textarea
-                      id="restaurant-description"
-                      rows={4}
-                      placeholder="Minkälaista ruokaa tarjoatte, minkä kokoinen ravintola on, kuinka kauan olette toimineet..."
-                      required
-                      value={restaurantDescription}
-                      onChange={(e) => setRestaurantDescription(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </section>
-
-              <button type="submit" className="application-submit" disabled={status === 'submitting'}>
-                {status === 'submitting' ? 'Lähetetään hakemusta...' : 'Lähetä kumppanuushakemus'}
-              </button>
-            </form>
-          )}
-
-          <p className="application-footer">
-            Onko hakemuksesi jo hyväksytty? <Link to="/kumppani/kirjaudu">Kirjaudu sisään</Link>
-          </p>
+          <ApplicationAside
+            eyebrow="delivo ravintoloille"
+            title="Näin hakemus etenee"
+            steps={APPLICATION_STEPS}
+            facts={APPLICATION_FACTS}
+          />
         </div>
       </main>
 

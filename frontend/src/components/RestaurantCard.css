@@ -157,6 +157,13 @@
   margin-bottom: 3px;
 }
 
+.restaurant-card__sponsored {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
 .restaurant-card__heading h3 {
   margin: 0;
   white-space: nowrap;

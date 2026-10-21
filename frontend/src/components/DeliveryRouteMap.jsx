@@ -20,7 +20,8 @@ function estimateEtaMinutes(distanceKm) {
 // vierittää sivua) tai 'greedy' (rulla zoomaa karttaa), ks. lib/mapView.js.
 // Zoomausnapit näkyvät hiirellä käytettäessä, puhelimella zoomataan nipistämällä.
 // courier: kuljettajan sijainti { lat, lng } (asiakkaan seuranta, päivittyy
-// reaaliajassa) tai null.
+// reaaliajassa) tai null. hideRestaurant: kuljettaja on noutanut tilauksen -
+// ravintola ja sen reitti pois kartalta, jäljelle kuljettaja ja koti (kuten Woltissa).
 function DeliveryRouteMap({
   restaurant,
   destination,
@@ -29,24 +30,49 @@ function DeliveryRouteMap({
   showEta = true,
   gestures = 'auto',
   courier = null,
+  hideRestaurant = false,
 }) {
   const containerRef = useRef(null)
   const courierPinRef = useRef(null)
+  // Viimeisin kuljettajan sijainti rajausta varten (ei riippuvuutena, ettei
+  // kartta rajaudu uudelleen joka liikahduksella).
+  const courierPointRef = useRef(null)
 
   const hasRestaurantCoords = Boolean(restaurant?.lat && restaurant?.lng)
-  const hasRoute = hasRestaurantCoords && Boolean(destination?.lat && destination?.lng)
+  const hasDestination = Boolean(destination?.lat && destination?.lng)
+  const hasRoute = hasRestaurantCoords && hasDestination
   // Ilman määränpään koordinaatteja (esim. profiilista esitäytetty osoite, jota ei
   // ole paikannettu kartalla) näytetään ainakin ravintola - ei tyhjää karttaa.
   const hasRestaurantOnly = hasRestaurantCoords && (pickupOnly || !hasRoute)
 
   const mapView = useMapView(containerRef, {
-    center: hasRestaurantCoords ? { lat: Number(restaurant.lat), lng: Number(restaurant.lng) } : DEFAULT_CENTER,
+    center:
+      hideRestaurant && hasDestination
+        ? { lat: Number(destination.lat), lng: Number(destination.lng) }
+        : hasRestaurantCoords
+          ? { lat: Number(restaurant.lat), lng: Number(restaurant.lng) }
+          : DEFAULT_CENTER,
     zoom: 13,
     gestures,
   })
 
+  // Noudon jälkeen: vain koti (ja kuljettaja, ks. alla). Kartta rajataan kotiin ja
+  // kuljettajan viimeisimpään sijaintiin.
   useEffect(() => {
-    if (!mapView || !hasRestaurantCoords) return
+    if (!mapView || !hideRestaurant || !hasDestination) return
+    const dest = { lat: Number(destination.lat), lng: Number(destination.lng) }
+    const destPin = mapView.addPin(dest, 'dest', destination.address)
+    const courierPoint = courierPointRef.current
+    if (courierPoint) mapView.fitBounds([courierPoint, dest], { top: 28, right: 28, bottom: 28 + bottomInset, left: 28 }, 16)
+    else {
+      mapView.setView(dest, 15)
+      if (bottomInset) mapView.panBy(0, bottomInset / 2)
+    }
+    return () => destPin.remove()
+  }, [mapView, hideRestaurant, hasDestination, bottomInset, destination?.lat, destination?.lng, destination?.address])
+
+  useEffect(() => {
+    if (!mapView || hideRestaurant || !hasRestaurantCoords) return
     const store = { lat: Number(restaurant.lat), lng: Number(restaurant.lng) }
 
     if (hasRestaurantOnly) {
@@ -67,6 +93,7 @@ function DeliveryRouteMap({
     return () => layers.forEach((layer) => layer.remove())
   }, [
     mapView,
+    hideRestaurant,
     hasRestaurantCoords,
     hasRoute,
     hasRestaurantOnly,
@@ -87,15 +114,17 @@ function DeliveryRouteMap({
   useEffect(() => {
     if (!mapView || !hasCourier) return
     const point = { lat: courierLat, lng: courierLng }
+    courierPointRef.current = point
     if (courierPinRef.current) {
       courierPinRef.current.move(point)
       return
     }
     courierPinRef.current = mapView.addPin(point, 'courier', 'Kuljettaja')
     const points = [point]
-    if (hasRestaurantCoords) points.push({ lat: Number(restaurant.lat), lng: Number(restaurant.lng) })
-    if (destination?.lat && destination?.lng) points.push({ lat: Number(destination.lat), lng: Number(destination.lng) })
+    if (hasRestaurantCoords && !hideRestaurant) points.push({ lat: Number(restaurant.lat), lng: Number(restaurant.lng) })
+    if (hasDestination) points.push({ lat: Number(destination.lat), lng: Number(destination.lng) })
     if (points.length > 1) mapView.fitBounds(points, { top: 28, right: 28, bottom: 28 + bottomInset, left: 28 }, 16)
+    else mapView.setView(point, 15)
     // Rajaus vain ensimmäisellä kerralla - sen jälkeen merkki vain liikkuu.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapView, hasCourier, courierLat, courierLng])
@@ -105,6 +134,7 @@ function DeliveryRouteMap({
     if (hasCourier) return
     courierPinRef.current?.remove()
     courierPinRef.current = null
+    courierPointRef.current = null
   }, [hasCourier])
   useEffect(
     () => () => {
@@ -116,7 +146,7 @@ function DeliveryRouteMap({
 
   const distanceKm = hasRoute ? haversineKm(restaurant, destination) : null
   const eta = distanceKm != null ? estimateEtaMinutes(distanceKm) : null
-  const hasDestination = Boolean(destination?.lat && destination?.lng)
+  const showPlaceholder = hideRestaurant ? !hasDestination && !hasCourier : !hasRoute && !hasRestaurantOnly
   const placeholderText = hasDestination
     ? 'Karttaa ei voida näyttää tälle ravintolalle juuri nyt'
     : 'Valitse toimitusosoite nähdäksesi reitin kartalla'
@@ -124,7 +154,7 @@ function DeliveryRouteMap({
   return (
     <div className="delivery-route-map">
       <div ref={containerRef} className="delivery-route-map__canvas" />
-      {!hasRoute && !hasRestaurantOnly && <div className="delivery-route-map__placeholder">{placeholderText}</div>}
+      {showPlaceholder && <div className="delivery-route-map__placeholder">{placeholderText}</div>}
       {showEta && eta && (
         <span className="delivery-route-map__eta">
           n. {eta.low}-{eta.high} min · {distanceKm.toFixed(1)} km

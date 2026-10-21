@@ -1,4 +1,5 @@
 import { formatPrice } from '../lib/format.js'
+import { PARTNER_PLANS, findPlan } from '../lib/partnerPlans.js'
 
 export { formatPrice }
 
@@ -112,17 +113,20 @@ export function normalizeOpeningHours(value) {
   return hours
 }
 
-// Ravintolan paketti päätellään välityspalkkiosta (kannassa ei ole omaa pakettisaraketta,
-// ks. migraatiot 0020 ja 0040).
-export const PLANS = [
-  { key: 'perus', name: 'Peruspaketti', priceCents: 4999, commission: 25 },
-  { key: 'pro', name: 'Pro', priceCents: 7999, commission: 10 },
-  { key: 'business', name: 'Business', priceCents: 16999, commission: 0 },
-]
+// Ravintolan paketti: restaurants.plan (migraatio 0049), hinnat lib/partnerPlans.js:ssä.
+// Ilman pakettia ravintolalla on vanhat ehdot eli välityspalkkio
+// commission_rate_percent-sarakkeesta (0020, 0040).
+export const PLANS = PARTNER_PLANS
 
-export function planForCommission(commission) {
-  const value = Number(commission ?? 25)
-  return PLANS.find((p) => p.commission === value) ?? { key: 'custom', name: 'Oma sopimus', priceCents: null, commission: value }
+export function restaurantPlan(restaurant) {
+  return (
+    findPlan(restaurant?.plan) ?? {
+      key: 'custom',
+      name: 'Oma sopimus',
+      priceCents: null,
+      commission: Number(restaurant?.commission_rate_percent ?? 0),
+    }
+  )
 }
 
 export function storageGet(key, fallback) {

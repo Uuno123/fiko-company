@@ -1,51 +1,29 @@
+/* Kumppanisivujen header samassa ilmeessä kuin asiakaspuolen vaalea header
+   (Header.css): valkoinen palkki, oranssi pillerilogo, toissijainen nappi
+   valkoisena reunuksella ja ensisijainen mustana - oranssi on brändimerkin ja
+   korostusten väri, ei nappien. */
 .partner-header {
-  background: var(--delivo-black);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   top: 0;
   z-index: 50;
+  background: var(--surface);
+  border-bottom: 1px solid #ececec;
+  box-shadow: 0 2px 6px -2px rgba(20, 21, 15, 0.12);
 }
 
+/* Sisältö taustan päällä, jotta valikon tumma tausta ei peitä headeria. */
 .partner-header__inner {
+  position: relative;
+  z-index: 3;
+  background: var(--surface);
   width: 100%;
   min-height: var(--site-header-height);
-  padding: 10px 32px;
+  padding: 10px 24px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 24px;
   box-sizing: border-box;
-}
-
-.partner-header__brand {
-  justify-self: start;
-}
-
-.partner-header__nav {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-}
-
-.partner-header__nav-link {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.68);
-  text-decoration: none;
-  white-space: nowrap;
-  transition: color 0.15s ease;
-}
-
-.partner-header__nav-link:hover {
-  color: #fff;
-}
-
-.partner-header__nav-link:focus-visible,
-.partner-header__ghost-btn:focus-visible,
-.partner-header__pill-btn:focus-visible,
-.partner-header__brand:focus-visible {
-  outline: 2px solid #fff;
-  outline-offset: 4px;
 }
 
 @media (min-width: 1900px) {
@@ -56,70 +34,78 @@
 }
 
 .partner-header__brand {
+  justify-self: start;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   text-decoration: none;
+}
+
+.partner-header__logo {
+  display: inline-flex;
+  color: var(--delivo-black);
+  line-height: 0;
   transform-origin: left center;
   transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.partner-header__wordmark {
-  font-family: var(--font-display);
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1;
-  color: #fff;
-  transition: letter-spacing 0.25s ease;
+.partner-header__logo .delivo-logo {
+  height: 22px;
 }
 
-.partner-header__divider {
-  width: 1px;
-  height: 18px;
-  margin: 0 4px;
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.partner-header__sublabel {
-  font-size: 0.95rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.partner-header__brand:hover,
-.partner-header__brand:focus-visible {
+.partner-header__brand:hover .partner-header__logo,
+.partner-header__brand:focus-visible .partner-header__logo {
   transform: scale(1.04);
 }
 
-.partner-header__brand:hover .partner-header__wordmark,
-.partner-header__brand:focus-visible .partner-header__wordmark {
-  letter-spacing: -0.03em;
-}
-
-.partner-header__brand:active {
+.partner-header__brand:active .partner-header__logo {
   transform: scale(0.97);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .partner-header__brand {
-    transition: background 0.15s ease;
-  }
+.partner-header__sublabel {
+  padding-left: 14px;
+  border-left: 1px solid #ececec;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--delivo-black);
+}
 
-  .partner-header__brand:hover,
-  .partner-header__brand:focus-visible,
-  .partner-header__brand:active {
-    transform: none;
-  }
+.partner-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.partner-header__nav-link {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.partner-header__nav-link:hover {
+  color: var(--delivo-black);
+}
+
+.partner-header__nav-link:focus-visible,
+.partner-header__ghost-btn:focus-visible,
+.partner-header__pill-btn:focus-visible,
+.partner-header__brand:focus-visible {
+  outline: 2px solid var(--delivo-black);
+  outline-offset: 4px;
+  border-radius: 14px;
 }
 
 .partner-header__actions {
   display: flex;
   align-items: center;
   justify-self: end;
-  gap: 22px;
+  gap: 10px;
 }
 
 .partner-header__ghost-btn,
@@ -128,54 +114,146 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
   font-family: inherit;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 600;
   letter-spacing: -0.01em;
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
-  border: 1px solid transparent;
-  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
-}
-
-.partner-header__pill-btn {
-  height: 38px;
-  padding: 0 18px;
-  border-radius: var(--radius-pill);
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.15s ease;
 }
 
 .partner-header__ghost-btn {
-  height: auto;
-  padding: 0;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.85);
+  background: var(--surface);
+  border-color: #ececec;
+  color: var(--delivo-black);
 }
 
 .partner-header__ghost-btn:hover {
-  color: #fff;
+  background: #f4f2f0;
+  border-color: #e2dedb;
 }
 
 .partner-header__link-icon {
   width: 16px;
   height: 16px;
-  color: currentColor;
+  color: var(--text-muted);
 }
 
 .partner-header__pill-btn {
-  background: #fff;
-  border-color: #fff;
-  color: var(--delivo-black);
+  background: var(--delivo-black);
+  border-color: var(--delivo-black);
+  color: #fff;
 }
 
 .partner-header__pill-btn:hover {
-  background: #ececec;
-  border-color: #ececec;
+  background: #26281d;
+  border-color: #26281d;
 }
 
 .partner-header__ghost-btn:active,
 .partner-header__pill-btn:active {
   transform: scale(0.97);
+}
+
+/* Valikkonappi ja osiovalikko vain kapealla näytöllä (osiolinkit piilossa). */
+.partner-header__menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #ececec;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.partner-header__menu-btn:focus-visible {
+  outline: 2px solid var(--delivo-black);
+  outline-offset: 3px;
+}
+
+.partner-header__mobile-nav {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  padding: 6px 16px 18px;
+  border-bottom: 1px solid #ececec;
+  background: var(--surface);
+  box-shadow: 0 18px 30px -18px rgba(20, 21, 15, 0.35);
+  animation: partner-menu-in 0.22s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.partner-header__mobile-nav a {
+  padding: 15px 4px;
+  border-bottom: 1px solid #f0efed;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--delivo-black);
+  text-decoration: none;
+}
+
+.partner-header__mobile-nav .partner-header__mobile-cta {
+  align-self: flex-start;
+  margin-top: 16px;
+  padding: 12px 20px;
+  border: 1px solid #ececec;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.partner-header__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  border: none;
+  background: rgba(20, 21, 15, 0.35);
+  cursor: default;
+}
+
+@keyframes partner-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partner-header__mobile-nav {
+    animation: none;
+  }
+
+  .partner-header__logo,
+  .partner-header__ghost-btn,
+  .partner-header__pill-btn {
+    transition: background 0.15s ease;
+  }
+
+  .partner-header__brand:hover .partner-header__logo,
+  .partner-header__brand:focus-visible .partner-header__logo,
+  .partner-header__brand:active .partner-header__logo,
+  .partner-header__ghost-btn:active,
+  .partner-header__pill-btn:active {
+    transform: none;
+  }
 }
 
 @media (max-width: 960px) {
@@ -186,37 +264,53 @@
   .partner-header__nav {
     display: none;
   }
+
+  .partner-header__menu-btn {
+    display: inline-flex;
+  }
+}
+
+@media (min-width: 961px) {
+  .partner-header__mobile-nav,
+  .partner-header__backdrop {
+    display: none;
+  }
 }
 
 @media (max-width: 640px) {
   .partner-header__inner {
-    height: 60px;
-    padding: 0 16px;
+    min-height: 60px;
+    padding: 8px 16px;
     gap: 10px;
   }
 
-  .partner-header__wordmark {
-    font-size: 1.15rem;
+  /* Sama pienempi logo kuin asiakaspuolen mobiiliheaderissa. */
+  .partner-header__logo .delivo-logo {
+    height: 19px;
   }
 
-  /* "Kumppanit"-tunniste vie kapealla näytöllä tilaa Kirjaudu/Jätä hakemus
-     -napeilta - brändi on silti selvä pelkästä delivo-sanasta. */
-  .partner-header__divider,
+  /* "Kumppanit"-tunniste vie kapealla näytöllä tilaa napeilta. */
   .partner-header__sublabel {
     display: none;
   }
 
   .partner-header__actions {
-    gap: 14px;
+    gap: 8px;
   }
 
   .partner-header__ghost-btn,
   .partner-header__pill-btn {
-    font-size: 0.8rem;
+    height: 36px;
+    padding: 0 13px;
+    font-size: 0.82rem;
   }
 
-  .partner-header__pill-btn {
-    height: 34px;
-    padding: 0 12px;
+  .partner-header__link-icon {
+    display: none;
+  }
+
+  .partner-header__menu-btn {
+    width: 36px;
+    height: 36px;
   }
 }

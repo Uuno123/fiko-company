@@ -46,7 +46,23 @@ function PreviewTracking() {
       </AuthContext.Provider>
     )
   }
-  return <OrderTrackingModal order={MOCK_ORDER} onClose={() => {}} />
+  return <OrderTrackingModal order={previewOrder()} onClose={() => {}} />
+}
+
+// ?vaihe=tulossa: kuljettaja matkalla ravintolaan, ?vaihe=noudettu: kuljettaja on
+// noutanut tilauksen (ravintola katoaa kartalta). Kuljettajan sijainti tulee
+// courier_locations-taulusta, joten se näkyy vain oikealla kuljettajalla.
+function previewOrder() {
+  const step = new URLSearchParams(window.location.search).get('vaihe')
+  if (step !== 'tulossa' && step !== 'noudettu') return MOCK_ORDER
+  return {
+    ...MOCK_ORDER,
+    status: 'ready',
+    courier_id: 'mock-courier-1',
+    courier_status: step === 'noudettu' ? 'picked_up' : 'assigned',
+    courier_arrive_by: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    delivery_eta: new Date(Date.now() + 18 * 60 * 1000).toISOString(),
+  }
 }
 
 export default PreviewTracking

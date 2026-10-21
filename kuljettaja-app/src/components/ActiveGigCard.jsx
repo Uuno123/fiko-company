@@ -8,6 +8,7 @@ import { formatEuro, formatKm, formatMinutes, formatTime } from '../lib/format'
 import { jobSchedule } from '../lib/jobs'
 // Näppäimistön korkeus, jotta noutokoodin kenttä ei jää sen alle (kortti on ruudun alareunassa).
 import { useKeyboardHeight } from '../lib/keyboard'
+import { useT } from '../lib/i18n'
 import { colors, fonts } from '../theme'
 
 const SUPPORT_EMAIL = 'tuki@delivo.fi'
@@ -31,8 +32,10 @@ function durationText(ms) {
 }
 
 // Aikalaskuri: musta, viimeiset 2 min oranssi, myöhässä punainen.
-function DeadlinePill({ remainingMs, label = 'aikaa', doneLabel }) {
+function DeadlinePill({ remainingMs, label, doneLabel }) {
+  const t = useT()
   const late = remainingMs < 0
+  const pillLabel = label ?? t('gig.timeLeft')
   if (doneLabel && late) {
     return (
       <View style={[styles.pill, styles.pillDone]}>
@@ -47,10 +50,10 @@ function DeadlinePill({ remainingMs, label = 'aikaa', doneLabel }) {
     <View
       style={[styles.pill, hurry && styles.pillHurry, late && styles.pillLate]}
       accessible
-      accessibilityLabel={late ? `Myöhässä ${value}` : `${label} ${value}`}
+      accessibilityLabel={late ? t('gig.lateA11y', { value }) : `${pillLabel} ${value}`}
     >
       <Text style={styles.pillValue}>{late ? `+${value}` : value}</Text>
-      <Text style={styles.pillLabel}>{late ? 'myöhässä' : label}</Text>
+      <Text style={styles.pillLabel}>{late ? t('gig.late') : pillLabel}</Text>
     </View>
   )
 }
@@ -86,6 +89,7 @@ function Place({ Icon, iconStyle, title, detail, note }) {
 }
 
 function NavigateButton({ label, onPress }) {
+  const t = useT()
   return (
     <Pressable
       onPress={onPress}
@@ -93,7 +97,7 @@ function NavigateButton({ label, onPress }) {
       accessibilityRole="button"
     >
       <Navigation size={18} strokeWidth={2.2} color={colors.black} />
-      <Text style={styles.navigateText}>Navigoi · {label}</Text>
+      <Text style={styles.navigateText}>{t('gig.navigate', { app: label })}</Text>
     </Pressable>
   )
 }
@@ -177,6 +181,7 @@ export default function ActiveGigCard({
   onHeightChange,
 }) {
   const insets = useSafeAreaInsets()
+  const t = useT()
   const now = useNow()
   const keyboardHeight = useKeyboardHeight()
   const schedule = jobSchedule(job)
@@ -187,7 +192,7 @@ export default function ActiveGigCard({
   }, [job.id, phase])
 
   const confirmDelivery = async () => setDeliverError((await onDeliver()) ?? '')
-  const cancelButton = <TextButton title="Peru keikka" onPress={onCancel} disabled={busy} />
+  const cancelButton = <TextButton title={t('gig.cancel')} onPress={onCancel} disabled={busy} />
 
   let header = null
   let details = null
@@ -197,9 +202,9 @@ export default function ActiveGigCard({
     header = (
       <TitleRow
         phase={phase}
-        step="Vaihe 1/3"
-        title="Aja ravintolaan"
-        subtitle={`${remaining < 0 ? 'Saapumisaika oli' : 'Saavu viimeistään'} klo ${formatTime(schedule.arriveBy)}`}
+        step={t('gig.step', { step: 1 })}
+        title={t('gig.toRestaurant')}
+        subtitle={t(remaining < 0 ? 'gig.arriveWas' : 'gig.arriveBy', { time: formatTime(schedule.arriveBy) })}
         late={remaining < 0}
         pill={<DeadlinePill remainingMs={remaining} />}
       />
@@ -212,13 +217,13 @@ export default function ActiveGigCard({
             iconStyle={styles.iconPickup}
             title={job.restaurant.name}
             detail={job.approachKnown ? `${job.restaurant.address} · ${formatKm(job.approachKm)}` : job.restaurant.address}
-            note={`Ruoka valmis klo ${formatTime(schedule.foodReadyAt)}`}
+            note={t('gig.foodReady', { time: formatTime(schedule.foodReadyAt) })}
           />
           <View style={styles.placeLine} />
           <Place
             Icon={House}
             iconStyle={styles.iconDropoff}
-            title={`Toimitus viimeistään klo ${formatTime(schedule.deliverBy)}`}
+            title={t('gig.deliverByTitle', { time: formatTime(schedule.deliverBy) })}
             detail={`${job.dropoff.area} · ${job.dropoff.address}`}
           />
         </View>
@@ -228,7 +233,7 @@ export default function ActiveGigCard({
     footer = (
       <>
         <View style={styles.slider}>
-          <SlideToConfirm key="arrived" label="Saavuin ravintolaan" color={colors.orange} onConfirm={onArrived} haptics={haptics} />
+          <SlideToConfirm key="arrived" label={t('gig.arrived')} color={colors.orange} onConfirm={onArrived} haptics={haptics} />
         </View>
         {cancelButton}
       </>
@@ -238,28 +243,28 @@ export default function ActiveGigCard({
     header = (
       <TitleRow
         phase={phase}
-        step="Vaihe 2/3"
-        title="Nouda tilaus"
-        subtitle={`${job.restaurant.name} · tilaus ${job.orderNumber}`}
-        pill={<DeadlinePill remainingMs={untilReady} label="valmiiksi" doneLabel="valmis" />}
+        step={t('gig.step', { step: 2 })}
+        title={t('gig.pickUp')}
+        subtitle={t('gig.orderOf', { restaurant: job.restaurant.name, number: job.orderNumber })}
+        pill={<DeadlinePill remainingMs={untilReady} label={t('gig.untilReady')} doneLabel={t('gig.ready')} />}
       />
     )
     details = (
       <View style={styles.order}>
-        <Text style={styles.orderLabel}>Tilaus</Text>
+        <Text style={styles.orderLabel}>{t('gig.order')}</Text>
         <Text style={styles.orderNumber}>{job.orderNumber}</Text>
         <Text style={styles.orderMeta}>
-          {job.itemCount ? `${job.itemCount} ${job.itemCount === 1 ? 'tuote' : 'tuotetta'} · ` : ''}
-          {job.customerName} · tarkista että kaikki on mukana
+          {job.itemCount ? `${job.itemCount} ${job.itemCount === 1 ? t('gig.item.one') : t('gig.item.other')} · ` : ''}
+          {job.customerName} · {t('gig.checkItems')}
         </Text>
       </View>
     )
     footer = (
       <>
         <CodeConfirm
-          label="Ravintolan noutokoodi"
-          hint="Kysy koodi henkilökunnalta. Jos ravintola merkitsee tilauksen luovutetuksi, nouto kuittautuu itsestään."
-          buttonTitle="Vahvista nouto"
+          label={t('gig.pickupCode')}
+          hint={t('gig.pickupHint')}
+          buttonTitle={t('gig.confirmPickup')}
           busy={busy}
           onSubmit={onPickUp}
         />
@@ -271,9 +276,9 @@ export default function ActiveGigCard({
     header = (
       <TitleRow
         phase={phase}
-        step="Vaihe 3/3"
-        title="Aja asiakkaalle"
-        subtitle={`${remaining < 0 ? 'Toimitusaika oli' : 'Toimita viimeistään'} klo ${formatTime(schedule.deliverBy)}`}
+        step={t('gig.step', { step: 3 })}
+        title={t('gig.toCustomer')}
+        subtitle={t(remaining < 0 ? 'gig.deliverWas' : 'gig.deliverBy', { time: formatTime(schedule.deliverBy) })}
         late={remaining < 0}
         pill={<DeadlinePill remainingMs={remaining} />}
       />
@@ -290,7 +295,7 @@ export default function ActiveGigCard({
         </View>
         {job.instructions ? (
           <View style={styles.instructions}>
-            <Text style={styles.instructionsLabel}>Asiakkaan ohje</Text>
+            <Text style={styles.instructionsLabel}>{t('gig.instructions')}</Text>
             <Text style={styles.instructionsText}>{job.instructions}</Text>
           </View>
         ) : null}
@@ -303,15 +308,15 @@ export default function ActiveGigCard({
               onPress={() => Linking.openURL(`tel:${job.customerPhone}`).catch(() => {})}
               style={({ pressed }) => [styles.call, pressed && styles.navigatePressed]}
               accessibilityRole="button"
-              accessibilityLabel="Soita asiakkaalle"
+              accessibilityLabel={t('gig.call')}
             >
               <Phone size={18} strokeWidth={2.2} color={colors.black} />
             </Pressable>
           ) : null}
         </View>
-        <Text style={styles.deliverHint}>Liu’uta kun tilaus on luovutettu tai jätetty ovelle - sijaintisi tarkistetaan.</Text>
+        <Text style={styles.deliverHint}>{t('gig.deliverHint')}</Text>
         <TextButton
-          title="Ongelma toimituksessa? Ota yhteyttä tukeen"
+          title={t('gig.problem')}
           Icon={MessageSquareText}
           onPress={() =>
             Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(`Tilaus ${job.orderNumber}`)}`).catch(() => {})
@@ -326,10 +331,10 @@ export default function ActiveGigCard({
           {busy ? (
             <View style={styles.checking} accessibilityLiveRegion="polite">
               <ActivityIndicator color={colors.black} />
-              <Text style={styles.checkingText}>Tarkistetaan sijaintia…</Text>
+              <Text style={styles.checkingText}>{t('gig.checking')}</Text>
             </View>
           ) : (
-            <SlideToConfirm key="delivered" label="Toimitettu" color={colors.orange} onConfirm={confirmDelivery} haptics={haptics} />
+            <SlideToConfirm key="delivered" label={t('gig.delivered')} color={colors.orange} onConfirm={confirmDelivery} haptics={haptics} />
           )}
         </View>
       </>
@@ -343,28 +348,28 @@ export default function ActiveGigCard({
         <View style={styles.doneIcon}>
           <Check size={34} strokeWidth={2.6} color="#ffffff" />
         </View>
-        <Text style={styles.doneTitle}>Keikka valmis!</Text>
+        <Text style={styles.doneTitle}>{t('gig.done')}</Text>
         <Text style={styles.doneEarnings}>+{formatEuro(job.pay.total + (job.tip ?? 0))}</Text>
         <View style={styles.chips}>
           <View style={[styles.chip, lateMin > 0 ? styles.chipLate : styles.chipOk]}>
             <Text style={[styles.chipText, lateMin > 0 ? styles.chipTextLate : styles.chipTextOk]}>
-              {lateMin > 0 ? `Myöhässä ${lateMin} min` : 'Toimitettu ajoissa'}
+              {lateMin > 0 ? t('gig.lateMinutes', { min: lateMin }) : t('gig.onTime')}
             </Text>
           </View>
         </View>
         <View style={styles.doneStats}>
           <View style={styles.doneStat}>
             <Text style={styles.doneStatValue}>{formatKm(job.routeKm)}</Text>
-            <Text style={styles.doneStatLabel}>Matka</Text>
+            <Text style={styles.doneStatLabel}>{t('common.distance')}</Text>
           </View>
           <View style={styles.doneStatDivider} />
           <View style={styles.doneStat}>
             <Text style={styles.doneStatValue}>{formatMinutes(durationMin)}</Text>
-            <Text style={styles.doneStatLabel}>Kesto</Text>
+            <Text style={styles.doneStatLabel}>{t('common.duration')}</Text>
           </View>
         </View>
         <Pressable onPress={onFinish} style={({ pressed }) => [styles.finish, pressed && styles.finishPressed]} accessibilityRole="button">
-          <Text style={styles.finishText}>Jatka keikkojen hakua</Text>
+          <Text style={styles.finishText}>{t('gig.continue')}</Text>
         </Pressable>
       </View>
     )

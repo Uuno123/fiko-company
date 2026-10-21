@@ -6,8 +6,11 @@ const COPY = {
   cancelled: {
     Icon: XCircle,
     title: 'Tilauksesi peruttiin',
+    // Järjestelmä perui tilauksen, kun kuljettajaa ei löytynyt (migraatio 0046).
     text: (order) =>
-      `Ravintola ei voinut ottaa tilaustasi${order.order_number ? ` ${order.order_number}` : ''} vastaan, joten se peruttiin. Tilauksesta ei veloiteta.`,
+      order.cancel_reason === 'no_courier'
+        ? `Tilauksellesi${order.order_number ? ` ${order.order_number}` : ''} ei löytynyt kuljettajaa läheltä, joten se peruttiin. Tilauksesta ei veloiteta.`
+        : `Ravintola ei voinut ottaa tilaustasi${order.order_number ? ` ${order.order_number}` : ''} vastaan, joten se peruttiin. Tilauksesta ei veloiteta.`,
   },
   released: {
     Icon: Bike,

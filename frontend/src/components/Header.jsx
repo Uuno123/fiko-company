@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import DelivoLogo from './DelivoLogo.jsx'
 import AccountMenu from './AccountMenu.jsx'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import SearchSuggest from './SearchSuggest.jsx'
@@ -143,8 +144,8 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
               </svg>
             </button>
           ) : (
-            <Link to="/" className="site-header__logo">
-              delivo
+            <Link to="/" className="site-header__logo" aria-label="delivo etusivulle">
+              <DelivoLogo />
             </Link>
           )}
 

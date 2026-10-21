@@ -165,12 +165,13 @@
     font-size: 1.28rem;
   }
 
+  /* Pelkkä teksti, ei mustaa pilleriä (käyttäjän toive: ei isoja mustia nappeja). */
   .category-row__see-all {
-    padding: 6px 14px;
-    border-radius: var(--radius-pill);
-    background: var(--delivo-black);
-    color: #fff;
-    font-size: 0.78rem;
+    padding: 4px 0;
+    background: none;
+    color: var(--delivo-black);
+    font-size: 0.85rem;
+    font-weight: 700;
   }
 
   .category-row__see-all:hover {
@@ -826,29 +827,6 @@
   color: #fff;
 }
 
-.home-ad__cta {
-  margin-top: 4px;
-  padding: 12px 24px;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--delivo-black);
-  color: #fff;
-  font-family: inherit;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
-}
-
-.home-ad__cta:hover {
-  background: #000;
-  transform: translateY(-1px);
-}
-
-.home-ad__cta:active {
-  transform: scale(0.97);
-}
-
 /* Pallot bannerin ALLA sivun taustalla, kuten uudessa ilmeessä. */
 .home-ad__dots {
   display: flex;
@@ -905,12 +883,6 @@
 
   .home-ad__title {
     font-size: 1.3rem;
-  }
-
-  .home-ad__cta {
-    margin-top: 2px;
-    padding: 9px 17px;
-    font-size: 0.85rem;
   }
 
   .home-promo {
@@ -1048,3 +1020,5 @@
     font-size: 0.78rem;
   }
 }
+
+
