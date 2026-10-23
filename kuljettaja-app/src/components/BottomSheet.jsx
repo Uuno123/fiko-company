@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Animated, PanResponder, Platform, Pressable, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../theme'
+import { tr } from '../lib/i18n'
 
 const useNativeDriver = Platform.OS !== 'web'
 
@@ -71,7 +72,7 @@ export default function BottomSheet({ peek, children, onHeightChange }) {
         onPress={() => snapTo(!state.current.expanded)}
         style={styles.handleArea}
         accessibilityRole="button"
-        accessibilityLabel="Suurenna tai pienennä paneeli"
+        accessibilityLabel={tr('common.togglePanel')}
         hitSlop={{ top: 8, bottom: 4 }}
       >
         <View style={styles.handle} />

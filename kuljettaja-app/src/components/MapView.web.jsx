@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { LAND_COLOR, useMapHtml } from '../lib/mapHtml'
+import { tr } from '../lib/i18n'
 
 // Selainversio (esikatselu tietokoneella): WebView ei toimi selaimessa, joten
 // sama kartan HTML näytetään iframessa.
@@ -30,7 +31,7 @@ export default function MapView({
       {html && (
         <iframe
           ref={frameRef}
-          title="Kartta"
+          title={tr('common.map')}
           srcDoc={html}
           onLoad={sync}
           style={{ border: 0, width: '100%', height: '100%' }}

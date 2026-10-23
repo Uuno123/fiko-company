@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "30992198116",
+    "project_id": "delivo-cae22",
+    "storage_bucket": "delivo-cae22.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:30992198116:android:f2767f080de3e48a2f3ff1",
+        "android_client_info": {
+          "package_name": "fi.delivo.kuljettaja"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNY46_4w-th6g2tALcR9Y3k0FVLSb66PY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

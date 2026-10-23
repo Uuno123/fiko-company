@@ -1,6 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { tr } from '../lib/i18n'
 import { ArrowLeft, Check, ChevronRight, Lock } from 'lucide-react-native'
 import { colors, fonts } from '../theme'
 
@@ -26,7 +27,7 @@ export function ScreenHeader({ title }) {
         onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
         accessibilityRole="button"
-        accessibilityLabel="Takaisin"
+        accessibilityLabel={tr('common.back')}
         hitSlop={8}
       >
         <ArrowLeft size={22} strokeWidth={1.75} color={colors.black} />
@@ -121,9 +122,33 @@ export function ListRow({ icon: Icon, label, detail, detailAccent = false, value
   )
 }
 
-// Lukittu tieto (muutetaan muutospyynnöllä): tiedon nimi pienellä, arvo sen
-// alla ja kolmantena rivinä toiminto tai pyynnön tila. Lukko oikealla.
-export function LockedRow({ icon: Icon, label, value, note, noteAccent = false, onPress }) {
+// Tila pienenä pillerinä: pending (tarkastuksessa), success (hyväksytty),
+// danger (hylätty / puuttuu), neutral.
+const PILL_TONES = {
+  pending: { background: colors.orangeSoft, color: colors.orangeDark },
+  success: { background: '#e8f6ee', color: '#1a8a4a' },
+  danger: { background: '#fdecef', color: '#c2334a' },
+  neutral: { background: colors.gray100, color: colors.textMuted },
+}
+
+export function StatusPill({ tone = 'neutral', icon: Icon, children }) {
+  const { background, color } = PILL_TONES[tone] ?? PILL_TONES.neutral
+  return (
+    <View style={[styles.pill, { backgroundColor: background }]}>
+      {Icon ? <Icon size={12} strokeWidth={2.6} color={color} /> : null}
+      <Text style={[styles.pillText, { color }]} numberOfLines={1}>
+        {children}
+      </Text>
+    </View>
+  )
+}
+
+// Tarkistettu tieto: nimi pienellä (lukon kuvake perässä, jos tieto muutetaan
+// muutospyynnöllä), arvo sen alla ja tarvittaessa lisärivi (pyydetty arvo,
+// hylkäyksen syy). Oikealla tila pillerinä vain kun pyyntö on kesken tai
+// hylätty, ja nuoli jos rivi on painettava. locked=false: kuljettaja muuttaa
+// tiedon itse (puhelinnumero).
+export function LockedRow({ icon: Icon, label, value, status, statusText, detail, onPress, locked = true }) {
   const content = (
     <>
       {Icon ? (
@@ -132,22 +157,31 @@ export function LockedRow({ icon: Icon, label, value, note, noteAccent = false, 
         </View>
       ) : null}
       <View style={styles.rowText}>
-        <Text style={styles.lockedLabel}>{label}</Text>
+        <View style={styles.lockedLabelRow}>
+          <Text style={styles.lockedLabel}>{label}</Text>
+          {locked ? <Lock size={11} strokeWidth={2.2} color={colors.textMuted} /> : null}
+        </View>
         <Text style={styles.lockedValue} numberOfLines={1}>
           {value || '–'}
         </Text>
-        {note ? <Text style={[styles.rowDetail, noteAccent && styles.rowDetailAccent]}>{note}</Text> : null}
+        {detail ? (
+          <Text style={[styles.rowDetail, status === 'rejected' && styles.rowDetailDanger]} numberOfLines={2}>
+            {detail}
+          </Text>
+        ) : null}
       </View>
-      <Lock size={16} strokeWidth={2} color={colors.textMuted} />
+      {statusText ? <StatusPill tone={status === 'rejected' ? 'danger' : 'pending'}>{statusText}</StatusPill> : null}
+      {onPress ? <ChevronRight size={20} strokeWidth={1.75} color={colors.textMuted} /> : null}
     </>
   )
+  const a11y = [`${label}: ${value || '–'}`, statusText, detail].filter(Boolean).join('. ')
   if (!onPress) return <View style={styles.row}>{content}</View>
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       accessibilityRole="button"
-      accessibilityLabel={note ? `${label}: ${value || '–'}. ${note}` : `${label}: ${value || '–'}`}
+      accessibilityLabel={a11y}
     >
       {content}
     </Pressable>
@@ -334,10 +368,31 @@ const styles = StyleSheet.create({
     fontFamily: fonts.medium,
     color: colors.orangeDark,
   },
+  rowDetailDanger: {
+    color: '#c2334a',
+  },
+  lockedLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   lockedLabel: {
     fontFamily: fonts.medium,
     fontSize: 13,
     color: colors.textMuted,
+  },
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flexShrink: 0,
+    paddingVertical: 4,
+    paddingHorizontal: 9,
+    borderRadius: 999,
+  },
+  pillText: {
+    fontFamily: fonts.semibold,
+    fontSize: 12,
   },
   lockedValue: {
     marginTop: 1,

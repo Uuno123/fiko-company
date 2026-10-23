@@ -3,6 +3,7 @@ import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'r
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Menu } from 'lucide-react-native'
 import { colors, fonts } from '../theme'
+import { tr } from '../lib/i18n'
 
 const BUTTON_SIZE = 44
 const useNativeDriver = Platform.OS !== 'web'
@@ -62,7 +63,7 @@ export default function TopBar({ title, hidden = false, onMenuPress, onHeightCha
           pressed && styles.menuButtonPressed,
         ]}
         accessibilityRole="button"
-        accessibilityLabel="Avaa valikko"
+        accessibilityLabel={tr('common.openMenu')}
         hitSlop={8}
       >
         <Menu size={22} strokeWidth={2.2} color={colors.black} />

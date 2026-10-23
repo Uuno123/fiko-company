@@ -9,8 +9,9 @@ import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular'
 import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium'
 import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold'
 import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold'
-import { AuthProvider } from '../lib/auth'
+import { AuthProvider, useAuth } from '../lib/auth'
 import { CourierProvider } from '../lib/courier'
+import { usePushNotifications } from '../lib/notifications'
 import { colors } from '../theme'
 
 // Sovelluksen pohjaväri valkoiseksi heti käynnistyessä. Muuten puhelimen
@@ -38,6 +39,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
+      <PushNotifications />
       <CourierProvider>
         <View style={{ flex: 1, backgroundColor: colors.surface }}>
           <StatusBar style="dark" />
@@ -46,4 +48,11 @@ export default function RootLayout() {
       </CourierProvider>
     </AuthProvider>
   )
+}
+
+// Push-ilmoitukset kirjautuneelle kuljettajalle (lib/notifications.js).
+function PushNotifications() {
+  const { status, courier } = useAuth()
+  usePushNotifications(status === 'ready' ? courier?.id : null)
+  return null
 }

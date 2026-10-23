@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Animated, Easing, Modal, PanResponder, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
+import { Animated, Dimensions, Easing, Modal, PanResponder, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Constants from 'expo-constants'
 import { ChevronRight, CircleHelp, FileText, History, LogOut, Settings, Wallet, X } from 'lucide-react-native'
@@ -43,7 +43,12 @@ export default function SideMenu({ open, onClose, onNavigate }) {
     const now = new Date()
     return summarize(gigs.filter((gig) => isSameDay(gig.deliveredAt, now)))
   }, [gigs, open])
-  const { width } = useWindowDimensions()
+  const { width, height } = useWindowDimensions()
+  // Tummennukselle koko näytön mitat: Androidin Modal ei aina anna absoluteFill-
+  // taustalle koko ruudun kokoa, jolloin tummennusta ei näkynyt (sama korjaus
+  // kuin ChoiceSheetissä).
+  const screen = Dimensions.get('screen')
+  const backdropSize = { width: Math.max(width, screen.width), height: Math.max(height, screen.height) }
   const panelWidth = Math.min(340, Math.round(width * 0.86))
   const progress = useRef(new Animated.Value(0)).current
   const [mounted, setMounted] = useState(open)
@@ -104,7 +109,7 @@ export default function SideMenu({ open, onClose, onNavigate }) {
         {/* Kartan kosketus sulkee valikon heti kun sormi osuu - ei vasta
             irrotettaessa, ja myös nopealla napautuksella. */}
         <Animated.View
-          style={[styles.backdrop, { opacity: progress }]}
+          style={[styles.backdrop, backdropSize, { opacity: progress }]}
           onStartShouldSetResponder={() => true}
           onResponderGrant={onClose}
           accessible
@@ -198,8 +203,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(20, 21, 15, 0.45)',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    backgroundColor: 'rgba(20, 21, 15, 0.55)',
   },
   // Kulmat kuten pääsivun alapaneelissa (BottomSheet).
   panel: {

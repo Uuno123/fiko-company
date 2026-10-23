@@ -3,6 +3,7 @@ import { Timer } from 'lucide-react-native'
 import { Card, ListRow, Screen } from '../components/ui'
 import { useCourier } from '../lib/courier'
 import { formatMinutes, formatTime } from '../lib/format'
+import { useT } from '../lib/i18n'
 
 const RELATIVE_OPTIONS = [30, 60, 120, 180]
 // Tavalliset vuoron päättymisajat - vain ne, joihin on vielä yli vartti.
@@ -22,6 +23,7 @@ function todayAt(hour) {
 // offline-tilaan (lib/courier.js hoitaa ajastuksen).
 export default function ScheduledOfflineScreen() {
   const router = useRouter()
+  const t = useT()
   const { offlineAt, scheduleOffline } = useCourier()
   const clockOptions = CLOCK_HOURS.map(todayAt).filter((date) => date.getTime() - Date.now() > 15 * 60000)
 
@@ -31,26 +33,26 @@ export default function ScheduledOfflineScreen() {
   }
 
   return (
-    <Screen title="Ajastettu offline">
+    <Screen title={t('home.scheduledOffline')}>
       {offlineAt ? (
         <>
-          <Card title="Ajastus">
+          <Card title={t('scheduled.current')}>
             <ListRow
               icon={Timer}
-              label={`Offline klo ${formatTime(offlineAt)}`}
-              value={`${formatMinutes(Math.max(1, Math.round((offlineAt.getTime() - Date.now()) / 60000)))} päästä`}
+              label={t('scheduled.offlineAt', { time: formatTime(offlineAt) })}
+              value={t('scheduled.in', { duration: formatMinutes(Math.max(1, Math.round((offlineAt.getTime() - Date.now()) / 60000))) })}
             />
-            <ListRow label="Peru ajastus" onPress={() => scheduleOffline(null)} right={null} danger />
+            <ListRow label={t('scheduled.cancel')} onPress={() => scheduleOffline(null)} right={null} danger />
           </Card>
         </>
       ) : null}
 
-      <Card title="Ajan päästä">
+      <Card title={t('scheduled.after')}>
         {RELATIVE_OPTIONS.map((minutes) => (
           <ListRow
             key={minutes}
-            label={`${formatMinutes(minutes)} päästä`}
-            value={`klo ${formatTime(inMinutes(minutes))}`}
+            label={t('scheduled.in', { duration: formatMinutes(minutes) })}
+            value={t('home.atTime', { time: formatTime(inMinutes(minutes)) })}
             onPress={() => choose(inMinutes(minutes))}
           />
         ))}
@@ -58,9 +60,9 @@ export default function ScheduledOfflineScreen() {
 
       {clockOptions.length ? (
         <>
-          <Card title="Kellonaikaan">
+          <Card title={t('scheduled.atClock')}>
             {clockOptions.map((date) => (
-              <ListRow key={date.getTime()} label={`Tänään klo ${formatTime(date)}`} onPress={() => choose(date)} />
+              <ListRow key={date.getTime()} label={t('scheduled.todayAt', { time: formatTime(date) })} onPress={() => choose(date)} />
             ))}
           </Card>
         </>

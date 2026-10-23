@@ -5,13 +5,13 @@ import { Check, House, MessageSquareText, Navigation, Phone, Utensils } from 'lu
 import CollapsibleCard from './CollapsibleCard'
 import SlideToConfirm from './SlideToConfirm'
 import { formatEuro, formatKm, formatMinutes, formatTime } from '../lib/format'
-import { jobSchedule } from '../lib/jobs'
+import { RESTAURANT_ACCEPT_SECONDS, jobSchedule } from '../lib/jobs'
 // Näppäimistön korkeus, jotta noutokoodin kenttä ei jää sen alle (kortti on ruudun alareunassa).
 import { useKeyboardHeight } from '../lib/keyboard'
 import { useT } from '../lib/i18n'
 import { colors, fonts } from '../theme'
 
-const SUPPORT_EMAIL = 'tuki@delivo.fi'
+const SUPPORT_EMAIL = 'tuki@bidrop.fi'
 
 // Vaiheet edistymispalkkia varten.
 const STEPS = ['toRestaurant', 'atRestaurant', 'toCustomer']
@@ -197,18 +197,60 @@ export default function ActiveGigCard({
   let header = null
   let details = null
   let footer = null
-  if (phase === 'toRestaurant') {
-    const remaining = schedule.arriveBy.getTime() - now
+  if (phase === 'awaitingRestaurant') {
+    // Ravintola ei ole vielä hyväksynyt: ei ajo-ohjetta, navigointia eikä
+    // saapumisliukua. Laskuri näyttää ravintolan jäljellä olevan ajan.
+    const deadline = (job.placedAt ?? job.acceptedAt ?? now) + RESTAURANT_ACCEPT_SECONDS * 1000
     header = (
       <TitleRow
         phase={phase}
-        step={t('gig.step', { step: 1 })}
-        title={t('gig.toRestaurant')}
-        subtitle={t(remaining < 0 ? 'gig.arriveWas' : 'gig.arriveBy', { time: formatTime(schedule.arriveBy) })}
-        late={remaining < 0}
-        pill={<DeadlinePill remainingMs={remaining} />}
+        step={t('gig.waitStep')}
+        title={t('gig.awaitingTitle')}
+        subtitle={t('gig.awaitingSubtitle')}
+        pill={<DeadlinePill remainingMs={Math.max(0, deadline - now)} label={t('gig.restaurantDecides')} />}
       />
     )
+    details = (
+      <View style={styles.places}>
+        <Place
+          Icon={Utensils}
+          iconStyle={styles.iconPickup}
+          title={job.restaurant.name}
+          detail={job.approachKnown ? `${job.restaurant.address} · ${formatKm(job.approachKm)}` : job.restaurant.address}
+          note={t('gig.dontLeaveYet')}
+        />
+        <View style={styles.placeLine} />
+        <Place Icon={House} iconStyle={styles.iconDropoff} title={job.dropoff.area} detail={job.dropoff.address} />
+      </View>
+    )
+    footer = cancelButton
+  } else if (phase === 'toRestaurant') {
+    const remaining = schedule.arriveBy.getTime() - now
+    // Saapumisaika on ruoan valmistumisaika, joka voi olla paljon ajomatkaa
+    // myöhemmin (esim. autolla 4 min ajo, ruoka valmis 20 min päästä). Silloin
+    // kerrotaan lähtöaika ja ajoaika, jottei kuljettaja odota ravintolassa.
+    const driveMs = (job.approachMin + 1) * 60000
+    const leaveAt = new Date(schedule.arriveBy.getTime() - driveMs)
+    const untilLeave = leaveAt.getTime() - now
+    header =
+      untilLeave > 60000 ? (
+        <TitleRow
+          phase={phase}
+          step={t('gig.step', { step: 1 })}
+          title={t('gig.leaveAt', { time: formatTime(leaveAt) })}
+          subtitle={t('gig.leaveSubtitle', { min: job.approachMin, time: formatTime(schedule.foodReadyAt) })}
+          pill={<DeadlinePill remainingMs={untilLeave} label={t('gig.untilLeave')} />}
+        />
+      ) : (
+        <TitleRow
+          phase={phase}
+          step={t('gig.step', { step: 1 })}
+          title={t('gig.toRestaurant')}
+          subtitle={t(remaining < 0 ? 'gig.arriveWas' : 'gig.arriveBy', { time: formatTime(schedule.arriveBy) })}
+          late={remaining < 0}
+          pill={<DeadlinePill remainingMs={remaining} />}
+        />
+      )
     details = (
       <>
         <View style={styles.places}>

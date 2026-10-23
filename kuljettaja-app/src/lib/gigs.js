@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import { COURIER_PAY, coordinate } from '../../../frontend/src/lib/deliveryTime'
+import { coordinate, hasCoords, routeKm } from '../../../frontend/src/lib/deliveryTime'
 import { dayKey, startOfDay } from './format'
 import { useAuth } from './auth'
 import { supabase } from './supabase'
@@ -13,12 +13,10 @@ import { supabase } from './supabase'
 // Kuinka monen päivän keikat haetaan (ansioissa 4 viikkoa taaksepäin).
 export const HISTORY_DAYS = 28
 
-// Palkkiomalli: perusmaksu + matkalisä kilometreistä. Sama kuin kuljettaja-app
-// laskee tarjoukseen ja tallentaa keikalle (orders.courier_fee_cents).
-export const PAY = COURIER_PAY
-
+// Ansio: kuljettajan osuus (koko hinta) sovitusta kuljetushinnasta, tallennettu
+// keikalle sopimuksessa (orders.courier_fee_cents, migraatio 0058).
 const GIG_FIELDS =
-  'id, order_number, delivery_address, delivery_lat, delivery_lng, courier_assigned_at, picked_up_at, delivered_at, courier_fee_cents, restaurants(name, address, lat, lng)'
+  'id, order_number, delivery_address, delivery_lat, delivery_lng, courier_assigned_at, picked_up_at, delivered_at, courier_fee_cents, delivery_price_cents, restaurants(name, address, lat, lng)'
 
 // Aiempi versio tallensi ajetut keikat puhelimeen - tieto on nyt tietokannassa.
 AsyncStorage.removeItem('delivo-completed-gigs').catch(() => {})
@@ -31,28 +29,30 @@ function splitAddress(address) {
 }
 
 function orderToGig(order) {
-  const fee = order.courier_fee_cents ?? PAY.baseCents
-  const distance = Math.max(0, fee - PAY.baseCents)
+  const fee = order.courier_fee_cents ?? 0
   const { street, area } = splitAddress(order.delivery_address)
+  const restaurant = {
+    name: order.restaurants?.name ?? 'Ravintola',
+    address: order.restaurants?.address ?? '',
+    lat: coordinate(order.restaurants?.lat),
+    lng: coordinate(order.restaurants?.lng),
+  }
+  const dropoff = { area, address: street, lat: coordinate(order.delivery_lat), lng: coordinate(order.delivery_lng) }
   const deliveredAt = new Date(order.delivered_at)
   const acceptedAt = order.courier_assigned_at ? new Date(order.courier_assigned_at) : deliveredAt
   return {
     id: order.id,
     number: order.order_number,
-    restaurant: {
-      name: order.restaurants?.name ?? 'Ravintola',
-      address: order.restaurants?.address ?? '',
-      lat: coordinate(order.restaurants?.lat),
-      lng: coordinate(order.restaurants?.lng),
-    },
-    dropoff: { area, address: street, lat: coordinate(order.delivery_lat), lng: coordinate(order.delivery_lng) },
+    restaurant,
+    dropoff,
     acceptedAt,
     pickedUpAt: order.picked_up_at ? new Date(order.picked_up_at) : deliveredAt,
     deliveredAt,
-    // Matkalisä on laskettu kilometreistä, joten matka saadaan siitä takaisin.
-    distanceKm: Math.round((distance / PAY.perKmCents) * 10) / 10,
+    // Ajoreitti ravintolasta perille (sama arvio kuin tarjouksessa).
+    distanceKm: hasCoords(restaurant) && hasCoords(dropoff) ? routeKm(restaurant, dropoff) : 0,
     durationMin: Math.max(1, Math.round((deliveredAt - acceptedAt) / 60000)),
-    pay: { base: fee - distance, distance, tip: 0, total: fee },
+    // price: asiakkaan maksama kuljetushinta, total: kuljettajan osuus siitä.
+    pay: { price: order.delivery_price_cents ?? null, tip: 0, total: fee },
   }
 }
 

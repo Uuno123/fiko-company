@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "delivo kuljettaja",
+    "name": "Bidrop kuljettaja",
     "slug": "delivo-kuljettaja",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -18,7 +18,13 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "fi.delivo.kuljettaja",
-      "userInterfaceStyle": "light"
+      "googleServicesFile": "./google-services.json",
+      "userInterfaceStyle": "light",
+      "permissions": [
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -30,7 +36,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "delivo näyttää sijaintisi kartalla ja tarjoaa sinulle lähimpiä keikkoja."
+          "locationWhenInUsePermission": "Bidrop näyttää sijaintisi kartalla ja tarjoaa sinulle lähimpiä keikkoja."
         }
       ],
       "expo-font",
@@ -44,14 +50,29 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "delivo tarvitsee kuvan dokumentista, jonka lähetät tarkastettavaksi (esim. henkilökortti tai ajokortti).",
-          "cameraPermission": "delivo käyttää kameraa, kun kuvaat dokumentin tarkastettavaksi.",
+          "photosPermission": "Bidrop tarvitsee kuvan dokumentista, jonka lähetät tarkastettavaksi (esim. henkilökortti tai ajokortti).",
+          "cameraPermission": "Bidrop käyttää kameraa, kun kuvaat dokumentin tarkastettavaksi.",
           "microphonePermission": false
         }
       ],
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#f4501e",
+          "defaultChannel": "gigs"
+        }
+      ]
     ],
     "scheme": "delivo-kuljettaja",
-    "backgroundColor": "#ffffff"
+    "backgroundColor": "#ffffff",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2bd3b4b1-c95a-4e5c-bc13-c0009bd4c1b1"
+      }
+    },
+    "owner": "uuno123"
   }
 }

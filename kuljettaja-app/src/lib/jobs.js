@@ -1,24 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Vibration } from 'react-native'
+import { AppState, Vibration } from 'react-native'
 import {
   DROPOFF_MIN,
   HANDOVER_MIN,
   coordinate,
+  courierShareCents,
   hasCoords,
   haversineKm,
   rideMinutes,
   routeKm as routeLengthKm,
   travelMinutes,
 } from '../../../frontend/src/lib/deliveryTime'
-import { PAY, refreshGigs } from './gigs'
+import { refreshGigs } from './gigs'
+import { tr } from './i18n'
 import { supabase } from './supabase'
 
-// Oikeat keikat tietokannasta (migraatiot 0043-0046). Kulku:
-//   1. Asiakas tilaa verkkosivulta, ravintola hyväksyy ja valitsee valmistusajan.
-//   2. Palvelin jakaa keikan (migraatio 0046): lähin online-kuljettaja 8 km
-//      säteellä saa tarjouksen yksin, 60 s aikaa. Hylkäys tai vastaamatta
-//      jättäminen siirtää sen seuraavaksi lähimmälle. Appi kertoo palvelimelle
-//      online-tilan ja sijainnin (courier_set_online, courier_heartbeat).
+// Oikeat keikat tietokannasta (migraatiot 0043-0046, 0058). Kulku:
+//   1. Asiakas tilaa verkkosivulta. Kotiinkuljetuksen hinnasta sovitaan ensin:
+//      kuljettajat tarjoavat hinnan (lib/bids.js) ja asiakas valitsee. Valittu
+//      kuljettaja saa keikan heti (adoptJob) ja ravintola tilauksen.
+//   2. Jos kuljettaja luopuu keikasta, palvelin tarjoaa sen samalla hinnalla
+//      (migraatio 0046): lähin online-kuljettaja 8 km säteellä saa tarjouksen
+//      yksin, 60 s aikaa. Appi kertoo palvelimelle online-tilan ja sijainnin
+//      (courier_set_online, courier_heartbeat).
 //   3. Kuljettajan pitää olla ravintolassa ruoan valmistuttua tai ajomatkan
 //      jälkeen - kumpi on myöhemmin. Jos ravintola sanoo 40 min, aikaa on 40 min.
 //   4. Nouto vaatii ravintolan noutokoodin (tai ravintolan luovutusmerkinnän),
@@ -28,8 +32,12 @@ import { supabase } from './supabase'
 //   5. Keikan ajan sijainti tallentuu, jotta asiakas näkee kuljettajan kartalla.
 
 export const OFFER_SECONDS = 60
-export const ACTIVE_PHASES = ['toRestaurant', 'atRestaurant', 'toCustomer', 'completed']
-const MOVING_PHASES = ['toRestaurant', 'atRestaurant', 'toCustomer']
+// Ravintolan hyväksyntäaika (migraatio 0059). Asiakas valitsee kuljettajan ennen
+// kuin ravintola saa tilauksen: kuljettaja odottaa vahvistusta lähtemättä.
+export const RESTAURANT_ACCEPT_SECONDS = 90
+export const ACTIVE_PHASES = ['awaitingRestaurant', 'toRestaurant', 'atRestaurant', 'toCustomer', 'completed']
+const MOVING_PHASES = ['awaitingRestaurant', 'toRestaurant', 'atRestaurant', 'toCustomer']
+const RESTAURANT_RECHECK_MS = 10_000
 
 // Ajoajat ja -matkat: sama malli kuin asiakkaan saapumisarviossa verkkosivulla
 // (frontend/src/lib/deliveryTime.js).
@@ -44,47 +52,53 @@ const HEARTBEAT_MOVE_KM = 0.05
 const MAX_PLAN_MS = 3 * 60 * 60 * 1000
 
 const ORDER_FIELDS =
-  'id, order_number, status, delivery_method, delivery_name, delivery_phone, delivery_address, delivery_lat, delivery_lng, delivery_notes, estimated_ready_at, created_at, courier_id, courier_status, courier_assigned_at, courier_arrive_by, delivery_eta, courier_fee_cents, picked_up_at, restaurants(name, address, lat, lng)'
+  'id, order_number, status, delivery_method, delivery_name, delivery_phone, delivery_address, delivery_lat, delivery_lng, delivery_notes, estimated_ready_at, created_at, placed_at, courier_id, courier_status, courier_assigned_at, courier_arrive_by, delivery_eta, courier_fee_cents, delivery_price_cents, picked_up_at, restaurants(name, address, lat, lng)'
 
 const PHASE_BY_COURIER_STATUS = { assigned: 'toRestaurant', at_restaurant: 'atRestaurant', picked_up: 'toCustomer' }
 
-const ERROR_TEXTS = {
-  not_a_courier: 'Tiliäsi ei ole hyväksytty kuljettajaksi.',
-  courier_busy: 'Sinulla on jo keikka kesken.',
-  order_not_available: 'Tarjous ei ole enää voimassa.',
-  invalid_state: 'Keikan tila ehti muuttua.',
-  order_cancelled: 'Ravintola perui tilauksen.',
-  order_not_found: 'Keikkaa ei löytynyt.',
-  wrong_pickup_code: 'Väärä noutokoodi. Kysy koodi ravintolan henkilökunnalta.',
-  no_location: 'Sijaintiasi ei saatu. Salli sijainti delivo kuljettajalle ja yritä uudelleen.',
-  address_unknown:
-    'Toimitusosoitteen sijaintia ei ole kartalla, joten toimitusta ei voi vahvistaa. Ota yhteyttä tukeen.',
-  not_at_address: 'Et ole vielä toimitusosoitteessa. Toimitus vahvistetaan, kun olet perillä.',
+// Oman keikan vaihe: ravintolan hyväksyntää odotetaan ennen ajo-ohjetta.
+function phaseForOrder(order) {
+  if (order.status === 'pending' && order.courier_status === 'assigned') return 'awaitingRestaurant'
+  return PHASE_BY_COURIER_STATUS[order.courier_status] ?? null
 }
+
+// Tietokantafunktioiden virhekoodit; tekstit valitulla kielellä (jobErr.*).
+const ERROR_CODES = [
+  'not_a_courier',
+  'courier_busy',
+  'order_not_available',
+  'invalid_state',
+  'order_cancelled',
+  'order_not_found',
+  'wrong_pickup_code',
+  'no_location',
+  'address_unknown',
+  'not_at_address',
+]
 
 // "1,2 km" / "350 m"
 function distanceText(meters) {
   return meters >= 1000 ? `${(meters / 1000).toFixed(1).replace('.', ',')} km` : `${Math.round(meters / 10) * 10} m`
 }
 
-// Tietokantafunktioiden virhekoodit suomeksi. too_early:N = N sekuntia liian aikaisin.
+// Virhekoodi tekstiksi. too_early:N = N sekuntia liian aikaisin.
 export function errorText(error) {
   const message = String(error?.message ?? error ?? '')
   const early = message.match(/too_early:(\d+)/)
   if (early) {
     const seconds = Number(early[1])
     const wait = seconds >= 90 ? `${Math.ceil(seconds / 60)} min` : `${seconds} s`
-    return `Toimitus ei voi olla vielä perillä - matka ravintolasta vie vähintään tämän ajan. Yritä ${wait} päästä.`
+    return tr('jobErr.tooEarly', { wait })
   }
   // not_at_address:metrit = näin kaukana toimitusosoitteesta (migraatio 0044).
   const away = message.match(/not_at_address:(\d+)/)
   if (away) {
-    return `Olet noin ${distanceText(Number(away[1]))} päässä toimitusosoitteesta. Toimitus vahvistetaan, kun olet perillä (alle 250 m).`
+    return tr('jobErr.away', { distance: distanceText(Number(away[1])) })
   }
-  const code = Object.keys(ERROR_TEXTS).find((key) => message.includes(key))
-  if (code) return ERROR_TEXTS[code]
-  if (/network|fetch/i.test(message)) return 'Ei yhteyttä. Tarkista verkkoyhteys.'
-  return 'Toiminto epäonnistui. Yritä uudelleen.'
+  const code = ERROR_CODES.find((key) => message.includes(key))
+  if (code) return tr(`jobErr.${code}`)
+  if (/network|fetch/i.test(message)) return tr('common.network')
+  return tr('common.failed')
 }
 
 export { hasCoords }
@@ -101,13 +115,13 @@ function ceilToMinute(ms) {
 function splitAddress(address) {
   const [street, ...rest] = String(address ?? '').split(',').map((part) => part.trim())
   const area = rest.join(', ').replace(/\b\d{5}\b/, '').trim()
-  return { street: street || 'Toimitusosoite', area: area || 'Asiakas' }
+  return { street: street || tr('common.dropoffAddress'), area: area || tr('common.customer') }
 }
 
 // Tietokannan tilausrivi kuljettaja-appin keikaksi (tarjouskortti ja vaiheet).
 function buildJob(order, position, vehicle) {
   const restaurant = {
-    name: order.restaurants?.name ?? 'Ravintola',
+    name: order.restaurants?.name ?? tr('common.restaurant'),
     address: order.restaurants?.address ?? '',
     lat: coordinate(order.restaurants?.lat),
     lng: coordinate(order.restaurants?.lng),
@@ -130,18 +144,18 @@ function buildJob(order, position, vehicle) {
   const foodReadyAt = order.estimated_ready_at ? Date.parse(order.estimated_ready_at) : Date.now()
   const untilReadyMin = Math.max(0, Math.round((foodReadyAt - Date.now()) / 60000))
   const minMinutes = Math.max(approachMin, untilReadyMin) + HANDOVER_MIN + rideMin + DROPOFF_MIN
-  const distanceCents = Math.round(routeKm * PAY.perKmCents)
-  const pay =
-    order.courier_fee_cents != null
-      ? { base: PAY.baseCents, distance: Math.max(0, order.courier_fee_cents - PAY.baseCents), total: order.courier_fee_cents }
-      : { base: PAY.baseCents, distance: distanceCents, total: PAY.baseCents + distanceCents }
+  // Ansio: kuljettajan osuus sovitusta kuljetushinnasta (migraatio 0058).
+  // Uudelleen tarjotussa keikassa osuus lasketaan samasta sovitusta hinnasta.
+  const total =
+    order.courier_fee_cents ?? (order.delivery_price_cents != null ? courierShareCents(order.delivery_price_cents) : 0)
+  const pay = { total, price: order.delivery_price_cents ?? null }
 
   return {
     id: order.id,
     orderNumber: order.order_number,
     status: order.status,
     courierStatus: order.courier_status,
-    customerName: String(order.delivery_name ?? '').split(' ')[0] || 'Asiakas',
+    customerName: String(order.delivery_name ?? '').split(' ')[0] || tr('common.customer'),
     customerPhone: order.delivery_phone ?? null,
     instructions: order.delivery_notes || null,
     restaurant,
@@ -159,6 +173,7 @@ function buildJob(order, position, vehicle) {
     maxMinutes: minMinutes + 5,
     pay,
     acceptedAt: order.courier_assigned_at ? Date.parse(order.courier_assigned_at) : null,
+    placedAt: order.placed_at ? Date.parse(order.placed_at) : null,
     arriveBy: order.courier_arrive_by ? Date.parse(order.courier_arrive_by) : null,
     deliverBy: order.delivery_eta ? Date.parse(order.delivery_eta) : null,
     pickedUpAt: order.picked_up_at ? Date.parse(order.picked_up_at) : null,
@@ -256,13 +271,15 @@ export function useCourierJobs({ courierId, online, position, settings, onForced
       .select(ORDER_FIELDS)
       .eq('courier_id', courierId)
       .in('courier_status', ['assigned', 'at_restaurant', 'picked_up'])
+      // Ravintolan hylkäämä tilaus ei ole enää keikka (migraatio 0059).
+      .neq('status', 'cancelled')
       .order('courier_assigned_at', { ascending: false })
       .limit(1)
       .then(({ data }) => {
         const order = data?.[0]
         if (cancelled || !order) return
         setJob(buildJob(order, latest.current.position, latest.current.settings.vehicle))
-        setPhase(PHASE_BY_COURIER_STATUS[order.courier_status])
+        setPhase(phaseForOrder(order))
         loadItemCount(order.id)
       })
     return () => {
@@ -272,7 +289,7 @@ export function useCourierJobs({ courierId, online, position, settings, onForced
 
   // Palvelin siirsi offline-tilaan (kaksi tarjousta jäi vastaamatta).
   const forcedOffline = useCallback(() => {
-    showNotice('Sinut siirrettiin offline-tilaan, koska tarjouksiin ei vastattu.')
+    showNotice(tr('notice.forcedOffline'))
     latest.current.onForcedOffline?.()
   }, [showNotice])
 
@@ -292,11 +309,11 @@ export function useCourierJobs({ courierId, online, position, settings, onForced
         if (!error || !online) return
         // Pakollisia dokumentteja ei ole hyväksytty (migraatio 0053): takaisin offline-tilaan.
         if (String(error.message ?? '').includes('documents_not_approved')) {
-          showNotice('Dokumenttejasi ei ole vielä hyväksytty. Online-tilaan pääset hyväksynnän jälkeen.')
+          showNotice(tr('notice.docsNotApproved'))
           latest.current.onForcedOffline?.()
           return
         }
-        showNotice('Keikkajako ei ole käytössä palvelimella (migraatio 0046 puuttuu).')
+        showNotice(tr('notice.dispatchMissing'))
       })
     lastHeartbeat.current = { at: Date.now(), point }
   }, [courierId, online, showNotice])
@@ -315,7 +332,15 @@ export function useCourierJobs({ courierId, online, position, settings, onForced
   useEffect(() => {
     if (!courierId || !online) return undefined
     const timer = setInterval(heartbeat, HEARTBEAT_MS)
-    return () => clearInterval(timer)
+    // Sovellus palasi näkyviin (esim. push-ilmoitusta napauttamalla): sijainti
+    // palvelimelle heti, koska taustalla se ei välttämättä päivittynyt.
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') heartbeat()
+    })
+    return () => {
+      clearInterval(timer)
+      subscription.remove()
+    }
   }, [courierId, online, heartbeat])
 
   useEffect(() => {
@@ -335,6 +360,35 @@ export function useCourierJobs({ courierId, online, position, settings, onForced
       setPhase('idle')
     }
   }, [online, phase])
+
+  // Ravintola hyväksyi tilauksen: nyt saa lähteä ravintolaan.
+  const restaurantAccepted = useCallback(() => {
+    if (latest.current.phase !== 'awaitingRestaurant') return
+    setPhase('toRestaurant')
+    showNotice(tr('notice.restaurantAccepted'))
+    if (latest.current.settings.haptics) Vibration.vibrate([0, 400, 200, 400])
+  }, [showNotice])
+
+  // Asiakas valitsi tämän kuljettajan hintatarjouksen (tai kuljettaja hyväksyi
+  // asiakkaan hinnan): keikka on nyt oma, ja se avataan suoraan ravintolaan-vaiheeseen.
+  const adoptJob = useCallback(
+    async (orderId) => {
+      if (!courierId) return
+      const { data: order } = await supabase.from('orders').select(ORDER_FIELDS).eq('id', orderId).maybeSingle()
+      const nextPhase = order ? phaseForOrder(order) : null
+      if (!order || order.courier_id !== courierId || !nextPhase) return
+      if (latest.current.job?.id === order.id && ACTIVE_PHASES.includes(latest.current.phase)) return
+      const { position: currentPosition, settings: currentSettings } = latest.current
+      setJob(buildJob(order, currentPosition, currentSettings.vehicle))
+      setPhase(nextPhase)
+      loadItemCount(order.id)
+      showNotice(
+        nextPhase === 'awaitingRestaurant' ? tr('notice.pickedWait') : tr('notice.pickedGo'),
+      )
+      if (currentSettings.haptics) Vibration.vibrate([0, 400, 200, 400])
+    },
+    [courierId, loadItemCount, showNotice],
+  )
 
   // Palvelimen tälle kuljettajalle tekemä voimassa oleva tarjous (migraatio 0046).
   const findOffer = useCallback(async () => {
@@ -384,7 +438,7 @@ export function useCourierJobs({ courierId, online, position, settings, onForced
             return
           }
           if (currentPhase === 'offer' && currentJob?.offerId === row?.id && row.status !== 'pending') {
-            if (row.status === 'withdrawn') showNotice('Tarjous peruttiin.')
+            if (row.status === 'withdrawn') showNotice(tr('notice.offerWithdrawn'))
             backToSearch()
           }
         },
@@ -404,21 +458,34 @@ export function useCourierJobs({ courierId, online, position, settings, onForced
       .channel(`courier-orders-${courierId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
         const row = payload.new
-        const { job: currentJob } = latest.current
+        const { job: currentJob, phase: currentPhase } = latest.current
+        // Asiakas valitsi tämän kuljettajan: tilaus tulee näkyviin omana keikkana.
+        if (
+          !currentJob &&
+          currentPhase === 'waiting' &&
+          row?.courier_id === courierId &&
+          (row.courier_status === 'assigned' || row.courier_status === 'at_restaurant')
+        ) {
+          adoptJob(row.id)
+          return
+        }
         // Tilaus poistettiin kokonaan (esim. testihistorian tyhjennys).
         if (payload.eventType === 'DELETE') {
           if (currentJob && payload.old?.id === currentJob.id) {
-            showNotice('Tilaus poistettiin.')
+            showNotice(tr('notice.orderDeleted'))
             backToSearch()
           }
           return
         }
         if (currentJob && row?.id === currentJob.id) {
           if (row.status === 'cancelled') {
-            showNotice('Ravintola perui tilauksen.')
+            showNotice(
+              currentPhase === 'awaitingRestaurant' ? tr('notice.restaurantRejected') : tr('notice.restaurantCancelled'),
+            )
             backToSearch()
             return
           }
+          if (currentPhase === 'awaitingRestaurant' && row.status !== 'pending') restaurantAccepted()
           // Ravintolan valmistusaika voi muuttua; oman keikan nouto- ja
           // toimitusajat siirtyvät silloin tietokannassa (migraatio 0044).
           const own = row.courier_id === courierId
@@ -439,7 +506,36 @@ export function useCourierJobs({ courierId, online, position, settings, onForced
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [courierId, keepListening, backToSearch, showNotice])
+  }, [courierId, keepListening, backToSearch, showNotice, adoptJob, restaurantAccepted])
+
+  // Ravintolan vahvistusta odotettaessa tila myös kyselynä (reaaliaika voi katketa).
+  useEffect(() => {
+    if (phase !== 'awaitingRestaurant' || !job) return undefined
+    const timer = setInterval(async () => {
+      const { data } = await supabase.from('orders').select('status, estimated_ready_at, courier_arrive_by, delivery_eta').eq('id', job.id).maybeSingle()
+      if (latest.current.phase !== 'awaitingRestaurant' || latest.current.job?.id !== job.id) return
+      if (!data || data.status === 'cancelled') {
+        showNotice(tr('notice.restaurantRejected'))
+        backToSearch()
+        return
+      }
+      if (data.status !== 'pending') {
+        setJob((current) =>
+          current && current.id === job.id
+            ? {
+                ...current,
+                status: data.status,
+                foodReadyAt: data.estimated_ready_at ? Date.parse(data.estimated_ready_at) : current.foodReadyAt,
+                arriveBy: data.courier_arrive_by ? Date.parse(data.courier_arrive_by) : current.arriveBy,
+                deliverBy: data.delivery_eta ? Date.parse(data.delivery_eta) : current.deliverBy,
+              }
+            : current,
+        )
+        restaurantAccepted()
+      }
+    }, RESTAURANT_RECHECK_MS)
+    return () => clearInterval(timer)
+  }, [phase, job, backToSearch, showNotice, restaurantAccepted])
 
   // Tarjous vanhenee (palvelin siirtää sen seuraavalle ja laskee vastaamatta
   // jääneen), tai poistuu jos tilaus peruttiin. Tarkistus varmuuden vuoksi myös
@@ -448,7 +544,7 @@ export function useCourierJobs({ courierId, online, position, settings, onForced
     if (phase !== 'offer' || !job) return undefined
     const expire = setTimeout(async () => {
       backToSearch()
-      showNotice('Tarjous vanheni.')
+      showNotice(tr('notice.offerExpired'))
       const { data } = await supabase.rpc('courier_decline_offer', { p_order_id: job.id, p_timed_out: true })
       if (data && data.online === false && latest.current.online) forcedOffline()
     }, Math.max(0, job.expiresAt - Date.now()))
@@ -457,7 +553,7 @@ export function useCourierJobs({ courierId, online, position, settings, onForced
       const { data } = await supabase.from('courier_offers').select('status').eq('id', job.offerId).maybeSingle()
       if (latest.current.phase !== 'offer' || latest.current.job?.offerId !== job.offerId) return
       if (!data || data.status !== 'pending') {
-        showNotice('Tarjous ei ole enää voimassa.')
+        showNotice(tr('notice.offerGone'))
         backToSearch()
       }
     }, OFFER_RECHECK_MS)
@@ -556,7 +652,7 @@ export function useCourierJobs({ courierId, online, position, settings, onForced
   async function deliver() {
     const current = latest.current.job
     if (!current || busy) return null
-    if (!hasCoords(latest.current.position)) return ERROR_TEXTS.no_location
+    if (!hasCoords(latest.current.position)) return tr('jobErr.no_location')
     await publishLocation(true)
     // p_code on enää vain tietokantafunktion parametri (toimituskoodia ei ole).
     const { error } = await run('courier_deliver_order', { p_order_id: current.id, p_code: null })
@@ -592,6 +688,8 @@ export function useCourierJobs({ courierId, online, position, settings, onForced
     pickUp,
     deliver,
     release,
+    adoptJob,
+    showNotice,
     finish: backToSearch,
   }
 }

@@ -1,20 +1,29 @@
 import { useState } from 'react'
-import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native'
-import * as ImagePicker from 'expo-image-picker'
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
 import { Camera, CreditCard, FileText, IdCard, Image as ImageIcon, Landmark } from 'lucide-react-native'
 import ChoiceSheet from '../components/ChoiceSheet'
 import { Card, ListRow, Screen } from '../components/ui'
 import { useAuth } from '../lib/auth'
 import { useCourier } from '../lib/courier'
-import { DOCUMENT_STATUS, DOCUMENT_TYPES, documentErrorText, missingDocuments, uploadDocument, useDocuments } from '../lib/documents'
+import {
+  DOCUMENT_TYPES,
+  documentErrorText,
+  documentStatusLabel,
+  documentTypeLabel,
+  missingDocuments,
+  pickDocumentImage,
+  uploadDocument,
+  useDocuments,
+} from '../lib/documents'
+import { useT } from '../lib/i18n'
 import { colors, fonts } from '../theme'
 
 const TYPE_ICONS = { id_card: IdCard, driving_licence: CreditCard, business_register: FileText, bank_proof: Landmark }
 const STATUS_COLORS = { missing: colors.gray400, pending: colors.orange, approved: colors.open, rejected: colors.danger }
 
 const SOURCES = [
-  { key: 'camera', label: 'Ota kuva', icon: Camera },
-  { key: 'library', label: 'Valitse galleriasta', icon: ImageIcon },
+  { key: 'camera', labelKey: 'docs.takePhoto', icon: Camera },
+  { key: 'library', labelKey: 'docs.fromLibrary', icon: ImageIcon },
 ]
 
 // Dokumentit: henkilöllisyys, ajokortti, Y-tunnus ja pankkitodiste. Kuva
@@ -22,6 +31,7 @@ const SOURCES = [
 // tarkastettavaksi (migraatio 0052). Uusi kuva on aina uusi tarkastus.
 export default function DocumentsScreen() {
   const { courier } = useAuth()
+  const t = useT()
   const { profile } = useCourier()
   const { documents, latestOf, error: loadError, reload } = useDocuments()
   const missing = missingDocuments(documents, profile)
@@ -33,21 +43,11 @@ export default function DocumentsScreen() {
     const type = picking
     setPicking(null)
     setError('')
-    // iOS ei avaa kameraa tai galleriaa, ennen kuin valikko on ehtinyt sulkeutua.
-    if (Platform.OS === 'ios') await new Promise((resolve) => setTimeout(resolve, 400))
     try {
-      const permission =
-        source === 'camera' ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync()
-      if (!permission.granted) {
-        setError(source === 'camera' ? 'Salli kameran käyttö puhelimen asetuksista.' : 'Salli kuvien käyttö puhelimen asetuksista.')
-        return
-      }
-      const options = { mediaTypes: ['images'], quality: 0.7 }
-      const result =
-        source === 'camera' ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options)
-      if (result.canceled || !result.assets?.[0]) return
+      const asset = await pickDocumentImage(source)
+      if (!asset) return
       setUploading(type)
-      await uploadDocument(courier.id, type, result.assets[0])
+      await uploadDocument(courier.id, type, asset)
       await reload()
     } catch (err) {
       setError(documentErrorText(err))
@@ -57,23 +57,23 @@ export default function DocumentsScreen() {
   }
 
   return (
-    <Screen title="Dokumentit">
+    <Screen title={t('menu.documents')}>
       {loadError || error ? <Text style={styles.error}>{error || loadError}</Text> : null}
 
-      <Card title="Dokumentit">
-        {DOCUMENT_TYPES.map(({ key, label }) => {
+      <Card title={t('menu.documents')}>
+        {DOCUMENT_TYPES.map(({ key }) => {
           const latest = latestOf(key)
           const status = latest?.status ?? 'missing'
           // Pakollinen niin kauan, kuin tyypillä ei ole yhtään hyväksyttyä kuvaa.
           const required = missing.some((type) => type.key === key)
-          let detail = DOCUMENT_STATUS[status]
+          let detail = documentStatusLabel(status)
           if (status === 'rejected' && latest.admin_note) detail = `${detail}: ${latest.admin_note}`
-          if (required) detail = `${detail} · Pakollinen`
+          if (required) detail = `${detail} · ${t('docs.required')}`
           return (
             <ListRow
               key={key}
               icon={TYPE_ICONS[key]}
-              label={label}
+              label={documentTypeLabel(key)}
               detail={detail}
               onPress={uploading ? undefined : () => setPicking(key)}
               right={
@@ -88,15 +88,12 @@ export default function DocumentsScreen() {
         })}
       </Card>
 
-      <Text style={styles.note}>
-        Online-tilaan pääset, kun pakolliset dokumentit on hyväksytty. Kuvat näkevät vain sinä ja delivo, ja uusi
-        kuva lähtee aina tarkastettavaksi.
-      </Text>
+      <Text style={styles.note}>{t('docs.note')}</Text>
 
       <ChoiceSheet
         visible={picking !== null}
-        title={DOCUMENT_TYPES.find((type) => type.key === picking)?.label ?? ''}
-        options={SOURCES}
+        title={picking ? documentTypeLabel(picking) : ''}
+        options={SOURCES.map(({ key, labelKey, icon }) => ({ key, label: t(labelKey), icon }))}
         onSelect={pick}
         onClose={() => setPicking(null)}
       />

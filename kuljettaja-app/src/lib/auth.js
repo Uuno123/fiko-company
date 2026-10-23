@@ -1,4 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { tr } from './i18n'
+import { unregisterPushToken } from './notifications'
 import { supabase } from './supabase'
 
 // Kuljettajan kirjautuminen. Kuljettaja kirjautuu samoilla tunnuksilla kuin
@@ -43,7 +45,7 @@ export function AuthProvider({ children }) {
         // Esim. tietokantamuutosta 0043 ei ole vielä ajettu tai verkko puuttuu.
         setCourier(null)
         setStatus('not-courier')
-        setError(err?.message ?? 'Kuljettajatietojen haku epäonnistui')
+        setError(err?.message ?? tr('auth.fetchFailed'))
       }
     }
 
@@ -84,6 +86,8 @@ export function AuthProvider({ children }) {
       if (signInError) throw signInError
     },
     async signOut() {
+      // Ensin push-tunnus pois, ettei puhelin saa enää tämän kuljettajan ilmoituksia.
+      await unregisterPushToken()
       await supabase?.auth.signOut()
     },
     refreshCourier,

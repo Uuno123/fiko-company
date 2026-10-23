@@ -15,6 +15,7 @@ import {
   weekdayShort,
 } from '../lib/format'
 import { HISTORY_DAYS, summarize, useGigs } from '../lib/gigs'
+import { useT } from '../lib/i18n'
 import { colors, fonts } from '../theme'
 
 const CHART_HEIGHT = 120
@@ -25,6 +26,7 @@ const MAX_WEEKS_BACK = Math.floor(HISTORY_DAYS / 7) - 1
 // tunnusluvut yhtenä rivinä ja päivät, joista pääsee sen päivän keikkoihin.
 export default function EarningsScreen() {
   const router = useRouter()
+  const t = useT()
   const [weeksBack, setWeeksBack] = useState(0)
   const now = new Date()
   const weekStart = addDays(startOfWeek(now), -7 * weeksBack)
@@ -37,17 +39,18 @@ export default function EarningsScreen() {
     return { day, summary: summarize(gigs.filter((gig) => isSameDay(gig.deliveredAt, day))) }
   })
   const maxDay = Math.max(1, ...days.map((entry) => entry.summary.total))
-  const weekTitle = weeksBack === 0 ? 'Tämä viikko' : weeksBack === 1 ? 'Viime viikko' : `${weeksBack} viikkoa sitten`
+  const weekTitle =
+    weeksBack === 0 ? t('earnings.thisWeek') : weeksBack === 1 ? t('earnings.lastWeek') : t('earnings.weeksAgo', { count: weeksBack })
 
   return (
-    <Screen title="Ansiot">
+    <Screen title={t('menu.earnings')}>
       <View style={styles.weekSwitch}>
         <Pressable
           onPress={() => setWeeksBack((value) => Math.min(MAX_WEEKS_BACK, value + 1))}
           disabled={weeksBack >= MAX_WEEKS_BACK}
           style={({ pressed }) => [styles.weekArrow, pressed && styles.weekArrowPressed, weeksBack >= MAX_WEEKS_BACK && styles.weekArrowDisabled]}
           accessibilityRole="button"
-          accessibilityLabel="Edellinen viikko"
+          accessibilityLabel={t('earnings.prevWeek')}
           hitSlop={6}
         >
           <ChevronLeft size={20} strokeWidth={2.2} color={colors.black} />
@@ -61,7 +64,7 @@ export default function EarningsScreen() {
           disabled={weeksBack === 0}
           style={({ pressed }) => [styles.weekArrow, pressed && styles.weekArrowPressed, weeksBack === 0 && styles.weekArrowDisabled]}
           accessibilityRole="button"
-          accessibilityLabel="Seuraava viikko"
+          accessibilityLabel={t('earnings.nextWeek')}
           hitSlop={6}
         >
           <ChevronRight size={20} strokeWidth={2.2} color={colors.black} />
@@ -71,7 +74,7 @@ export default function EarningsScreen() {
       <Card style={styles.totalCard}>
         <Text style={styles.total}>{formatEuro(week.total)}</Text>
         <Text style={styles.totalMeta}>
-          {week.count} {week.count === 1 ? 'keikka' : 'keikkaa'} · {formatKm(week.km)}
+          {week.count} {t(week.count === 1 ? 'common.gig.one' : 'common.gig.other')} · {formatKm(week.km)}
         </Text>
 
         <View style={styles.chart}>
@@ -96,13 +99,13 @@ export default function EarningsScreen() {
 
       <StatRow
         items={[
-          { label: 'Keikat', value: String(week.count) },
-          { label: 'Keskimäärin', value: formatEuro(week.average) },
-          { label: 'Matka', value: formatKm(week.km) },
+          { label: t('profile.gigs'), value: String(week.count) },
+          { label: t('earnings.average'), value: formatEuro(week.average) },
+          { label: t('common.distance'), value: formatKm(week.km) },
         ]}
       />
 
-      <Card title="Päivät">
+      <Card title={t('earnings.days')}>
         {days.some((entry) => entry.summary.count) ? (
           days
             .filter((entry) => entry.summary.count)
@@ -111,18 +114,18 @@ export default function EarningsScreen() {
               <ListRow
                 key={dayKey(day)}
                 label={formatDayLabel(day, now)}
-                detail={`${summary.count} ${summary.count === 1 ? 'keikka' : 'keikkaa'} · ${formatKm(summary.km)}`}
+                detail={`${summary.count} ${t(summary.count === 1 ? 'common.gig.one' : 'common.gig.other')} · ${formatKm(summary.km)}`}
                 value={formatEuro(summary.total)}
                 onPress={() => router.push({ pathname: '/history', params: { day: dayKey(day) } })}
               />
             ))
         ) : (
-          <Text style={styles.emptyText}>Ei keikkoja tällä viikolla.</Text>
+          <Text style={styles.emptyText}>{t('earnings.empty')}</Text>
         )}
       </Card>
 
       <Card>
-        <ListRow icon={Landmark} label="Laskutustiedot" onPress={() => router.push('/billing')} />
+        <ListRow icon={Landmark} label={t('profile.billing')} onPress={() => router.push('/billing')} />
       </Card>
     </Screen>
   )

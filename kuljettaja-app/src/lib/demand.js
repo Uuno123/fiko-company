@@ -9,18 +9,21 @@ const REFRESH_MS = 60_000
 // Uusi haku heti, kun on liikuttu näin paljon (alue vaihtuu).
 const MOVE_KM = 1
 
+// Tason nimi käännöksistä: t(level.labelKey).
 export const DEMAND_LEVELS = {
-  quiet: { label: 'Hiljaista', color: colors.gray400 },
-  normal: { label: 'Normaali', color: colors.open },
-  busy: { label: 'Kiireinen', color: colors.orange },
-  very_busy: { label: 'Erittäin kiireinen', color: colors.danger },
+  quiet: { labelKey: 'demand.quiet', color: colors.gray400 },
+  normal: { labelKey: 'demand.normal', color: colors.open },
+  busy: { labelKey: 'demand.busy', color: colors.orange },
+  very_busy: { labelKey: 'demand.veryBusy', color: colors.danger },
 }
 
-// "4 tilausta / 30 min · 2 kuljettajaa online"
-export function demandDetail(demand) {
-  const orders = demand.orders_30min === 1 ? '1 tilaus' : `${demand.orders_30min} tilausta`
-  const couriers = demand.couriers_online === 1 ? '1 kuljettaja' : `${demand.couriers_online} kuljettajaa`
-  return `${orders} / 30 min · ${couriers} online`
+// "4 tilausta / 30 min · 2 kuljettajaa online" valitulla kielellä (t = useT()).
+export function demandDetail(demand, t) {
+  const orders =
+    demand.orders_30min === 1 ? t('demand.orders.one') : t('demand.orders.other', { count: demand.orders_30min })
+  const couriers =
+    demand.couriers_online === 1 ? t('demand.couriers.one') : t('demand.couriers.other', { count: demand.couriers_online })
+  return t('demand.detail', { orders, couriers })
 }
 
 // { level, orders_30min, waiting, couriers_online, radius_km } tai null

@@ -1,6 +1,9 @@
 import { useCallback, useState } from 'react'
+import { Platform } from 'react-native'
+import * as ImagePicker from 'expo-image-picker'
 import { useFocusEffect } from 'expo-router'
 import { useAuth } from './auth'
+import { tr } from './i18n'
 import { supabase } from './supabase'
 
 // Kuljettajan dokumentit (migraatio 0052). Kuva tallentuu yksityiseen
@@ -17,11 +20,13 @@ export const DOCUMENT_TYPES = [
   { key: 'bank_proof', label: 'Pankkitodiste tilinumerosta' },
 ]
 
-export const DOCUMENT_STATUS = {
-  missing: 'Puuttuu',
-  pending: 'Tarkastettavana',
-  approved: 'Hyväksytty',
-  rejected: 'Hylätty',
+// Nimet ja tilat valitulla kielellä (lib/i18n.js).
+export function documentTypeLabel(key) {
+  return tr(`docType.${key}`)
+}
+
+export function documentStatusLabel(status) {
+  return tr(`docStatus.${status}`)
 }
 
 // Pakolliset dokumentit: henkilöllisyys aina, ajokortti autolla ja
@@ -81,6 +86,21 @@ export function useDocuments() {
   return { documents, loaded, latestOf, error, reload }
 }
 
+// Kuva kamerasta tai galleriasta (Dokumentit ja muutospyynnön liite). Palauttaa
+// kuvan tai null, jos kuljettaja perui. Heittää camera_denied / library_denied,
+// jos lupaa ei annettu.
+export async function pickDocumentImage(source) {
+  // iOS ei avaa kameraa tai galleriaa, ennen kuin valintavalikko on sulkeutunut.
+  if (Platform.OS === 'ios') await new Promise((resolve) => setTimeout(resolve, 400))
+  const permission =
+    source === 'camera' ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync()
+  if (!permission.granted) throw new Error(source === 'camera' ? 'camera_denied' : 'library_denied')
+  const options = { mediaTypes: ['images'], quality: 0.7 }
+  const result = source === 'camera' ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options)
+  if (result.canceled || !result.assets?.[0]) return null
+  return result.assets[0]
+}
+
 // Lataa kuvan säiliöön ja lisää tarkastettavan rivin.
 export async function uploadDocument(courierId, type, asset) {
   if (!supabase) throw new Error('Supabase-yhteyttä ei ole määritetty.')
@@ -99,9 +119,11 @@ export async function uploadDocument(courierId, type, asset) {
 export function documentErrorText(error) {
   const code = error?.code ?? ''
   const message = String(error?.message ?? '')
+  if (message === 'camera_denied') return tr('docs.cameraDenied')
+  if (message === 'library_denied') return tr('docs.libraryDenied')
   if (code === '42P01' || code === 'PGRST205' || /bucket not found/i.test(message)) {
-    return 'Dokumentit eivät ole vielä käytössä. Ota yhteyttä tukeen.'
+    return tr('docs.notEnabled')
   }
-  if (/exceeded|too large|payload/i.test(message)) return 'Kuva on liian suuri (enintään 10 Mt).'
-  return 'Lähetys epäonnistui. Tarkista yhteys ja yritä uudelleen.'
+  if (/exceeded|too large|payload/i.test(message)) return tr('docs.tooLarge')
+  return tr('common.sendFailed')
 }

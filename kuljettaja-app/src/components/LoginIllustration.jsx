@@ -1,6 +1,6 @@
 import { View } from 'react-native'
 import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg'
-import { LOGO_CHECK_PATH, LOGO_CHECK_STROKE, LOGO_LETTERS_PATH } from '../../../frontend/src/lib/logoPaths'
+import { LOGO_ACCENT_PATH, LOGO_LETTERS_PATH } from '../../../frontend/src/lib/logoPaths'
 import { colors } from '../theme'
 
 // Kirjautumisnäkymän kuvitus: delivo-kuljettaja polkupyörällä, selässä
@@ -143,21 +143,14 @@ export default function LoginIllustration({ style }) {
         <Path d="M222 72 Q232 70 238 78" stroke={COLLAR} strokeWidth={4} strokeLinecap="round" fill="none" />
         <Path d="M198 116 L230 88" stroke={ORANGE} strokeWidth={3} strokeLinecap="round" />
 
-        {/* delivo-reppu selässä selän kulmassa */}
+        {/* Bidrop-reppu selässä selän kulmassa */}
         <G rotation={-40} originX={190} originY={80}>
           <Rect x={164} y={60} width={52} height={40} rx={8} fill="#ffffff" />
           <Rect x={164} y={60} width={52} height={10} rx={5} fill={BAG_SHADE} />
           {/* Sama sanamerkki kuin logossa (frontend/src/lib/logoPaths.js). */}
-          <G transform="translate(170 79.8) scale(0.1345)">
+          <G transform="translate(170 79.8) scale(0.128)">
             <Path d={LOGO_LETTERS_PATH} fill={INK} />
-            <Path
-              d={LOGO_CHECK_PATH}
-              fill="none"
-              stroke={ORANGE}
-              strokeWidth={LOGO_CHECK_STROKE}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            <Path d={LOGO_ACCENT_PATH} fill={ORANGE} />
           </G>
         </G>
         <Path d="M212 82 Q222 86 228 96" stroke={RIM} strokeWidth={3} strokeLinecap="round" fill="none" />

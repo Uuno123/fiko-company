@@ -4,6 +4,7 @@ import { useFocusEffect, useRouter } from 'expo-router'
 import Constants from 'expo-constants'
 import * as Location from 'expo-location'
 import {
+  Bell,
   BellRing,
   ExternalLink,
   Languages,
@@ -20,10 +21,11 @@ import { vehicleIcon } from '../components/vehicleIcons'
 import { useAuth } from '../lib/auth'
 import { useCourier } from '../lib/courier'
 import { LANGUAGES, useT } from '../lib/i18n'
+import { getNotificationPermission, registerForPushNotifications } from '../lib/notifications'
 import { NAVIGATION_APPS, navigationAppLabel } from '../lib/navigationApps'
 import { colors, fonts } from '../theme'
 
-const PERMISSION_COLORS = { granted: colors.open, denied: colors.danger, undetermined: colors.gray400 }
+const PERMISSION_COLORS = { granted: colors.open, denied: colors.danger, undetermined: colors.gray400, unavailable: colors.gray400 }
 
 const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0'
 
@@ -37,16 +39,18 @@ export default function SettingsScreen() {
   const { settings, updateSettings, resetSettings, profile } = useCourier()
   const { courier, updateCourier } = useAuth()
   const [permission, setPermission] = useState(null)
+  const [pushPermission, setPushPermission] = useState(null)
   const [sheet, setSheet] = useState(null)
 
-  // Sijaintilupa tarkistetaan aina kun näkymään palataan (esim. puhelimen
-  // asetuksista, joissa luvan on voinut muuttaa).
+  // Sijainti- ja ilmoituslupa tarkistetaan aina kun näkymään palataan (esim.
+  // puhelimen asetuksista, joissa luvan on voinut muuttaa).
   useFocusEffect(
     useCallback(() => {
       let cancelled = false
       Location.getForegroundPermissionsAsync()
         .then(({ status }) => !cancelled && setPermission(status))
         .catch(() => !cancelled && setPermission('undetermined'))
+      getNotificationPermission().then((status) => !cancelled && setPushPermission(status))
       return () => {
         cancelled = true
       }
@@ -70,6 +74,13 @@ export default function SettingsScreen() {
       { text: t('common.cancel'), style: 'cancel' },
       { text: t('settings.resetConfirm'), style: 'destructive', onPress: resetSettings },
     ])
+  }
+
+  // Ilmoitukset: kysymättä -> kysytään nyt, muuten luvan voi muuttaa vain
+  // puhelimen asetuksista.
+  const openNotifications = () => {
+    if (pushPermission === 'undetermined') registerForPushNotifications().then(setPushPermission)
+    else Linking.openSettings().catch(() => {})
   }
 
   const languageLabel = LANGUAGES.find((language) => language.key === settings.language)?.label ?? LANGUAGES[0].label
@@ -124,14 +135,13 @@ export default function SettingsScreen() {
         <ListRow
           icon={LocateFixed}
           label={t('settings.location')}
-          right={
-            permission ? (
-              <View style={styles.status}>
-                <View style={[styles.statusDot, { backgroundColor: PERMISSION_COLORS[permission] ?? colors.gray400 }]} />
-                <Text style={styles.statusText}>{t(`permission.${permission}`)}</Text>
-              </View>
-            ) : null
-          }
+          right={permission ? <PermissionStatus status={permission} /> : null}
+        />
+        <ListRow
+          icon={Bell}
+          label={t('settings.notifications')}
+          onPress={pushPermission && pushPermission !== 'unavailable' ? openNotifications : undefined}
+          right={pushPermission ? <PermissionStatus status={pushPermission} /> : null}
         />
         <ListRow icon={ExternalLink} label={t('settings.phoneSettings')} onPress={() => Linking.openSettings().catch(() => {})} />
       </Card>
@@ -163,6 +173,16 @@ export default function SettingsScreen() {
         onClose={() => setSheet(null)}
       />
     </Screen>
+  )
+}
+
+function PermissionStatus({ status }) {
+  const t = useT()
+  return (
+    <View style={styles.status}>
+      <View style={[styles.statusDot, { backgroundColor: PERMISSION_COLORS[status] ?? colors.gray400 }]} />
+      <Text style={styles.statusText}>{t(`permission.${status}`)}</Text>
+    </View>
   )
 }
 
