@@ -6,9 +6,9 @@ export { formatPrice }
 export const DAY_MS = 24 * 60 * 60 * 1000
 export const ACTIVE_STATUSES = ['pending', 'confirmed', 'preparing', 'ready']
 
-// Pidettävä samana kuin migraation 0028 pg_cron-ajastin, joka peruu hyväksymättömät
-// tilaukset kannassa - tämä on vain näkyvä laskuri.
-export const PENDING_AUTO_CANCEL_MINUTES = 3
+// Pidettävä samana kuin pg_cron-ajastin (migraatio 0059: 90 s), joka peruu
+// hyväksymättömät tilaukset kannassa - tämä on vain näkyvä laskuri.
+export const PENDING_AUTO_CANCEL_MINUTES = 1.5
 
 export function startOfDay(date = new Date()) {
   const d = new Date(date)
@@ -18,6 +18,12 @@ export function startOfDay(date = new Date()) {
 
 export function daysAgo(n, from = new Date()) {
   return new Date(startOfDay(from).getTime() - n * DAY_MS)
+}
+
+// Milloin tilaus tuli ravintolalle. Kotiinkuljetuksessa vasta kun kuljetushinnasta
+// on sovittu (migraatio 0058), joten hyväksyntäaika ja ikä lasketaan tästä.
+export function orderPlacedAt(order) {
+  return order.placed_at ?? order.created_at
 }
 
 export function inRange(order, from, to) {
@@ -114,19 +120,13 @@ export function normalizeOpeningHours(value) {
 }
 
 // Ravintolan paketti: restaurants.plan (migraatio 0049), hinnat lib/partnerPlans.js:ssä.
-// Ilman pakettia ravintolalla on vanhat ehdot eli välityspalkkio
-// commission_rate_percent-sarakkeesta (0020, 0040).
+// Välityspalkkiota ei ole (käyttäjän päätös): ilman pakettia näytetään
+// uusien ravintoloiden oletuspaketti Kuljetus.
 export const PLANS = PARTNER_PLANS
+export const DEFAULT_PLAN_KEY = 'kuljetus'
 
 export function restaurantPlan(restaurant) {
-  return (
-    findPlan(restaurant?.plan) ?? {
-      key: 'custom',
-      name: 'Oma sopimus',
-      priceCents: null,
-      commission: Number(restaurant?.commission_rate_percent ?? 0),
-    }
-  )
+  return findPlan(restaurant?.plan) ?? findPlan(DEFAULT_PLAN_KEY)
 }
 
 export function storageGet(key, fallback) {

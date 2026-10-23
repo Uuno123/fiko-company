@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ImageOff, Percent, Plus, Search, UtensilsCrossed } from 'lucide-react'
+import { ImageOff, Pencil, Percent, Plus, Search, UtensilsCrossed } from 'lucide-react'
 import { INGREDIENT_TAG_GROUPS } from '../../lib/ingredientTags.js'
 import { useDashboard } from '../context.js'
 import { useMenu } from '../hooks.js'
@@ -132,7 +132,7 @@ export default function MenuView() {
   async function toggleAvailable(item) {
     const next = item.is_available === false
     const error = await menu.updateItem(item.id, { is_available: next })
-    toast(error ? 'Päivitys epäonnistui' : `${item.name}: ${next ? 'saatavilla' : 'loppu'}`, error ? 'error' : 'default')
+    toast(error ? 'Päivitys epäonnistui' : `${item.name}: ${next ? 'myynnissä' : 'loppu'}`, error ? 'error' : 'default')
   }
 
   async function save(fields) {
@@ -203,6 +203,12 @@ export default function MenuView() {
             </label>
             <Segmented label="Suodatus" value={filter} onChange={setFilter} options={FILTERS} />
           </div>
+          {menu.items.length > 0 && (
+            <p className="pd-help">
+              <Pencil size={14} aria-hidden="true" /> Napauta tuotetta muokataksesi. Kytkimestä merkitset tuotteen loppuneeksi - muutos näkyy
+              asiakkaille heti.
+            </p>
+          )}
 
           {menu.status === 'error' && <ErrorNote>Ruokalistaa ei voitu hakea. Tarkista yhteys.</ErrorNote>}
           {menu.status === 'loading' && <div className="pd-skeleton pd-skeleton--block" />}
@@ -232,7 +238,12 @@ export default function MenuView() {
                   const available = item.is_available !== false
                   return (
                     <li key={item.id} className={`pd-item${available ? '' : ' is-soldout'}`}>
-                      <button type="button" className="pd-item__main" onClick={() => setEditing(item)}>
+                      <button
+                        type="button"
+                        className="pd-item__main"
+                        onClick={() => setEditing(item)}
+                        aria-label={`Muokkaa: ${item.name}, ${formatPrice(item.price_cents)}`}
+                      >
                         <span className="pd-item__thumb">
                           {item.image_url ? <img src={item.image_url} alt="" loading="lazy" /> : <ImageOff size={18} strokeWidth={1.5} aria-hidden="true" />}
                         </span>
@@ -253,9 +264,14 @@ export default function MenuView() {
                           )}
                         </span>
                         <span className="pd-item__price">{formatPrice(item.price_cents)}</span>
+                        <span className="pd-item__edit" aria-hidden="true">
+                          <Pencil size={14} strokeWidth={2} />
+                          <span>Muokkaa</span>
+                        </span>
                       </button>
                       <div className="pd-item__toggle">
-                        <Toggle checked={available} label={`${item.name} saatavilla`} onChange={() => toggleAvailable(item)} />
+                        <span className={`pd-item__state${available ? ' is-on' : ''}`}>{available ? 'Myynnissä' : 'Loppu'}</span>
+                        <Toggle checked={available} label={`${item.name} myynnissä`} onChange={() => toggleAvailable(item)} />
                       </div>
                     </li>
                   )
@@ -264,24 +280,6 @@ export default function MenuView() {
             </Card>
           ))}
 
-          <Card title="Aikarajatut ruokalistat" subtitle="Näytä osa tuotteista vain tiettyinä aikoina" demo>
-            <ul className="pd-list">
-              <li>
-                <span>
-                  <strong>Lounas</strong>
-                  <span className="pd-muted">Ma–Pe 10.30–14.00 · 6 tuotetta</span>
-                </span>
-                <Badge tone="success">Käytössä</Badge>
-              </li>
-              <li>
-                <span>
-                  <strong>Aamiainen</strong>
-                  <span className="pd-muted">La–Su 9.00–11.30 · 4 tuotetta</span>
-                </span>
-                <Badge tone="neutral">Pois päältä</Badge>
-              </li>
-            </ul>
-          </Card>
         </div>
       </div>
 

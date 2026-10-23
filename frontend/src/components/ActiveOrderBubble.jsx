@@ -3,16 +3,18 @@ import { useLocation } from 'react-router-dom'
 import { Minus } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
+import { useDeliveryNegotiation } from '../lib/deliveryBids.js'
 import { customerStatusLabel, estimatedArrivalAt, isOrderInProgress } from '../lib/orderStatus.js'
 import { SIGNED_OUT_EVENT } from '../lib/signOutCleanup.js'
 import OrderChangeNotice from './OrderChangeNotice.jsx'
 import OrderTrackingModal from './OrderTrackingModal.jsx'
 import './ActiveOrderBubble.css'
 
-// Kesken oleva tilaus: ravintolan tila tai kuljettajan toimitus vielä kesken
-// (ravintola voi merkitä tilauksen luovutetuksi ennen kuin kuljettaja on perillä).
+// Kesken oleva tilaus: kuljetushinnasta sovitaan, ravintolan tila tai kuljettajan
+// toimitus vielä kesken (ravintola voi merkitä tilauksen luovutetuksi ennen kuin
+// kuljettaja on perillä).
 const IN_PROGRESS_FILTER =
-  'status.in.(pending,confirmed,preparing,ready),courier_status.in.(assigned,at_restaurant,picked_up)'
+  'status.in.(awaiting_courier,pending,confirmed,preparing,ready),courier_status.in.(assigned,at_restaurant,picked_up)'
 
 // ── Ilmoitukset muutoksista, joita asiakas ei itse tehnyt ────────────────────
 // Ravintola perui tilauksen tai kuljettaja luopui keikasta (migraatio 0045).
@@ -41,6 +43,8 @@ function markNoticeSeen(key) {
 
 function noticeForOrder(row) {
   if (!row?.id) return null
+  // Oman peruutuksen asiakas tietää jo.
+  if (row.status === 'cancelled' && row.cancel_reason === 'customer_cancelled') return null
   if (row.status === 'cancelled') return { key: `cancelled:${row.id}`, kind: 'cancelled', order: row }
   const releasedAt = row.courier_released_at ? Date.parse(row.courier_released_at) : NaN
   if (!row.courier_id && Date.now() - releasedAt < RELEASE_NOTICE_MS && isOrderInProgress(row)) {
@@ -53,6 +57,60 @@ function minutesLeft(order, now) {
   const arrival = estimatedArrivalAt(order)
   if (!arrival) return null
   return Math.max(Math.ceil((arrival.getTime() - now) / 60_000), 0)
+}
+
+// Edistyminen 0-1 tilauksen teosta arvioituun perillä- tai valmisaikaan.
+// null, kun aikaa ei vielä tiedetä (ravintola ei ole hyväksynyt).
+function orderProgress(order, now) {
+  const arrival = estimatedArrivalAt(order)
+  const created = Date.parse(order.created_at)
+  if (!arrival || !Number.isFinite(created)) return null
+  const total = arrival.getTime() - created
+  if (total <= 0) return 1
+  return Math.min(Math.max((now - created) / total, 0.04), 1)
+}
+
+const RING_RADIUS = 21
+const RING_LENGTH = 2 * Math.PI * RING_RADIUS
+
+// Ravintolan logo (tai kansikuva) ja sen ympärillä rengas, joka täyttyy
+// tilauksen edetessä. Ennen arvioitua aikaa rengas pyörii odotuksena. Ilman
+// kuvaa (tai jos kuva ei lataudu) delivon merkki, sama ruksi kuin faviconissa.
+function OrderMark({ progress, imageUrl }) {
+  const [broken, setBroken] = useState(null)
+  const showImage = Boolean(imageUrl) && broken !== imageUrl
+  return (
+    <span className="active-order-bubble__mark" aria-hidden="true">
+      <svg viewBox="0 0 48 48">
+        <circle className="active-order-bubble__ring-track" cx="24" cy="24" r={RING_RADIUS} />
+        <circle
+          className={`active-order-bubble__ring${progress == null ? ' is-waiting' : ''}`}
+          cx="24"
+          cy="24"
+          r={RING_RADIUS}
+          strokeDasharray={progress == null ? `${RING_LENGTH * 0.22} ${RING_LENGTH}` : RING_LENGTH}
+          strokeDashoffset={progress == null ? 0 : RING_LENGTH * (1 - progress)}
+        />
+        {!showImage && (
+          <>
+            <circle cx="24" cy="24" r="16" fill="#f4501e" />
+            <path
+              d="M17.3 35.4L27.5 48.9L46.7 15"
+              transform="translate(24 24) scale(0.4) translate(-32 -32)"
+              fill="none"
+              stroke="#fff"
+              strokeWidth="8.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </>
+        )}
+      </svg>
+      {showImage && (
+        <img className="active-order-bubble__logo" src={imageUrl} alt="" onError={() => setBroken(imageUrl)} />
+      )}
+    </span>
+  )
 }
 
 // ── Raahaus (käyttäjän pyyntö: pitkä painallus ja sitten liikuttaminen) ─────
@@ -143,7 +201,7 @@ function ActiveOrderBubble() {
       supabase
         .from('orders')
         .select(
-          'id, order_number, status, delivery_method, created_at, estimated_ready_at, delivery_lat, delivery_lng, delivery_address, total_cents, courier_id, courier_status, courier_arrive_by, courier_released_at, delivery_eta, cancel_reason, order_items(*), restaurants(name, lat, lng, address)',
+          'id, order_number, status, delivery_method, created_at, placed_at, estimated_ready_at, delivery_lat, delivery_lng, delivery_address, total_cents, delivery_fee_cents, service_fee_cents, discount_cents, promo_code, bidding_expires_at, customer_offer_cents, delivery_price_cents, courier_id, courier_status, courier_arrive_by, courier_released_at, delivery_eta, cancel_reason, order_items(*), restaurants(*)',
         )
         .eq('customer_id', session.user.id)
         .or(IN_PROGRESS_FILTER)
@@ -194,6 +252,9 @@ function ActiveOrderBubble() {
   }, [isAuthenticated, session])
 
   const order = dbOrder
+  // Kuljettajien hintatarjoukset kuplan otsikkoon (migraatio 0058).
+  const awaitingCourier = order?.status === 'awaiting_courier'
+  const { offeredBids } = useDeliveryNegotiation(awaitingCourier ? order.id : null)
 
   const barLayout = useBarLayout()
   const layoutKey = barLayout ? 'bar' : 'float'
@@ -262,18 +323,19 @@ function ActiveOrderBubble() {
   }
 
   const minutes = minutesLeft(order, now)
-  const timeTile = (
-    <span className="active-order-bubble__time" aria-hidden="true">
-      {minutes != null && minutes > 0 ? (
-        <>
-          <strong>{minutes}</strong>
-          <span>min</span>
-        </>
-      ) : (
-        <span className="active-order-bubble__dot" />
-      )}
-    </span>
+  const mark = (
+    <OrderMark progress={orderProgress(order, now)} imageUrl={order.restaurants?.logo_url || order.restaurants?.image_url} />
   )
+  // Otsikkona arvioitu aika, kun se tiedetään (käyttäjä: oranssi minuuttilaatta
+  // pois, tilalle logo) - muuten kehotus seurata.
+  const bidCount = offeredBids.length
+  const title = awaitingCourier
+    ? bidCount > 0
+      ? `${bidCount} kuljetustarjous${bidCount === 1 ? '' : 'ta'}`
+      : 'Odotetaan kuljettajia'
+    : minutes != null && minutes > 0
+      ? `${order.delivery_method === 'delivery' ? 'Perillä' : 'Noudettavissa'} n. ${minutes} min`
+      : 'Seuraa tilausta'
 
   const saved = position[layoutKey]
   const positionStyle = saved
@@ -376,7 +438,7 @@ function ActiveOrderBubble() {
     <>
       <div
         ref={bubbleRef}
-        className={`active-order-bubble${dragging ? ' is-dragging' : ''}${minimized ? ' is-minimized' : ''}`}
+        className={`active-order-bubble${dragging ? ' is-dragging' : ''}${minimized ? ' is-minimized' : ''}${awaitingCourier && bidCount > 0 ? ' has-bids' : ''}`}
         style={positionStyle}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -385,14 +447,14 @@ function ActiveOrderBubble() {
         onContextMenu={(e) => e.preventDefault()}
       >
         {minimized ? (
-          // Pienennettynä pelkkä aikalaatta; napautus palauttaa täyden kuplan.
+          // Pienennettynä pelkkä merkki renkaineen; napautus palauttaa täyden kuplan.
           <button
             type="button"
             className="active-order-bubble__box"
             onClick={guarded(() => changeMinimized(false))}
             aria-label={`Näytä tilauksen seuranta${minutes ? ` (${minutes} min)` : ''}`}
           >
-            {timeTile}
+            {mark}
           </button>
         ) : (
           <>
@@ -402,9 +464,9 @@ function ActiveOrderBubble() {
               onClick={guarded(() => setShowModal(true))}
               aria-haspopup="dialog"
             >
-              {timeTile}
+              {mark}
               <span className="active-order-bubble__text">
-                <span className="active-order-bubble__title">Seuraa tilausta</span>
+                <span className="active-order-bubble__title">{title}</span>
                 <span className="active-order-bubble__status">
                   {order.restaurants?.name ?? 'Tilaus'} · {customerStatusLabel(order)}
                 </span>

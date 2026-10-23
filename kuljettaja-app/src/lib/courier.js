@@ -3,6 +3,7 @@ import { AppState, Platform } from 'react-native'
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useAuth } from './auth'
+import { tr } from './i18n'
 import { readJson, writeJson } from './storage'
 
 // Kuljettajan tila koko sovellukselle: online/offline, ajastettu offline,
@@ -44,7 +45,9 @@ export const BILLING_METHODS = [
   { key: 'eezy', label: 'Eezy' },
 ]
 
+// UKKO.fi ja Eezy ovat palvelujen nimiä; oma yritys valitulla kielellä.
 export function billingMethodLabel(key) {
+  if (key === 'own_company') return tr('billing.ownCompany')
   return BILLING_METHODS.find((method) => method.key === key)?.label ?? null
 }
 
@@ -55,7 +58,7 @@ export function cityLabel(key) {
 }
 
 export function vehicleLabel(key) {
-  return VEHICLES.find((vehicle) => vehicle.key === key)?.label ?? VEHICLES[0].label
+  return tr(`vehicle.${VEHICLES.some((vehicle) => vehicle.key === key) ? key : VEHICLES[0].key}`)
 }
 
 const CourierContext = createContext(null)

@@ -32,7 +32,8 @@ function SettingsLayout({ title, description, children, variant }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: '/asetukset' }} replace />
+    // overHome: kirjautumispaneelin taustalla etusivu, ei tämä sivu (joka ohjaisi taas tänne).
+    return <Navigate to="/login" state={{ from: '/asetukset', overHome: true }} replace />
   }
 
   async function handleSignOut() {
@@ -87,7 +88,7 @@ function SettingsLayout({ title, description, children, variant }) {
             </nav>
 
             <div className="account-side__footer">
-              <a href="mailto:tuki@delivo.fi" className="account-side__action">
+              <a href="mailto:tuki@bidrop.fi" className="account-side__action">
                 <MessageCircle size={18} strokeWidth={1.75} aria-hidden="true" />
                 Ota yhteyttä
               </a>

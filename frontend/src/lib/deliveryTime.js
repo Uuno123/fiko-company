@@ -15,13 +15,26 @@ export const DROPOFF_MIN = 2
 // Ajoaika ravintolasta asiakkaalle, kun toisen pään koordinaatteja ei tiedetä.
 export const DEFAULT_RIDE_MIN = 12
 
-// Kuljettajan palkkio keikasta: perusmaksu + matkalisä ajetuilta kilometreiltä
-// (kuljettajalta ravintolaan ja perille). Kuljettaja-app laskee tarjouksen tällä,
-// kumppanisivun ansiolaskuri samalla.
-export const COURIER_PAY = { baseCents: 320, perKmCents: 70 }
+// Kuljetushinta sovitaan tilauksen jälkeen (migraatio 0058): kuljettaja tarjoaa
+// hinnan haarukasta, asiakas hyväksyy tai tarjoaa omansa. Kuljettaja saa
+// koko sovitun hinnan (100 %). Samat luvut ovat tietokannassa
+// (dispatch_settings) ja backendin korttivarauksessa (routes/payments.js) - jos
+// muutat näitä, muuta ne myös siellä.
+export const DELIVERY_BID = {
+  minCents: 199,
+  maxCents: 799,
+  courierSharePercent: 100,
+  biddingMinutes: 10,
+}
 
-export function courierPayCents(routeKm) {
-  return COURIER_PAY.baseCents + Math.round(routeKm * COURIER_PAY.perKmCents)
+// Kuljettajan osuus sovitusta kuljetushinnasta.
+export function courierShareCents(priceCents) {
+  return Math.round((priceCents * DELIVERY_BID.courierSharePercent) / 100)
+}
+
+// Hinta haarukkaan sentin tarkkuudella (sama kuin tietokannassa).
+export function clampBidCents(cents) {
+  return Math.min(DELIVERY_BID.maxCents, Math.max(DELIVERY_BID.minCents, Math.round(cents)))
 }
 
 // Tietokannan tyhjä koordinaatti on null - Number(null) olisi 0 (Afrikan edusta),

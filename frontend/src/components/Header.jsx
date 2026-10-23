@@ -129,7 +129,7 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
         <div className="site-header__left">
           {/* back: takaisin-nuoli logon tilalla (ravintolasivu, käyttäjän pyyntö).
               Nuoli palaa edelliselle sivulle - paitsi jos sivu avattiin suoraan
-              linkistä, jolloin historiassa ei ole delivon sivua ja navigate(-1)
+              linkistä, jolloin historiassa ei ole Bidropin sivua ja navigate(-1)
               veisi pois sivustolta; silloin etusivulle. React Router pitää
               historian indeksin history.state.idx:ssä. */}
           {back ? (
@@ -144,7 +144,7 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
               </svg>
             </button>
           ) : (
-            <Link to="/" className="site-header__logo" aria-label="delivo etusivulle">
+            <Link to="/" className="site-header__logo" aria-label="Bidrop etusivulle">
               <DelivoLogo />
             </Link>
           )}

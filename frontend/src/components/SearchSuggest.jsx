@@ -4,6 +4,7 @@ import { Truck } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { getRestaurants } from '../lib/api.js'
 import { searchFillerRestaurants } from '../lib/categories.js'
+import { DELIVERY_PRICE_RANGE } from '../lib/delivery.js'
 import { supabase } from '../lib/supabaseClient.js'
 import './SearchSuggest.css'
 
@@ -41,7 +42,7 @@ export function RestaurantResultCard({ restaurant: r, onNavigate }) {
       <span className="search-suggest-restaurant-card__meta">
         <Truck size={14} aria-hidden="true" />
         <span className={r.free_delivery ? 'search-suggest-restaurant-card__fee--free' : undefined}>
-          {r.free_delivery ? '0,00 €' : '5,99 €'}
+          {r.free_delivery ? '0,00 €' : DELIVERY_PRICE_RANGE}
         </span>
         {r.pickup_estimate_minutes && <span>· {r.pickup_estimate_minutes} min</span>}
       </span>

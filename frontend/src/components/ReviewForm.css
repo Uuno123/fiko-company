@@ -1,0 +1,181 @@
+/* Arvostelulomake (ReviewForm): arvosteluikkunassa ja arviointipyynnössä.
+   Tähdet suurenevat hoverissa ja hyppäävät valittaessa, napit nousevat. */
+
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.review-form__stars {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.review-form__stars button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: #d0d3d8;
+  cursor: pointer;
+  transition: color 0.18s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.review-form__stars button.is-on {
+  color: #f5a623;
+}
+
+.review-form__stars button:hover {
+  transform: scale(1.18) rotate(-6deg);
+}
+
+.review-form__stars button:active {
+  transform: scale(0.88);
+}
+
+/* Valittu tähti hyppää kerran (aria-checked vaihtuu valittaessa). */
+.review-form__stars button[aria-checked='true'] {
+  animation: review-form-star-pick 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes review-form-star-pick {
+  40% {
+    transform: scale(1.35) rotate(-10deg);
+  }
+}
+
+.review-form__stars button:focus-visible {
+  outline: 2px solid var(--delivo-black);
+}
+
+.review-form__star-label {
+  min-width: 80px;
+  margin-left: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+}
+
+.review-form__field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.review-form__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+}
+
+.review-form__field textarea {
+  min-height: 96px;
+  padding: 12px 14px 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--delivo-black);
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  resize: vertical;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.review-form__field textarea:hover {
+  border-color: #c9ccd1;
+}
+
+.review-form__field textarea:focus {
+  outline: none;
+  border-color: var(--delivo-orange);
+  box-shadow: 0 0 0 3px rgba(244, 80, 30, 0.14);
+}
+
+.review-form__count {
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.review-form__error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #9a2828;
+}
+
+.review-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.review-form__submit,
+.review-form__cancel {
+  height: 44px;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.review-form__submit {
+  padding: 0 20px;
+  border: none;
+  background: var(--delivo-orange);
+  color: #fff;
+  font-weight: 700;
+}
+
+.review-form__submit:hover {
+  background: var(--delivo-orange-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px -8px rgba(244, 80, 30, 0.6);
+}
+
+.review-form__cancel {
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--delivo-black);
+  font-weight: 600;
+}
+
+.review-form__cancel:hover {
+  border-color: var(--delivo-black);
+}
+
+.review-form__submit:active,
+.review-form__cancel:active {
+  transform: scale(0.97);
+}
+
+.review-form__submit:disabled,
+.review-form__cancel:disabled {
+  opacity: 0.6;
+  cursor: progress;
+  transform: none;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .review-form__stars button,
+  .review-form__stars button[aria-checked='true'] {
+    animation: none;
+    transition: color 0.18s ease;
+  }
+
+  .review-form__stars button:hover {
+    transform: none;
+  }
+}

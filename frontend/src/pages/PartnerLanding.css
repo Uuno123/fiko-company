@@ -1036,6 +1036,155 @@
 
 /* ── Loppu: kaksi isoa linkkiä ────────────────────────────────────────── */
 
+/* ── Vaatimukset ja ehdot (ravintolat ja kuljettajat) ─────────────────────────────────────── */
+
+.pl-terms__lead {
+  max-width: none;
+}
+
+.pl-terms__subtitle {
+  margin: 56px 0 20px;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.pl-terms__notes {
+  display: grid;
+  gap: 10px;
+  margin: 28px 0 0;
+  padding: 22px 0 0;
+  border-top: 2px dashed #d5d8dd;
+  list-style: none;
+}
+
+.pl-terms__notes li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.pl-terms__notes li::before {
+  content: '';
+  position: absolute;
+  top: 0.55em;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+}
+
+.pl-terms__list {
+  display: grid;
+  gap: 12px;
+  margin-top: 48px;
+}
+
+.pl-terms__item {
+  border: 2px solid var(--delivo-black);
+  border-radius: 18px;
+  background: var(--surface);
+  transition: box-shadow 0.2s ease;
+}
+
+.pl-terms__item[open] {
+  box-shadow: 6px 6px 0 var(--delivo-black);
+}
+
+.pl-terms__item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  list-style: none;
+  cursor: pointer;
+}
+
+.pl-terms__item summary::-webkit-details-marker {
+  display: none;
+}
+
+.pl-terms__item summary svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.pl-terms__item[open] summary svg {
+  transform: rotate(180deg);
+}
+
+.pl-terms__item summary:focus-visible {
+  outline: 3px solid var(--delivo-orange);
+  outline-offset: 2px;
+  border-radius: 16px;
+}
+
+.pl-terms__body {
+  padding: 0 22px 22px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.pl-terms__body p {
+  margin: 0 0 12px;
+}
+
+.pl-terms__body p:last-child {
+  margin-bottom: 0;
+}
+
+.pl-terms__body ul,
+.pl-terms__body ol {
+  margin: 0 0 12px;
+  padding-left: 22px;
+}
+
+.pl-terms__body ul:last-child,
+.pl-terms__body ol:last-child {
+  margin-bottom: 0;
+}
+
+.pl-terms__body li {
+  margin: 6px 0;
+}
+
+.pl-terms__body ol li::marker {
+  color: var(--delivo-orange-dark);
+  font-weight: 800;
+}
+
+.pl-terms__fineprint {
+  margin: 22px 4px 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+@media (max-width: 560px) {
+  .pl-terms__subtitle {
+    margin-top: 40px;
+    font-size: 1.25rem;
+  }
+
+  .pl-terms__item summary {
+    padding: 16px 18px;
+    font-size: 1.02rem;
+  }
+
+  .pl-terms__body {
+    padding: 0 18px 18px;
+  }
+}
+
 .pl-final {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1397,4 +1546,43 @@
   .pl-final__half {
     padding: 40px 22px 44px;
   }
+}
+
+/* Vaatimuslista suoraan väliotsikon alla: ei katkoviivaa yläpuolelle. */
+.pl-terms__notes--plain {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.pl-courier__terms-link,
+.pl-chat-contact a {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Kuljettajaosio on tummalla pohjalla. */
+.pl-courier__terms-link {
+  color: #fff;
+}
+
+.pl-courier__terms-link:hover {
+  color: var(--delivo-orange);
+}
+
+.pl-chat-contact a {
+  color: var(--delivo-orange-dark);
+}
+
+.pl-chat-contact a:hover {
+  color: var(--delivo-black);
+}
+
+.pl-chat-contact {
+  margin: 22px 4px 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
 }

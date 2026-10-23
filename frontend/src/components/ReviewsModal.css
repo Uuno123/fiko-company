@@ -181,6 +181,85 @@
   color: var(--delivo-black);
 }
 
+.reviews-modal__empty {
+  margin: 18px 0 0;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+/* Ravintolan vastaus arvosteluun: harmaa laatikko arvostelun alla. */
+.reviews-modal__reply {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f6f7f9;
+}
+
+.reviews-modal__reply strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Oman arvostelun kirjoitus listan yläpuolella. */
+.reviews-modal__write {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 0;
+  border-bottom: 1px solid #ececec;
+}
+
+.reviews-modal__write p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--delivo-black);
+}
+
+.reviews-modal__thanks {
+  font-weight: 600;
+}
+
+.reviews-modal__write-btn {
+  height: 44px;
+  padding: 0 20px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--delivo-orange);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.reviews-modal__write-btn:hover {
+  background: var(--delivo-orange-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px -8px rgba(244, 80, 30, 0.6);
+}
+
+.reviews-modal__write-btn:active {
+  transform: scale(0.97);
+}
+
+.reviews-modal__write-note {
+  margin: 0;
+  padding: 14px 0;
+  border-bottom: 1px solid #ececec;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+/* Lomake (ReviewForm.css) ikkunassa listan yläpuolella. */
+.reviews-modal .review-form {
+  padding: 16px 0;
+  border-bottom: 1px solid #ececec;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .reviews-modal__backdrop,
   .reviews-modal {

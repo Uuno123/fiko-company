@@ -19,6 +19,7 @@ import { AppleIcon, GoogleIcon } from '../components/BrandIcons'
 import DelivoLogo from '../components/DelivoLogo'
 import LoginIllustration from '../components/LoginIllustration'
 import { useAuth } from '../lib/auth'
+import { tr, useT } from '../lib/i18n'
 import { useKeyboardHeight } from '../lib/keyboard'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { colors, fonts } from '../theme'
@@ -28,10 +29,10 @@ const useNativeDriver = Platform.OS !== 'web'
 // Supabasen virheviestit suomeksi.
 function loginErrorText(err) {
   const message = String(err?.message ?? '')
-  if (/invalid login credentials/i.test(message)) return 'Väärä sähköposti tai salasana.'
-  if (/email not confirmed/i.test(message)) return 'Vahvista ensin sähköpostiosoitteesi.'
-  if (/network|fetch/i.test(message)) return 'Ei yhteyttä. Tarkista verkkoyhteys.'
-  return message || 'Kirjautuminen epäonnistui.'
+  if (/invalid login credentials/i.test(message)) return tr('login.errCredentials')
+  if (/email not confirmed/i.test(message)) return tr('login.errConfirm')
+  if (/network|fetch/i.test(message)) return tr('common.network')
+  return message || tr('login.errFailed')
 }
 
 // Kuljettajan kirjautuminen Wolt Partner -sovelluksen mallin mukaan: oranssi
@@ -69,6 +70,7 @@ export default function LoginScreen() {
 
 function StartView({ onEmail }) {
   const insets = useSafeAreaInsets()
+  const t = useT()
   const [notice, setNotice] = useState('')
 
   // Ilmoitus häviää hetken päästä ja alareunan ohje palaa.
@@ -79,14 +81,14 @@ function StartView({ onEmail }) {
   }, [notice])
 
   // Google- ja Apple-kirjautumista ei ole vielä toteutettu - nappi kertoo sen.
-  const notAvailable = (provider) => setNotice(`${provider}-kirjautuminen ei ole vielä käytössä. Kirjaudu sähköpostilla.`)
+  const notAvailable = (provider) => setNotice(t('login.notAvailable', { provider }))
 
   return (
     <>
       <View style={[styles.hero, { paddingTop: insets.top }]}>
         <View style={styles.brand}>
           <DelivoLogo size={38} inverted style={styles.logo} />
-          <Text style={styles.brandLabel}>KULJETTAJA</Text>
+          <Text style={styles.brandLabel}>{t('login.courier')}</Text>
         </View>
         <LoginIllustration style={styles.illustration} />
       </View>
@@ -98,7 +100,7 @@ function StartView({ onEmail }) {
           accessibilityRole="button"
         >
           <Mail size={20} strokeWidth={2.2} color="#ffffff" />
-          <Text style={styles.primaryText}>Kirjaudu sähköpostilla</Text>
+          <Text style={styles.primaryText}>{t('login.withEmail')}</Text>
         </Pressable>
 
         <Pressable
@@ -107,7 +109,7 @@ function StartView({ onEmail }) {
           accessibilityRole="button"
         >
           <GoogleIcon size={20} />
-          <Text style={styles.socialText}>Kirjaudu Googlella</Text>
+          <Text style={styles.socialText}>{t('login.withGoogle')}</Text>
         </Pressable>
         <Pressable
           onPress={() => notAvailable('Apple')}
@@ -115,14 +117,14 @@ function StartView({ onEmail }) {
           accessibilityRole="button"
         >
           <AppleIcon size={20} />
-          <Text style={[styles.socialText, styles.socialTextApple]}>Kirjaudu Applella</Text>
+          <Text style={[styles.socialText, styles.socialTextApple]}>{t('login.withApple')}</Text>
         </Pressable>
 
         <Text style={[styles.footnote, notice ? styles.footnoteNotice : null]} accessibilityLiveRegion="polite">
-          {notice || 'Kirjaudu samoilla tunnuksilla kuin delivon verkkosivulla.'}
+          {notice || t('login.footnote')}
         </Text>
         {!isSupabaseConfigured ? (
-          <Text style={styles.configError}>Supabase-yhteys puuttuu: kuljettaja-app/.env ei ole asetettu.</Text>
+          <Text style={styles.configError}>{t('login.noConfig')}</Text>
         ) : null}
       </View>
     </>
@@ -130,6 +132,7 @@ function StartView({ onEmail }) {
 }
 
 function EmailForm({ signIn, onBack }) {
+  const t = useT()
   const insets = useSafeAreaInsets()
   const keyboardHeight = useKeyboardHeight()
   const [email, setEmail] = useState('')
@@ -149,7 +152,7 @@ function EmailForm({ signIn, onBack }) {
   const submit = async () => {
     if (busy) return
     if (!email.trim() || !password) {
-      setError('Anna sähköposti ja salasana.')
+      setError(t('login.errMissing'))
       return
     }
     setBusy(true)
@@ -175,7 +178,7 @@ function EmailForm({ signIn, onBack }) {
           onPress={onBack}
           style={({ pressed }) => [styles.back, pressed && styles.backPressed]}
           accessibilityRole="button"
-          accessibilityLabel="Takaisin"
+          accessibilityLabel={t('common.back')}
           hitSlop={8}
         >
           <ChevronLeft size={24} strokeWidth={2.4} color="#ffffff" />
@@ -189,10 +192,10 @@ function EmailForm({ signIn, onBack }) {
           contentContainerStyle={[styles.form, { paddingBottom: insets.bottom + 24 + keyboardHeight }]}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.title}>Kirjaudu sähköpostilla</Text>
-          <Text style={styles.subtitle}>Käytä samoja tunnuksia kuin delivon verkkosivulla.</Text>
+          <Text style={styles.title}>{t('login.withEmail')}</Text>
+          <Text style={styles.subtitle}>{t('login.subtitle')}</Text>
 
-          <Text style={styles.label}>Sähköposti</Text>
+          <Text style={styles.label}>{t('login.email')}</Text>
           <TextInput
             style={[styles.inputBox, styles.inputText, focused === 'email' && styles.inputFocused]}
             value={email}
@@ -208,14 +211,14 @@ function EmailForm({ signIn, onBack }) {
             keyboardType="email-address"
             returnKeyType="next"
             onSubmitEditing={() => passwordRef.current?.focus()}
-            placeholder="nimi@esimerkki.fi"
+            placeholder={t('login.emailPlaceholder')}
             placeholderTextColor={colors.gray400}
             editable={!busy}
             underlineColorAndroid="transparent"
-            accessibilityLabel="Sähköposti"
+            accessibilityLabel={t('login.email')}
           />
 
-          <Text style={styles.label}>Salasana</Text>
+          <Text style={styles.label}>{t('login.password')}</Text>
           <View style={[styles.inputBox, styles.passwordRow, focused === 'password' && styles.inputFocused]}>
             <TextInput
               ref={passwordRef}
@@ -236,13 +239,13 @@ function EmailForm({ signIn, onBack }) {
               placeholderTextColor={colors.gray400}
               editable={!busy}
               underlineColorAndroid="transparent"
-              accessibilityLabel="Salasana"
+              accessibilityLabel={t('login.password')}
             />
             <Pressable
               onPress={() => setShowPassword((value) => !value)}
               style={styles.eye}
               accessibilityRole="button"
-              accessibilityLabel={showPassword ? 'Piilota salasana' : 'Näytä salasana'}
+              accessibilityLabel={showPassword ? t('login.hidePassword') : t('login.showPassword')}
               hitSlop={8}
             >
               {showPassword ? (
@@ -260,7 +263,7 @@ function EmailForm({ signIn, onBack }) {
           ) : null}
           {!isSupabaseConfigured ? (
             <View style={styles.errorBox}>
-              <Text style={styles.errorText}>Supabase-yhteys puuttuu: kuljettaja-app/.env ei ole asetettu.</Text>
+              <Text style={styles.errorText}>{t('login.noConfig')}</Text>
             </View>
           ) : null}
 
@@ -270,10 +273,10 @@ function EmailForm({ signIn, onBack }) {
             style={({ pressed }) => [styles.primary, styles.submit, pressed && styles.pressed, busy && styles.busy]}
             accessibilityRole="button"
           >
-            {busy ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.primaryText}>Kirjaudu</Text>}
+            {busy ? <ActivityIndicator color="#ffffff" /> : <Text style={styles.primaryText}>{t('login.submit')}</Text>}
           </Pressable>
 
-          <Text style={styles.note}>Keikkoja saavat delivon hyväksymät kuljettajat.</Text>
+          <Text style={styles.note}>{t('login.note')}</Text>
         </ScrollView>
       </Animated.View>
     </>

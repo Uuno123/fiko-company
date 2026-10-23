@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import BottomSheet from './BottomSheet.jsx'
 import GoogleAuthButton from './GoogleAuthButton.jsx'
 import AppleAuthButton from './AppleAuthButton.jsx'
 import FacebookAuthButton from './FacebookAuthButton.jsx'
@@ -8,23 +9,13 @@ import { translateAuthError } from '../lib/authErrors.js'
 import '../pages/AuthForm.css'
 import './LoginModal.css'
 
+// Kassan kirjautuminen alhaalta liukuvana paneelina (BottomSheet), kuten /login.
 function LoginModal({ title, message, onClose }) {
+  const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState('idle')
   const [errorMessage, setErrorMessage] = useState('')
-
-  useEffect(() => {
-    function handleKeyDown(e) {
-      if (e.key === 'Escape') onClose()
-    }
-    document.body.style.overflow = 'hidden'
-    window.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.body.style.overflow = ''
-      window.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [onClose])
 
   async function handleLogin(e) {
     e.preventDefault()
@@ -42,14 +33,8 @@ function LoginModal({ title, message, onClose }) {
   }
 
   return (
-    <div className="login-modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-modal-title">
-        <button type="button" className="login-modal__close" aria-label="Sulje" onClick={onClose}>
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-          </svg>
-        </button>
-
+    <BottomSheet onClose={onClose} labelledBy="login-modal-title">
+      <div className="login-modal">
         {!isSupabaseConfigured ? (
           <>
             <h2 id="login-modal-title">Kirjautuminen ei ole käytössä</h2>
@@ -60,7 +45,9 @@ function LoginModal({ title, message, onClose }) {
         ) : (
           <>
             <h2 id="login-modal-title">{title || 'Kirjaudu jatkaaksesi'}</h2>
-            <p className="login-modal__subtitle">{message || 'Sinun täytyy kirjautua sisään ennen kassalle siirtymistä.'}</p>
+            <p className="login-modal__subtitle">
+              {message || 'Sinun täytyy kirjautua sisään ennen kassalle siirtymistä.'}
+            </p>
 
             <GoogleAuthButton />
             <AppleAuthButton />
@@ -100,12 +87,16 @@ function LoginModal({ title, message, onClose }) {
             </form>
 
             <p className="auth-footer">
-              Eikö sinulla ole vielä tiliä? <Link to="/register">Rekisteröidy</Link>
+              Eikö sinulla ole vielä tiliä?{' '}
+              {/* overHome: rekisteröintipaneelin taustalla etusivu - tämä sivu näyttäisi taas tämän ikkunan. */}
+              <Link to="/register" state={{ from: location.pathname, overHome: true }}>
+                Rekisteröidy
+              </Link>
             </p>
           </>
         )}
       </div>
-    </div>
+    </BottomSheet>
   )
 }
 

@@ -5,23 +5,25 @@ import MapView from '../../components/MapView'
 import { Card, ListRow, Screen, StatRow } from '../../components/ui'
 import { useCourier } from '../../lib/courier'
 import { formatEuro, formatKm, formatMinutes, formatTime } from '../../lib/format'
-import { PAY, useGigs } from '../../lib/gigs'
+import { useGigs } from '../../lib/gigs'
+import { useT } from '../../lib/i18n'
 import { navigationAppLabel, openRoute } from '../../lib/navigationApps'
 import { colors, fonts } from '../../theme'
 
-const SUPPORT_EMAIL = 'tuki@delivo.fi'
+const SUPPORT_EMAIL = 'tuki@bidrop.fi'
 
 // Yhden keikan tiedot: reitti kartalla, nouto ja toimitus, ansion erittely.
 export default function GigScreen() {
   const { id } = useLocalSearchParams()
+  const t = useT()
   const { settings } = useCourier()
   const gig = useGigs().find((item) => item.id === String(id))
 
   if (!gig) {
     return (
-      <Screen title="Keikka">
+      <Screen title={t('gigInfo.titleShort')}>
         <Card style={styles.missing}>
-          <Text style={styles.missingText}>Keikkaa ei löytynyt.</Text>
+          <Text style={styles.missingText}>{t('gigInfo.notFound')}</Text>
         </Card>
       </Screen>
     )
@@ -32,12 +34,12 @@ export default function GigScreen() {
     to: { lat: gig.dropoff.lat, lng: gig.dropoff.lng },
   }
   const reportProblem = () => {
-    const subject = encodeURIComponent(`Keikka #${gig.number}`)
+    const subject = encodeURIComponent(t('gigInfo.title', { number: gig.number }))
     Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}`).catch(() => {})
   }
 
   return (
-    <Screen title={`Keikka #${gig.number}`}>
+    <Screen title={t('gigInfo.title', { number: gig.number })}>
       {/* Pelkkä esikatselukuva: kosketukset menevät sivun vieritykselle. */}
       <View style={[styles.map, { pointerEvents: 'none' }]}>
         <MapView route={route} interactive={false} />
@@ -47,7 +49,7 @@ export default function GigScreen() {
         <Step
           Icon={Store}
           iconStyle={styles.stepIconPickup}
-          title="Nouto"
+          title={t('gigInfo.pickup')}
           time={formatTime(gig.pickedUpAt)}
           name={gig.restaurant.name}
           detail={gig.restaurant.address}
@@ -56,7 +58,7 @@ export default function GigScreen() {
         <Step
           Icon={MapPin}
           iconStyle={styles.stepIconDropoff}
-          title="Toimitus"
+          title={t('gigInfo.dropoff')}
           time={formatTime(gig.deliveredAt)}
           name={gig.dropoff.address}
           detail={gig.dropoff.area}
@@ -65,22 +67,27 @@ export default function GigScreen() {
 
       <StatRow
         items={[
-          { label: 'Matka', value: formatKm(gig.distanceKm) },
-          { label: 'Kesto', value: formatMinutes(gig.durationMin) },
-          { label: 'Ansio', value: formatEuro(gig.pay.total) },
+          { label: t('common.distance'), value: formatKm(gig.distanceKm) },
+          { label: t('common.duration'), value: formatMinutes(gig.durationMin) },
+          { label: t('gigInfo.earning'), value: formatEuro(gig.pay.total) },
         ]}
       />
 
-      <Card title="Ansio">
+      <Card title={t('gigInfo.earning')}>
         <View style={styles.pay}>
-          <PayRow label="Perusmaksu" value={formatEuro(gig.pay.base)} />
-          <PayRow
-            label={`Matkalisä (${formatKm(gig.distanceKm)} × ${formatEuro(PAY.perKmCents)})`}
-            value={formatEuro(gig.pay.distance)}
-          />
+          {gig.pay.price != null ? (
+            <>
+              <PayRow label={t('gigInfo.agreedPrice')} value={formatEuro(gig.pay.price)} />
+              {gig.pay.price !== gig.pay.total ? (
+                <PayRow label={t('gigInfo.delivoShare')} value={`−${formatEuro(gig.pay.price - gig.pay.total)}`} />
+              ) : null}
+            </>
+          ) : (
+            <PayRow label={t('gigInfo.fee')} value={formatEuro(gig.pay.total)} />
+          )}
           <View style={styles.payDivider} />
           <View style={styles.payTotalRow}>
-            <Text style={styles.payTotalLabel}>Yhteensä</Text>
+            <Text style={styles.payTotalLabel}>{t('gigInfo.total')}</Text>
             <Text style={styles.payTotal}>{formatEuro(gig.pay.total)}</Text>
           </View>
         </View>
@@ -89,11 +96,11 @@ export default function GigScreen() {
       <Card>
         <ListRow
           icon={Navigation}
-          label="Näytä reitti"
+          label={t('gigInfo.showRoute')}
           value={navigationAppLabel(settings.navigationApp)}
           onPress={() => openRoute(settings.navigationApp, route.from, route.to, settings.vehicle)}
         />
-        <ListRow icon={CircleAlert} label="Ilmoita ongelmasta" onPress={reportProblem} />
+        <ListRow icon={CircleAlert} label={t('gigInfo.reportProblem')} onPress={reportProblem} />
       </Card>
     </Screen>
   )

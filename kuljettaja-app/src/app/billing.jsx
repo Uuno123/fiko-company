@@ -2,8 +2,9 @@ import { StyleSheet, Text } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Building, FileText, Landmark, ReceiptText, User } from 'lucide-react-native'
 import { Card, ListRow, LockedRow, Screen } from '../components/ui'
-import { useChangeRequests } from '../lib/changeRequests'
+import { changeRowStatus, displayChangeValue, useChangeRequests } from '../lib/changeRequests'
 import { billingMethodLabel, useCourier } from '../lib/courier'
+import { useT } from '../lib/i18n'
 import { colors, fonts } from '../theme'
 
 // Laskutustiedot: Y-tunnus, laskutustapa (oma yritys, UKKO.fi tai Eezy),
@@ -11,53 +12,46 @@ import { colors, fonts } from '../theme'
 // muutospyynnöllä, ja tilinumeron muutokseen tarvitaan pankkitodiste.
 export default function BillingScreen() {
   const router = useRouter()
+  const t = useT()
   const { profile } = useCourier()
-  const { pendingFor } = useChangeRequests()
+  const { pendingFor, rejectedFor } = useChangeRequests()
 
   const request = (field) => router.push({ pathname: '/change-request', params: { field } })
-  const pendingNote = (field, format = (value) => value) => {
-    const pending = pendingFor(field)
-    return pending ? `Odottaa hyväksyntää: ${format(pending.new_value)}` : 'Pyydä muutosta'
-  }
-  const maskIban = (iban) => (iban ? `•••• ${String(iban).slice(-4)}` : null)
+  // Kesken oleva tai hylätty pyyntö rivillä tilana (sama kuin Profiilissa).
+  const rowStatus = (field) => changeRowStatus(field, pendingFor(field), rejectedFor(field))
 
   return (
-    <Screen title="Laskutustiedot">
-      <Card title="Laskutus">
+    <Screen title={t('profile.billing')}>
+      <Card title={t('billing.section')}>
         <LockedRow
           icon={Building}
-          label="Y-tunnus"
-          value={profile.businessId ?? 'Ei asetettu'}
-          note={pendingNote('business_id')}
-          noteAccent={!pendingFor('business_id')}
+          label={t('billing.businessId')}
+          value={profile.businessId ?? t('common.notSet')}
+          {...rowStatus('business_id')}
           onPress={() => request('business_id')}
         />
         <LockedRow
           icon={ReceiptText}
-          label="Laskutustapa"
-          value={billingMethodLabel(profile.billingMethod) ?? 'Ei asetettu'}
-          note={pendingNote('billing_method', (value) => billingMethodLabel(value) ?? value)}
-          noteAccent={!pendingFor('billing_method')}
+          label={t('billing.method')}
+          value={billingMethodLabel(profile.billingMethod) ?? t('common.notSet')}
+          {...rowStatus('billing_method')}
           onPress={() => request('billing_method')}
         />
       </Card>
 
-      <Card title="Tilinumero">
+      <Card title={t('billing.account')}>
         <LockedRow
           icon={Landmark}
           label="IBAN"
-          value={maskIban(profile.iban) ?? 'Ei asetettu'}
-          note={pendingNote('iban', maskIban)}
-          noteAccent={!pendingFor('iban')}
+          value={profile.iban ? displayChangeValue('iban', profile.iban) : t('common.notSet')}
+          {...rowStatus('iban')}
           onPress={() => request('iban')}
         />
-        <LockedRow icon={User} label="Tilinomistaja" value={profile.ibanHolder ?? 'Ei asetettu'} />
-        <ListRow icon={FileText} label="Lataa pankkitodiste" onPress={() => router.push('/documents')} />
+        <LockedRow icon={User} label={t('billing.holder')} value={profile.ibanHolder ?? t('common.notSet')} />
+        <ListRow icon={FileText} label={t('billing.uploadProof')} onPress={() => router.push('/documents')} />
       </Card>
 
-      <Text style={styles.note}>
-        Tilinumeron muutokseen tarvitaan pankkitodiste. delivo käsittelee muutospyynnöt yleensä 1–2 arkipäivässä.
-      </Text>
+      <Text style={styles.note}>{t('billing.note')}</Text>
     </Screen>
   )
 }

@@ -1,7 +1,8 @@
-// Suomalaiset muotoilut: 1 234,50 €, 3,4 km, klo 18.05, ma 6.10.
+import { tr } from './i18n'
 
-const WEEKDAYS_SHORT = ['su', 'ma', 'ti', 'ke', 'to', 'pe', 'la']
-const WEEKDAYS_LONG = ['Sunnuntai', 'Maanantai', 'Tiistai', 'Keskiviikko', 'Torstai', 'Perjantai', 'Lauantai']
+// Suomalaiset muotoilut: 1 234,50 €, 3,4 km, klo 18.05, ma 6.10. Päivien nimet
+// valitulla kielellä (lib/i18n.js).
+
 const NBSP = ' '
 
 export function formatEuro(cents) {
@@ -30,7 +31,7 @@ export function formatShortDate(date) {
 }
 
 export function weekdayShort(date) {
-  return WEEKDAYS_SHORT[date.getDay()]
+  return tr(`day.short.${date.getDay()}`)
 }
 
 export function startOfDay(date) {
@@ -68,9 +69,9 @@ export function parseDayKey(key) {
 // "Tänään", "Eilen" tai "Maanantai 6.10."
 export function formatDayLabel(date, now = new Date()) {
   const diff = Math.round((startOfDay(now) - startOfDay(date)) / 86400000)
-  if (diff === 0) return 'Tänään'
-  if (diff === 1) return 'Eilen'
-  return `${WEEKDAYS_LONG[date.getDay()]} ${formatShortDate(date)}`
+  if (diff === 0) return tr('day.today')
+  if (diff === 1) return tr('day.yesterday')
+  return `${tr(`day.long.${date.getDay()}`)} ${formatShortDate(date)}`
 }
 
 // "6.–12.10." tai kuun vaihtuessa "29.9.–5.10."

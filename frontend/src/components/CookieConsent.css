@@ -63,13 +63,13 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: none;
+  background: var(--round-button-bg);
   color: inherit;
   cursor: pointer;
 }
 
 .cookie-consent__back:hover {
-  background: var(--surface-muted);
+  background: var(--round-button-bg-pressed);
 }
 
 .cookie-consent__text {

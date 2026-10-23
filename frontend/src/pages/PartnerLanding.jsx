@@ -6,6 +6,7 @@ import {
   BellRing,
   Bike,
   BriefcaseBusiness,
+  ChevronDown,
   Clock,
   MapPin,
   Smartphone,
@@ -26,7 +27,9 @@ import {
   OrdersMockup,
   Reveal,
 } from '../components/partner/PartnerVisuals.jsx'
-import { COURIER_PAY } from '../lib/deliveryTime.js'
+import { COMPANY } from '../lib/company.js'
+import { DELIVERY_PRICE_RANGE, SERVICE_FEE_CENTS } from '../lib/delivery.js'
+import { DELIVERY_BID } from '../lib/deliveryTime.js'
 import { formatPrice } from '../lib/format.js'
 import {
   COMMITMENT_MONTHS,
@@ -40,9 +43,9 @@ import {
 import './PartnerLanding.css'
 
 const JOURNEY_STEPS = [
-  { title: 'Asiakas tilaa', body: 'Tilaus tulee delivosta suoraan ravintolan tilauslaitteelle.' },
-  { title: 'Ravintola hyväksyy', body: 'Valitset valmistusajan, ja asiakas näkee sen heti.' },
-  { title: 'Lähin kuljettaja noutaa', body: 'Keikka tarjotaan ensin lähimmälle kuljettajalle 8 km säteellä.' },
+  { title: 'Asiakas tilaa', body: 'Kotiinkuljetuksessa lähellä olevat kuljettajat tarjoavat hinnan, ja asiakas valitsee.' },
+  { title: 'Ravintola hyväksyy', body: 'Kun kuljetuksesta on sovittu, tilaus tulee laitteellesi ja valitset valmistusajan.' },
+  { title: 'Kuljettaja noutaa', body: 'Valittu kuljettaja hakee tilauksen, kun ruoka on valmis.' },
   { title: 'Perillä', body: 'Asiakas seuraa kuljettajaa kartalla koko matkan.' },
 ]
 
@@ -55,8 +58,11 @@ const RESTAURANT_POINTS = [
 
 const ONBOARDING = [
   { title: 'Jätä hakemus', body: 'Yrityksesi ja ravintolasi tiedot muutamassa minuutissa.' },
-  { title: 'Hyväksyntä', body: 'Käsittelemme hakemuksen ja olemme yhteydessä sähköpostitse.' },
-  { title: 'Asennus ja avaus', body: 'Tilauslaite asennetaan, lisäät ruokalistan ja tilaukset voivat alkaa.' },
+  { title: 'Sopimus', body: 'Käsittelemme hakemuksen, sovimme paketin ja teemme kirjallisen sopimuksen.' },
+  {
+    title: 'Asennus ja avaus',
+    body: 'Asennamme kojelaudan tablettiisi (tai tuomme tabletin), lisäät ruokalistan ja tilaukset alkavat - yleensä 1–2 viikossa hakemuksesta.',
+  },
 ]
 
 const FEATURED_PLAN = 'kuljetus'
@@ -72,8 +78,8 @@ const LARGE_PLAN_FROM =
 
 const COURIER_BENEFITS = [
   { Icon: Clock, title: 'Omat työajat', body: 'Mene online-tilaan silloin kun sopii.' },
-  { Icon: MapPin, title: 'Keikat lähelläsi', body: 'Lähin kuljettaja saa tarjouksen ensin ja 60 s aikaa päättää.' },
-  { Icon: Wallet, title: 'Ansio etukäteen', body: 'Näet keikan ansion ennen kuin hyväksyt.' },
+  { Icon: MapPin, title: 'Keikat lähelläsi', body: 'Näet tilaukset 8 km säteellä ja tarjoat niihin.' },
+  { Icon: Wallet, title: 'Sinä hinnoittelet', body: `Tarjoat ${DELIVERY_PRICE_RANGE}, ja koko hinta on sinun.` },
   { Icon: Smartphone, title: 'Kaikki sovelluksessa', body: 'Nouto koodilla, toimitus kuitataan sijainnilla.' },
 ]
 
@@ -88,8 +94,8 @@ const POLAROIDS = [
 
 const FAQ_ITEMS = [
   {
-    q: 'Paljonko delivo maksaa ravintolalle?',
-    a: `Vain kiinteän kuukausimaksun, provisiota tilauksista ei ole: ${PICKUP_PLAN.name} ${formatPrice(PICKUP_PLAN.priceCents)}/kk (vain noutotilaukset), ${DELIVERY_PLAN.name} ${formatPrice(DELIVERY_PLAN.priceCents)}/kk (sisältää ${DELIVERY_PLAN.includedDeliveries} kuljetustilausta kuukaudessa) tai ${LARGE_PLAN.name} ${formatPrice(LARGE_PLAN.priceCents)}/kk (sisältää ${LARGE_PLAN.includedDeliveries.toLocaleString('fi-FI')} kuljetustilausta). Lisäksi tilauslaite ja sen asennus maksavat kertaalleen ${formatWholePrice(DEVICE_SETUP_CENTS)}. Kaikki hinnat + alv.`,
+    q: 'Paljonko Bidrop maksaa ravintolalle?',
+    a: `Vain kiinteän kuukausimaksun, provisiota tilauksista ei ole: ${PICKUP_PLAN.name} ${formatPrice(PICKUP_PLAN.priceCents)}/kk (vain noutotilaukset), ${DELIVERY_PLAN.name} ${formatPrice(DELIVERY_PLAN.priceCents)}/kk (sisältää ${DELIVERY_PLAN.includedDeliveries} kuljetustilausta kuukaudessa) tai ${LARGE_PLAN.name} ${formatPrice(LARGE_PLAN.priceCents)}/kk (sisältää ${LARGE_PLAN.includedDeliveries.toLocaleString('fi-FI')} kuljetustilausta). Lisäksi käyttöönotto (asennus, koulutus ja tarvittaessa tabletti) maksaa kertaalleen ${formatWholePrice(DEVICE_SETUP_CENTS)}. Kaikki hinnat + alv.`,
   },
   {
     q: 'Entä jos kuljetustilauksia tulee yli paketin?',
@@ -97,7 +103,15 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Onko sopimuksessa sitoutumisaikaa?',
-    a: `Kyllä, sitoutumisaika on ${COMMITMENT_MONTHS} kuukautta. Pakettia voit vaihtaa kojelaudalta sopimuksen aikana.`,
+    a: `Kyllä, sitoutumisaika on ${COMMITMENT_MONTHS} kuukautta, minkä jälkeen sopimuksen voi irtisanoa kuukauden irtisanomisajalla. Isompaan pakettiin voit nostaa milloin tahansa, pienempään siirtyä seuraavan laskutuskauden alusta.`,
+  },
+  {
+    q: 'Kauanko aloitus kestää?',
+    a: 'Yleensä 1–2 viikkoa hakemuksesta: käsittelemme hakemuksen, teemme sopimuksen ja asennamme kojelaudan. Ruokalistan lisäät itse kojelaudalla.',
+  },
+  {
+    q: 'Tarvitsenko oman tabletin?',
+    a: `Et välttämättä. Kojelauta toimii omalla tabletilla tai puhelimella selaimessa. Jos sopivaa laitetta ei ole, tuomme tabletin - se sisältyy ${formatWholePrice(DEVICE_SETUP_CENTS)} käyttöönottoon.`,
   },
   {
     q: 'Miten haen ravintolana mukaan?',
@@ -105,21 +119,208 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Hoidatteko kuljetuksen puolestani?',
-    a: 'Kyllä, Kuljetus- ja Iso ravintola -paketeissa. Asiakas valitsee noudon tai kotiinkuljetuksen, ja kuljetuksen hoitaa delivon kuljettaja. Omia kuljettajia ei tarvita.',
+    a: 'Kyllä, Kuljetus- ja Iso ravintola -paketeissa. Kotiinkuljetuksen hinnasta asiakas sopii Bidropin kuljettajan kanssa ennen kuin tilaus tulee sinulle, ja kuljettaja hakee ruoan kun se on valmis. Omia kuljettajia ei tarvita.',
   },
   {
     q: 'Paljonko kuljettaja tienaa?',
-    a: `Jokaisesta keikasta ${formatPrice(COURIER_PAY.baseCents)} perusmaksu ja ${formatPrice(COURIER_PAY.perKmCents)} jokaiselta kilometriltä, jonka ajat ravintolaan ja sieltä perille. Esimerkiksi 4 km keikka on ${formatPrice(COURIER_PAY.baseCents + 4 * COURIER_PAY.perKmCents)}.`,
+    a: `Tarjoat jokaiseen keikkaan oman hintasi (${DELIVERY_PRICE_RANGE}). Kun asiakas hyväksyy, koko hinta on sinun - Bidrop ei ota siitä osuutta. Asiakas voi myös tarjota oman hintansa, jonka voit hyväksyä suoraan.`,
   },
   {
     q: 'Pitääkö kuljettajalla olla yritys?',
     a: 'Kyllä. Kuljettajana toimit yrittäjänä omalla Y-tunnuksella tai kevytyrittäjänä laskutuspalvelun kautta.',
   },
   {
+    q: 'Milloin kuljettajalle maksetaan?',
+    a: 'Kahden viikon välein. Bidrop laskee ansiot sovelluksen keikoista ja tekee laskun puolestasi, joten sinun ei tarvitse laskuttaa itse.',
+  },
+  {
+    q: 'Millä puhelimella kuljettajasovellus toimii?',
+    a: 'Android- ja iPhone-puhelimilla. Sijaintia käytetään vain, kun olet online-tilassa tai keikalla.',
+  },
+  {
     q: 'Miten keikat jaetaan kuljettajille?',
-    a: 'Keikka tarjotaan lähimmälle vapaalle kuljettajalle 8 km säteellä, ja hänellä on 60 sekuntia aikaa hyväksyä. Jos hän ei ota keikkaa, se siirtyy seuraavaksi lähimmälle.',
+    a: `Kotiinkuljetustilaus näkyy online-tilassa oleville kuljettajille 8 km säteellä. Kukin tarjoaa hintansa, ja asiakas valitsee. Jos hinnasta ei sovita ${DELIVERY_BID.biddingMinutes} minuutissa, tilaus perutaan eikä asiakasta veloiteta.`,
   },
 ]
+
+// Ravintolan vaatimukset ja ehtojen tiivistelmä (luonnos 22.10.2026). Hinnat ja
+// sitoutumisaika tulevat partnerPlans.js:stä, jotta ne pysyvät samoina
+// hinnaston, UKK:n ja hakemuslomakkeen kanssa.
+const RESTAURANT_REQUIREMENTS = [
+  'Y-tunnus ja ravintola Kuopiossa - kotiinkuljetus noin 8 km säteellä ravintolasta.',
+  'Ilmoitus elintarvikehuoneistosta ja omavalvontasuunnitelma.',
+  'Ruokalista hintoineen ja allergeenitietoineen - kuvat suositeltavia.',
+  'Tabletti tai puhelin, jossa kojelauta on auki aukioloaikoina. Jos sellaista ei ole, tuomme tabletin.',
+]
+
+const TERMS = [
+  {
+    title: 'Sitoutuminen ja irtisanominen',
+    items: [
+      `Sopimus on ${COMMITMENT_MONTHS} kuukauden määräaikainen.`,
+      `${COMMITMENT_MONTHS} kuukauden jälkeen sopimus jatkuu toistaiseksi voimassa olevana, ja sen voi irtisanoa 1 kuukauden irtisanomisajalla.`,
+      'Kumpikin osapuoli voi purkaa sopimuksen heti, jos toinen rikkoo ehtoja olennaisesti eikä korjaa asiaa 14 päivän kuluessa huomautuksesta.',
+      'Paketin voi nostaa isompaan milloin tahansa. Pienempään voi siirtyä seuraavan laskutuskauden alusta.',
+      'Bidrop ilmoittaa hintamuutoksista vähintään 30 päivää etukäteen. Hinnat eivät nouse ensimmäisen 12 kuukauden aikana.',
+    ],
+  },
+  {
+    title: 'Tilitykset ja laskutus',
+    items: [
+      'Asiakkaiden maksamat ruokasummat tilitetään ravintolan tilille kahden viikon välein yhteenvedon kera.',
+      'Kuukausimaksu laskutetaan kuukauden alussa, maksuaika 14 päivää.',
+      'Jos ravintolan tilitykset ja Bidropin laskut ovat samalta kaudelta, ne voidaan sopia kuitattavaksi keskenään.',
+    ],
+  },
+  {
+    title: 'Kampanjat ja tarjoukset',
+    intro:
+      'Bidrop voi tehdä ravintolan tuotteisiin tarjouksia ja alennuksia tuodakseen ravintolalle lisää tilauksia. Ravintolan tuotteisiin tehdyn alennuksen kustannus kuuluu ravintolalle, eli ravintola saa tilauksesta alennetun hinnan. Jotta tämä on reilua, Bidrop sitoutuu näihin rajoihin:',
+    ordered: [
+      'Enintään 20 % alennus tuotteen normaalihinnasta.',
+      'Enintään 2 kampanjaa kuukaudessa, ja yksi kampanja kestää enintään 7 päivää.',
+      'Ravintolan alennusten yhteiskustannus on enintään 150 € kuukaudessa, ellei ravintola itse hyväksy enempää.',
+      'Bidrop ilmoittaa kampanjasta vähintään 7 päivää etukäteen (tuotteet, alennus, ajankohta).',
+      'Ravintola voi kieltäytyä kampanjasta ilmoittamalla siitä ennen kampanjan alkua, ilman seuraamuksia. Ravintola voi myös kieltää kampanjat kokonaan asetuksista.',
+      'Alennus ei koske alkoholijuomia eikä tuotteita, jotka ravintola on merkinnyt kampanjoiden ulkopuolelle.',
+      'Jos Bidrop itse jakaa asiakkaalle alennuskoodin (esim. "ensimmäinen tilaus –5 €"), Bidrop maksaa sen, ei ravintola.',
+    ],
+    outro: 'Ravintola voi lisäksi tehdä omia tarjouksiaan sovelluksessa milloin haluaa.',
+  },
+  {
+    title: 'Peruutukset ja reklamaatiot',
+    items: [
+      {
+        lead: 'Ravintolan virhe (tuote loppu, väärä tai puutteellinen annos, laatuongelma):',
+        text: 'asiakkaalle palautettava summa vähennetään ravintolan seuraavasta tilityksestä.',
+      },
+      {
+        lead: 'Kuljetuksen tai Bidropin virhe (myöhästyminen kuljettajan takia, ruoka vahingoittunut matkalla, tekninen vika):',
+        text: 'Bidrop vastaa hyvityksestä.',
+      },
+      {
+        lead: 'Asiakas peruu ennen kuin ravintola on hyväksynyt tilauksen:',
+        text: 'ei kustannuksia ravintolalle. Hyväksymisen jälkeen tilausta ei voi perua ilman ravintolan suostumusta.',
+      },
+      'Ravintola vastaa Bidropin kautta tulleeseen reklamaatioon 24 tunnin kuluessa. Epäselvissä tapauksissa Bidrop selvittää asian ja kertoo ratkaisun perusteluineen.',
+    ],
+  },
+  {
+    title: 'Ravintolan vastuut',
+    items: [
+      'Hinnat, tuotetiedot ja allergeenitiedot pidetään ajan tasalla sovelluksessa.',
+      'Aukioloajat ovat oikein, ja ravintola sulkee tilausten vastaanoton, jos ei pysty valmistamaan tilauksia.',
+      'Ruoka pakataan niin, että se kestää kuljetuksen.',
+      'Ravintolalla on voimassa olevat elintarvikeluvat (omavalvonta, ilmoitus elintarvikehuoneistosta).',
+    ],
+  },
+  {
+    title: 'Tietojen muutokset ja arvostelut',
+    items: [
+      'Ruokalistan, hinnat, kuvat ja aukioloajat ravintola muuttaa itse kojelaudalla milloin tahansa.',
+      'Ravintolan nimi, osoite, Y-tunnus, tilinumero ja paketti muuttuvat muutospyynnöllä, johon liitetään dokumentti (esim. kaupparekisteriote tai pankkitodiste). Bidrop käsittelee pyynnön yleensä 1–2 arkipäivässä.',
+      'Asiakas voi arvostella ravintolan vain valmiin tilauksen jälkeen. Ravintola voi vastata arvosteluihin, mutta ei poistaa niitä. Asiattomat arvostelut Bidrop poistaa.',
+    ],
+  },
+]
+
+// "Kuljettajan ehdot": pelisäännöt ja käytännöt tiivistelmänä (luonnos
+// 22.10.2026, käyttäjän päätökset). Hintahaarukka ja osuus deliveryTime.js:stä.
+const COURIER_TERMS = [
+  {
+    title: 'Ansiot ja maksut',
+    items: [
+      `Tarjoat jokaiseen keikkaan hinnan (${DELIVERY_PRICE_RANGE}). Asiakas hyväksyy tarjouksesi tai tarjoaa omaa hintaansa, jonka voit hyväksyä. Koko sovittu hinta on sinun - Bidrop ei ota siitä osuutta.`,
+      'Ansiot maksetaan kahden viikon välein. Bidrop laskee ne sovelluksen keikoista ja tekee laskun puolestasi (itselaskutus), joten sinun ei tarvitse laskuttaa itse.',
+      'Yrittäjänä hoidat itse tuloverosi ja mahdollisen arvonlisäveron. Kevytyrittäjänä laskutuspalvelu (esim. UKKO.fi tai Eezy) hoitaa ne puolestasi.',
+    ],
+  },
+  {
+    title: 'Aloitus ja dokumentit',
+    items: [
+      'Toimit yrittäjänä omalla Y-tunnuksella tai kevytyrittäjänä. Ikäraja on 18 vuotta.',
+      'Lisää sovelluksessa henkilöllisyystodistus. Autolla tai mopolla ajaessa tarvitaan myös ajokortti, ja omalla yrityksellä laskuttaessa pankkitodiste tilinumerosta.',
+      'Pääset online-tilaan, kun Bidrop on hyväksynyt dokumentit - yleensä 1–2 arkipäivässä.',
+    ],
+  },
+  {
+    title: 'Keikat',
+    items: [
+      'Mene online-tilaan silloin kun haluat - vuorolistoja ei ole.',
+      'Näet kotiinkuljetustilaukset noin 8 km säteellä: ravintolan, ruoan summan, matkan ja asiakkaan mahdollisen hintatarjouksen. Tarkka osoite näkyy, kun asiakas on valinnut sinut.',
+      'Voit tehdä yhden hintatarjouksen kerrallaan. Kun asiakas valitsee sinut, keikka on sinun.',
+      'Jos toinen kuljettaja luopuu keikasta, se tarjotaan suoraan lähimmälle samalla hinnalla - sinulla on 60 sekuntia aikaa vastata. Kaksi vastaamatonta peräkkäin siirtää sinut offline-tilaan.',
+      'Hyväksytyn keikan voi perua ennen noutoa, jolloin se siirtyy toiselle kuljettajalle.',
+    ],
+  },
+  {
+    title: 'Nouto ja toimitus',
+    items: [
+      'Ravintola antaa noutokoodin, jolla kuittaat noudon sovelluksessa.',
+      'Toimitus kuitataan sovelluksessa perillä, ja sijaintisi tarkistetaan toimitusosoitteen kohdalla.',
+      'Jos asiakasta ei tavoiteta, osoite on väärä tai ruoka vahingoittuu matkalla, ota yhteyttä tukeen sovelluksesta.',
+    ],
+  },
+  {
+    title: 'Varusteet ja vakuutus',
+    items: [
+      'Ruoka kuljetetaan puhtaassa, lämpöä pitävässä laukussa. Oma laukku käy, ja Bidrop-laukun voi halutessaan ostaa omakustannushintaan.',
+      'Yrittäjänä et kuulu työnantajan lakisääteiseen tapaturmavakuutukseen, joten oma tapaturmavakuutus on suositeltava. Kevytyrittäjäpalveluissa se on usein mukana.',
+      'Huolehdit itse kulkuneuvosi kunnosta ja sen vakuutuksista.',
+    ],
+  },
+  {
+    title: 'Sovellus ja sijainti',
+    items: [
+      'Kuljettajasovellus toimii Android- ja iPhone-puhelimilla.',
+      'Sijaintiasi käytetään vain, kun olet online-tilassa tai keikalla: lähimmän kuljettajan valintaan, toimituksen kuittaukseen ja siihen, että asiakas näkee kuljetuksen etenemisen.',
+      'Kun olet offline, sijaintiasi ei seurata.',
+    ],
+  },
+  {
+    title: 'Tietojen muutokset ja tilin sulkeminen',
+    items: [
+      'Nimi, sähköposti, kulkuneuvo, Y-tunnus ja tilinumero muuttuvat muutospyynnöllä sovelluksessa. Puhelinnumeron ja sovelluksen asetukset muutat itse.',
+      'Bidrop voi sulkea tilin, jos dokumentit eivät ole voimassa tai ehtoja rikotaan olennaisesti.',
+    ],
+  },
+]
+
+// Ehdot avattavina kohtina (<details>), jotta sivu ei veny.
+function TermsItem({ title, items, intro, ordered, outro }) {
+  return (
+    <details className="pl-terms__item">
+      <summary>
+        {title}
+        <ChevronDown size={22} strokeWidth={2.4} aria-hidden="true" />
+      </summary>
+      <div className="pl-terms__body">
+        {intro && <p>{intro}</p>}
+        {ordered && (
+          <ol>
+            {ordered.map((text) => (
+              <li key={text}>{text}</li>
+            ))}
+          </ol>
+        )}
+        {items && (
+          <ul>
+            {items.map((item) =>
+              typeof item === 'string' ? (
+                <li key={item}>{item}</li>
+              ) : (
+                <li key={item.lead}>
+                  <strong>{item.lead}</strong> {item.text}
+                </li>
+              ),
+            )}
+          </ul>
+        )}
+        {outro && <p>{outro}</p>}
+      </div>
+    </details>
+  )
+}
 
 function prefersReducedMotion() {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -161,7 +362,7 @@ function ChatFaq() {
                 d
               </span>
               {typing === index ? (
-                <p className="pl-bubble__typing" aria-label="delivo kirjoittaa">
+                <p className="pl-bubble__typing" aria-label="Bidrop kirjoittaa">
                   <span />
                   <span />
                   <span />
@@ -219,7 +420,7 @@ function PartnerLanding() {
       <PartnerHeader />
 
       <main className="pl">
-        <h1 className="pl-sr-only">delivo kumppanit – ravintoloille ja kuljettajille</h1>
+        <h1 className="pl-sr-only">Bidrop kumppanit – ravintoloille ja kuljettajille</h1>
 
         <section className="ph">
           <div className="ph__intro">
@@ -280,7 +481,7 @@ function PartnerLanding() {
                   <br />
                   Sinun keikkasi.
                 </h2>
-                <p>Aja silloin kun sinulle sopii. Lähin kuljettaja saa keikan ensin, ja ansion näet etukäteen.</p>
+                <p>Aja silloin kun sinulle sopii. Tarjoat keikoille oman hintasi, ja asiakas valitsee.</p>
                 <div className="ph__actions">
                   <Link to="/kumppani/kuljettajaksi" className="ph-btn">
                     Hae kuljettajaksi
@@ -291,7 +492,7 @@ function PartnerLanding() {
                 </div>
               </div>
               <span className="ph-sticker ph-sticker--white">
-                <strong>{formatPrice(COURIER_PAY.baseCents)}</strong>+ {formatPrice(COURIER_PAY.perKmCents)} / km
+                <strong>{DELIVERY_PRICE_RANGE}</strong>sinä hinnoittelet
               </span>
             </article>
           </div>
@@ -346,8 +547,8 @@ function PartnerLanding() {
                 .
               </h2>
               <p className="pl-lead">
-                delivo on suomalainen tilausalusta. Asiakkaat löytävät ravintolasi, tilaukset tulevat suoraan
-                laitteelle ja kotiinkuljetus hoituu delivon kuljettajilla.
+                Bidrop on suomalainen tilausalusta. Asiakkaat löytävät ravintolasi, tilaukset tulevat suoraan
+                laitteelle ja kotiinkuljetus hoituu Bidropin kuljettajilla.
               </p>
               <ul className="pl-points">
                 {RESTAURANT_POINTS.map(({ Icon, text }) => (
@@ -417,7 +618,7 @@ function PartnerLanding() {
                   <span className="pl-menu__price">{formatPrice(EXTRA_DELIVERY_CENTS)} / kpl</span>
                 </div>
                 <div className="pl-menu__row">
-                  <span>Aloitus: tilauslaite + asennus</span>
+                  <span>Aloitus: asennus + koulutus (tabletti tarvittaessa)</span>
                   <span className="pl-menu__dots" aria-hidden="true" />
                   <span className="pl-menu__price">{formatWholePrice(DEVICE_SETUP_CENTS)}</span>
                 </div>
@@ -429,7 +630,7 @@ function PartnerLanding() {
               </div>
 
               <p className="pl-menu__included">
-                Kaikissa paketeissa: ravintolan profiili ja ruokalista delivossa, oma kojelauta ja tilauslaite. Koko
+                Kaikissa paketeissa: ravintolan profiili ja ruokalista Bidropissa sekä oma kojelauta. Koko
                 tilauksen summa jää ravintolalle. Kaikki hinnat + alv.
               </p>
               <Link to="/kumppani/rekisteroidy" className="pl-btn">
@@ -447,6 +648,38 @@ function PartnerLanding() {
                 </figure>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="pl-section" id="ehdot">
+          <div className="pl-container pl-container--narrow">
+            <Reveal>
+              <span className="pl-kicker">Ravintoloille</span>
+              <h2 className="pl-title">Vaatimukset ja ehdot</h2>
+              <p className="pl-lead pl-terms__lead">
+                Tilauksen koko ruokasumma kuuluu ravintolalle. Asiakas maksaa lisäksi kuljetushinnan, josta hän sopii
+                kuljettajan kanssa ({DELIVERY_PRICE_RANGE}), ja palvelumaksun {formatPrice(SERVICE_FEE_CENTS)} - ne
+                eivät vähennä ravintolan ruokasummaa. Kotiinkuljetustilaus tulee sinulle vasta, kun kuljetuksesta on
+                sovittu.
+              </p>
+            </Reveal>
+
+            <h3 className="pl-terms__subtitle">Mitä tarvitset</h3>
+            <ul className="pl-terms__notes pl-terms__notes--plain">
+              {RESTAURANT_REQUIREMENTS.map((text) => (
+                <li key={text}>{text}</li>
+              ))}
+            </ul>
+
+            <div className="pl-terms__list">
+              {TERMS.map((term) => (
+                <TermsItem key={term.title} {...term} />
+              ))}
+            </div>
+
+            <p className="pl-terms__fineprint">
+              Nämä ovat tiivistelmä. Sitova sopimus tehdään kirjallisesti ennen yhteistyön alkua.
+            </p>
           </div>
         </section>
 
@@ -488,9 +721,37 @@ function PartnerLanding() {
                 <Link to="/kumppani/kuljettajaksi" className="ph-btn">
                   Hae kuljettajaksi
                 </Link>
-                <p>Lisäksi vähintään 18 v, älypuhelin ja polkupyörä, sähköpyörä, mopo tai auto.</p>
+                <p>
+                  Lisäksi vähintään 18 v, älypuhelin (Android tai iPhone) ja polkupyörä, sähköpyörä, mopo tai auto.{' '}
+                  <a href="#kuljettajien-ehdot" className="pl-courier__terms-link">
+                    Lue kuljettajien ehdot
+                  </a>
+                </p>
               </div>
             </Reveal>
+          </div>
+        </section>
+
+        <section className="pl-section" id="kuljettajien-ehdot">
+          <div className="pl-container pl-container--narrow">
+            <Reveal>
+              <span className="pl-kicker">Kuljettajille</span>
+              <h2 className="pl-title">Kuljettajan ehdot</h2>
+              <p className="pl-lead pl-terms__lead">
+                Kuljettajana toimit yrittäjänä tai kevytyrittäjänä ja päätät itse, milloin ajat. Tässä tärkeimmät
+                käytännöt ansioista, dokumenteista ja keikoista.
+              </p>
+            </Reveal>
+
+            <div className="pl-terms__list">
+              {COURIER_TERMS.map((term) => (
+                <TermsItem key={term.title} {...term} />
+              ))}
+            </div>
+
+            <p className="pl-terms__fineprint">
+              Nämä ovat tiivistelmä. Sitova kuljettajasopimus tehdään ennen ensimmäistä keikkaa.
+            </p>
           </div>
         </section>
 
@@ -501,6 +762,9 @@ function PartnerLanding() {
               <Note className="pl-chat-head__note">vastaamme heti</Note>
             </Reveal>
             <ChatFaq />
+            <p className="pl-chat-contact">
+              Eikö vastausta löytynyt? Kirjoita meille: <a href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>
+            </p>
           </div>
         </section>
 

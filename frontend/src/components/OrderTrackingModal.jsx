@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, MessageCircle, Receipt } from 'lucide-react'
+import { ChevronDown, ChevronRight, MessageCircle, Receipt } from 'lucide-react'
+import DeliveryBidPanel from './DeliveryBidPanel.jsx'
 import DeliveryRouteMap from './DeliveryRouteMap.jsx'
 import OrderCountdownRing from './OrderCountdownRing.jsx'
 import { formatPrice } from '../lib/format.js'
@@ -69,7 +70,7 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
 
       <div className="tracking__sheet">
         <div className="tracking__ring-row">
-          <a href="mailto:tuki@delivo.fi" className="tracking__side-btn" aria-label="Ota yhteyttä asiakastukeen">
+          <a href="mailto:tuki@bidrop.fi" className="tracking__side-btn" aria-label="Ota yhteyttä asiakastukeen">
             <MessageCircle size={20} strokeWidth={1.75} aria-hidden="true" />
           </a>
 
@@ -100,6 +101,9 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
         <span className="tracking__restaurant">{order.restaurants?.name ?? 'Ravintola'}</span>
         <h2 className="tracking__headline">{trackingHeadline(order)}</h2>
         <p className="tracking__message">{trackingMessage(order)}</p>
+
+        {/* Kotiinkuljetuksen hinnasta sovitaan ennen kuin ravintola saa tilauksen. */}
+        {order.status === 'awaiting_courier' && order.id && <DeliveryBidPanel orderId={order.id} />}
 
         {/* Edistymispalkki kertoo vaiheen yhdellä silmäyksellä. Peruttu tilaus
             ei etene, joten sille palkkia ei näytetä. */}
@@ -138,45 +142,78 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
 
           {detailsOpen && (
             <div className="tracking__details-body">
-              {arrivalAt && order.status !== 'cancelled' && (
-                <div className="tracking__fact">
-                  <span>{isDelivery ? 'Arvioitu toimitus' : 'Arvioitu nouto'}</span>
-                  <strong>n. {formatEta(arrivalAt)}</strong>
-                </div>
-              )}
-              {destination && (
-                <div className="tracking__fact">
-                  <span>{isDelivery ? 'Toimitusosoite' : 'Nouto osoitteesta'}</span>
-                  <strong>{destination}</strong>
-                </div>
+              {(arrivalAt || destination) && (
+                <dl className="tracking__facts">
+                  {arrivalAt && order.status !== 'cancelled' && (
+                    <div className="tracking__fact">
+                      <dt>{isDelivery ? 'Arvioitu toimitus' : 'Arvioitu nouto'}</dt>
+                      <dd>n. {formatEta(arrivalAt)}</dd>
+                    </div>
+                  )}
+                  {destination && (
+                    <div className="tracking__fact">
+                      <dt>{isDelivery ? 'Toimitusosoite' : 'Noutopaikka'}</dt>
+                      <dd>{destination}</dd>
+                    </div>
+                  )}
+                </dl>
               )}
 
               <ul className="tracking__lines">
                 {order.order_items.map((line) => (
                   <li key={line.id}>
-                    <span>
-                      <span>
-                        {line.quantity} × {line.name}
-                      </span>
+                    <span className="tracking__line-qty">{line.quantity}×</span>
+                    <span className="tracking__line-name">
+                      {line.name}
                       {line.selected_options?.length > 0 && (
                         <span className="tracking__line-options">
                           {line.selected_options.map((o) => o.name).join(', ')}
                         </span>
                       )}
                     </span>
-                    <span>{formatPrice((line.unit_price_cents ?? line.price_cents) * line.quantity)}</span>
+                    <span className="tracking__line-price">
+                      {formatPrice((line.unit_price_cents ?? line.price_cents) * line.quantity)}
+                    </span>
                   </li>
                 ))}
               </ul>
 
-              <div className="tracking__total">
-                <span>Yhteensä</span>
-                <span>{formatPrice(order.total_cents)}</span>
+              {/* Maksut näkyviin, jotta tuotteet ja yhteissumma täsmäävät. */}
+              <div className="tracking__sums">
+                {order.status === 'awaiting_courier' && (
+                  <div className="tracking__sum">
+                    <span>Toimitus</span>
+                    <span>sovitaan</span>
+                  </div>
+                )}
+                {order.delivery_fee_cents > 0 && (
+                  <div className="tracking__sum">
+                    <span>Toimitus</span>
+                    <span>{formatPrice(order.delivery_fee_cents)}</span>
+                  </div>
+                )}
+                {order.service_fee_cents > 0 && (
+                  <div className="tracking__sum">
+                    <span>Palvelumaksu</span>
+                    <span>{formatPrice(order.service_fee_cents)}</span>
+                  </div>
+                )}
+                {order.discount_cents > 0 && (
+                  <div className="tracking__sum tracking__sum--discount">
+                    <span>Alennus{order.promo_code ? ` (${order.promo_code})` : ''}</span>
+                    <span>−{formatPrice(order.discount_cents)}</span>
+                  </div>
+                )}
+                <div className="tracking__total">
+                  <span>{order.status === 'awaiting_courier' ? 'Yhteensä ilman toimitusta' : 'Yhteensä'}</span>
+                  <span>{formatPrice(order.total_cents)}</span>
+                </div>
               </div>
 
               {variant === 'modal' && (
                 <Link to="/omat-tilaukset" className="tracking__all-link" onClick={onClose}>
                   Kaikki tilaukset
+                  <ChevronRight size={16} strokeWidth={2} aria-hidden="true" />
                 </Link>
               )}
             </div>

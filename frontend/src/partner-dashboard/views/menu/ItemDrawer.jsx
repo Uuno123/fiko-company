@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import { ImageOff, Plus } from 'lucide-react'
 import { INGREDIENT_TAG_GROUPS, ALL_PREDEFINED_TAGS } from '../../../lib/ingredientTags.js'
-import { Drawer, ErrorNote, Field, Toggle } from '../../ui.jsx'
-import { centsToEuroInput, euroInputToCents } from '../../utils.js'
+import { Badge, Drawer, ErrorNote, Field, Toggle } from '../../ui.jsx'
+import { isChanged } from '../../forms.js'
+import { centsToEuroInput, euroInputToCents, formatPrice } from '../../utils.js'
+import ImageUploadField from '../../ImageUploadField.jsx'
 import OptionGroups from './OptionGroups.jsx'
 
 const DIET_GROUP = INGREDIENT_TAG_GROUPS.find((g) => g.label === 'Ruokavaliot')
 const INGREDIENT_GROUPS = INGREDIENT_TAG_GROUPS.filter((g) => g.label !== 'Ruokavaliot')
+const NEW_CATEGORY = '__new'
 
 function initialForm(item, defaultCategory) {
   return {
@@ -20,14 +23,53 @@ function initialForm(item, defaultCategory) {
   }
 }
 
+// Esikatselu ylimpänä: ravintola näkee heti, miltä tuote näyttää asiakkaalle.
+function ItemPreview({ form }) {
+  const [broken, setBroken] = useState('')
+  const priceCents = euroInputToCents(form.price)
+  const diets = form.tags.filter((t) => DIET_GROUP?.tags.includes(t))
+  return (
+    <section className="pd-item-preview" aria-label="Esikatselu">
+      <span className="pd-item-preview__label">Näin asiakas näkee tuotteen</span>
+      <div className={`pd-item-preview__card${form.is_available ? '' : ' is-soldout'}`}>
+        <div className="pd-item-preview__text">
+          <strong>{form.name.trim() || 'Tuotteen nimi'}</strong>
+          <p>{form.description.trim() || 'Kuvaus näkyy tässä.'}</p>
+          <span className="pd-item-preview__meta">
+            <span className="pd-item-preview__price">{priceCents != null ? formatPrice(priceCents) : '– €'}</span>
+            {!form.is_available && <Badge tone="danger">Loppu</Badge>}
+            {diets.map((d) => (
+              <Badge key={d} tone="success">
+                {d}
+              </Badge>
+            ))}
+          </span>
+        </div>
+        <div className="pd-item-preview__img">
+          {form.image_url && broken !== form.image_url ? (
+            <img src={form.image_url} alt="" onError={() => setBroken(form.image_url)} />
+          ) : (
+            <ImageOff size={22} strokeWidth={1.5} aria-hidden="true" />
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// Tuotteen lisäys ja muokkaus. Tallennus vain kun jotain on muuttunut, ja
+// tallentamattomia muutoksia ei voi hukata huomaamatta (käyttäjä: muokkaukset
+// olivat epäselviä).
 export default function ItemDrawer({ item, categories, defaultCategory, onClose, onSave, onDelete }) {
-  const [form, setForm] = useState(() => initialForm(item, defaultCategory))
+  const [saved] = useState(() => initialForm(item, defaultCategory))
+  const [form, setForm] = useState(saved)
   const [errors, setErrors] = useState({})
   const [saveError, setSaveError] = useState('')
   const [saving, setSaving] = useState(false)
   const [customTag, setCustomTag] = useState('')
-  const [imageBroken, setImageBroken] = useState(false)
+  const [newCategory, setNewCategory] = useState(() => Boolean(saved.category) && !categories.includes(saved.category))
   const isNew = !item
+  const dirty = isChanged(form, saved)
 
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }))
@@ -37,11 +79,17 @@ export default function ItemDrawer({ item, categories, defaultCategory, onClose,
     set('tags', form.tags.includes(tag) ? form.tags.filter((t) => t !== tag) : [...form.tags, tag])
   }
 
+  function requestClose() {
+    if (dirty && !window.confirm('Sinulla on tallentamattomia muutoksia. Suljetaanko ilman tallennusta?')) return
+    onClose()
+  }
+
   async function submit() {
     const nextErrors = {}
     const priceCents = euroInputToCents(form.price)
     if (!form.name.trim()) nextErrors.name = 'Anna tuotteelle nimi'
     if (priceCents == null || priceCents < 0) nextErrors.price = 'Anna hinta euroina, esim. 12,90'
+    if (newCategory && !form.category.trim()) nextErrors.category = 'Anna uudelle kategorialle nimi'
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length > 0) return
 
@@ -65,9 +113,9 @@ export default function ItemDrawer({ item, categories, defaultCategory, onClose,
   return (
     <Drawer
       wide
-      title={isNew ? 'Uusi tuote' : form.name || 'Muokkaa tuotetta'}
-      subtitle={isNew ? 'Tuote näkyy asiakkaille heti tallennuksen jälkeen' : form.category}
-      onClose={onClose}
+      title={isNew ? 'Uusi tuote' : 'Muokkaa tuotetta'}
+      subtitle={isNew ? 'Tuote näkyy asiakkaille heti tallennuksen jälkeen' : item.name}
+      onClose={requestClose}
       footer={
         <>
           {!isNew && (
@@ -76,64 +124,85 @@ export default function ItemDrawer({ item, categories, defaultCategory, onClose,
             </button>
           )}
           <span className="pd-spacer" />
-          <button type="button" className="pd-btn pd-btn--ghost" onClick={onClose}>
+          {dirty && !isNew && (
+            <span className="pd-savebar__note pd-drawer__dirty">
+              <span className="pd-savebar__dot" aria-hidden="true" />
+              Tallentamattomia muutoksia
+            </span>
+          )}
+          <button type="button" className="pd-btn pd-btn--ghost" onClick={requestClose}>
             Peruuta
           </button>
-          <button type="button" className="pd-btn pd-btn--primary" onClick={submit} disabled={saving}>
+          <button type="button" className="pd-btn pd-btn--primary" onClick={submit} disabled={saving || (!isNew && !dirty)}>
             {saving ? 'Tallennetaan...' : isNew ? 'Lisää tuote' : 'Tallenna muutokset'}
           </button>
         </>
       }
     >
       <div className="pd-item-form">
-        <div className="pd-item-form__media">
-          {form.image_url && !imageBroken ? (
-            <img src={form.image_url} alt="" onError={() => setImageBroken(true)} />
-          ) : (
-            <span className="pd-item-form__placeholder">
-              <ImageOff size={24} strokeWidth={1.5} aria-hidden="true" />
-              {imageBroken ? 'Kuvaa ei voitu ladata' : 'Ei kuvaa'}
-            </span>
-          )}
-        </div>
+        <ItemPreview form={form} />
 
-        <div className="pd-form-grid">
-          <Field label="Nimi" error={errors.name} className="pd-field--full">
-            <input className="pd-input" value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="Esim. Cheeseburger" />
-          </Field>
-          <Field label="Kuvaus" hint="Ainesosat, maku, koko - näkyy tuotekortissa" className="pd-field--full">
-            <textarea className="pd-input pd-textarea" rows={3} value={form.description} onChange={(e) => set('description', e.target.value)} />
-          </Field>
-          <Field label="Hinta (€)" error={errors.price}>
-            <input className="pd-input" inputMode="decimal" placeholder="12,90" value={form.price} onChange={(e) => set('price', e.target.value)} />
-          </Field>
-          <Field label="Kategoria" hint="Valitse olemassa oleva tai kirjoita uusi">
-            <input className="pd-input" list="pd-menu-categories" value={form.category} onChange={(e) => set('category', e.target.value)} />
-            <datalist id="pd-menu-categories">
-              {categories.map((c) => (
-                <option key={c} value={c} />
-              ))}
-            </datalist>
-          </Field>
-          <Field label="Kuvan osoite (URL)" hint="Liitä kuvan linkki. Kuvan lataus suoraan laitteelta tulossa." className="pd-field--full">
-            <input
-              className="pd-input"
-              placeholder="https://..."
-              value={form.image_url}
-              onChange={(e) => {
-                set('image_url', e.target.value)
-                setImageBroken(false)
-              }}
-            />
-          </Field>
-        </div>
-
-        <div className="pd-form-row">
-          <div>
-            <strong>Saatavilla</strong>
-            <p className="pd-muted">Pois päältä = näkyy asiakkaille loppuneena</p>
+        <section className="pd-form-section">
+          <h3>Perustiedot</h3>
+          <div className="pd-form-grid">
+            <Field label="Nimi" error={errors.name} className="pd-field--full">
+              <input className="pd-input" value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="Esim. Cheeseburger" />
+            </Field>
+            <Field label="Kuvaus" hint="Ainesosat, maku, koko - näkyy tuotekortissa" className="pd-field--full">
+              <textarea className="pd-input pd-textarea" rows={3} value={form.description} onChange={(e) => set('description', e.target.value)} />
+            </Field>
+            <Field label="Hinta (€)" error={errors.price}>
+              <input className="pd-input" inputMode="decimal" placeholder="12,90" value={form.price} onChange={(e) => set('price', e.target.value)} />
+            </Field>
+            <Field label="Kategoria" error={errors.category}>
+              <select
+                className="pd-select"
+                value={newCategory ? NEW_CATEGORY : form.category}
+                onChange={(e) => {
+                  if (e.target.value === NEW_CATEGORY) {
+                    setNewCategory(true)
+                    set('category', '')
+                  } else {
+                    setNewCategory(false)
+                    set('category', e.target.value)
+                  }
+                }}
+              >
+                {categories.length === 0 && <option value="">Ruokalista</option>}
+                {categories.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+                <option value={NEW_CATEGORY}>+ Uusi kategoria…</option>
+              </select>
+              {newCategory && (
+                <input
+                  className="pd-input pd-input--below"
+                  autoFocus
+                  placeholder="Uuden kategorian nimi, esim. Jälkiruoat"
+                  value={form.category}
+                  onChange={(e) => set('category', e.target.value)}
+                />
+              )}
+            </Field>
           </div>
-          <Toggle checked={form.is_available} label="Saatavilla" onChange={(v) => set('is_available', v)} />
+        </section>
+
+        <section className="pd-form-section">
+          <h3>Kuva</h3>
+          <p className="pd-muted pd-form-section__hint">Lataa kuva puhelimesta tai tietokoneelta - esikatselu yllä päivittyy heti.</p>
+          <ImageUploadField kind="menu" maxSize={1200} value={form.image_url} onChange={(url) => set('image_url', url)} />
+        </section>
+
+        <div className="pd-form-row pd-form-row--boxed">
+          <div>
+            <strong>{form.is_available ? 'Myynnissä' : 'Loppu'}</strong>
+            <p className="pd-muted">
+              {form.is_available ? 'Asiakkaat voivat tilata tuotetta.' : 'Tuote näkyy asiakkaille loppuneena eikä sitä voi tilata.'}
+            </p>
+          </div>
+          <Toggle checked={form.is_available} label="Myynnissä" onChange={(v) => set('is_available', v)} />
         </div>
 
         <section className="pd-form-section">
@@ -195,7 +264,10 @@ export default function ItemDrawer({ item, categories, defaultCategory, onClose,
           {isNew ? (
             <p className="pd-muted">Tallenna tuote ensin, niin voit lisätä sille koot ja lisätäytteet.</p>
           ) : (
-            <OptionGroups menuItemId={item.id} />
+            <>
+              <p className="pd-muted pd-form-section__hint">Valintaryhmät tallentuvat erikseen ryhmän omasta Tallenna-napista.</p>
+              <OptionGroups menuItemId={item.id} />
+            </>
           )}
         </section>
 

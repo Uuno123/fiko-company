@@ -340,9 +340,9 @@ export default function PartnerDashboard({ basePath = '/kumppani/dashboard' }) {
         <EmptyState
           icon={UtensilsCrossed}
           title="Tähän tiliin ei ole liitetty ravintolaa"
-          text="Kirjauduit sisään, mutta tililläsi ei ole ravintolaa. Ota yhteyttä delivoon, niin selvitämme asian."
+          text="Kirjauduit sisään, mutta tililläsi ei ole ravintolaa. Ota yhteyttä Bidropiin, niin selvitämme asian."
           action={
-            <a className="pd-btn pd-btn--secondary" href="mailto:kumppanit@delivo.fi">
+            <a className="pd-btn pd-btn--secondary" href="mailto:kumppanit@bidrop.fi">
               Ota yhteyttä
             </a>
           }

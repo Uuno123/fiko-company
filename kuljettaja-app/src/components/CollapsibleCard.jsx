@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, Keyboard, PanResponder, Platform, Pressable, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '../theme'
+import { tr } from '../lib/i18n'
 
 const useNativeDriver = Platform.OS !== 'web'
 
@@ -113,7 +114,7 @@ export default function CollapsibleCard({ header, children, footer, expandKey, o
             onPress={() => snapTo(!state.current.expanded)}
             style={styles.handleArea}
             accessibilityRole="button"
-            accessibilityLabel={expanded ? 'Pienennä kortti' : 'Näytä kaikki tiedot'}
+            accessibilityLabel={expanded ? tr('common.collapseCard') : tr('common.expandCard')}
             accessibilityState={{ expanded }}
             hitSlop={{ top: 8, bottom: 4 }}
           >

@@ -10,21 +10,19 @@ import { getRestaurants } from '../lib/api.js'
 import { CATEGORY_NAMES, categorySlug, padWithFillers } from '../lib/categories.js'
 import { restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
-import { useAuth } from '../lib/AuthContext.jsx'
 import { useCart } from '../lib/CartContext.jsx'
 import { formatPrice } from '../lib/format.js'
-import { getFavoriteRestaurantIds, addFavorite, removeFavorite } from '../lib/favorites.js'
+import { useFavorites } from '../lib/useFavorites.js'
 import './CategoryPage.css'
 
 function CategoryPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
-  const { customer } = useAuth()
   const cart = useCart()
   const [searchValue, setSearchValue] = useState('')
   const [restaurants, setRestaurants] = useState([])
   const [status, setStatus] = useState('loading')
-  const [favoriteIds, setFavoriteIds] = useState(() => new Set())
+  const { favoriteIds, toggleFavorite } = useFavorites()
   const [sortBy, setSortBy] = useState('suositellut')
   const deliveryAddress = useDeliveryAddress()
   const { popularity } = useRankingSignals()
@@ -44,22 +42,6 @@ function CategoryPage() {
       cancelled = true
     }
   }, [])
-
-  useEffect(() => {
-    if (!customer?.id) {
-      setFavoriteIds(new Set())
-      return undefined
-    }
-    let cancelled = false
-    getFavoriteRestaurantIds(customer.id)
-      .then((ids) => {
-        if (!cancelled) setFavoriteIds(new Set(ids))
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [customer?.id])
 
   // Kanoninen nimi tulee CATEGORY_NAMES-listasta eikä ravintoladatasta: jos
   // kategorialla ei ole vielä yhtään oikeaa ravintolaa, otsikko ja täytteet
@@ -95,28 +77,6 @@ function CategoryPage() {
       }),
     [matching, sortBy, deliveryAddress, popularity],
   )
-
-  async function toggleFavorite(restaurantId) {
-    if (!customer?.id) return
-    const isFav = favoriteIds.has(restaurantId)
-    setFavoriteIds((prev) => {
-      const next = new Set(prev)
-      if (isFav) next.delete(restaurantId)
-      else next.add(restaurantId)
-      return next
-    })
-    try {
-      if (isFav) await removeFavorite(customer.id, restaurantId)
-      else await addFavorite(customer.id, restaurantId)
-    } catch {
-      setFavoriteIds((prev) => {
-        const next = new Set(prev)
-        if (isFav) next.add(restaurantId)
-        else next.delete(restaurantId)
-        return next
-      })
-    }
-  }
 
   return (
     <div className="page page--category">
@@ -201,7 +161,7 @@ function CategoryPage() {
                 restaurant={restaurant}
                 disabled={restaurant.isPlaceholder}
                 isFavorite={favoriteIds.has(restaurant.id)}
-                onToggleFavorite={customer && !restaurant.isPlaceholder && !restaurant.isDemo ? toggleFavorite : undefined}
+                onToggleFavorite={restaurant.isPlaceholder ? undefined : toggleFavorite}
               />
             ))}
           </div>

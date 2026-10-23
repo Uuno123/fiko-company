@@ -14,6 +14,12 @@
   --delivo-orange-dark: #d93f10;
   --delivo-orange-soft: #ffece5;
 
+  /* Takaisin-nuolten ja muiden pyöreiden nappien pallo valkoisella pohjalla.
+     Selvästi harmaa (käyttäjän pyyntö 23.10.2026): aiempi #f1f2f4 ja
+     taustaton nuoli eivät erottuneet valkoisesta. */
+  --round-button-bg: #e2e4e8;
+  --round-button-bg-pressed: #d3d6db;
+
   /* Sivun tausta. Oli aiemmin lämmin murrettu #faf7f5, mutta käyttäjä halusi
      kaiken valkoiseksi - kortit erottuvat nyt omalla reunuksellaan ja varjollaan.
      Tätä käyttävät body, vaalea header sekä haku- ja kategoriasivu, joten sävyn

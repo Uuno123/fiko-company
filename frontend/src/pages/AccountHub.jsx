@@ -83,7 +83,7 @@ function AccountHub() {
           <h2 className="account-hub__title">Tuki</h2>
           <ul className="account-hub__rows">
             <li>
-              <a href="mailto:tuki@delivo.fi" className="account-hub__row">
+              <a href="mailto:tuki@bidrop.fi" className="account-hub__row">
                 <HubRow Icon={MessageCircle} label="Ota yhteyttä" />
               </a>
             </li>

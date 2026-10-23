@@ -11,4 +11,8 @@ if (!isStripeConfigured) {
   )
 }
 
-export const stripePromise = isStripeConfigured ? loadStripe(publishableKey) : null
+// developerTools.assistant: Striben testitilan kehitystyökalu ("stripe >" -pilleri
+// sivun alakulmassa) pois - se peitti tilauskuplan. Tuotantoavaimilla sitä ei näy.
+export const stripePromise = isStripeConfigured
+  ? loadStripe(publishableKey, { developerTools: { assistant: { enabled: false } } })
+  : null

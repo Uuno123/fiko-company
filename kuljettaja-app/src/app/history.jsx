@@ -5,12 +5,14 @@ import { ChevronRight } from 'lucide-react-native'
 import { PAGE_BACKGROUND, ScreenHeader } from '../components/ui'
 import { dayKey, formatDayLabel, formatEuro, formatKm, formatTime, parseDayKey } from '../lib/format'
 import { groupByDay, useGigs } from '../lib/gigs'
+import { useT } from '../lib/i18n'
 import { colors, fonts } from '../theme'
 
 // Keikkahistoria päivittäin. ?day=2026-10-06 näyttää vain sen päivän keikat
 // (Ansiot-näkymän päiväriveiltä).
 export default function HistoryScreen() {
   const router = useRouter()
+  const t = useT()
   const insets = useSafeAreaInsets()
   const { day } = useLocalSearchParams()
   const now = new Date()
@@ -24,7 +26,7 @@ export default function HistoryScreen() {
 
   return (
     <View style={styles.screen}>
-      <ScreenHeader title={day ? formatDayLabel(parseDayKey(day), now) : 'Keikkahistoria'} />
+      <ScreenHeader title={day ? formatDayLabel(parseDayKey(day), now) : t('menu.history')} />
       <SectionList
         sections={sections}
         keyExtractor={(gig) => gig.id}
@@ -33,7 +35,7 @@ export default function HistoryScreen() {
         ListHeaderComponent={
           day ? (
             <Pressable onPress={() => router.setParams({ day: '' })} style={styles.showAll} accessibilityRole="button">
-              <Text style={styles.showAllText}>Näytä kaikki keikat</Text>
+              <Text style={styles.showAllText}>{t('history.showAll')}</Text>
             </Pressable>
           ) : null
         }
@@ -41,7 +43,7 @@ export default function HistoryScreen() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>{section.title}</Text>
             <Text style={styles.sectionMeta}>
-              {section.summary.count} {section.summary.count === 1 ? 'keikka' : 'keikkaa'} ·{' '}
+              {section.summary.count} {t(section.summary.count === 1 ? 'common.gig.one' : 'common.gig.other')} ·{' '}
               {formatEuro(section.summary.total)}
             </Text>
           </View>
@@ -71,7 +73,7 @@ export default function HistoryScreen() {
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>Ei keikkoja vielä.</Text>
+            <Text style={styles.emptyText}>{t('history.empty')}</Text>
           </View>
         }
       />

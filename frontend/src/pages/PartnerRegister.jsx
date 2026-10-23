@@ -18,7 +18,7 @@ const APPLICATION_STEPS = [
 
 const APPLICATION_FACTS = [
   { value: '0 %', label: `provisiota, kuukausimaksu alkaen ${formatPrice(PARTNER_PLANS[0].priceCents)} + alv` },
-  { value: formatWholePrice(DEVICE_SETUP_CENTS), label: 'tilauslaite + asennus, kertamaksu + alv' },
+  { value: formatWholePrice(DEVICE_SETUP_CENTS), label: 'käyttöönotto, koulutus ja tarvittaessa tabletti, kertamaksu + alv' },
   { value: `${COMMITMENT_MONTHS} kk`, label: 'sitoutumisaika' },
 ]
 
@@ -281,7 +281,7 @@ function PartnerRegister() {
           </div>
 
           <ApplicationAside
-            eyebrow="delivo ravintoloille"
+            eyebrow="Bidrop ravintoloille"
             title="Näin hakemus etenee"
             steps={APPLICATION_STEPS}
             facts={APPLICATION_FACTS}

@@ -1,14 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { TrendingDown, TrendingUp, X } from 'lucide-react'
 
-export function DemoTag() {
-  return (
-    <span className="pd-demo-tag" title="Tämä osio käyttää esimerkkidataa - oikea data tulee kun ominaisuus kytketään tietokantaan.">
-      Esimerkkidata
-    </span>
-  )
-}
-
 export function PageHeader({ title, description, actions }) {
   return (
     <header className="pd-page-header">
@@ -21,17 +13,14 @@ export function PageHeader({ title, description, actions }) {
   )
 }
 
-export function Card({ title, subtitle, action, demo, className = '', children, padded = true }) {
+export function Card({ title, subtitle, action, className = '', children, padded = true }) {
   return (
     <section className={`pd-card${padded ? '' : ' pd-card--flush'} ${className}`}>
       {(title || action) && (
         <div className="pd-card__head">
           <div className="pd-card__titles">
             {title && (
-              <h2>
-                {title}
-                {demo && <DemoTag />}
-              </h2>
+              <h2>{title}</h2>
             )}
             {subtitle && <p>{subtitle}</p>}
           </div>
@@ -114,6 +103,29 @@ export function Field({ label, hint, error, children, className = '', as: Tag = 
       {children}
       {error ? <span className="pd-field__error">{error}</span> : hint && <span className="pd-field__hint">{hint}</span>}
     </Tag>
+  )
+}
+
+// Tallentamattomat muutokset (käyttäjä: muokkaukset epäselviä): palkki näkyy
+// vain kun jotain on muutettu, ja siinä on aina sekä Hylkää että Tallenna.
+// sticky = koko sivun lomake (pysyy näkyvissä alareunassa vierittäessä),
+// muuten kortin sisällä.
+export function SaveBar({ dirty, saving = false, onSave, onDiscard, saveLabel = 'Tallenna muutokset', sticky = false }) {
+  if (!dirty && !saving) return null
+  return (
+    <div className={`pd-savebar${sticky ? ' pd-savebar--sticky' : ''}`} role="region" aria-label="Tallentamattomat muutokset">
+      <span className="pd-savebar__note">
+        <span className="pd-savebar__dot" aria-hidden="true" />
+        Tallentamattomia muutoksia
+      </span>
+      <span className="pd-spacer" />
+      <button type="button" className="pd-btn pd-btn--ghost" onClick={onDiscard} disabled={saving}>
+        Hylkää
+      </button>
+      <button type="button" className="pd-btn pd-btn--primary" onClick={onSave} disabled={saving}>
+        {saving ? 'Tallennetaan…' : saveLabel}
+      </button>
+    </div>
   )
 }
 

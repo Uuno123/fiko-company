@@ -6,22 +6,18 @@ import FacebookAuthButton from '../components/FacebookAuthButton.jsx'
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js'
 import { translateAuthError } from '../lib/authErrors.js'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { forgetAuthRedirect, readAuthRedirect, rememberAuthRedirect } from '../lib/authRedirect.js'
 import './AuthForm.css'
 
 // Rekisteröityminen alkaa AINA sähköpostin vahvistuksella (käyttäjän vaatimus):
 //   1. sähköposti -> Supabase lähettää vahvistuslinkin (signInWithOtp)
 //   2. linkki palaa tälle sivulle kirjautuneena -> vasta nyt nimi, puhelin ja salasana
 // Tiliä ei siis voi täyttää valmiiksi ennen kuin sähköpostin omistus on todistettu.
-// Linkki avautuu usein uuteen välilehteen, joten paluuosoite talletetaan selaimeen.
-const REDIRECT_KEY = 'delivo-register-redirect'
-
-function readStoredRedirect() {
-  try {
-    return localStorage.getItem(REDIRECT_KEY) || '/'
-  } catch {
-    return '/'
-  }
-}
+// Paluuosoite talletetaan selaimeen (lib/authRedirect.js), koska linkki avautuu
+// usein uuteen välilehteen. Myös Google-kirjautuminen palaa tälle sivulle: Google
+// antaa nimen, joten tili on heti valmis ja sivu ohjaa paluuosoitteeseen.
+// Sisältö näkyy puhelimella alhaalta liukuvassa paneelissa ja työpöydällä omana
+// sivunaan (App.jsx: AppRoutes).
 
 function Register() {
   const navigate = useNavigate()
@@ -42,7 +38,9 @@ function Register() {
 
   useEffect(() => {
     if (session && profileComplete && status !== 'submitting') {
-      navigate(readStoredRedirect(), { replace: true })
+      const target = readAuthRedirect()
+      forgetAuthRedirect()
+      navigate(target, { replace: true })
     }
   }, [session, profileComplete, status, navigate])
 
@@ -51,11 +49,7 @@ function Register() {
     setErrorMessage('')
     setStatus('submitting')
 
-    try {
-      localStorage.setItem(REDIRECT_KEY, location.state?.from || '/')
-    } catch {
-      // Ei tallennustilaa - rekisteröitymisen jälkeen palataan etusivulle.
-    }
+    rememberAuthRedirect(location.state?.from || '/')
 
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
@@ -102,159 +96,147 @@ function Register() {
     }
 
     await refreshCustomer()
-    const target = readStoredRedirect()
-    try {
-      localStorage.removeItem(REDIRECT_KEY)
-    } catch {
-      // Ei tallennustilaa - ei mitään poistettavaa.
-    }
+    const target = readAuthRedirect()
+    forgetAuthRedirect()
     navigate(target, { replace: true })
   }
 
   if (!isSupabaseConfigured) {
     return (
-      <div className="page">
-        <main className="auth-page auth-page--full-height">
-          <div className="auth-card">
-            <h1>Rekisteröityminen ei ole käytössä</h1>
-            <p className="auth-card__subtitle">Supabase-yhteyttä ei ole määritetty (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).</p>
-          </div>
-        </main>
+      <div className="auth-card">
+        <h1 id="auth-title">Rekisteröityminen ei ole käytössä</h1>
+        <p className="auth-card__subtitle">
+          Supabase-yhteyttä ei ole määritetty (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY).
+        </p>
       </div>
     )
   }
 
   if (authStatus === 'loading') {
-    return <div className="page" />
+    return null
   }
 
   if (needsDetails) {
     return (
-      <div className="page">
-        <main className="auth-page auth-page--full-height">
-          <div className="auth-card">
-            <h1>Viimeistele tilisi</h1>
-            <p className="auth-card__subtitle">Sähköposti vahvistettu. Lisää vielä tietosi ja salasana.</p>
+      <div className="auth-card">
+        <h1 id="auth-title">Viimeistele tilisi</h1>
+        <p className="auth-card__subtitle">Sähköposti vahvistettu. Lisää vielä tietosi ja salasana.</p>
 
-            <form className="auth-form" onSubmit={completeProfile}>
-              {errorMessage && <p className="auth-error">{errorMessage}</p>}
+        <form className="auth-form" onSubmit={completeProfile}>
+          {errorMessage && <p className="auth-error">{errorMessage}</p>}
 
-              <p className="auth-step-email">{session.user.email}</p>
+          <p className="auth-step-email">{session.user.email}</p>
 
-              <div className="auth-field">
-                <label htmlFor="name">Nimi</label>
-                <input
-                  id="name"
-                  type="text"
-                  autoComplete="name"
-                  required
-                  autoFocus
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-
-              <div className="auth-field">
-                <label htmlFor="phone">Puhelinnumero</label>
-                <input
-                  id="phone"
-                  type="tel"
-                  autoComplete="tel"
-                  required
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-              </div>
-
-              <div className="auth-field">
-                <label htmlFor="password">Salasana</label>
-                <input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <span className="auth-field__hint">Vähintään 6 merkkiä</span>
-              </div>
-
-              <button type="submit" className="auth-submit" disabled={status === 'submitting'}>
-                {status === 'submitting' ? 'Tallennetaan...' : 'Luo tili'}
-              </button>
-            </form>
+          <div className="auth-field">
+            <label htmlFor="name">Nimi</label>
+            <input
+              id="name"
+              type="text"
+              autoComplete="name"
+              required
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
-        </main>
+
+          <div className="auth-field">
+            <label htmlFor="phone">Puhelinnumero</label>
+            <input
+              id="phone"
+              type="tel"
+              autoComplete="tel"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+
+          <div className="auth-field">
+            <label htmlFor="password">Salasana</label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <span className="auth-field__hint">Vähintään 6 merkkiä</span>
+          </div>
+
+          <button type="submit" className="auth-submit" disabled={status === 'submitting'}>
+            {status === 'submitting' ? 'Tallennetaan...' : 'Luo tili'}
+          </button>
+        </form>
       </div>
     )
   }
 
   return (
-    <div className="page">
-      <main className="auth-page auth-page--full-height">
-        <div className="auth-card">
-          <h1>Luo Delivo-tili</h1>
-          <p className="auth-card__subtitle">Näet tilaushistoriasi ja tilaat nopeammin uudelleen. Voit tilata myös ilman tiliä.</p>
+    <div className="auth-card">
+      <h1 id="auth-title">Luo Bidrop-tili</h1>
+      <p className="auth-card__subtitle">
+        Näet tilaushistoriasi ja tilaat nopeammin uudelleen. Voit tilata myös ilman tiliä.
+      </p>
 
-          {status === 'link-sent' ? (
-            <>
-              <p className="auth-success">
-                Lähetimme vahvistuslinkin osoitteeseen {email}. Avaa linkki, niin pääset lisäämään nimesi ja
-                salasanasi.
-              </p>
-              <button
-                type="button"
-                className="auth-link-button"
-                onClick={() => {
-                  setErrorMessage('')
-                  setStatus('idle')
-                }}
-              >
-                Vaihda sähköpostiosoite tai lähetä uudelleen
-              </button>
-            </>
-          ) : (
-            <>
-              <GoogleAuthButton label="Rekisteröidy Googlella" />
-              <AppleAuthButton label="Rekisteröidy Apple ID:llä" />
-              <FacebookAuthButton label="Rekisteröidy Facebookilla" />
-              <p className="auth-divider">tai jatka sähköpostilla</p>
-
-              <form className="auth-form" onSubmit={sendVerificationLink}>
-                {errorMessage && <p className="auth-error">{errorMessage}</p>}
-
-                <div className="auth-field">
-                  <label htmlFor="email">Anna sähköpostiosoite</label>
-                  <input
-                    id="email"
-                    type="email"
-                    autoComplete="email"
-                    placeholder="esimerkki@osoite.fi"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-
-                <button type="submit" className="auth-submit" disabled={status === 'submitting'}>
-                  {status === 'submitting' ? 'Lähetetään...' : 'Jatka'}
-                </button>
-              </form>
-            </>
-          )}
-
-          <p className="auth-footer">
-            Onko sinulla jo tili? <Link to="/login" state={{ from: location.state?.from || '/' }}>Kirjaudu sisään</Link>
+      {status === 'link-sent' ? (
+        <>
+          <p className="auth-success">
+            Lähetimme vahvistuslinkin osoitteeseen {email}. Avaa linkki, niin pääset lisäämään nimesi ja salasanasi.
           </p>
+          <button
+            type="button"
+            className="auth-link-button"
+            onClick={() => {
+              setErrorMessage('')
+              setStatus('idle')
+            }}
+          >
+            Vaihda sähköpostiosoite tai lähetä uudelleen
+          </button>
+        </>
+      ) : (
+        <>
+          <GoogleAuthButton label="Rekisteröidy Googlella" returnTo={location.state?.from || '/'} />
+          <AppleAuthButton label="Rekisteröidy Apple ID:llä" />
+          <FacebookAuthButton label="Rekisteröidy Facebookilla" />
+          <p className="auth-divider">tai jatka sähköpostilla</p>
 
-          {/* Referenssikuvassa "tietosuojaseloste" on linkki, mutta sellaista sivua ei ole
+          <form className="auth-form" onSubmit={sendVerificationLink}>
+            {errorMessage && <p className="auth-error">{errorMessage}</p>}
+
+            <div className="auth-field">
+              <label htmlFor="email">Anna sähköpostiosoite</label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="esimerkki@osoite.fi"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <button type="submit" className="auth-submit" disabled={status === 'submitting'}>
+              {status === 'submitting' ? 'Lähetetään...' : 'Jatka'}
+            </button>
+          </form>
+        </>
+      )}
+
+      <p className="auth-footer">
+        Onko sinulla jo tili?{' '}
+        <Link to="/login" replace state={{ ...location.state, from: location.state?.from || '/' }}>
+          Kirjaudu sisään
+        </Link>
+      </p>
+
+      {/* Referenssikuvassa "tietosuojaseloste" on linkki, mutta sellaista sivua ei ole
               vielä olemassa - rikkinäisen linkin sijaan teksti on toistaiseksi pelkkää tekstiä. */}
-          <p className="auth-legal">
-            Delivon tietosuojaseloste sisältää tietoa henkilötietojen käsittelystä Delivolla.
-          </p>
-        </div>
-      </main>
+      <p className="auth-legal">Bidropin tietosuojaseloste sisältää tietoa henkilötietojen käsittelystä Bidropilla.</p>
     </div>
   )
 }

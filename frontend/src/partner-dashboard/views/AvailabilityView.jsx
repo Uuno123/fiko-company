@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { CalendarX, Copy, Flame, Pause, Play, Plus, Power, Trash2 } from 'lucide-react'
-import { DEMO_EXCEPTIONS } from '../demo.js'
+import { Copy, Flame, Pause, Play, Power } from 'lucide-react'
 import { useDashboard } from '../context.js'
-import { Badge, Card, ErrorNote, Field, PageHeader, Toggle } from '../ui.jsx'
-import { WEEKDAYS, formatDate, formatTime, normalizeOpeningHours } from '../utils.js'
+import { Badge, Card, ErrorNote, PageHeader, SaveBar, Toggle } from '../ui.jsx'
+import { isChanged, useUnsavedWarning } from '../forms.js'
+import { WEEKDAYS, formatTime, normalizeOpeningHours } from '../utils.js'
 
 function StatusCard() {
   const { storeStatus, toast } = useDashboard()
@@ -97,6 +97,13 @@ function OpeningHoursCard() {
   useEffect(() => {
     setHours(normalizeOpeningHours(JSON.parse(savedHoursKey)))
   }, [restaurant.id, savedHoursKey])
+  const dirty = isChanged(hours, normalizeOpeningHours(JSON.parse(savedHoursKey)))
+  useUnsavedWarning(dirty)
+
+  function discard() {
+    setHours(normalizeOpeningHours(JSON.parse(savedHoursKey)))
+    setError('')
+  }
 
   function setDay(key, patch) {
     setHours((h) => ({ ...h, [key]: { ...h[key], ...patch } }))
@@ -157,19 +164,20 @@ function OpeningHoursCard() {
         })}
       </div>
       <ErrorNote>{error}</ErrorNote>
-      <div className="pd-card__foot">
-        <button type="button" className="pd-btn pd-btn--primary" onClick={save} disabled={saving}>
-          {saving ? 'Tallennetaan...' : 'Tallenna aukioloajat'}
-        </button>
-      </div>
+      <SaveBar dirty={dirty} saving={saving} onSave={save} onDiscard={discard} saveLabel="Tallenna aukioloajat" />
     </Card>
   )
 }
 
+const PREP_CHOICES = [10, 15, 20, 25, 30, 40]
+
 function PrepTimeCard() {
   const { restaurant, patchRestaurant, storeStatus, toast } = useDashboard()
-  const [minutes, setMinutes] = useState(String(restaurant.pickup_estimate_minutes ?? 20))
+  const savedMinutes = String(restaurant.pickup_estimate_minutes ?? 20)
+  const [minutes, setMinutes] = useState(savedMinutes)
   const [saving, setSaving] = useState(false)
+  const dirty = minutes !== savedMinutes
+  useUnsavedWarning(dirty)
 
   useEffect(() => {
     setMinutes(String(restaurant.pickup_estimate_minutes ?? 20))
@@ -190,130 +198,19 @@ function PrepTimeCard() {
   return (
     <Card title="Tavallinen valmistusaika" subtitle="Asiakkaan näkemä arvio noudolle - kuljetukseen lisätään ajomatka">
       <div className="pd-chips">
-        {[10, 15, 20, 25, 30, 40].map((m) => (
+        {PREP_CHOICES.map((m) => (
           <button key={m} type="button" className={`pd-chip${Number(minutes) === m ? ' is-active' : ''}`} onClick={() => setMinutes(String(m))}>
             {m} min
           </button>
         ))}
-        <input className="pd-input pd-input--short" inputMode="numeric" value={minutes} onChange={(e) => setMinutes(e.target.value)} aria-label="Valmistusaika minuutteina" />
+        <label className={`pd-chip pd-chip--input${PREP_CHOICES.includes(Number(minutes)) ? '' : ' is-active'}`}>
+          Muu
+          <input inputMode="numeric" value={minutes} onChange={(e) => setMinutes(e.target.value.replace(/\D/g, ''))} aria-label="Valmistusaika minuutteina" />
+          min
+        </label>
       </div>
       {storeStatus.busy && <p className="pd-muted">Kiireinen tila päällä - arvoon sisältyy tällä hetkellä +{storeStatus.busy.extra} min.</p>}
-      <div className="pd-card__foot">
-        <button type="button" className="pd-btn pd-btn--primary" onClick={save} disabled={saving}>
-          {saving ? 'Tallennetaan...' : 'Tallenna'}
-        </button>
-      </div>
-    </Card>
-  )
-}
-
-function MethodsCard() {
-  const [delivery, setDelivery] = useState(true)
-  const [pickup, setPickup] = useState(true)
-  return (
-    <Card title="Toimitustavat" subtitle="Ota kotiinkuljetus tai nouto pois käytöstä hetkeksi" demo>
-      <div className="pd-form-row">
-        <div>
-          <strong>Kotiinkuljetus</strong>
-          <p className="pd-muted">delivon kuljettajat toimittavat tilaukset</p>
-        </div>
-        <Toggle checked={delivery} label="Kotiinkuljetus" onChange={setDelivery} />
-      </div>
-      <div className="pd-form-row">
-        <div>
-          <strong>Nouto</strong>
-          <p className="pd-muted">Asiakas noutaa tilauksen ravintolasta</p>
-        </div>
-        <Toggle checked={pickup} label="Nouto" onChange={setPickup} />
-      </div>
-    </Card>
-  )
-}
-
-function ExceptionsCard() {
-  const { toast } = useDashboard()
-  const [exceptions, setExceptions] = useState(DEMO_EXCEPTIONS)
-  const [adding, setAdding] = useState(false)
-  const [draft, setDraft] = useState({ date: '', label: '', closed: true, open: '12:00', close: '18:00' })
-
-  function add() {
-    if (!draft.date) {
-      toast('Valitse päivämäärä', 'error')
-      return
-    }
-    setExceptions((prev) =>
-      [...prev, { ...draft, id: `x${Date.now()}`, date: new Date(draft.date).toISOString(), label: draft.label || 'Poikkeusaukiolo' }].sort(
-        (a, b) => new Date(a.date) - new Date(b.date),
-      ),
-    )
-    setAdding(false)
-    setDraft({ date: '', label: '', closed: true, open: '12:00', close: '18:00' })
-  }
-
-  return (
-    <Card
-      title="Poikkeusaukiolot"
-      subtitle="Pyhät, lomat ja muut poikkeavat päivät"
-      demo
-      action={
-        !adding && (
-          <button type="button" className="pd-btn pd-btn--secondary pd-btn--sm" onClick={() => setAdding(true)}>
-            <Plus size={15} aria-hidden="true" /> Lisää
-          </button>
-        )
-      }
-    >
-      <ul className="pd-list">
-        {exceptions.map((ex) => (
-          <li key={ex.id}>
-            <span>
-              <strong>{ex.label}</strong>
-              <span className="pd-muted">
-                {formatDate(ex.date)} · {ex.closed ? 'Suljettu' : `${ex.open}–${ex.close}`}
-              </span>
-            </span>
-            <button type="button" className="pd-icon-btn" aria-label={`Poista ${ex.label}`} onClick={() => setExceptions((prev) => prev.filter((e) => e.id !== ex.id))}>
-              <Trash2 size={16} aria-hidden="true" />
-            </button>
-          </li>
-        ))}
-        {exceptions.length === 0 && (
-          <li className="pd-muted">
-            <CalendarX size={16} aria-hidden="true" /> Ei poikkeuksia
-          </li>
-        )}
-      </ul>
-      {adding && (
-        <div className="pd-subform">
-          <div className="pd-form-grid">
-            <Field label="Päivä">
-              <input type="date" className="pd-input" value={draft.date} onChange={(e) => setDraft((d) => ({ ...d, date: e.target.value }))} />
-            </Field>
-            <Field label="Nimi">
-              <input className="pd-input" placeholder="Esim. Juhannus" value={draft.label} onChange={(e) => setDraft((d) => ({ ...d, label: e.target.value }))} />
-            </Field>
-          </div>
-          <div className="pd-form-row">
-            <strong>Suljettu koko päivän</strong>
-            <Toggle checked={draft.closed} label="Suljettu koko päivän" onChange={(closed) => setDraft((d) => ({ ...d, closed }))} />
-          </div>
-          {!draft.closed && (
-            <span className="pd-hours__times">
-              <input type="time" className="pd-input pd-input--time" value={draft.open} onChange={(e) => setDraft((d) => ({ ...d, open: e.target.value }))} aria-label="Avautuu" />
-              <span aria-hidden="true">–</span>
-              <input type="time" className="pd-input pd-input--time" value={draft.close} onChange={(e) => setDraft((d) => ({ ...d, close: e.target.value }))} aria-label="Sulkeutuu" />
-            </span>
-          )}
-          <div className="pd-button-row">
-            <button type="button" className="pd-btn pd-btn--ghost" onClick={() => setAdding(false)}>
-              Peruuta
-            </button>
-            <button type="button" className="pd-btn pd-btn--primary" onClick={add}>
-              Lisää poikkeus
-            </button>
-          </div>
-        </div>
-      )}
+      <SaveBar dirty={dirty} saving={saving} onSave={save} onDiscard={() => setMinutes(savedMinutes)} saveLabel="Tallenna valmistusaika" />
     </Card>
   )
 }
@@ -329,8 +226,6 @@ export default function AvailabilityView() {
         </div>
         <div className="pd-stack">
           <PrepTimeCard />
-          <MethodsCard />
-          <ExceptionsCard />
         </div>
       </div>
     </div>

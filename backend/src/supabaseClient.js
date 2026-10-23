@@ -15,3 +15,13 @@ if (!isSupabaseConfigured) {
 }
 
 export const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabaseKey) : null
+
+// Palvelimen oma avain veloituksiin (settlement.js): lukee kaikkien asiakkaiden
+// tilausten maksutilan ja kirjaa veloitukset. Ohittaa RLS:n, joten se on vain
+// backend/.env-tiedostossa - ei koskaan frontendissä, kuljettaja-appissa tai gitissä.
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+export const supabaseAdmin =
+  supabaseUrl && serviceRoleKey
+    ? createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } })
+    : null

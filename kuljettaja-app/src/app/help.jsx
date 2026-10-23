@@ -3,57 +3,25 @@ import { LayoutAnimation, Linking, Pressable, StyleSheet, Text, View } from 'rea
 import { ChevronDown, Mail, Siren } from 'lucide-react-native'
 import { Card, ListRow, Screen } from '../components/ui'
 import { formatEuro } from '../lib/format'
-import { PAY } from '../lib/gigs'
+import { DELIVERY_BID } from '../../../frontend/src/lib/deliveryTime'
+import { useT } from '../lib/i18n'
 import { colors, fonts } from '../theme'
 
-const SUPPORT_EMAIL = 'tuki@delivo.fi'
+const SUPPORT_EMAIL = 'tuki@bidrop.fi'
 
 // Usein kysytyt kysymykset (sama keikan kulku ja palkkiomalli kuin sovelluksessa
-// ja kumppanisivulla).
-const FAQ = [
-  {
-    question: 'Miten menen online-tilaan?',
-    answer: 'Liu’uta etusivun oranssi kytkin oikealle tai napauta sitä. Kun olet online, sinulle tarjotaan keikkoja lähialueeltasi. Offline-tilaan pääset samalla kytkimellä.',
-  },
-  {
-    question: 'Miten keikka etenee?',
-    answer: 'Hyväksy tarjous 60 sekunnin kuluessa ja aja ravintolaan. Nouda tilaus ravintolan antamalla noutokoodilla. Vie tilaus asiakkaalle ja kuittaa toimitus perillä - sovellus tarkistaa, että olet osoitteessa. Keikka näkyy sen jälkeen keikkahistoriassa ja ansioissa.',
-  },
-  {
-    question: 'Miten ansiot lasketaan?',
-    answer: `Jokaisesta keikasta saat perusmaksun (${formatEuro(PAY.baseCents)}) ja matkalisän (${formatEuro(PAY.perKmCents)} / km) reitistä sinulta ravintolaan ja sieltä perille. Ansion näet jo tarjouksessa ennen hyväksymistä, ja kertyneet ansiot valikon kohdasta Ansiot.`,
-  },
-  {
-    question: 'Pitääkö minulla olla yritys?',
-    answer: 'Kyllä. Kuljettajana toimit yrittäjänä omalla Y-tunnuksella tai kevytyrittäjänä laskutuspalvelun kautta.',
-  },
-  {
-    question: 'Mitä teen, jos asiakas ei vastaa?',
-    answer: 'Odota hetki osoitteessa ja yritä tavoittaa asiakas. Jos et saa yhteyttä, ota yhteys tukeen - autamme sinua päättämään, mitä tilaukselle tehdään.',
-  },
-  {
-    question: 'Miksi en pääse online-tilaan?',
-    answer:
-      'Online-tilaan pääset, kun delivo on hyväksynyt pakolliset dokumentit: henkilökortin tai passin, autolla tai skootterilla ajokortin ja omalla yrityksellä laskuttaessa pankkitodisteen. Lataa ne kohdasta Dokumentit. Tarkastus kestää yleensä 1–2 arkipäivää.',
-  },
-  {
-    question: 'Miten vaihdan kulkuneuvon tai tilinumeron?',
-    answer:
-      'Nimi, sähköposti, kulkuneuvo, kaupunki, Y-tunnus, laskutustapa ja tilinumero vaihdetaan muutospyynnöllä: Profiili tai Laskutustiedot > napauta tietoa > Pyydä muutosta. delivo hyväksyy pyynnön yleensä 1–2 arkipäivässä. Autoon tai skootteriin vaihtaessa lataa ajokortti ja tilinumeroa vaihtaessa pankkitodiste Dokumentit-näkymään.',
-  },
-  {
-    question: 'Mikä on ajastettu offline?',
-    answer: 'Voit valita kellonajan, jolloin sovellus vie sinut automaattisesti offline-tilaan - esimerkiksi vuoron loppuessa. Ajastuksen voi perua milloin tahansa, ja se poistuu jos menet itse offline-tilaan.',
-  },
-  {
-    question: 'Sijaintini ei näy kartalla',
-    answer: 'Tarkista, että sovellukselle on annettu sijaintilupa: Asetukset > Sijainti. Paikannus toimii parhaiten ulkona.',
-  },
-]
+// ja kumppanisivulla). Tekstit valitulla kielellä: help.q1-q9 ja help.a1-a9.
+const FAQ_COUNT = 9
 
 // Tuki ja ohjeet: usein kysytyt kysymykset avautuvina riveinä ja yhteystavat.
 export default function HelpScreen() {
+  const t = useT()
   const [openIndex, setOpenIndex] = useState(null)
+  const range = { min: formatEuro(DELIVERY_BID.minCents), max: formatEuro(DELIVERY_BID.maxCents) }
+  const faq = Array.from({ length: FAQ_COUNT }, (_, index) => ({
+    question: t(`help.q${index + 1}`),
+    answer: t(`help.a${index + 1}`, range),
+  }))
 
   const toggle = (index) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut)
@@ -61,27 +29,27 @@ export default function HelpScreen() {
   }
 
   return (
-    <Screen title="Tuki ja ohjeet">
-      <Card title="Ota yhteyttä">
+    <Screen title={t('menu.help')}>
+      <Card title={t('help.contact')}>
         <ListRow
           icon={Mail}
-          label="Lähetä viesti tukeen"
+          label={t('help.message')}
           onPress={() => Linking.openURL(`mailto:${SUPPORT_EMAIL}`).catch(() => {})}
         />
         <ListRow
           icon={Siren}
-          label="Hätänumero 112"
+          label={t('help.emergency')}
           onPress={() => Linking.openURL('tel:112').catch(() => {})}
           danger
           last
         />
       </Card>
 
-      <Card title="Usein kysyttyä">
-        {FAQ.map(({ question, answer }, index) => {
+      <Card title={t('help.faq')}>
+        {faq.map(({ question, answer }, index) => {
           const open = openIndex === index
           return (
-            <View key={question}>
+            <View key={index}>
               <Pressable
                 onPress={() => toggle(index)}
                 style={({ pressed }) => [styles.question, pressed && styles.questionPressed]}

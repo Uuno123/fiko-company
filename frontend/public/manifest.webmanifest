@@ -1,7 +1,7 @@
 {
-  "name": "delivo",
-  "short_name": "delivo",
-  "description": "delivo - nouda suoraan lähiravintoloista.",
+  "name": "Bidrop",
+  "short_name": "Bidrop",
+  "description": "Bidrop - nouda suoraan lähiravintoloista.",
   "lang": "fi",
   "start_url": "/",
   "scope": "/",
