@@ -103,40 +103,51 @@
   }
 }
 
-/* Jäljellä oleva aika omassa laatassaan - näkyy vilkaisulla. */
-.active-order-bubble__time {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
+/* delivon merkki ja edistymisrengas (käyttäjä: oranssi minuuttilaatta pois,
+   tilalle logo). Rengas täyttyy kohti arvioitua aikaa. */
+.active-order-bubble__mark {
+  display: block;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
-  border-radius: 12px;
-  background: var(--delivo-orange);
-  line-height: 1;
 }
 
-.active-order-bubble__time strong {
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 700;
+.active-order-bubble__mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
-.active-order-bubble__time span {
-  margin-top: 2px;
-  font-size: 0.62rem;
-  font-weight: 600;
-  opacity: 0.9;
+.active-order-bubble__ring-track,
+.active-order-bubble__ring {
+  fill: none;
+  stroke-width: 3;
 }
 
-.active-order-bubble__dot {
-  width: 10px;
-  height: 10px;
-  margin: 0;
-  border-radius: 50%;
-  background: #fff;
-  animation: active-order-bubble-pulse 1.8s ease-in-out infinite;
+.active-order-bubble__ring-track {
+  stroke: rgba(255, 255, 255, 0.16);
+}
+
+.active-order-bubble__ring {
+  stroke: #fff;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 24px 24px;
+  transition: stroke-dashoffset 0.8s ease;
+}
+
+/* Aika ei vielä tiedossa: lyhyt kaari kiertää odotuksen merkiksi. */
+.active-order-bubble__ring.is-waiting {
+  animation: active-order-bubble-spin 1.4s linear infinite;
+}
+
+@keyframes active-order-bubble-spin {
+  from {
+    transform: rotate(-90deg);
+  }
+  to {
+    transform: rotate(270deg);
+  }
 }
 
 .active-order-bubble__text {
@@ -158,16 +169,6 @@
   color: rgba(255, 255, 255, 0.72);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-@keyframes active-order-bubble-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(255, 255, 255, 0);
-  }
 }
 
 @keyframes active-order-bubble-in {
@@ -199,7 +200,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .active-order-bubble,
-  .active-order-bubble__dot,
+  .active-order-bubble__ring.is-waiting,
   .active-order-bubble__main,
   .active-order-bubble__box {
     animation: none;
@@ -208,4 +209,41 @@
   .active-order-bubble:hover {
     transform: none;
   }
+}
+
+/* Kuljettajien hintatarjouksia odottaa valintaa: merkki sykkii. */
+.active-order-bubble.has-bids .active-order-bubble__mark {
+  border-radius: 50%;
+  animation: active-order-bubble-attention 1.6s ease-out infinite;
+}
+
+@keyframes active-order-bubble-attention {
+  0% {
+    box-shadow: 0 0 0 0 rgba(244, 80, 30, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgba(244, 80, 30, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .active-order-bubble.has-bids .active-order-bubble__mark {
+    animation: none;
+  }
+}
+
+/* Ravintolan logo renkaan sisällä (logo_url, muuten kansikuva). */
+.active-order-bubble__mark {
+  position: relative;
+}
+
+.active-order-bubble__logo {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
 }

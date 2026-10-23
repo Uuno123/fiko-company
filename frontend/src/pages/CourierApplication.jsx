@@ -4,8 +4,7 @@ import { Check } from 'lucide-react'
 import Footer from '../components/Footer.jsx'
 import PartnerHeader from '../components/PartnerHeader.jsx'
 import ApplicationAside from '../components/partner/ApplicationAside.jsx'
-import { COURIER_PAY } from '../lib/deliveryTime.js'
-import { formatPrice } from '../lib/format.js'
+import { DELIVERY_PRICE_RANGE } from '../lib/delivery.js'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js'
 import './PartnerApplication.css'
 
@@ -19,14 +18,17 @@ const VEHICLES = [
 
 const STEPS = [
   { title: 'Lähetä hakemus', body: 'Yhteystiedot, kaupunki ja kulkuneuvo.' },
-  { title: 'Otamme yhteyttä', body: 'Käymme hakemuksen läpi ja olemme yhteydessä sähköpostitse.' },
-  { title: 'Aloita ajaminen', body: 'Saat tunnukset kuljettajasovellukseen ja voit mennä online-tilaan.' },
+  {
+    title: 'Tunnukset ja dokumentit',
+    body: 'Käymme hakemuksen läpi ja lähetämme tunnukset sovellukseen. Lisää siellä henkilöllisyystodistus ja tarvittaessa ajokortti ja pankkitodiste.',
+  },
+  { title: 'Aloita ajaminen', body: 'Kun Bidrop on hyväksynyt dokumentit, voit mennä online-tilaan - Androidilla tai iPhonella.' },
 ]
 
 const FACTS = [
-  { value: formatPrice(COURIER_PAY.baseCents), label: 'perusmaksu jokaisesta keikasta' },
-  { value: `+${formatPrice(COURIER_PAY.perKmCents)}`, label: 'jokaiselta ajetulta kilometriltä' },
-  { value: '8 km', label: 'keikat lähelläsi, lähin saa tarjouksen ensin' },
+  { value: DELIVERY_PRICE_RANGE, label: 'sinä tarjoat keikan hinnan, asiakas hyväksyy' },
+  { value: '100 %', label: 'sovitusta hinnasta sinulle, Bidrop ei ota osuutta' },
+  { value: '8 km', label: 'näet tilaukset lähelläsi ja tarjoat niihin' },
   { value: 'Y-tunnus', label: 'ajat yrittäjänä tai kevytyrittäjänä laskutuspalvelun kautta' },
 ]
 
@@ -206,7 +208,7 @@ function CourierApplication() {
             </p>
           </div>
 
-          <ApplicationAside eyebrow="delivo kuljettajille" title="Näin pääset ajamaan" steps={STEPS} facts={FACTS} />
+          <ApplicationAside eyebrow="Bidrop kuljettajille" title="Näin pääset ajamaan" steps={STEPS} facts={FACTS} />
         </div>
       </main>
 

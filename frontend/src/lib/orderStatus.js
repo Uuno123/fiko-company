@@ -2,7 +2,9 @@ import { coordinate, deliveryLegMinutes, hasCoords } from './deliveryTime.js'
 
 export const ORDER_STATUS_FLOW = ['pending', 'confirmed', 'preparing', 'ready', 'completed']
 
-const ACTIVE_ORDER_STATUSES = ['pending', 'confirmed', 'preparing', 'ready']
+// awaiting_courier: kotiinkuljetuksen hinnasta sovitaan vielä kuljettajan kanssa
+// (migraatio 0058) - ravintola ei ole vielä saanut tilausta.
+const ACTIVE_ORDER_STATUSES = ['awaiting_courier', 'pending', 'confirmed', 'preparing', 'ready']
 
 // Kuljettajan vaiheet, joiden aikana toimitus on vielä kesken (orders.courier_status,
 // migraatio 0043). Kuljettaja-app päivittää niitä: assigned -> at_restaurant ->
@@ -24,6 +26,7 @@ function clockTime(value) {
 // löytynyt, muuten ravintolan tila. (Ravintolan dashboard käyttää
 // orderStatusLabel-funktiota, jossa ei ole kuljettajaa.)
 export function customerStatusLabel(order) {
+  if (order.status === 'awaiting_courier') return 'Valitse kuljettaja'
   if (order.status !== 'cancelled' && order.delivery_method === 'delivery') {
     switch (order.courier_status) {
       case 'assigned':
@@ -50,6 +53,8 @@ export function customerStatusLabel(order) {
 export function orderStatusLabel(status, deliveryMethod) {
   const isDelivery = deliveryMethod === 'delivery'
   switch (status) {
+    case 'awaiting_courier':
+      return 'Kuljetuksesta sovitaan'
     case 'pending':
       return 'Odottaa vahvistusta'
     case 'confirmed':
@@ -136,6 +141,8 @@ export function courierPickupAt(order) {
 // hänen suunnittelemaansa noutoa myöhemmin. Noudon jälkeen kuljettajan arvio on
 // sellaisenaan saapumisaika.
 export function estimatedArrivalAt(order) {
+  // Ravintola ei ole vielä saanut tilausta, joten aikaa ei voi luvata.
+  if (order.status === 'awaiting_courier') return null
   const readyAt = timeOf(order.estimated_ready_at)
   if (order.delivery_method !== 'delivery') return readyAt == null ? null : new Date(readyAt)
 
@@ -156,10 +163,11 @@ export function estimatedArrivalAt(order) {
 // selitys tulee sen alle trackingMessage-funktiosta.
 export function trackingHeadline(order) {
   const isDelivery = order.delivery_method === 'delivery'
+  if (order.status === 'awaiting_courier') return 'Valitse kuljettaja'
   if (isDelivery && order.status !== 'cancelled') {
     switch (order.courier_status) {
       case 'assigned':
-        return 'Kuljettaja on matkalla ravintolaan'
+        return order.status === 'pending' ? 'Kuljetuksesta sovittu!' : 'Kuljettaja on matkalla ravintolaan'
       case 'at_restaurant':
         return 'Kuljettaja noutaa tilaustasi'
       case 'picked_up':
@@ -193,9 +201,13 @@ export function trackingHeadline(order) {
 // kuin lyhyt badge-teksti (orderStatusLabel), koska tässä on tilaa kertoa mitä tapahtuu seuraavaksi.
 export function trackingMessage(order) {
   const isDelivery = order.delivery_method === 'delivery'
+  if (order.status === 'awaiting_courier') {
+    return 'Lähellä olevat kuljettajat tarjoavat kuljetukselle hinnan. Hyväksy sopiva tarjous tai tarjoa omaa hintaa – ravintola saa tilauksen, kun hinnasta on sovittu.'
+  }
   if (isDelivery && order.status !== 'cancelled') {
     switch (order.courier_status) {
       case 'assigned': {
+        if (order.status === 'pending') return 'Tilaus odottaa vielä ravintolan vahvistusta. Kuljettaja hakee sen, kun ruoka on valmis.'
         const pickupAt = courierPickupAt(order)
         return pickupAt
           ? `Kuljettaja hakee tilauksesi ravintolasta klo ${clockTime(pickupAt)}.`

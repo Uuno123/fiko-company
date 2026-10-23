@@ -9,6 +9,10 @@ import { PartnerAuthContext } from '../lib/PartnerAuthContext.jsx'
 
 const IMG = (id) => `https://imageproxy.wolt.com/menu/menu-images/5adee2ab5a5917000f1f1140/${id}.png?w=960`
 
+// Esimerkkipyyntöjen ajat suhteessa sivun latausaikaan.
+const PREVIEW_NOW = Date.now()
+const DAY_MS = 86_400_000
+
 const MOCK_RESTAURANT = {
   id: 'preview-restaurant',
   name: 'Burger Talli',
@@ -23,6 +27,9 @@ const MOCK_RESTAURANT = {
   plan: 'kuljetus',
   commission_rate_percent: 0,
   opening_hours: null,
+  company_name: 'Burger Talli Oy',
+  business_id: '3214567-8',
+  iban: 'FI2112345600000785',
 }
 
 const MOCK_MENU = [
@@ -122,7 +129,41 @@ function useMockApi() {
       ],
     }
     const wait = (value) => new Promise((resolve) => setTimeout(() => resolve(value), 150))
+    let changeRequests = [
+      { id: 'cr1', field: 'name', new_value: 'Burger Talli Kuopio', reason: 'Nimi muuttui', status: 'rejected', admin_note: 'Lähetä kaupparekisteriote, jossa uusi nimi näkyy.', created_at: new Date(PREVIEW_NOW - 5 * DAY_MS).toISOString(), decided_at: new Date(PREVIEW_NOW - 4 * DAY_MS).toISOString() },
+    ]
+    // Esikatselun valearvostelut (vain tällä sivulla, oikea kojelauta lukee kannasta).
+    let reviews = [
+      { id: 'rv1', author_name: 'Aino K.', rating: 5, comment: 'Burgeri oli loistava ja tilaus tuli nopeasti.', reply: null, replied_at: null, created_at: new Date(PREVIEW_NOW - 1 * DAY_MS).toISOString() },
+      { id: 'rv2', author_name: 'Mikko L.', rating: 3, comment: 'Ranskalaiset olivat vähän kylmiä.', reply: 'Kiitos palautteesta, tarkistamme pakkaukset!', replied_at: new Date(PREVIEW_NOW - 1 * DAY_MS).toISOString(), created_at: new Date(PREVIEW_NOW - 3 * DAY_MS).toISOString() },
+      { id: 'rv3', author_name: 'Sanna P.', rating: 4, comment: null, reply: null, replied_at: null, created_at: new Date(PREVIEW_NOW - 6 * DAY_MS).toISOString() },
+    ]
+    let documents = [
+      { id: 'd1', type: 'business_register', status: 'approved', admin_note: null, change_request_id: null, created_at: new Date(PREVIEW_NOW - 40 * DAY_MS).toISOString() },
+      { id: 'd2', type: 'food_permit', status: 'approved', admin_note: null, change_request_id: null, created_at: new Date(PREVIEW_NOW - 40 * DAY_MS).toISOString() },
+    ]
     return {
+      fetchChangeRequests: () => wait(changeRequests),
+      createChangeRequest: (_restaurantId, { field, newValue, reason }) => {
+        if (changeRequests.some((r) => r.field === field && r.status === 'pending')) {
+          return Promise.reject({ code: '23505', message: 'duplicate key value violates unique constraint' })
+        }
+        const row = { id: `cr${Date.now()}`, field, new_value: newValue, reason, status: 'pending', admin_note: null, created_at: new Date().toISOString(), decided_at: null }
+        changeRequests = [row, ...changeRequests]
+        return wait(row)
+      },
+      fetchDocuments: () => wait(documents),
+      uploadRestaurantImage: (_restaurantId, blob) => wait(URL.createObjectURL(blob)),
+      fetchReviews: () => wait(reviews),
+      replyToReview: (id, reply) => {
+        const text = reply.trim() || null
+        reviews = reviews.map((r) => (r.id === id ? { ...r, reply: text, replied_at: text ? new Date().toISOString() : null } : r))
+        return wait({ id, reply: text })
+      },
+      uploadDocument: (_restaurantId, { type, changeRequestId }) => {
+        documents = [{ id: `d${Date.now()}`, type, status: 'pending', admin_note: null, change_request_id: changeRequestId ?? null, created_at: new Date().toISOString() }, ...documents]
+        return wait()
+      },
       fetchOrders: () => wait(orders),
       fetchOrder: (id) => wait(orders.find((o) => o.id === id)),
       subscribeOrders: () => () => {},

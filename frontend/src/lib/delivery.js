@@ -1,8 +1,12 @@
-// Kuljetusmaksu yhdessä paikassa. Sama luku on backendin payments.js:ssä, jossa
-// veloitus oikeasti lasketaan - jos tämä muuttuu, se on muutettava myös siellä.
-// Aiemmin "5,99 €" oli kovakoodattuna merkkijonona viidessä eri komponentissa,
-// jolloin hinnan muuttaminen olisi jättänyt osan näytöistä vanhaan lukuun.
-export const DELIVERY_FEE_CENTS = 599
+import { DELIVERY_BID } from './deliveryTime.js'
+
+// Kuljetusmaksu ei ole enää kiinteä: kuljettajat tarjoavat hinnan tilauksen
+// jälkeen ja asiakas valitsee (migraatio 0058). Korteissa ja ravintolasivulla
+// näytetään haarukka yhdestä paikasta.
+const euros = (cents) => (cents / 100).toFixed(2).replace('.', ',')
+export const DELIVERY_PRICE_RANGE = `${euros(DELIVERY_BID.minCents)}–${euros(DELIVERY_BID.maxCents)} €`
+// Asiakkaan palvelumaksu tilausta kohden - sama kuin Cart.jsx ja backendin payments.js.
+export const SERVICE_FEE_CENTS = 49
 
 // Arvio näytetään haarukkana eikä yhtenä lukuna: ravintolan antama
 // pickup_estimate_minutes on arvio, ja yksi tarkka minuuttiluku lupaisi

@@ -4,6 +4,7 @@ import { ShoppingBag, Trash2 } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import CategoryFilter from '../components/CategoryFilter.jsx'
+import PickupOfferBanner from '../components/PickupOfferBanner.jsx'
 import RankingInfo from '../components/RankingInfo.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import Spinner from '../components/Spinner.jsx'
@@ -18,8 +19,7 @@ import {
   categorySlug,
   padWithFillers,
 } from '../lib/categories.js'
-import { useAuth } from '../lib/AuthContext.jsx'
-import { getFavoriteRestaurantIds, addFavorite, removeFavorite } from '../lib/favorites.js'
+import { useFavorites } from '../lib/useFavorites.js'
 import { useCart } from '../lib/CartContext.jsx'
 import { useDeliveryAddress, withDistance } from '../lib/deliveryAddress.js'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
@@ -35,7 +35,7 @@ const NEARBY_ROW = 'Lähelläsi'
 
 // Mainokset kiertävät automaattisesti. Kaikki kolme ovat oikeita: DELIVO10 ja
 // TERVETULOA löytyvät kassan PROMO_CODES-listalta ja backendin payments-reitiltä,
-// ja noudossa ei tosiaan veloiteta kuljetusmaksua (ks. DELIVERY_FEE_CENTS).
+// ja noudossa ei tosiaan veloiteta kuljetusmaksua (kuljetushinta sovitaan vain kotiinkuljetuksessa).
 // Järjestys on tarkoituksella sekoitettu väreittäin, ei lisäysjärjestyksessä:
 // tervetuloa (punainen lahjapaketti) ja Mcdonalds (punainen kuva) on pidetty
 // erillään toisistaan niin ettei kaksi punaista diaa voi koskaan osua
@@ -43,9 +43,9 @@ const NEARBY_ROW = 'Lähelläsi'
 // vierekkäiset diat näkyvät aina samaan aikaan.
 const HOME_ADS = [
   {
-    id: 'delivo10',
+    id: 'bidrop10',
     img: '/promo-banner.png',
-    code: 'DELIVO10',
+    code: 'BIDROP10',
     lead: 'Käytä koodia',
     title: 'Saat 10 % alennuksen tilauksestasi!',
   },
@@ -82,7 +82,7 @@ const HOME_ADS = [
     img: '/promo-banner-shopping-bag-v2.png',
     code: null,
     lead: 'Nouda itse ravintolasta',
-    title: 'Ei kuljetusmaksua — säästä 5,99 €',
+    title: 'Ei kuljetusmaksua — nouda itse',
   },
 ]
 const AD_ROTATE_MS = 5000
@@ -100,11 +100,10 @@ function Home() {
   const [catsPill, setCatsPill] = useState(false)
   const quickCatsRef = useRef(null)
   const [adIndex, setAdIndex] = useState(0)
-  const [favoriteIds, setFavoriteIds] = useState(() => new Set())
+  const { favoriteIds, toggleFavorite } = useFavorites()
   const [activeRowSlug, setActiveRowSlug] = useState(null)
   const [cartFabOpen, setCartFabOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
-  const { customer } = useAuth()
   const navigate = useNavigate()
   const rowsRef = useRef(null)
   const cartFabRef = useRef(null)
@@ -320,23 +319,6 @@ function Home() {
     }
   }, [])
 
-  // Suosikit haetaan kerralla yhdellä kyselyllä, jotta jokainen kortti ei tee omaansa.
-  useEffect(() => {
-    if (!customer?.id) {
-      setFavoriteIds(new Set())
-      return
-    }
-    let cancelled = false
-    getFavoriteRestaurantIds(customer.id)
-      .then((ids) => {
-        if (!cancelled) setFavoriteIds(new Set(ids))
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [customer?.id])
-
   // Korostaa kategoriapallon sen mukaan mikä rivi on näkyvissä, jotta aktiivinen
   // tila kertoo oikeasti sijainnin sivulla eikä ole pelkkä koriste.
   useEffect(() => {
@@ -390,29 +372,6 @@ function Home() {
     [restaurants, deliveryAddress, popularity],
   )
 
-  async function toggleFavorite(restaurantId) {
-    if (!customer?.id) return
-    const isFav = favoriteIds.has(restaurantId)
-    setFavoriteIds((prev) => {
-      const next = new Set(prev)
-      if (isFav) next.delete(restaurantId)
-      else next.add(restaurantId)
-      return next
-    })
-    try {
-      if (isFav) await removeFavorite(customer.id, restaurantId)
-      else await addFavorite(customer.id, restaurantId)
-    } catch {
-      // Palautetaan näkymä jos tallennus ei mennyt läpi.
-      setFavoriteIds((prev) => {
-        const next = new Set(prev)
-        if (isFav) next.add(restaurantId)
-        else next.delete(restaurantId)
-        return next
-      })
-    }
-  }
-
   function scrollToCategory(e, category) {
     e.preventDefault()
     document.getElementById(`cat-${categorySlug(category)}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -443,8 +402,8 @@ function Home() {
               </svg>
               <input
                 type="search"
-                aria-label="Hae delivosta"
-                placeholder="Hae delivosta"
+                aria-label="Hae Bidropista"
+                placeholder="Hae Bidropista"
                 value={searchQuery}
                 autoFocus
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -563,7 +522,7 @@ function Home() {
             <input
               type="search"
               aria-label="Hae ravintoloita"
-              placeholder="Hae delivosta"
+              placeholder="Hae Bidropista"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -748,25 +707,15 @@ function Home() {
                             restaurant={restaurant}
                             disabled={restaurant.isPlaceholder}
                             isFavorite={favoriteIds.has(restaurant.id)}
-                            onToggleFavorite={customer && !restaurant.isPlaceholder && !restaurant.isDemo ? toggleFavorite : undefined}
+                            onToggleFavorite={restaurant.isPlaceholder ? undefined : toggleFavorite}
                           />
                         ))}
                       </div>
                     </section>
 
-                    {/* Tumma jakaja toisen kategoriarivin jälkeen: rytmittää
-                        valkoista sivua ja kertoo samalla delivon ydinlupauksen. */}
-                    {groupIndex === 1 && (
-                      <div className="home-pickup-banner">
-                        <span className="home-pickup-banner__icon" aria-hidden="true">
-                          🛍️
-                        </span>
-                        <span className="home-pickup-banner__text">
-                          <strong>Nouda itse, ei kuljetusmaksua</strong>
-                          <span>Säästät {formatPrice(599)} jokaisesta tilauksesta</span>
-                        </span>
-                      </div>
-                    )}
+                    {/* Tumma noutokuponki toisen kategoriarivin jälkeen:
+                        rytmittää valkoista sivua ja mainostaa noutotarjousta. */}
+                    {groupIndex === 1 && <PickupOfferBanner />}
                   </Fragment>
                 ),
             )}

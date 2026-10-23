@@ -7,8 +7,8 @@ import './PartnerHeader.css'
 
 const NAV_ITEMS = [
   { href: '/kumppanina#ravintoloille', label: 'Ravintoloille' },
-  { href: '/kumppanina#kuljettajille', label: 'Kuljettajille' },
   { href: '/kumppanina#hinnoittelu', label: 'Hinnoittelu' },
+  { href: '/kumppanina#kuljettajille', label: 'Kuljettajille' },
   { href: '/kumppanina#ukk', label: 'UKK' },
 ]
 

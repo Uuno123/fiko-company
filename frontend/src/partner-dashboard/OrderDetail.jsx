@@ -10,7 +10,7 @@ import {
 import { useDashboardApi } from './api.js'
 import { useDashboard } from './context.js'
 import { useNow } from './hooks.js'
-import { Badge, DemoTag, Drawer, ErrorNote, Modal } from './ui.jsx'
+import { Badge, Drawer, ErrorNote, Modal } from './ui.jsx'
 import {
   PENDING_AUTO_CANCEL_MINUTES,
   formatDateTime,
@@ -18,6 +18,7 @@ import {
   formatTime,
   lineTotalCents,
   minutesUntil,
+  orderPlacedAt,
   restaurantShareCents,
 } from './utils.js'
 import { printOrderTicket } from './print.js'
@@ -34,12 +35,14 @@ export const STATUS_TONE = {
 const READY_OPTIONS = [5, 10, 15, 20, 25, 30, 40, 45, 60]
 const DELAY_OPTIONS = [5, 10, 15]
 
+// Hylkäyksen syy tallentuu tilaukselle koodina (orders.cancel_reason, 0057), ja
+// asiakkaan ilmoitus kertoo sen selkokielellä (OrderChangeNotice).
 const REJECT_REASONS = [
-  'Tuote on loppunut',
-  'Keittiössä on liian kiire',
-  'Ravintola on sulkemassa',
-  'Asiakas pyysi perumaan',
-  'Muu syy',
+  { key: 'sold_out', label: 'Tuote on loppunut' },
+  { key: 'too_busy', label: 'Keittiössä on liian kiire' },
+  { key: 'closing', label: 'Ravintola on sulkemassa' },
+  { key: 'customer_request', label: 'Asiakas pyysi perumaan' },
+  { key: 'other', label: 'Muu syy' },
 ]
 
 export function PendingCountdown({ createdAt, compact = false }) {
@@ -49,7 +52,7 @@ export function PendingCountdown({ createdAt, compact = false }) {
   const seconds = Math.floor(remainingMs / 1000)
   const text = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
   return (
-    <span className={`pd-countdown${seconds < 60 ? ' is-urgent' : ''}`}>
+    <span className={`pd-countdown${seconds < 30 ? ' is-urgent' : ''}`}>
       <Timer size={14} aria-hidden="true" />
       {compact ? text : `Hyväksy ${text} kuluessa, muuten tilaus peruuntuu`}
     </span>
@@ -204,15 +207,12 @@ function RejectModal({ order, onConfirm, onClose, busy }) {
       <p className="pd-muted">Asiakkaalle ilmoitetaan, ettei tilausta voida toimittaa. Valitse syy:</p>
       <div className="pd-radio-list">
         {REJECT_REASONS.map((option) => (
-          <label key={option} className={`pd-radio${reason === option ? ' is-checked' : ''}`}>
-            <input type="radio" name="reject-reason" checked={reason === option} onChange={() => setReason(option)} />
-            {option}
+          <label key={option.key} className={`pd-radio${reason.key === option.key ? ' is-checked' : ''}`}>
+            <input type="radio" name="reject-reason" checked={reason.key === option.key} onChange={() => setReason(option)} />
+            {option.label}
           </label>
         ))}
       </div>
-      <p className="pd-inline-demo">
-        <DemoTag /> Syytä ei vielä tallenneta - itse hylkäys tallentuu oikeasti.
-      </p>
     </Modal>
   )
 }
@@ -267,11 +267,21 @@ export default function OrderDetail({ order, onClose }) {
   }
 
   async function reject(reason) {
-    const ok = await update({ status: 'cancelled' }, `Tilaus hylätty: ${reason.toLowerCase()}`)
-    if (ok) {
+    setBusy(true)
+    setError('')
+    // Syy tallentuu, kun migraatio 0057 on ajettu - ilman sitä hylkäys
+    // tallennetaan silti, vain ilman syytä.
+    let err = await ordersState.updateOrder(order.id, { status: 'cancelled', cancel_reason: reason.key })
+    if (err) err = await ordersState.updateOrder(order.id, { status: 'cancelled' })
+    setBusy(false)
+    if (err) {
+      setError('Päivitys epäonnistui. Tarkista yhteys ja yritä uudelleen.')
       setShowReject(false)
-      onClose()
+      return
     }
+    toast(`Tilaus hylätty: ${reason.label.toLowerCase()}`)
+    setShowReject(false)
+    onClose()
   }
 
   async function markSoldOut(line) {
@@ -325,7 +335,7 @@ export default function OrderDetail({ order, onClose }) {
             {isDelivery ? <Bike size={13} aria-hidden="true" /> : <ShoppingBag size={13} aria-hidden="true" />}
             {isDelivery ? 'Kotiinkuljetus' : 'Nouto'}
           </Badge>
-          {order.status === 'pending' && <PendingCountdown createdAt={order.created_at} />}
+          {order.status === 'pending' && <PendingCountdown createdAt={orderPlacedAt(order)} />}
           {active && <DueLabel order={order} />}
           <CourierStatus order={order} />
         </div>

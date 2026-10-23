@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Bike, Heart, Tag } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
-import { DELIVERY_FEE_CENTS, formatEtaRange } from '../lib/delivery.js'
-import { formatDistance } from '../lib/deliveryAddress.js'
+import { DELIVERY_PRICE_RANGE, formatEtaRange } from '../lib/delivery.js'
 import { formatPrice } from '../lib/format.js'
 import './RestaurantCard.css'
 
@@ -24,15 +23,13 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
     rating,
     free_delivery: freeDelivery,
     pickup_estimate_minutes: pickupEstimateMinutes,
-    distance_km: distanceKm,
     sponsored,
   } = restaurant
 
   const etaRange = formatEtaRange(pickupEstimateMinutes)
-  const distance = formatDistance(distanceKm)
 
-  // Yksi tietorivi: arvosana · aika · etäisyys · kuljetusmaksu. Etäisyys on
-  // mukana vain kun kävijä on antanut toimitusosoitteen (lib/deliveryAddress.js).
+  // Yksi tietorivi: arvosana · aika · kuljetusmaksu (käyttäjä: etäisyys pois
+  // korteista; etäisyys vaikuttaa edelleen järjestykseen, lib/ranking.js).
   // Kiinni olevaa ravintolaa ei merkitä tekstillä vaan himmennetyllä kortilla
   // (.restaurant-card--closed).
   const stats = [
@@ -47,17 +44,12 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
         {etaRange}
       </span>
     ),
-    distance && (
-      <span key="distance" className="restaurant-card__stat">
-        {distance}
-      </span>
-    ),
     <span
       key="fee"
       className={`restaurant-card__stat${freeDelivery ? ' restaurant-card__stat--accent' : ''}`}
     >
       <Bike size={14} aria-hidden="true" />
-      {formatPrice(freeDelivery ? 0 : DELIVERY_FEE_CENTS)}
+      {freeDelivery ? formatPrice(0) : DELIVERY_PRICE_RANGE}
     </span>,
   ].filter(Boolean)
 

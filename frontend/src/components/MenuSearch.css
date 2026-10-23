@@ -33,13 +33,13 @@
   height: 40px;
   border: none;
   border-radius: 50%;
-  background: none;
+  background: var(--round-button-bg);
   color: var(--delivo-black);
   cursor: pointer;
 }
 
 .menu-search__back:active {
-  background: #f4f4f4;
+  background: var(--round-button-bg-pressed);
 }
 
 .menu-search__field {

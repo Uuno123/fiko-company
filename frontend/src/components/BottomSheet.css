@@ -1,0 +1,162 @@
+/* Alhaalta liukuva paneeli (BottomSheet.jsx). z-index osoiteikkunan (960)
+   yläpuolella ja tilausmuutoksen ilmoituksen (980) sekä evästeikkunan (1000)
+   alapuolella. */
+.bottom-sheet__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 974;
+  background: rgba(20, 21, 15, 0.45);
+  animation: bottom-sheet-fade 0.3s ease both;
+}
+
+.bottom-sheet__backdrop.is-leaving {
+  animation: bottom-sheet-fade-out 0.28s ease forwards;
+}
+
+/* Puhelin: koko levyinen, lähes koko näytön korkuinen - yläreunaan jää kaistale,
+   josta näkee, minkä sivun päällä paneeli on. */
+.bottom-sheet {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 975;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 44px);
+  height: calc(100dvh - 44px);
+  border-radius: 24px 24px 0 0;
+  background: var(--surface);
+  box-shadow: 0 -12px 40px -12px rgba(20, 21, 15, 0.35);
+  animation: bottom-sheet-up 0.42s cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.bottom-sheet.is-leaving {
+  animation: bottom-sheet-down 0.28s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.bottom-sheet__handle {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: center;
+  padding: 10px 0 6px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.bottom-sheet__handle:active {
+  cursor: grabbing;
+}
+
+.bottom-sheet__handle span {
+  width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  background: #cfd2d8;
+}
+
+.bottom-sheet__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--round-button-bg);
+  color: var(--delivo-black);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.bottom-sheet__close:hover,
+.bottom-sheet__close:active {
+  background: var(--round-button-bg-pressed);
+}
+
+.bottom-sheet__body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px 22px calc(28px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Työpöytä: keskitetty ikkuna, korkeus sisällön mukaan. */
+@media (min-width: 640px) {
+  .bottom-sheet {
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: 440px;
+    height: auto;
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+    border-radius: 24px;
+    box-shadow: 0 24px 60px -16px rgba(20, 21, 15, 0.45);
+    transform: translate(-50%, -50%);
+    animation: bottom-sheet-pop 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .bottom-sheet.is-leaving {
+    animation: bottom-sheet-pop-out 0.2s ease forwards;
+  }
+
+  .bottom-sheet__handle {
+    display: none;
+  }
+
+  .bottom-sheet__body {
+    padding: 44px 36px 32px;
+  }
+}
+
+@keyframes bottom-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes bottom-sheet-down {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes bottom-sheet-pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 12px)) scale(0.98);
+  }
+}
+
+@keyframes bottom-sheet-pop-out {
+  to {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 12px)) scale(0.98);
+  }
+}
+
+@keyframes bottom-sheet-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes bottom-sheet-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bottom-sheet,
+  .bottom-sheet__backdrop {
+    animation-duration: 0.01ms;
+  }
+}

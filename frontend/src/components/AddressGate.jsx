@@ -38,6 +38,8 @@ function AddressGate() {
   // mutta seuraava ravintola (tai paluu samaan muualta) kysyy taas.
   const promptedForRef = useRef(null)
   useEffect(() => {
+    // Kirjautumispaneeli aukeaa sivun päälle - sivu ei vaihdu, joten ei kysytä uudelleen.
+    if (pathname === '/login' || pathname === '/register') return
     if (!isRestaurantPage(pathname)) {
       promptedForRef.current = null
       return

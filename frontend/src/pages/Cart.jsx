@@ -8,9 +8,11 @@ import { coordinate, deliveryLegMinutes, hasCoords } from '../lib/deliveryTime.j
 import { DELIVERY_ETA_BUFFER_MINUTES, estimatedArrivalAt } from '../lib/orderStatus.js'
 import LoginModal from '../components/LoginModal.jsx'
 import AddressPickerModal from '../components/AddressPickerModal.jsx'
+import DeliveryBidPanel from '../components/DeliveryBidPanel.jsx'
 import DeliveryRouteMap from '../components/DeliveryRouteMap.jsx'
 import { geocodeAddress, haversineKm } from '../lib/geocode.js'
 import { getDeliveryAddress } from '../lib/deliveryAddress.js'
+import { DELIVERY_PRICE_RANGE } from '../lib/delivery.js'
 import { useCart } from '../lib/CartContext.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
@@ -72,11 +74,12 @@ const STRIPE_APPEARANCE = {
   },
 }
 
-const DELIVERY_FEE_CENTS = 599
+// Kotiinkuljetuksessa ei ole kiinteää maksua: kuljettajat tarjoavat hinnan
+// (DELIVERY_PRICE_RANGE) tilauksen jälkeen ja asiakas valitsee (migraatio 0058).
 const SERVICE_FEE_CENTS = 49
 
 const PROMO_CODES = {
-  DELIVO10: { type: 'percent', value: 10, label: '10 % alennus' },
+  BIDROP10: { type: 'percent', value: 10, label: '10 % alennus' },
   TERVETULOA: { type: 'fixed', value: 300, label: '3,00 € alennus' },
   // Sama koodi mainostetaan ravintolakorttien merkissä (RestaurantCard) ja
   // etusivun mainoskarusellissa - maxDiscountCents ja minSubtotalCents pitävät
@@ -89,6 +92,16 @@ const PROMO_CODES = {
     maxDiscountCents: 700,
     minSubtotalCents: 5000,
     label: '30 % alennus (enint. 7 €)',
+  },
+  // Etusivun noutobannerin tarjous. pickupOnly: alennus vain noutotilauksiin -
+  // jos asiakas vaihtaa kotiinkuljetukseen, alennus ei ole voimassa. Sama
+  // ehto backendin payments.js:ssä.
+  NOUTO15: {
+    type: 'percent',
+    value: 15,
+    maxDiscountCents: 500,
+    pickupOnly: true,
+    label: '15 % noutoalennus (enint. 5 €)',
   },
 }
 
@@ -148,12 +161,12 @@ function VisaBadge() {
 const QUICK_PAY_METHODS = [
   { key: 'google', icon: <GooglePayIcon />, label: 'Google Pay' },
   { key: 'apple', icon: <ApplePayIcon />, label: 'Apple Pay' },
-  { key: 'visa', icon: <VisaBadge />, label: '•••• 4242' },
+  { key: 'visa', icon: <VisaBadge />, label: 'Maksukortti' },
 ]
 
 // Alennuskoodi linkin takana (käyttäjä: kassassa liikaa asioita) - kenttä
 // aukeaa vasta "Lisää alennuskoodi" -painalluksesta.
-function PromoCode({ promo, promoInput, setPromoInput, promoError, onApply, onRemove }) {
+function PromoCode({ promo, promoApplies, promoInput, setPromoInput, promoError, onApply, onRemove }) {
   const [open, setOpen] = useState(false)
 
   if (!promo && !open) {
@@ -169,7 +182,7 @@ function PromoCode({ promo, promoInput, setPromoInput, promoError, onApply, onRe
       {promo ? (
         <div className="promo-code__applied">
           <span>
-            🏷️ <strong>{promo.code}</strong> · {promo.label}
+            🏷️ <strong>{promo.code}</strong> · {promoApplies ? promo.label : 'voimassa vain noudossa'}
           </span>
           <button type="button" onClick={onRemove}>
             Poista
@@ -205,38 +218,70 @@ function PromoCode({ promo, promoInput, setPromoInput, promoError, onApply, onRe
   )
 }
 
-function StripeCardSection({ cardName, setCardName, customerEmail, totalCents, disabled, processing, setProcessing, onSuccess, onError }) {
+// Kortti on hyväksytty: varattu (capture_method = manual, veloitus kun ravintola
+// hyväksyy - backend/src/settlement.js) tai jo veloitettu.
+const AUTHORIZED_STATUSES = ['requires_capture', 'succeeded']
+
+function StripeCardSection({ clientSecret, cardName, setCardName, customerEmail, submitLabel, disabled, processing, setProcessing, onSuccess, onError }) {
   const stripe = useStripe()
   const elements = useElements()
   const [nameError, setNameError] = useState('')
+  // Tuplapainallus ehti ennen kuin processing-tila piirtyi: toinen vahvistus
+  // samaan jo varattuun maksuun palautti Stripen virheen, vaikka kortti oli
+  // hyväksytty. Lukko estää toisen vahvistuksen heti.
+  const submittingRef = useRef(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!stripe || !elements || disabled || processing) return
+    if (!stripe || !elements || disabled || processing || submittingRef.current) return
     if (cardName.trim().length < 2) {
       setNameError('Anna kortinhaltijan nimi')
       return
     }
     setNameError('')
+    submittingRef.current = true
     setProcessing(true)
 
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        payment_method_data: { billing_details: { name: cardName, email: customerEmail || undefined } },
-      },
-      redirect: 'if_required',
-    })
+    // Jo hyväksytty maksu (esim. edellinen yritys onnistui, mutta vastaus jäi
+    // saamatta): ei vahvisteta uudelleen, vaan jatketaan tilauksen tallennukseen.
+    const before = await stripe.retrievePaymentIntent(clientSecret).catch(() => null)
+    let paymentIntent = before?.paymentIntent
+    let error = null
+    if (!AUTHORIZED_STATUSES.includes(paymentIntent?.status)) {
+      ;({ error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          payment_method_data: { billing_details: { name: cardName, email: customerEmail || undefined } },
+        },
+        redirect: 'if_required',
+      }))
+    }
+
+    // Virhe voi tulla, vaikka kortti hyväksyttiin (yhteys katkesi vastauksen
+    // aikana): maksun todellinen tila tarkistetaan ennen virheilmoitusta.
+    if (error) {
+      console.warn('[delivo-frontend] Stripe-vahvistus:', error.type, error.code, error.message)
+      const after = await stripe.retrievePaymentIntent(clientSecret).catch(() => null)
+      if (AUTHORIZED_STATUSES.includes(after?.paymentIntent?.status)) {
+        error = null
+        paymentIntent = after.paymentIntent
+      }
+    }
 
     if (error) {
+      submittingRef.current = false
       setProcessing(false)
       onError(error.message || 'Maksu epäonnistui. Yritä uudelleen.')
       return
     }
 
-    if (paymentIntent?.status === 'succeeded') {
+    if (AUTHORIZED_STATUSES.includes(paymentIntent?.status)) {
       await onSuccess()
+      // Jos tilauksen tallennus epäonnistui, uusi painallus yrittää tallennusta
+      // uudelleen (kortti on jo hyväksytty, sitä ei vahvisteta toiseen kertaan).
+      submittingRef.current = false
     } else {
+      submittingRef.current = false
       setProcessing(false)
       onError('Maksua ei voitu vahvistaa. Yritä uudelleen.')
     }
@@ -272,7 +317,7 @@ function StripeCardSection({ cardName, setCardName, customerEmail, totalCents, d
       </div>
 
       <button type="submit" className="payment-submit" disabled={!stripe || processing || disabled}>
-        {processing ? <span className="payment-submit__spinner" /> : `Maksa ${formatPrice(totalCents)}`}
+        {processing ? <span className="payment-submit__spinner" /> : submitLabel}
       </button>
 
       <p className="payment-secure">
@@ -280,7 +325,7 @@ function StripeCardSection({ cardName, setCardName, customerEmail, totalCents, d
           <rect x="4" y="9" width="12" height="8" rx="2" stroke="currentColor" strokeWidth="1.4" />
           <path d="M6.5 9V6.5a3.5 3.5 0 0 1 7 0V9" stroke="currentColor" strokeWidth="1.4" />
         </svg>
-        Maksu käsitellään Stripen kautta - korttitietosi eivät kulje delivon palvelimien läpi.
+        Maksu käsitellään Stripen kautta - korttitietosi eivät kulje Bidropin palvelimien läpi.
       </p>
     </form>
   )
@@ -421,10 +466,13 @@ function Cart() {
         (hasCoords(restaurantPoint) && hasCoords(deliveryPoint)
           ? deliveryLegMinutes(restaurantPoint, deliveryPoint, 'bike')
           : DELIVERY_ETA_BUFFER_MINUTES)
-  const deliveryFee = activeGroup && delivery.method === 'delivery' ? DELIVERY_FEE_CENTS : 0
+  const isDeliveryOrder = delivery.method === 'delivery'
   const serviceFee = activeGroup ? SERVICE_FEE_CENTS : 0
-  const discountCents = promo ? Math.min(promo.discountCents, activeSubtotal) : 0
-  const totalWithDelivery = activeSubtotal + deliveryFee + serviceFee - discountCents
+  // Noutokoodi (pickupOnly) ei alenna kotiinkuljetusta, vaikka se jäisi voimaan.
+  const promoApplies = Boolean(promo) && (!promo.pickupOnly || delivery.method === 'pickup')
+  const discountCents = promoApplies ? Math.min(promo.discountCents, activeSubtotal) : 0
+  // Kotiinkuljetuksessa kuljetus lisätään vasta sovittuna.
+  const totalNow = activeSubtotal + serviceFee - discountCents
 
   function resumeCheckout(restaurantId) {
     if (restaurants[restaurantId]?.is_open === false) return
@@ -447,13 +495,17 @@ function Cart() {
       setPromoError('Koodi ei kelpaa')
       return
     }
+    if (found.pickupOnly && delivery.method !== 'pickup') {
+      setPromoError('Koodi koskee vain noutotilauksia - valitse Nouto')
+      return
+    }
     if (found.minSubtotalCents && activeSubtotal < found.minSubtotalCents) {
       setPromoError(`Koodi vaatii vähintään ${formatPrice(found.minSubtotalCents)} tilauksen`)
       return
     }
     let amount = found.type === 'percent' ? Math.round((activeSubtotal * found.value) / 100) : found.value
     if (found.maxDiscountCents) amount = Math.min(amount, found.maxDiscountCents)
-    setPromo({ code, label: found.label, discountCents: amount })
+    setPromo({ code, label: found.label, discountCents: amount, pickupOnly: Boolean(found.pickupOnly) })
     setPromoError('')
   }
 
@@ -558,7 +610,7 @@ function Cart() {
       const intent = await createPaymentIntent({
         restaurantId: activeGroup.restaurantId,
         deliveryMethod: delivery.method,
-        promoCode: promo?.code ?? null,
+        promoCode: promoApplies ? promo.code : null,
         lines,
       })
       setPaymentIntent(intent)
@@ -579,8 +631,10 @@ function Cart() {
     const restaurant = restaurants[group.restaurantId]
     const isDelivery = delivery.method === 'delivery'
     return {
+      id: orderRow.id,
       order_number: orderRow.order_number,
-      status: 'pending',
+      status: orderRow.status ?? 'pending',
+      bidding_expires_at: orderRow.bidding_expires_at ?? null,
       delivery_method: delivery.method,
       created_at: new Date().toISOString(),
       estimated_ready_at: readyAt.toISOString(),
@@ -588,6 +642,11 @@ function Cart() {
       delivery_lat: isDelivery ? orderRow.delivery_lat : null,
       delivery_lng: isDelivery ? orderRow.delivery_lng : null,
       total_cents: totalCents,
+      // Maksut erittelyyn (Tilauksen tiedot), samat kuin tallennetulla rivillä.
+      delivery_fee_cents: orderRow?.delivery_fee_cents ?? 0,
+      service_fee_cents: orderRow?.service_fee_cents ?? 0,
+      discount_cents: orderRow?.discount_cents ?? 0,
+      promo_code: orderRow?.promo_code ?? null,
       restaurants: {
         name: group.restaurantName,
         lat: restaurant?.lat,
@@ -608,7 +667,7 @@ function Cart() {
   // Stripe-maksulle. Palauttaa tallennetun orders-rivin tai heittää virheen.
   // estimatedReadyAt on ruoan valmistumisaika - ei toimitusaikaa, jonka
   // estimatedArrivalAt lisää toimitustilauksille itse.
-  async function saveOrderRows({ restaurantId, lines, totals, estimatedReadyAt, deliveryCoords }) {
+  async function saveOrderRows({ restaurantId, lines, totals, estimatedReadyAt, deliveryCoords, paymentIntentId }) {
     const isDelivery = delivery.method === 'delivery'
     const deliveryNotes = [isDelivery && delivery.leaveAtDoor ? 'Jätä ovelle' : null, delivery.notes.trim() || null]
       .filter(Boolean)
@@ -649,6 +708,8 @@ function Cart() {
         promo_code: totals.promoCode,
         total_cents: totals.totalCents,
         estimated_ready_at: estimatedReadyAt.toISOString(),
+        // Kortin varaus, jonka backend veloittaa ravintolan hyväksyessä.
+        ...(paymentIntentId ? { payment_intent_id: paymentIntentId } : {}),
       })
       .select()
       .single()
@@ -694,18 +755,18 @@ function Cart() {
         deliveryCoords,
         totals: {
           subtotalCents: activeSubtotal,
-          deliveryFeeCents: deliveryFee,
+          deliveryFeeCents: 0,
           serviceFeeCents: serviceFee,
           discountCents,
-          promoCode: promo?.code ?? null,
-          totalCents: totalWithDelivery,
+          promoCode: promoApplies ? promo.code : null,
+          totalCents: totalNow,
         },
       })
       setOrder(
         buildTrackingOrder({
           orderRow,
           readyAt: estimatedReadyAt,
-          totalCents: totalWithDelivery,
+          totalCents: totalNow,
           group: activeGroup,
         }),
       )
@@ -746,6 +807,7 @@ function Cart() {
           promoCode: paymentIntent.promoCode,
           totalCents: paymentIntent.totalCents,
         },
+        paymentIntentId: paymentIntent.paymentIntentId,
       })
     } catch {
       orderRow = null
@@ -1297,6 +1359,7 @@ function Cart() {
 
               <PromoCode
                 promo={promo}
+                promoApplies={promoApplies}
                 promoInput={promoInput}
                 setPromoInput={setPromoInput}
                 promoError={promoError}
@@ -1311,25 +1374,26 @@ function Cart() {
                 </div>
                 {/* Alennus kohdistuu vain tuotteisiin (ks. applyPromo/backendin
                     payments.js), joten se näytetään heti tuotteiden alla. */}
-                {promo && (
+                {promoApplies && (
                   <div className="order-summary__row order-summary__row--discount">
                     <span>Alennus ({promo.code})</span>
                     <span>−{formatPrice(discountCents)}</span>
                   </div>
                 )}
                 <div className="order-summary__row">
-                  <span>Kuljetus{delivery.method === 'delivery' ? deliveryDistanceLabel : ''}</span>
-                  <span>{delivery.method === 'delivery' ? formatPrice(deliveryFee) : 'Ei toimitusta'}</span>
+                  <span>Kuljetus{isDeliveryOrder ? deliveryDistanceLabel : ''}</span>
+                  <span>{isDeliveryOrder ? DELIVERY_PRICE_RANGE : 'Ei toimitusta'}</span>
                 </div>
                 <div className="order-summary__row">
                   <span>Palvelumaksu</span>
                   <span>{formatPrice(serviceFee)}</span>
                 </div>
                 <div className="order-summary__row order-summary__row--total">
-                  <span>Yhteensä</span>
-                  <span>{formatPrice(totalWithDelivery)}</span>
+                  <span>{isDeliveryOrder ? 'Yhteensä + kuljetus' : 'Yhteensä'}</span>
+                  <span>{formatPrice(totalNow)}</span>
                 </div>
               </div>
+
 
               {/* Maksutapa yhteenvedossa suoraan maksunapin yläpuolella eikä omana
                 korttinaan (käyttäjä: kassassa liikaa asioita). TILAPÄINEN, käyttäjän
@@ -1393,13 +1457,13 @@ function Cart() {
               <button
                 type="button"
                 className={`payment-submit payment-submit--${quickPayMethod}`}
-                disabled={activeRestaurantClosed || placingOrder}
-                onClick={placeOrderWithSimulatedPayment}
+                disabled={activeRestaurantClosed || placingOrder || creatingIntent}
+                onClick={quickPayMethod === 'visa' ? handleContinueToPayment : placeOrderWithSimulatedPayment}
                 aria-label={
                   quickPayMethod === 'google'
-                    ? `Maksa ${formatPrice(totalWithDelivery)} Google Paylla`
+                    ? `Maksa ${formatPrice(totalNow)} Google Paylla`
                     : quickPayMethod === 'apple'
-                      ? `Maksa ${formatPrice(totalWithDelivery)} Apple Paylla`
+                      ? `Maksa ${formatPrice(totalNow)} Apple Paylla`
                       : undefined
                 }
               >
@@ -1421,7 +1485,7 @@ function Cart() {
                     </span>
                   </>
                 )}
-                {quickPayMethod === 'visa' && `Maksa ${formatPrice(totalWithDelivery)}`}
+                {quickPayMethod === 'visa' && (creatingIntent ? <span className="payment-submit__spinner" /> : 'Maksa')}
               </button>
             </aside>
           </div>
@@ -1466,7 +1530,7 @@ function Cart() {
                 </span>
                 <div className="saved-card-preview__text">
                   <strong>Kortti •••• 4242</strong>
-                  <span>Veloitetaan {formatPrice(paymentIntent.totalCents)} (testitila)</span>
+                  <span>Testitila</span>
                 </div>
                 <svg className="saved-card-preview__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path d="m8 5 5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -1476,10 +1540,11 @@ function Cart() {
               <div ref={paymentElementRef}>
                 <Elements stripe={stripePromise} options={{ clientSecret: paymentIntent.clientSecret, appearance: STRIPE_APPEARANCE }}>
                   <StripeCardSection
+                    clientSecret={paymentIntent.clientSecret}
                     cardName={cardName}
                     setCardName={setCardName}
                     customerEmail={customer?.email}
-                    totalCents={paymentIntent.totalCents}
+                    submitLabel="Maksa"
                     disabled={activeRestaurantClosed}
                     processing={step === 'processing'}
                     setProcessing={(processing) => setStep(processing ? 'processing' : 'payment')}
@@ -1547,8 +1612,8 @@ function Cart() {
                 <span>{formatPrice(paymentIntent.subtotalCents)}</span>
               </div>
               <div className="order-summary__row">
-                <span>Kuljetus{delivery.method === 'delivery' ? deliveryDistanceLabel : ''}</span>
-                <span>{formatPrice(paymentIntent.deliveryFeeCents)}</span>
+                <span>Kuljetus{isDeliveryOrder ? deliveryDistanceLabel : ''}</span>
+                <span>{isDeliveryOrder ? 'sovitaan' : 'Ei toimitusta'}</span>
               </div>
               <div className="order-summary__row">
                 <span>Palvelumaksu</span>
@@ -1561,7 +1626,7 @@ function Cart() {
                 </div>
               )}
               <div className="order-summary__row order-summary__row--total">
-                <span>Yhteensä</span>
+                <span>{paymentIntent.maxDeliveryCents > 0 ? 'Yhteensä + kuljetus' : 'Yhteensä'}</span>
                 <span>{formatPrice(paymentIntent.totalCents)}</span>
               </div>
             </aside>
@@ -1583,8 +1648,12 @@ function Cart() {
                 />
               </svg>
             </div>
-            <h1>Tilaus tehty!</h1>
-            <p>Kiitos tilauksestasi. Voit seurata sitä etusivun Seuraa tilausta -painikkeesta.</p>
+            <h1>{order.status === 'awaiting_courier' ? 'Valitse kuljettaja' : 'Tilaus tehty!'}</h1>
+            <p>
+              {order.status === 'awaiting_courier'
+                ? 'Lähellä olevat kuljettajat tarjoavat nyt hintaa kuljetukselle. Hyväksy sopiva tarjous tai tarjoa omaa hintaa – ravintola saa tilauksen, kun hinnasta on sovittu.'
+                : 'Kiitos tilauksestasi. Voit seurata sitä etusivun Seuraa tilausta -painikkeesta.'}
+            </p>
             <p className="order-done__meta">
               Tilausnumero {order.order_number} · {formatPrice(order.total_cents)}
               {orderArrival && (
@@ -1594,6 +1663,12 @@ function Cart() {
                 </>
               )}
             </p>
+
+            {order.status === 'awaiting_courier' && order.id && (
+              <div className="order-done__bids">
+                <DeliveryBidPanel orderId={order.id} />
+              </div>
+            )}
 
             {remainingGroups.length > 0 && (
               <div className="order-success__more">

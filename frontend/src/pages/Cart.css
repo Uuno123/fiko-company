@@ -1674,16 +1674,20 @@
   color: #1f7a36;
 }
 
-/* Puhelimella ei isoja mustia nappeja (käyttäjän toive): takaisin-nuoli ilman
-   palloa, ja tyhjän korin / tilausvahvistuksen jatkolinkki pelkkänä tekstinä.
-   Maksunappi pysyy nappina - se on sivun päätoiminto. */
+/* Puhelimella ei isoja mustia nappeja (käyttäjän toive): takaisin-nuoli
+   harmaassa pallossa (erottuu valkoisesta), ja tyhjän korin /
+   tilausvahvistuksen jatkolinkki pelkkänä tekstinä. Maksunappi pysyy nappina -
+   se on sivun päätoiminto. */
 @media (max-width: 560px) {
   .cart-topbar__back {
-    width: 32px;
-    height: 32px;
-    margin-left: -6px;
-    background: none;
+    width: 36px;
+    height: 36px;
+    background: var(--round-button-bg);
     color: var(--delivo-black);
+  }
+
+  .cart-topbar__back:active {
+    background: var(--round-button-bg-pressed);
   }
 
   .cart-empty__cta,
@@ -1697,4 +1701,11 @@
     transform: none;
     box-shadow: none;
   }
+}
+
+/* Kuljetushinnan sopiminen (migraatio 0058): kuljettajan valinta vahvistussivulla. */
+.order-done__bids {
+  width: 100%;
+  max-width: 460px;
+  margin: 4px auto 8px;
 }

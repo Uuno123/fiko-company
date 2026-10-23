@@ -193,14 +193,18 @@
   }
 }
 
-/* Puhelimella takaisin-nuoli ilman mustaa palloa (käyttäjän toive: ei isoja
-   mustia nappeja). Sama hakusivulla ja ostoskorissa. */
+/* Puhelimella takaisin-nuoli harmaassa pallossa: ei isoja mustia
+   nappeja (käyttäjän toive), mutta erottuu valkoisesta. Sama hakusivulla ja
+   ostoskorissa. */
 @media (max-width: 560px) {
   .category-topbar__back {
-    width: 32px;
-    height: 32px;
-    margin-left: -6px;
-    background: none;
+    width: 36px;
+    height: 36px;
+    background: var(--round-button-bg);
     color: var(--delivo-black);
+  }
+
+  .category-topbar__back:active {
+    background: var(--round-button-bg-pressed);
   }
 }

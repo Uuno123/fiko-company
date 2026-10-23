@@ -5,8 +5,8 @@
 // ei oikeaa maksua eikä tilausriviä. Etusivun ja kategoriasivun McDonald's-
 // täytekortti osoittaa tänne (lib/categories.js, demoId).
 //
-// Ravintolan omia tietokantatoimintoja (suosikit yms.) ei voi tehdä demolle,
-// koska sen id ei ole uuid - ne ohitetaan isDemo-kentän perusteella.
+// Ravintola on myös tietokannassa samalla id:llä (migraatio 0043), joten
+// suosikit ja tilaukset tallentuvat sille kuten oikealle ravintolalle.
 
 // Sama sisältö kuin supabase/migrations/0038_add_burger_talli_mcdonalds_items.sql.
 export const MCDONALDS_DEMO_MENU = [

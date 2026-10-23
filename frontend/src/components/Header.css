@@ -42,8 +42,8 @@
 }
 
 .site-header--overlay:not(.site-header--transparent) .site-header__back {
-  background: #e9e9e9;
-  border-color: #e9e9e9;
+  background: var(--round-button-bg);
+  border-color: var(--round-button-bg);
   color: var(--delivo-black);
 }
 
@@ -61,8 +61,8 @@
 }
 
 .site-header--overlay:not(.site-header--transparent) .cart-menu__trigger {
-  background: #e9e9e9;
-  border-color: #e9e9e9;
+  background: var(--round-button-bg);
+  border-color: var(--round-button-bg);
 }
 
 .site-header--overlay.site-header--transparent .auth-login-btn--overlay,
@@ -97,7 +97,7 @@
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: #e9e9e9;
+  background: var(--round-button-bg);
   color: var(--delivo-black);
   cursor: pointer;
   transition: transform 0.15s ease, background 0.2s ease;

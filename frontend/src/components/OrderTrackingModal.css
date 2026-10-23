@@ -342,49 +342,76 @@
 .tracking__details-body {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   padding: 0 16px 16px;
 }
 
-.tracking__fact {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
+/* Tiedot kahdessa sarakkeessa: nimi ja arvo vasemmalle tasattuina, jolloin
+   pitkä osoite rivittyy arvosarakkeen sisällä siististi. */
+.tracking__facts {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 8px 16px;
+  margin: 0;
   font-size: 0.88rem;
 }
 
-.tracking__fact span {
-  flex-shrink: 0;
+.tracking__fact {
+  display: contents;
+}
+
+.tracking__fact dt {
   color: var(--text-muted);
 }
 
-.tracking__fact strong {
+.tracking__fact dd {
+  margin: 0;
   font-weight: 600;
-  text-align: right;
+  color: var(--delivo-black);
   overflow-wrap: anywhere;
 }
 
+/* Tuoterivi: määrä, nimi (ja valinnat) sekä hinta, joka ei katkea. */
 .tracking__lines {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   margin: 0;
-  padding: 12px 0 0;
+  padding: 14px 0 0;
   border-top: 1px solid var(--border);
 }
 
 .tracking__lines li {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
   font-size: 0.88rem;
+  line-height: 1.4;
 }
 
-.tracking__lines li > span:first-child {
+.tracking__line-qty {
+  min-width: 26px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: #f4f4f4;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--delivo-black);
+}
+
+.tracking__line-name {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  color: var(--delivo-black);
+}
+
+.tracking__line-price {
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .tracking__line-options {
@@ -392,19 +419,55 @@
   color: var(--text-muted);
 }
 
+.tracking__sums {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.tracking__sum {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.tracking__sum span:last-child {
+  white-space: nowrap;
+}
+
+/* Sama vihreä kuin kassan alennusrivillä. */
+.tracking__sum--discount {
+  color: #237a3c;
+  font-weight: 600;
+}
+
 .tracking__total {
   display: flex;
   justify-content: space-between;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 1rem;
   font-weight: 700;
+  color: var(--delivo-black);
 }
 
 .tracking__all-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   align-self: flex-start;
   color: var(--delivo-black);
   font-size: 0.88rem;
   font-weight: 600;
+  text-decoration: none;
+}
+
+.tracking__all-link:hover {
+  text-decoration: underline;
   text-underline-offset: 3px;
 }
 

@@ -1,11 +1,18 @@
 import { useState } from 'react'
-import { ChevronDown, FileText, Mail, MessageCircle } from 'lucide-react'
-import { Card, DemoTag, PageHeader } from '../ui.jsx'
+import { Link } from 'react-router-dom'
+import { ChevronDown, FileText, Mail } from 'lucide-react'
+import { Card, PageHeader } from '../ui.jsx'
+
+// Kumppanisivun ehdot ja hinnasto (/kumppanina).
+const SUPPORT_LINKS = [
+  { to: '/kumppanina#ehdot', label: 'Ravintolaehdot' },
+  { to: '/kumppanina#hinnoittelu', label: 'Paketit ja hinnasto' },
+]
 
 const TOPICS = [
   {
     q: 'Miten hyväksyn tilauksen?',
-    a: 'Uusi tilaus soittaa äänimerkin ja näkyy Tilaukset-sivun Uudet-sarakkeessa. Avaa tilaus, valitse valmistumisaika ja paina Hyväksy. Hyväksymätön tilaus peruuntuu automaattisesti 3 minuutin kuluttua.',
+    a: 'Uusi tilaus soittaa äänimerkin ja näkyy Tilaukset-sivun Uudet-sarakkeessa. Avaa tilaus, valitse valmistumisaika ja paina Hyväksy. Hyväksymätön tilaus peruuntuu automaattisesti 90 sekunnin kuluttua. Kotiinkuljetuksessa kuljettaja on jo sovittu, kun tilaus tulee sinulle.',
   },
   {
     q: 'Tilaus myöhästyy - mitä teen?',
@@ -17,11 +24,11 @@ const TOPICS = [
   },
   {
     q: 'Tuote loppui kesken päivän',
-    a: 'Kytke tuotteen Saatavilla-kytkin pois Ruokalista-sivulla tai paina "Loppui" suoraan tilauksen tuoterivillä. Tuote näkyy asiakkaille loppuneena, kunnes palautat sen.',
+    a: 'Kytke tuotteen Myynnissä-kytkin pois Ruokalista-sivulla tai paina "Loppui" suoraan tilauksen tuoterivillä. Tuote näkyy asiakkaille loppuneena, kunnes palautat sen.',
   },
   {
     q: 'Miten ääni saadaan toimimaan tabletilla?',
-    a: 'Selaimet sallivat äänen vasta ensimmäisen napautuksen jälkeen. Napauta kojelautaa kerran avaamisen jälkeen ja kokeile ääntä Asetukset → Ilmoitukset → Soita testiääni. Pidä laitteen äänenvoimakkuus ylhäällä.',
+    a: 'Selaimet sallivat äänen vasta ensimmäisen napautuksen jälkeen. Napauta kojelautaa kerran avaamisen jälkeen ja kokeile ääntä Asetukset → Tilauslaite → Soita testiääni. Pidä laitteen äänenvoimakkuus ylhäällä.',
   },
   {
     q: 'Mistä myyntiluvut lasketaan?',
@@ -45,7 +52,7 @@ function Topic({ topic }) {
 export default function SupportView() {
   return (
     <div className="pd-view">
-      <PageHeader title="Tuki" description="Ohjeet yleisimpiin tilanteisiin ja yhteys delivon kumppanitukeen." />
+      <PageHeader title="Tuki" description="Ohjeet yleisimpiin tilanteisiin ja yhteys Bidropin kumppanitukeen." />
       <div className="pd-two-col pd-two-col--narrow-right">
         <Card title="Usein kysyttyä">
           <ul className="pd-faq">
@@ -56,31 +63,21 @@ export default function SupportView() {
         </Card>
         <div className="pd-stack">
           <Card title="Ota yhteyttä">
-            <a className="pd-contact" href="mailto:tuki@delivo.fi?subject=Kumppanituki">
+            <a className="pd-contact" href="mailto:tuki@bidrop.fi?subject=Kumppanituki">
               <Mail size={20} strokeWidth={1.75} aria-hidden="true" />
               <span>
                 <strong>Sähköposti</strong>
-                <span className="pd-muted">tuki@delivo.fi · vastaamme arkisin saman päivän aikana</span>
+                <span className="pd-muted">tuki@bidrop.fi · vastaamme arkisin saman päivän aikana</span>
               </span>
             </a>
-            <div className="pd-contact is-disabled">
-              <MessageCircle size={20} strokeWidth={1.75} aria-hidden="true" />
-              <span>
-                <strong>
-                  Chat <DemoTag />
-                </strong>
-                <span className="pd-muted">Pikaviestit tukeen suoraan kojelaudalta - tulossa</span>
-              </span>
-            </div>
           </Card>
           <Card title="Sopimukset">
             <ul className="pd-list">
-              {['Kumppaniehdot', 'Tietosuojaseloste', 'Hinnasto'].map((doc) => (
-                <li key={doc}>
-                  <span className="pd-inline">
-                    <FileText size={17} strokeWidth={1.75} aria-hidden="true" /> {doc}
-                  </span>
-                  <span className="pd-muted">Tulossa</span>
+              {SUPPORT_LINKS.map((link) => (
+                <li key={link.to}>
+                  <Link className="pd-inline" to={link.to}>
+                    <FileText size={17} strokeWidth={1.75} aria-hidden="true" /> {link.label}
+                  </Link>
                 </li>
               ))}
             </ul>

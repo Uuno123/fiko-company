@@ -7,7 +7,7 @@ import { AuthContext } from '../lib/AuthContext.jsx'
 
 const MOCK_ORDER = {
   id: 'mock-order-1',
-  order_number: 'DELIVO-0015',
+  order_number: 'BIDROP-0015',
   status: 'pending',
   delivery_method: 'delivery',
   created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
@@ -24,7 +24,7 @@ const MOCK_ORDER = {
   },
   order_items: [
     { id: 'l1', quantity: 3, name: 'Bacon Burger', unit_price_cents: 1390, selected_options: [] },
-    { id: 'l2', quantity: 3, name: 'delivo Cheeseburger', unit_price_cents: 1290, selected_options: [] },
+    { id: 'l2', quantity: 3, name: 'Bidrop Cheeseburger', unit_price_cents: 1290, selected_options: [] },
     { id: 'l3', quantity: 1, name: 'Ranskalaiset', unit_price_cents: 490, selected_options: [] },
   ],
 }

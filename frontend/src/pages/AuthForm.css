@@ -30,11 +30,18 @@
 /* Kirjautumis-, rekisteröinti- ja salasanasivuilla lomake on suoraan valkoisella
    sivulla ilman laatikkoa (käyttäjän pyyntö). Rajattu .auth-pageen, koska
    asetussivut käyttävät samaa .auth-card-luokkaa ja niissä kortti jää. */
-.auth-page .auth-card {
+.auth-page .auth-card,
+.bottom-sheet .auth-card {
   padding: 0;
   border-radius: 0;
   background: none;
   box-shadow: none;
+}
+
+/* Puhelimen kirjautumis-/rekisteröintipaneelissa (BottomSheet) otsikko alkaa
+   sulkemisnapin alapuolelta. */
+.bottom-sheet .auth-card h1 {
+  padding-top: 18px;
 }
 
 .auth-card h1 {
@@ -128,6 +135,25 @@
 .oauth-btn--facebook:hover {
   border-color: #1877f2;
   box-shadow: 0 8px 16px -10px rgba(24, 119, 242, 0.55);
+}
+
+/* Apple ja Facebook eivät ole vielä käytössä: painallus näyttää tämän. */
+.oauth-note {
+  margin: 8px 4px 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.oauth-btn:disabled {
+  cursor: progress;
+  opacity: 0.7;
+  transform: none;
+}
+
+/* Google-napin virhe heti napin alla, ennen "tai jatka sähköpostilla" -jakajaa. */
+.oauth-error {
+  margin-top: 10px;
 }
 
 .auth-divider {

@@ -13,7 +13,6 @@ import {
   Store,
 } from 'lucide-react'
 import { orderStatusLabel } from '../../lib/orderStatus.js'
-import { NEWS } from '../demo.js'
 import { useDashboard } from '../context.js'
 import { useMenu } from '../hooks.js'
 import { BarChart, Badge, Card, Delta, PageHeader, Segmented, Stat } from '../ui.jsx'
@@ -244,17 +243,6 @@ export default function HomeView() {
             </ul>
           </Card>
 
-          <Card title="Uutiset ja vinkit">
-            <ul className="pd-news">
-              {NEWS.map((item) => (
-                <li key={item.id}>
-                  <Badge tone="neutral">{item.tag}</Badge>
-                  <strong>{item.title}</strong>
-                  <span>{item.text}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
         </div>
       </div>
     </div>

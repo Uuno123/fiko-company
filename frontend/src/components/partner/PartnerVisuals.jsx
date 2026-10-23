@@ -115,7 +115,7 @@ export function FoodMarquee() {
     </span>
   ))
   return (
-    <div className="pv-marquee" aria-label="Ruokakategorioita delivossa: burgerit, pizzat, sushit, kebabit, ramenit, tacot, jälkiruoat ja salaatit">
+    <div className="pv-marquee" aria-label="Ruokakategorioita Bidropissa: burgerit, pizzat, sushit, kebabit, ramenit, tacot, jälkiruoat ja salaatit">
       <div className="pv-marquee__track" aria-hidden="true">
         <div className="pv-marquee__row">{row}</div>
         <div className="pv-marquee__row">{row}</div>

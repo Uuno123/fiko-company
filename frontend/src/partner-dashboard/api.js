@@ -18,6 +18,8 @@ export const supabaseApi = {
         .from('orders')
         .select('*, order_items(*)')
         .eq('restaurant_id', restaurantId)
+        // Kuljetushinnasta sovitaan vielä (0058) - ravintola saa tilauksen vasta sitten.
+        .neq('status', 'awaiting_courier')
         .order('created_at', { ascending: false })
         .limit(500),
     )
@@ -57,6 +59,79 @@ export const supabaseApi = {
 
   async updateRestaurant(restaurantId, fields) {
     check(await supabase.from('restaurants').update(fields).eq('id', restaurantId))
+  },
+
+  // Tunnistetietojen muutospyynnöt ja dokumentit (migraatio 0055). delivo
+  // hyväksyy pyynnöt Studiossa, jolloin uusi arvo kopioituu ravintolalle.
+  async fetchChangeRequests(restaurantId) {
+    const data = check(
+      await supabase
+        .from('restaurant_change_requests')
+        .select('id, field, new_value, reason, status, admin_note, created_at, decided_at')
+        .eq('restaurant_id', restaurantId)
+        .order('created_at', { ascending: false })
+        .limit(50),
+    )
+    return data ?? []
+  },
+
+  async createChangeRequest(restaurantId, { field, newValue, newLat, newLng, reason }) {
+    return check(
+      await supabase
+        .from('restaurant_change_requests')
+        .insert({ restaurant_id: restaurantId, field, new_value: newValue, new_lat: newLat ?? null, new_lng: newLng ?? null, reason: reason || null })
+        .select('id, field, new_value, reason, status, admin_note, created_at, decided_at')
+        .single(),
+    )
+  },
+
+  async fetchDocuments(restaurantId) {
+    const data = check(
+      await supabase
+        .from('restaurant_documents')
+        .select('id, type, status, admin_note, change_request_id, created_at')
+        .eq('restaurant_id', restaurantId)
+        .order('created_at', { ascending: false })
+        .limit(50),
+    )
+    return data ?? []
+  },
+
+  // Tiedosto yksityiseen säiliöön kansioon <ravintolan id>/ ja tarkastettava rivi.
+  async uploadDocument(restaurantId, { type, file, changeRequestId }) {
+    const extension = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '')
+    const path = `${restaurantId}/${type}-${Date.now()}.${extension}`
+    check(await supabase.storage.from('restaurant-documents').upload(path, file, { contentType: file.type, upsert: false }))
+    check(
+      await supabase
+        .from('restaurant_documents')
+        .insert({ restaurant_id: restaurantId, type, path, change_request_id: changeRequestId ?? null }),
+    )
+  },
+
+  // Asiakkaiden arvostelut (0054) ja ravintolan vastaus niihin (0057).
+  async fetchReviews(restaurantId) {
+    const data = check(
+      await supabase
+        .from('restaurant_reviews')
+        .select('id, author_name, rating, comment, reply, replied_at, created_at')
+        .eq('restaurant_id', restaurantId)
+        .order('created_at', { ascending: false })
+        .limit(200),
+    )
+    return data ?? []
+  },
+
+  async replyToReview(reviewId, reply) {
+    return check(await supabase.rpc('reply_to_review', { p_review_id: reviewId, p_reply: reply }))
+  },
+
+  // Kansikuva tai tuotekuva julkiseen säiliöön (migraatio 0056). Palauttaa
+  // julkisen osoitteen, joka tallennetaan image_url-kenttään.
+  async uploadRestaurantImage(restaurantId, blob, kind) {
+    const path = `${restaurantId}/${kind}-${Date.now()}.jpg`
+    check(await supabase.storage.from('restaurant-images').upload(path, blob, { contentType: 'image/jpeg', upsert: false }))
+    return supabase.storage.from('restaurant-images').getPublicUrl(path).data.publicUrl
   },
 
   async fetchPlatformCategories() {

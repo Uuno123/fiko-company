@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react'
-import { Check, Download, FileText } from 'lucide-react'
-import { DEMO_COMPANY, DEMO_INVOICES, DEMO_PAYOUTS } from '../demo.js'
+import { Link } from 'react-router-dom'
+import { Lock } from 'lucide-react'
+import { maskIban, useChangeRequests } from '../changeRequests.js'
 import { useDashboard } from '../context.js'
-import { Badge, Card, DemoTag, ErrorNote, Field, Modal, PageHeader, Segmented, Stat } from '../ui.jsx'
-import { COMMITMENT_MONTHS, EXTRA_DELIVERY_CENTS, monthlyPlanCharges, planOrdersLabel } from '../../lib/partnerPlans.js'
-import { PLANS, formatDate, formatPrice, restaurantPlan, restaurantShareCents, sumSales } from '../utils.js'
+import { Card, PageHeader, Segmented, Stat } from '../ui.jsx'
+import { COMMITMENT_MONTHS, EXTRA_DELIVERY_CENTS, findPlan, monthlyPlanCharges, planOrdersLabel } from '../../lib/partnerPlans.js'
+import { formatDate, formatPrice, restaurantPlan, restaurantShareCents, sumSales } from '../utils.js'
+import ChangeRequestDrawer from './settings/ChangeRequestDrawer.jsx'
 
 const PERIODS = [
   { value: 'this', label: 'Tämä kuukausi' },
@@ -18,104 +20,18 @@ function monthRange(which) {
   return { start, end }
 }
 
-// Paketin lyhyt kuvaus: kuljetuskiintiö tai vanhojen ehtojen välityspalkkio.
-function planSummary(plan) {
-  return plan.key === 'custom' ? `${plan.commission} % välityspalkkio` : planOrdersLabel(plan)
-}
-
-function PlanModal({ current, onClose, onChoose }) {
-  const [selected, setSelected] = useState(current.key)
-  return (
-    <Modal
-      title="Vaihda pakettia"
-      onClose={onClose}
-      footer={
-        <>
-          <button type="button" className="pd-btn pd-btn--ghost" onClick={onClose}>
-            Peruuta
-          </button>
-          <button type="button" className="pd-btn pd-btn--primary" disabled={selected === current.key} onClick={() => onChoose(selected)}>
-            Vaihda pakettiin
-          </button>
-        </>
-      }
-    >
-      <div className="pd-plans">
-        {PLANS.map((plan) => (
-          <button
-            key={plan.key}
-            type="button"
-            className={`pd-plan${selected === plan.key ? ' is-selected' : ''}`}
-            onClick={() => setSelected(plan.key)}
-          >
-            <span className="pd-plan__name">
-              {plan.name}
-              {current.key === plan.key && <Badge tone="neutral">Nykyinen</Badge>}
-            </span>
-            <strong>{formatPrice(plan.priceCents)} / kk + alv</strong>
-            <span className="pd-muted">{planOrdersLabel(plan)} · ei provisiota</span>
-            {selected === plan.key && <Check className="pd-plan__check" size={18} aria-hidden="true" />}
-          </button>
-        ))}
-      </div>
-      <p className="pd-inline-demo">
-        <DemoTag /> Vaihto astuu voimaan seuraavan laskutuskauden alussa.
-      </p>
-    </Modal>
-  )
-}
-
-function CompanyCard() {
-  const { toast } = useDashboard()
-  const [form, setForm] = useState(DEMO_COMPANY)
-  const [error, setError] = useState('')
-  const set = (field, value) => setForm((f) => ({ ...f, [field]: value }))
-
-  function save() {
-    if (!/^\d{7}-\d$/.test(form.businessId.trim())) return setError('Y-tunnus muodossa 1234567-8')
-    if (!/^FI\d{2}[\d ]{14,}$/.test(form.iban.replace(/\s+/g, ' ').trim().toUpperCase())) return setError('Tarkista IBAN (FI + 16 numeroa)')
-    setError('')
-    toast('Yritystiedot tallennettu')
-  }
-
-  return (
-    <Card title="Yritys- ja maksutiedot" subtitle="Tilitykset maksetaan tälle tilille" demo>
-      <div className="pd-form-grid">
-        <Field label="Yrityksen nimi">
-          <input className="pd-input" value={form.companyName} onChange={(e) => set('companyName', e.target.value)} />
-        </Field>
-        <Field label="Y-tunnus">
-          <input className="pd-input" value={form.businessId} onChange={(e) => set('businessId', e.target.value)} />
-        </Field>
-        <Field label="Tilinumero (IBAN)" className="pd-field--full">
-          <input className="pd-input" value={form.iban} onChange={(e) => set('iban', e.target.value)} />
-        </Field>
-        <Field label="Laskutussähköposti">
-          <input className="pd-input" type="email" value={form.billingEmail} onChange={(e) => set('billingEmail', e.target.value)} />
-        </Field>
-        <Field label="Laskutusosoite">
-          <input className="pd-input" value={form.billingAddress} onChange={(e) => set('billingAddress', e.target.value)} />
-        </Field>
-      </div>
-      <ErrorNote>{error}</ErrorNote>
-      <div className="pd-card__foot">
-        <button type="button" className="pd-btn pd-btn--primary" onClick={save}>
-          Tallenna
-        </button>
-      </div>
-    </Card>
-  )
-}
-
+// Talous: myynti, kuukausimaksu ja arvioitu tilitys. Provisiota ei ole -
+// koko ruokasumma kuuluu ravintolalle, ja delivo laskuttaa vain paketin
+// kuukausimaksun (ja kuljetukset paketin yli). Myynti = subtotal - alennus
+// (utils.restaurantShareCents), ei asiakkaan maksamaa kokonaissummaa.
 export default function FinanceView() {
-  const { restaurant, ordersState, toast } = useDashboard()
+  const { restaurant, ordersState, basePath, toast } = useDashboard()
   const { orders } = ordersState
   const [period, setPeriod] = useState('this')
-  const [planKey, setPlanKey] = useState(() => restaurantPlan(restaurant).key)
-  const [showPlans, setShowPlans] = useState(false)
-  const currentPlan = useMemo(() => PLANS.find((p) => p.key === planKey) ?? restaurantPlan(restaurant), [planKey, restaurant])
-  // Uusissa paketeissa ei provisiota; välityspalkkio vain vanhoilla ehdoilla.
-  const commissionPercent = currentPlan.key === 'custom' ? currentPlan.commission : 0
+  const [changingPlan, setChangingPlan] = useState(false)
+  const changes = useChangeRequests(restaurant.id)
+  const plan = restaurantPlan(restaurant)
+  const pendingPlan = changes.pendingFor('plan')
 
   const month = useMemo(() => {
     const { start, end } = monthRange(period)
@@ -125,29 +41,32 @@ export default function FinanceView() {
     })
     const sales = sumSales(list)
     const deliveries = list.filter((o) => o.delivery_method === 'delivery').length
-    const commission = Math.round((sales * commissionPercent) / 100)
-    const charges = currentPlan.priceCents != null ? monthlyPlanCharges(currentPlan, deliveries) : null
-    return { list, sales, deliveries, commission, charges, net: sales - commission - (charges?.totalCents ?? 0), start }
-  }, [orders, period, commissionPercent, currentPlan])
+    const charges = monthlyPlanCharges(plan, deliveries)
+    return { list, sales, deliveries, charges, net: sales - charges.totalCents, start }
+  }, [orders, period, plan])
 
   const monthName = month.start.toLocaleDateString('fi-FI', { month: 'long', year: 'numeric' })
+
+  async function requestPlan(payload) {
+    await changes.submit(payload)
+    setChangingPlan(false)
+    toast('Paketin vaihtopyyntö lähetetty - Bidrop vahvistaa sen')
+  }
 
   return (
     <div className="pd-view">
       <PageHeader
         title="Talous"
-        description="Myynti, kuukausimaksu, tilitykset ja laskut."
+        description="Myynti, kuukausimaksu, tilitykset ja laskut. Ei provisiota - koko ruokasumma kuuluu sinulle."
         actions={<Segmented value={period} onChange={setPeriod} options={PERIODS} label="Kausi" />}
       />
 
       <div className="pd-summary">
         <Stat label={`Myynti, ${monthName}`} value={formatPrice(month.sales)} hint={`${month.list.length} tilausta`} />
-        {currentPlan.key === 'custom' ? (
-          <Stat label={`Välityspalkkio ${commissionPercent} %`} value={`−${formatPrice(month.commission)}`} />
-        ) : currentPlan.delivery ? (
+        {plan.delivery ? (
           <Stat
             label="Kuljetustilaukset"
-            value={`${month.deliveries} / ${currentPlan.includedDeliveries}`}
+            value={`${month.deliveries} / ${plan.includedDeliveries.toLocaleString('fi-FI')}`}
             hint={
               month.charges.extraDeliveries > 0
                 ? `Yli paketin ${month.charges.extraDeliveries} × ${formatPrice(EXTRA_DELIVERY_CENTS)}`
@@ -155,18 +74,14 @@ export default function FinanceView() {
             }
           />
         ) : (
-          <Stat label="Välityspalkkio" value={formatPrice(0)} hint="Ei provisiota" />
+          <Stat label="Noutotilaukset" value={month.list.length} hint="Nouto-paketti, ei kuljetuksia" />
         )}
         <Stat
           label="Kuukausimaksu"
-          value={month.charges ? `−${formatPrice(month.charges.totalCents)}` : 'Sopimuksen mukaan'}
-          hint={month.charges?.extraCents ? `sis. lisäkuljetukset ${formatPrice(month.charges.extraCents)}` : undefined}
+          value={`−${formatPrice(month.charges.totalCents)}`}
+          hint={month.charges.extraCents ? `+ alv · sis. lisäkuljetukset ${formatPrice(month.charges.extraCents)}` : `${plan.name} + alv`}
         />
-        <Stat
-          label="Arvioitu tilitys"
-          value={formatPrice(month.net)}
-          hint={currentPlan.key === 'custom' ? 'Myynti − palkkio' : 'Myynti − kuukausimaksu'}
-        />
+        <Stat label="Arvioitu tilitys" value={formatPrice(month.net)} hint="Myynti − kuukausimaksu" />
       </div>
 
       <div className="pd-two-col pd-two-col--narrow-right">
@@ -179,29 +94,21 @@ export default function FinanceView() {
                     <th>Tilaus</th>
                     <th>Päivä</th>
                     <th>Tapa</th>
-                    <th className="pd-num">Myynti</th>
-                    {commissionPercent > 0 && <th className="pd-num">Palkkio</th>}
                     <th className="pd-num">Sinulle</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {month.list.slice(0, 12).map((o) => {
-                    const share = restaurantShareCents(o)
-                    const fee = Math.round((share * commissionPercent) / 100)
-                    return (
-                      <tr key={o.id}>
-                        <td className="pd-strong">{o.order_number}</td>
-                        <td>{formatDate(o.created_at)}</td>
-                        <td>{o.delivery_method === 'delivery' ? 'Kuljetus' : 'Nouto'}</td>
-                        <td className="pd-num">{formatPrice(share)}</td>
-                        {commissionPercent > 0 && <td className="pd-num pd-muted">−{formatPrice(fee)}</td>}
-                        <td className="pd-num pd-strong">{formatPrice(share - fee)}</td>
-                      </tr>
-                    )
-                  })}
+                  {month.list.slice(0, 12).map((o) => (
+                    <tr key={o.id}>
+                      <td className="pd-strong">{o.order_number}</td>
+                      <td>{formatDate(o.created_at)}</td>
+                      <td>{o.delivery_method === 'delivery' ? 'Kuljetus' : 'Nouto'}</td>
+                      <td className="pd-num pd-strong">{formatPrice(restaurantShareCents(o))}</td>
+                    </tr>
+                  ))}
                   {month.list.length === 0 && (
                     <tr>
-                      <td colSpan={commissionPercent > 0 ? 6 : 5} className="pd-muted">
+                      <td colSpan={4} className="pd-muted">
                         Ei tilauksia tällä kaudella.
                       </td>
                     </tr>
@@ -211,72 +118,66 @@ export default function FinanceView() {
             </div>
           </Card>
 
-          <Card title="Tilitykset" subtitle="Maksetaan viikoittain tilillesi" demo padded={false}>
-            <ul className="pd-list pd-list--padded">
-              {DEMO_PAYOUTS.map((p) => (
-                <li key={p.id}>
-                  <span>
-                    <strong>{p.period}</strong>
-                    <span className="pd-muted">{p.status === 'paid' ? `Maksettu ${formatDate(p.date)}` : `Maksetaan ${formatDate(p.date)}`}</span>
-                  </span>
-                  <span className="pd-list__end">
-                    <strong>{formatPrice(p.amountCents)}</strong>
-                    <Badge tone={p.status === 'paid' ? 'success' : 'info'}>{p.status === 'paid' ? 'Maksettu' : 'Tulossa'}</Badge>
-                  </span>
-                </li>
-              ))}
-            </ul>
+          <Card title="Tilitykset ja laskut">
+            <p className="pd-muted pd-finance-note">
+              Ruokasummat tilitetään tilillesi kahden viikon välein, ja kuukausimaksu laskutetaan kuukauden alussa (maksuaika 14
+              päivää). Tilitykset ja laskut näkyvät täällä ensimmäisen tilityksen jälkeen.
+            </p>
           </Card>
         </div>
 
         <div className="pd-stack">
-          <Card title="Paketti" demo>
+          <Card title="Paketti">
             <div className="pd-current-plan">
-              <strong>{currentPlan.name}</strong>
+              <strong>{plan.name}</strong>
               <span>
-                {currentPlan.priceCents != null ? `${formatPrice(currentPlan.priceCents)} / kk + alv` : 'Oma sopimus'} ·{' '}
-                {planSummary(currentPlan)}
+                {formatPrice(plan.priceCents)} / kk + alv · {planOrdersLabel(plan)}
               </span>
             </div>
-            <button type="button" className="pd-btn pd-btn--secondary pd-btn--block" onClick={() => setShowPlans(true)}>
-              Vaihda pakettia
+            {pendingPlan && (
+              <p className="pd-locked__status is-pending">
+                Vaihtopyyntö: {findPlan(pendingPlan.new_value)?.name ?? pendingPlan.new_value} - odottaa Bidropin vahvistusta
+              </p>
+            )}
+            <button
+              type="button"
+              className="pd-btn pd-btn--secondary pd-btn--block"
+              onClick={() => setChangingPlan(true)}
+              disabled={Boolean(pendingPlan)}
+            >
+              {pendingPlan ? 'Vaihtopyyntö lähetetty' : 'Vaihda pakettia'}
             </button>
-            <p className="pd-muted">Sitoutumisaika {COMMITMENT_MONTHS} kk. Pakettia voit vaihtaa sopimuksen aikana.</p>
+            <p className="pd-muted">
+              Sitoutumisaika {COMMITMENT_MONTHS} kk. Isompaan pakettiin voi siirtyä milloin tahansa, pienempään seuraavan laskutuskauden
+              alusta.
+            </p>
           </Card>
 
-          <Card title="Laskut" demo padded={false}>
-            <ul className="pd-list pd-list--padded">
-              {DEMO_INVOICES.map((inv) => (
-                <li key={inv.id}>
-                  <FileText size={18} strokeWidth={1.75} aria-hidden="true" className="pd-muted" />
-                  <span>
-                    <strong>{inv.title}</strong>
-                    <span className="pd-muted">
-                      {inv.number} · {formatDate(inv.date)} · {formatPrice(inv.amountCents)}
-                    </span>
-                  </span>
-                  <button type="button" className="pd-icon-btn" aria-label={`Lataa lasku ${inv.number}`} onClick={() => toast('PDF-laskut tulossa pian')}>
-                    <Download size={17} aria-hidden="true" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </Card>
 
-          <CompanyCard />
+          <Card title="Yritys- ja maksutiedot" subtitle="Tilitykset maksetaan tälle tilille">
+            <dl className="pd-company-summary">
+              <div>
+                <dt>Yritys</dt>
+                <dd>{restaurant.company_name || '–'}</dd>
+              </div>
+              <div>
+                <dt>Y-tunnus</dt>
+                <dd>{restaurant.business_id || '–'}</dd>
+              </div>
+              <div>
+                <dt>Tilinumero</dt>
+                <dd>{maskIban(restaurant.iban) || '–'}</dd>
+              </div>
+            </dl>
+            <Link to={`${basePath}/asetukset?osio=yritys`} className="pd-btn pd-btn--secondary pd-btn--block">
+              <Lock size={15} aria-hidden="true" /> Muuta tietoja muutospyynnöllä
+            </Link>
+          </Card>
         </div>
       </div>
 
-      {showPlans && (
-        <PlanModal
-          current={currentPlan}
-          onClose={() => setShowPlans(false)}
-          onChoose={(key) => {
-            setPlanKey(key)
-            setShowPlans(false)
-            toast(`Paketti vaihtuu: ${PLANS.find((p) => p.key === key).name}`)
-          }}
-        />
+      {changingPlan && (
+        <ChangeRequestDrawer field="plan" currentValue={plan.key} onClose={() => setChangingPlan(false)} onSubmit={requestPlan} />
       )}
     </div>
   )

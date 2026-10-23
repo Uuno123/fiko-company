@@ -1,0 +1,441 @@
+/* Kuljetushinnan sopiminen: kuljettajien tarjoukset ja oma hinta. */
+
+.bid-panel {
+  width: 100%;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  text-align: left;
+  animation: bid-panel-in 0.32s ease-out;
+}
+
+.bid-panel--loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.bid-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.bid-panel__head h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+.bid-panel__timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--delivo-black);
+}
+
+.bid-panel__timer--low {
+  background: #fdece6;
+  color: #c2381a;
+}
+
+.bid-panel__empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--surface-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* Sykkivä piste: haku käynnissä. */
+.bid-panel__pulse {
+  position: relative;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+}
+
+.bid-panel__pulse::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+  animation: bid-panel-pulse 1.4s ease-out infinite;
+}
+
+.bid-panel__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bid-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  animation: bid-card-in 0.28s ease-out;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.bid-card:hover {
+  border-color: #d9dce1;
+  box-shadow: 0 4px 14px rgba(17, 17, 17, 0.06);
+}
+
+.bid-card__avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #fff1ec;
+  color: var(--delivo-orange);
+}
+
+.bid-card__info {
+  display: grid;
+  min-width: 0;
+}
+
+.bid-card__info strong {
+  overflow: hidden;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--delivo-black);
+}
+
+.bid-card__info span {
+  overflow: hidden;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+}
+
+.bid-card__price {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--delivo-black);
+}
+
+.bid-card__accept,
+.bid-panel__offer-btn {
+  display: inline-grid;
+  place-items: center;
+  min-width: 84px;
+  height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--delivo-orange);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.bid-card__accept:hover:not(:disabled),
+.bid-panel__offer-btn:hover:not(:disabled) {
+  background: #d9411a;
+}
+
+.bid-card__accept:active:not(:disabled),
+.bid-panel__offer-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.bid-card__accept:disabled,
+.bid-panel__offer-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.bid-panel__offer-btn {
+  background: var(--delivo-black);
+}
+
+.bid-panel__offer-btn:hover:not(:disabled) {
+  background: #333;
+}
+
+.bid-panel__offer {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}
+
+.bid-panel__offer-text {
+  display: grid;
+  gap: 2px;
+}
+
+.bid-panel__offer-text strong {
+  font-size: 0.92rem;
+  color: var(--delivo-black);
+}
+
+.bid-panel__offer-text span {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.bid-panel__offer-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bid-stepper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+}
+
+.bid-stepper button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 38px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--delivo-black);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.bid-stepper button:hover:not(:disabled) {
+  background: var(--surface-muted);
+}
+
+.bid-stepper button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.bid-stepper output {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--delivo-black);
+}
+
+.bid-panel__link {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.bid-panel__link:hover:not(:disabled) {
+  color: var(--delivo-black);
+}
+
+.bid-panel__error {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fdece6;
+  font-size: 0.85rem;
+  color: #c2381a;
+}
+
+.bid-panel__note {
+  margin: 14px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.bid-panel__cancel {
+  display: block;
+  margin: 12px auto 0;
+}
+
+.bid-panel__confirm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.bid-panel__cancel-yes {
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid #c2381a;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #c2381a;
+  cursor: pointer;
+}
+
+.bid-panel__cancel-yes:hover:not(:disabled) {
+  background: #c2381a;
+  color: #fff;
+}
+
+.bid-panel__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: bid-panel-spin 0.7s linear infinite;
+}
+
+.bid-panel--done {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.bid-panel--done strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--delivo-black);
+}
+
+.bid-panel--done p {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.bid-panel--done:not(.bid-panel--agreed) {
+  display: block;
+}
+
+.bid-panel__done-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e8f6ee;
+  color: #1a8a4a;
+  animation: bid-panel-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes bid-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes bid-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+}
+
+@keyframes bid-panel-pulse {
+  from {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+@keyframes bid-panel-pop {
+  from {
+    transform: scale(0.4);
+  }
+}
+
+@keyframes bid-panel-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 420px) {
+  .bid-card {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .bid-card__accept {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bid-panel,
+  .bid-card,
+  .bid-panel__done-icon {
+    animation: none;
+  }
+
+  .bid-panel__pulse::after {
+    animation: none;
+  }
+}

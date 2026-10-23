@@ -78,7 +78,7 @@ function SearchResults() {
     let cancelled = false
     supabase
       .from('restaurants')
-      .select('id, plan, featured_until, created_at, opening_hours, lat, lng')
+      .select('id, plan, featured_until, created_at, opening_hours, lat, lng, review_count')
       .in('id', ids)
       .then(({ data }) => {
         if (!cancelled && data) setRankingDetails(new Map(data.map((row) => [row.id, row])))
@@ -137,7 +137,7 @@ function SearchResults() {
         search={{
           value: inputValue,
           onChange: setInputValue,
-          placeholder: 'Hae delivosta...',
+          placeholder: 'Hae Bidropista...',
         }}
         cart={
           cart.count > 0
@@ -167,8 +167,8 @@ function SearchResults() {
           </svg>
           <input
             type="search"
-            aria-label="Hae delivosta"
-            placeholder="Hae delivosta"
+            aria-label="Hae Bidropista"
+            placeholder="Hae Bidropista"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
           />

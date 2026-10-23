@@ -11,7 +11,7 @@ import { getRestaurantById } from '../lib/api.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { addFavorite, isRestaurantFavorited, removeFavorite } from '../lib/favorites.js'
 import { useCart } from '../lib/CartContext.jsx'
-import { DELIVERY_FEE_CENTS, formatEtaRange } from '../lib/delivery.js'
+import { DELIVERY_PRICE_RANGE, formatEtaRange } from '../lib/delivery.js'
 import { formatDistance, restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { formatDisplayAddress, formatPrice } from '../lib/format.js'
 import { MCDONALDS_DEMO_MENU } from '../lib/demoRestaurants.js'
@@ -143,12 +143,11 @@ function RestaurantPage() {
     if (compactLayout) setMenuQuery('')
   }, [compactLayout])
 
-  // Suosikkitila oikealle ravintolalle tietokannasta. Esittelyravintolan id ei
-  // ole uuid, joten sitä ei voi tallentaa customer_favorites-tauluun (sama
-  // rajaus kuin etusivulla) - sille sydän toimii vain tämän käynnin ajan.
+  // Suosikkitila tietokannasta (customer_favorites). Myös esittelyravintola on
+  // tietokannassa (migraatio 0043), joten sekin tallentuu suosikiksi.
   useEffect(() => {
     setIsFavorite(false)
-    if (!customer?.id || !restaurant || restaurant.isDemo) return undefined
+    if (!customer?.id || !restaurant) return undefined
     let cancelled = false
     isRestaurantFavorited(customer.id, restaurant.id).then((favorited) => {
       if (!cancelled) setIsFavorite(favorited)
@@ -165,7 +164,6 @@ function RestaurantPage() {
     }
     const next = !isFavorite
     setIsFavorite(next)
-    if (restaurant.isDemo) return
     const ok = next ? await addFavorite(customer.id, restaurant.id) : await removeFavorite(customer.id, restaurant.id)
     if (!ok) setIsFavorite(!next)
   }
@@ -203,7 +201,16 @@ function RestaurantPage() {
     ? allMenuItems.filter((item) => matchesMenuQuery(item, menuQuery))
     : allMenuItems
   const groupedMenu = groupByCategory(visibleMenuItems)
-  const reviews = restaurant ? getDemoReviews(restaurant.id) : []
+  // Arvostelut: esittelyravintolalla esimerkit ja keksitty määrä
+  // (lib/demoReviews.js), oikealla ravintolalla tietokannan arvosana ja määrä
+  // (migraatio 0054) - arvosana näytetään vasta, kun arvosteluja on.
+  const demoReviews = restaurant ? getDemoReviews(restaurant.id) : []
+  const reviewTotal = restaurant?.review_count ?? 0
+  const shownRating = demoReviews.length > 0 || reviewTotal > 0 ? (restaurant?.rating ?? null) : null
+  const reviewCountLabel =
+    demoReviews.length > 0
+      ? `${pseudoReviewCount(restaurant.id)}+ arviota`
+      : `${reviewTotal} ${reviewTotal === 1 ? 'arvio' : 'arviota'}`
   // Ennen ensimmäistä vieritystä korostetaan ensimmäinen osio.
   const shownCategory = activeCategory ?? groupedMenu[0]?.[0] ?? null
   const etaRange = formatEtaRange(restaurant?.pickup_estimate_minutes)
@@ -390,32 +397,32 @@ function RestaurantPage() {
                 {restaurant.isDemo && <p className="restaurant-info__tagline">{DEMO_TAGLINE}</p>}
                 <h1 className="restaurant-info__title">{restaurant.name}</h1>
                 <ul className="restaurant-info__meta">
-                  {restaurant.rating != null && (
-                    <li className="restaurant-info__rating">
-                      {/* Arvosana on nappi arvosteluihin (käyttäjän pyyntö: arvostelut
-                          eivät näy sivulla, vaan avautuvat omaan ikkunaansa). Nappi
-                          vain kun arvosteluja on - ks. lib/demoReviews.js. */}
-                      {reviews.length > 0 ? (
-                        <button
-                          type="button"
-                          className="restaurant-info__rating-btn"
-                          onClick={() => setReviewsOpen(true)}
-                          aria-label={`Arvostelut: ${Number(restaurant.rating).toFixed(1)} tähteä, ${pseudoReviewCount(restaurant.id)}+ arviota`}
-                        >
-                          <Star size={15} fill="currentColor" aria-hidden="true" />
-                          <strong>{Number(restaurant.rating).toFixed(1)}</strong>
-                          <span>({pseudoReviewCount(restaurant.id)}+ arviota)</span>
-                          <ChevronRight size={15} strokeWidth={2.2} aria-hidden="true" />
-                        </button>
-                      ) : (
+                  <li className="restaurant-info__rating">
+                    {/* Arvosana on nappi arvosteluihin (käyttäjän pyyntö: arvostelut
+                        eivät näy sivulla, vaan avautuvat omaan ikkunaansa, jossa
+                        voi myös kirjoittaa oman arvostelun). */}
+                    <button
+                      type="button"
+                      className="restaurant-info__rating-btn"
+                      onClick={() => setReviewsOpen(true)}
+                      aria-label={
+                        shownRating != null
+                          ? `Arvostelut: ${Number(shownRating).toFixed(1)} tähteä, ${reviewCountLabel}`
+                          : 'Arvostelut: ei vielä arvosteluja'
+                      }
+                    >
+                      <Star size={15} fill={shownRating != null ? 'currentColor' : 'none'} aria-hidden="true" />
+                      {shownRating != null ? (
                         <>
-                          <Star size={15} fill="currentColor" aria-hidden="true" />
-                          <strong>{Number(restaurant.rating).toFixed(1)}</strong>
-                          <span>({pseudoReviewCount(restaurant.id)}+ arviota)</span>
+                          <strong>{Number(shownRating).toFixed(1)}</strong>
+                          <span>({reviewCountLabel})</span>
                         </>
+                      ) : (
+                        <span>Ei vielä arvosteluja</span>
                       )}
-                    </li>
-                  )}
+                      <ChevronRight size={15} strokeWidth={2.2} aria-hidden="true" />
+                    </button>
+                  </li>
                   {etaRange && (
                     <li>
                       <Clock size={15} aria-hidden="true" />
@@ -424,7 +431,7 @@ function RestaurantPage() {
                   )}
                   <li className={restaurant.free_delivery ? 'restaurant-info__free' : undefined}>
                     <Bike size={15} aria-hidden="true" />
-                    {restaurant.free_delivery ? 'Ilmainen toimitus' : `Toimitus ${formatPrice(DELIVERY_FEE_CENTS)}`}
+                    {restaurant.free_delivery ? 'Ilmainen toimitus' : `Toimitus ${DELIVERY_PRICE_RANGE}`}
                   </li>
                   {distance && (
                     <li>
@@ -619,10 +626,14 @@ function RestaurantPage() {
 
       {reviewsOpen && restaurant && (
         <ReviewsModal
+          restaurantId={restaurant.id}
           restaurantName={restaurant.name}
-          rating={restaurant.rating}
-          reviewCount={pseudoReviewCount(restaurant.id)}
-          reviews={reviews}
+          rating={shownRating}
+          reviewCount={reviewCountLabel}
+          demoReviews={demoReviews}
+          onSummaryChange={({ rating, count }) =>
+            setRestaurant((current) => ({ ...current, rating, review_count: count }))
+          }
           onClose={closeReviews}
         />
       )}

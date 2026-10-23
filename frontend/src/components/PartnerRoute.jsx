@@ -15,7 +15,7 @@ function NotOwnerNotice() {
         <EmptyState
           icon={Store}
           title="Tämä tili ei ole kumppanitili"
-          text="Kirjauduit sisään, mutta tähän tiliin ei ole liitetty kumppaniravintolaa. Jos kirjauduit delivon asiakastilillä vahingossa, kirjaudu ulos ja käytä kumppanin omia tunnuksia."
+          text="Kirjauduit sisään, mutta tähän tiliin ei ole liitetty kumppaniravintolaa. Jos kirjauduit Bidropin asiakastilillä vahingossa, kirjaudu ulos ja käytä kumppanin omia tunnuksia."
           action={
             <div className="pd-button-row">
               <button type="button" className="pd-btn pd-btn--secondary" onClick={() => signOut()}>

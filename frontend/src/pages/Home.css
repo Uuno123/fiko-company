@@ -166,10 +166,11 @@
   }
 
   /* Pelkkä teksti, ei mustaa pilleriä (käyttäjän toive: ei isoja mustia nappeja). */
+  /* "Kaikki" oranssina kuten työpöydällä, jotta sen tunnistaa painettavaksi. */
   .category-row__see-all {
     padding: 4px 0;
     background: none;
-    color: var(--delivo-black);
+    color: var(--delivo-orange);
     font-size: 0.85rem;
     font-weight: 700;
   }
@@ -955,69 +956,170 @@
   }
 }
 
-/* Nouto-nosto kategoriarivien välissä. Oli aiemmin mobiilin media-lohkon
-   sisällä, joten työpöydällä se näkyi tyylittelemättömänä tekstirivinä nyt
-   kun kategoriarivit tulivat sinnekin. */
-.home-pickup-banner {
-  display: flex;
+/* Noutokuponki kategoriarivien välissä (PickupOfferBanner): tumma kortti,
+   vasemmalla iso oranssi prosentti, katkoviiva ja leikatut lovet kuin
+   kupongissa, oikealla koodinappi joka kopioi koodin. */
+.pickup-offer {
+  --offer-deal-width: 132px;
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--offer-deal-width) 1fr auto;
   align-items: center;
-  gap: 18px;
-  padding: 20px 24px;
-  border-radius: 18px;
-  background: var(--delivo-black);
+  overflow: hidden;
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 140% at 100% 0%, rgba(244, 80, 30, 0.28), transparent 55%),
+    var(--delivo-black);
   color: #fff;
 }
 
-.home-pickup-banner__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.14);
-  font-size: 1.4rem;
-  line-height: 1;
-}
-
-.home-pickup-banner__text {
+.pickup-offer__deal {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  padding: 20px 8px;
+  border-right: 2px dashed rgba(255, 255, 255, 0.22);
 }
 
-.home-pickup-banner__text strong {
+/* Lovet katkoviivan päissä: sivun taustan värisiä puoliympyröitä. */
+.pickup-offer__deal::before,
+.pickup-offer__deal::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--delivo-bg);
+}
+
+.pickup-offer__deal::before {
+  top: -9px;
+}
+
+.pickup-offer__deal::after {
+  bottom: -9px;
+}
+
+.pickup-offer__percent {
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--delivo-orange);
+}
+
+.pickup-offer__percent small {
+  margin-left: 2px;
+  font-size: 0.55em;
+  letter-spacing: 0;
+}
+
+.pickup-offer__deal-label {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.pickup-offer__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 20px 22px;
+}
+
+.pickup-offer__title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
   font-weight: 700;
 }
 
-.home-pickup-banner__text span {
+.pickup-offer__text {
   font-size: 0.85rem;
+  line-height: 1.4;
   color: rgba(255, 255, 255, 0.72);
 }
 
+.pickup-offer__code {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 22px;
+  padding: 10px 14px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.55);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.pickup-offer__code:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.pickup-offer__code:active {
+  transform: scale(0.97);
+}
+
+.pickup-offer__code--copied,
+.pickup-offer__code--copied:hover {
+  border-style: solid;
+  border-color: var(--delivo-orange);
+  background: var(--delivo-orange);
+  letter-spacing: 0.02em;
+}
+
+/* Puhelimella koodinappi tekstin alle, prosentti pienempänä. */
 @media (max-width: 560px) {
-  .home-pickup-banner {
-    gap: 14px;
-    padding: 14px 16px;
-    border-radius: 16px;
+  .pickup-offer {
+    --offer-deal-width: 96px;
+    grid-template-columns: var(--offer-deal-width) 1fr;
+    border-radius: 18px;
   }
 
-  .home-pickup-banner__icon {
-    width: 42px;
-    height: 42px;
-    font-size: 1.25rem;
+  .pickup-offer__deal {
+    grid-row: span 2;
+    padding: 16px 6px;
   }
 
-  .home-pickup-banner__text strong {
-    font-size: 0.95rem;
+  .pickup-offer__percent {
+    font-size: 2rem;
   }
 
-  .home-pickup-banner__text span {
+  .pickup-offer__deal-label {
+    font-size: 0.66rem;
+  }
+
+  .pickup-offer__body {
+    padding: 16px 16px 10px;
+  }
+
+  .pickup-offer__title {
+    font-size: 1rem;
+  }
+
+  .pickup-offer__text {
     font-size: 0.78rem;
+  }
+
+  .pickup-offer__code {
+    justify-self: start;
+    margin: 0 16px 16px;
+    padding: 7px 12px;
+    font-size: 0.82rem;
   }
 }
 

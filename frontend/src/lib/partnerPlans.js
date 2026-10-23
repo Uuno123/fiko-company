@@ -22,7 +22,7 @@ export const PARTNER_PLANS = [
     // Ei kotiinkuljetusta: asiakas tilaa ja maksaa delivossa ja hakee itse.
     delivery: false,
     includedDeliveries: 0,
-    features: ['Rajattomasti noutotilauksia', 'Asiakas tilaa ja maksaa delivossa, hakee itse'],
+    features: ['Rajattomasti noutotilauksia', 'Asiakas tilaa ja maksaa Bidropissa, hakee itse'],
   },
   {
     key: 'kuljetus',
@@ -30,7 +30,7 @@ export const PARTNER_PLANS = [
     priceCents: 7999,
     delivery: true,
     includedDeliveries: 300,
-    features: ['Nouto ja kotiinkuljetus delivon kuljettajilla', 'Asiakas seuraa kuljettajaa kartalla'],
+    features: ['Nouto ja kotiinkuljetus Bidropin kuljettajilla', 'Asiakas seuraa kuljettajaa kartalla'],
   },
   {
     key: 'iso',

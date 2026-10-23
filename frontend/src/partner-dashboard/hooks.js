@@ -8,6 +8,11 @@ export function useOrders(restaurantId) {
   const api = useDashboardApi()
   const [orders, setOrders] = useState([])
   const [status, setStatus] = useState('loading')
+  // Reaaliaikapäivityksiä varten: onko tilaus jo listalla.
+  const knownIds = useRef(new Set())
+  useEffect(() => {
+    knownIds.current = new Set(orders.map((o) => o.id))
+  }, [orders])
 
   const load = useCallback(async () => {
     if (!restaurantId) return
@@ -28,6 +33,7 @@ export function useOrders(restaurantId) {
 
     const unsubscribe = api.subscribeOrders(restaurantId, {
       onInsert: async (row) => {
+        if (row.status === 'awaiting_courier') return
         try {
           const full = await api.fetchOrder(row.id)
           if (active) setOrders((prev) => (prev.some((o) => o.id === full.id) ? prev : [full, ...prev]))
@@ -35,7 +41,21 @@ export function useOrders(restaurantId) {
           console.error('Uuden tilauksen haku epäonnistui', error)
         }
       },
-      onUpdate: (row) => setOrders((prev) => prev.map((o) => (o.id === row.id ? { ...o, ...row } : o))),
+      onUpdate: async (row) => {
+        if (knownIds.current.has(row.id)) {
+          setOrders((prev) => prev.map((o) => (o.id === row.id ? { ...o, ...row } : o)))
+          return
+        }
+        // Kotiinkuljetus tulee ravintolalle vasta, kun asiakas ja kuljettaja ovat
+        // sopineet kuljetushinnasta (migraatio 0058): rivi tulee näkyviin päivityksenä.
+        if (row.status === 'awaiting_courier' || !row.placed_at) return
+        try {
+          const full = await api.fetchOrder(row.id)
+          if (active) setOrders((prev) => (prev.some((o) => o.id === full.id) ? prev : [full, ...prev]))
+        } catch (error) {
+          console.error('Uuden tilauksen haku epäonnistui', error)
+        }
+      },
     })
 
     function handleVisible() {
@@ -215,7 +235,7 @@ export function useOrderAlarm(pendingCount, { enabled, volume }) {
       document.title = originalTitle.current
       return undefined
     }
-    document.title = `(${pendingCount}) Uusi tilaus – delivo`
+    document.title = `(${pendingCount}) Uusi tilaus – Bidrop`
     if (!enabled) return undefined
     playChime(volume)
     const timer = setInterval(() => playChime(volume), 4000)

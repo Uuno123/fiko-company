@@ -5,7 +5,7 @@ import { useDashboard } from '../context.js'
 import { useNow } from '../hooks.js'
 import OrderDetail, { CourierStatus, DueLabel, PendingCountdown, restaurantActionLabel } from '../OrderDetail.jsx'
 import { EmptyState, PageHeader, Segmented } from '../ui.jsx'
-import { formatPrice, itemCount, restaurantShareCents, shortAddress } from '../utils.js'
+import { formatPrice, itemCount, orderPlacedAt, restaurantShareCents, shortAddress } from '../utils.js'
 
 const COLUMNS = [
   { key: 'new', title: 'Uudet', statuses: ['pending'], icon: Inbox, empty: 'Uudet tilaukset ilmestyvät tähän ja soittavat äänimerkin.' },
@@ -29,7 +29,7 @@ function OrderTicket({ order, onOpen, onAdvance, busy }) {
       <button type="button" className="pd-ticket__body" onClick={onOpen}>
         <div className="pd-ticket__top">
           <strong className="pd-ticket__number">{order.order_number}</strong>
-          <span className="pd-ticket__age">{minutesSince(order.created_at, now)} min sitten</span>
+          <span className="pd-ticket__age">{minutesSince(orderPlacedAt(order), now)} min sitten</span>
         </div>
         <div className="pd-ticket__meta">
           <span className="pd-ticket__method">
@@ -57,7 +57,7 @@ function OrderTicket({ order, onOpen, onAdvance, busy }) {
           <span>
             {itemCount(order)} tuotetta · {formatPrice(restaurantShareCents(order))}
           </span>
-          {order.status === 'pending' ? <PendingCountdown createdAt={order.created_at} compact /> : <DueLabel order={order} />}
+          {order.status === 'pending' ? <PendingCountdown createdAt={orderPlacedAt(order)} compact /> : <DueLabel order={order} />}
         </div>
       </button>
       {actionLabel && (
@@ -87,7 +87,7 @@ export default function OrdersView() {
       column.key,
       orders
         .filter((o) => column.statuses.includes(o.status))
-        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
+        .sort((a, b) => new Date(orderPlacedAt(a)) - new Date(orderPlacedAt(b))),
     ]),
   )
 
@@ -103,7 +103,7 @@ export default function OrdersView() {
     <div className="pd-view pd-view--orders">
       <PageHeader
         title="Tilaukset"
-        description="Uudet tilaukset tulevat tähän reaaliajassa. Hyväksy 3 minuutin kuluessa."
+        description="Uudet tilaukset tulevat tähän reaaliajassa. Hyväksy 90 sekunnin kuluessa."
       />
 
       <div className="pd-board-switch">
