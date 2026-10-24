@@ -86,17 +86,23 @@ export function useDocuments() {
   return { documents, loaded, latestOf, error, reload }
 }
 
-// Kuva kamerasta tai galleriasta (Dokumentit ja muutospyynnön liite). Palauttaa
+// Kuva kamerasta tai galleriasta (Dokumentit, muutospyynnön liite ja
+// profiilikuva, jolle options rajaa neliön). Palauttaa
 // kuvan tai null, jos kuljettaja perui. Heittää camera_denied / library_denied,
 // jos lupaa ei annettu.
-export async function pickDocumentImage(source) {
+export async function pickDocumentImage(source, options = {}) {
   // iOS ei avaa kameraa tai galleriaa, ennen kuin valintavalikko on sulkeutunut.
   if (Platform.OS === 'ios') await new Promise((resolve) => setTimeout(resolve, 400))
   const permission =
-    source === 'camera' ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync()
+    source === 'camera'
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync()
   if (!permission.granted) throw new Error(source === 'camera' ? 'camera_denied' : 'library_denied')
-  const options = { mediaTypes: ['images'], quality: 0.7 }
-  const result = source === 'camera' ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options)
+  const pickerOptions = { mediaTypes: ['images'], quality: 0.7, ...options }
+  const result =
+    source === 'camera'
+      ? await ImagePicker.launchCameraAsync(pickerOptions)
+      : await ImagePicker.launchImageLibraryAsync(pickerOptions)
   if (result.canceled || !result.assets?.[0]) return null
   return result.assets[0]
 }

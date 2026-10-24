@@ -1,26 +1,58 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { useState } from 'react'
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
-import { BadgeCheck, ChevronRight, CircleAlert, Clock, FileText, Landmark, Lock, Mail, MapPin, Phone, User } from 'lucide-react-native'
+import {
+  BadgeCheck,
+  Camera,
+  ChevronRight,
+  CircleAlert,
+  Clock,
+  FileText,
+  Image as ImageIcon,
+  Landmark,
+  Lock,
+  Mail,
+  MapPin,
+  Phone,
+  Star,
+  Trash2,
+  User,
+} from 'lucide-react-native'
+import ChoiceSheet from '../components/ChoiceSheet'
 import { Card, ListRow, LockedRow, Screen, StatRow, StatusPill } from '../components/ui'
 import { vehicleIcon } from '../components/vehicleIcons'
 import { useAuth } from '../lib/auth'
 import { changeRowStatus, useChangeRequests } from '../lib/changeRequests'
 import { billingMethodLabel, cityLabel, useCourier, vehicleLabel } from '../lib/courier'
-import { missingDocuments, useDocuments } from '../lib/documents'
+import { missingDocuments, pickDocumentImage, useDocuments } from '../lib/documents'
 import { formatEuro, formatKm, initials } from '../lib/format'
 import { summarize, useGigs } from '../lib/gigs'
 import { useT } from '../lib/i18n'
+import {
+  courierPhotoUrl,
+  courierRating,
+  formatRating,
+  photoErrorText,
+  removeProfilePhoto,
+  uploadProfilePhoto,
+} from '../lib/photo'
 import { colors, fonts } from '../theme'
 
-// Profiili: ylhäällä kuljettajan kortti (nimi, kulkuneuvo, hyväksynnän tila),
-// sitten omat tiedot. Nimi, sähköposti, kulkuneuvo ja kaupunki ovat
-// tarkistettuja: rivi avaa muutospyynnön, jonka delivo hyväksyy (migraatio
-// 0051), ja kesken oleva tai hylätty pyyntö näkyy rivillä tilana. Puhelinnumeron
-// kuljettaja vaihtaa itse.
+const STAR_COLOR = '#f5a524'
+
+// Profiili: ylhäällä kuljettajan kortti (kuva, nimi, kulkuneuvo, tähtiarvio,
+// hyväksynnän tila), sitten omat tiedot. Kuvan kuljettaja vaihtaa itse
+// napauttamalla sitä (asiakas näkee sen hintatarjouksessa, migraatio 0062).
+// Nimi, sähköposti, kulkuneuvo ja kaupunki ovat tarkistettuja: rivi avaa
+// muutospyynnön, jonka Bidrop hyväksyy (migraatio 0051), ja kesken oleva tai
+// hylätty pyyntö näkyy rivillä tilana. Puhelinnumeron kuljettaja vaihtaa itse.
 export default function ProfileScreen() {
   const router = useRouter()
   const t = useT()
-  const { courier } = useAuth()
+  const { courier, refreshCourier } = useAuth()
+  const [photoSheet, setPhotoSheet] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [photoError, setPhotoError] = useState('')
   const { profile, settings } = useCourier()
   const { pendingFor, rejectedFor } = useChangeRequests()
   const docs = useDocuments()
@@ -32,7 +64,12 @@ export default function ProfileScreen() {
   const docState = !docs.loaded
     ? null
     : toUpload.length
-      ? { tone: 'danger', icon: CircleAlert, header: t('profile.docsMissingHeader'), row: t('profile.docsMissingCount', { count: toUpload.length }) }
+      ? {
+          tone: 'danger',
+          icon: CircleAlert,
+          header: t('profile.docsMissingHeader'),
+          row: t('profile.docsMissingCount', { count: toUpload.length }),
+        }
       : missing.length
         ? { tone: 'pending', icon: Clock, header: t('profile.docsInReview'), row: t('status.pending') }
         : { tone: 'success', icon: BadgeCheck, header: t('profile.verified'), row: t('status.approved') }
@@ -44,6 +81,36 @@ export default function ProfileScreen() {
         year: 'numeric',
       })
     : null
+
+  const photoUrl = courierPhotoUrl(courier?.photo_path)
+  const rating = courierRating(courier)
+  const ratingText = rating
+    ? `${formatRating(rating.average, settings.language)} · ${
+        rating.count === 1 ? t('reviews.countOne') : t('reviews.count', { count: rating.count })
+      }`
+    : t('reviews.none')
+
+  // Kuva kamerasta tai galleriasta neliöksi rajattuna, tai kuvan poisto.
+  const choosePhoto = async (key) => {
+    setPhotoSheet(false)
+    setPhotoError('')
+    try {
+      if (key === 'remove') {
+        setUploading(true)
+        await removeProfilePhoto()
+      } else {
+        const asset = await pickDocumentImage(key, { allowsEditing: true, aspect: [1, 1], quality: 0.6 })
+        if (!asset) return
+        setUploading(true)
+        await uploadProfilePhoto(courier.id, asset)
+      }
+      await refreshCourier()
+    } catch (err) {
+      setPhotoError(photoErrorText(err))
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const lockedRow = (field, Icon, label, value) => (
     <LockedRow
@@ -58,9 +125,29 @@ export default function ProfileScreen() {
   return (
     <Screen title={t('profile.title')}>
       <View style={styles.hero}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initials(profile.name || t('common.courier'))}</Text>
-        </View>
+        <Pressable
+          onPress={() => setPhotoSheet(true)}
+          disabled={uploading}
+          accessibilityRole="button"
+          accessibilityLabel={photoUrl ? t('photo.change') : t('photo.add')}
+          style={({ pressed }) => [styles.avatarWrap, pressed && styles.pressed]}
+        >
+          <View style={styles.avatar}>
+            {photoUrl ? (
+              <Image source={{ uri: photoUrl }} style={styles.avatarImage} />
+            ) : (
+              <Text style={styles.avatarText}>{initials(profile.name || t('common.courier'))}</Text>
+            )}
+            {uploading ? (
+              <View style={styles.avatarBusy}>
+                <ActivityIndicator color="#ffffff" />
+              </View>
+            ) : null}
+          </View>
+          <View style={styles.cameraBadge}>
+            <Camera size={13} strokeWidth={2.2} color="#ffffff" />
+          </View>
+        </Pressable>
         <View style={styles.heroText}>
           <Text style={styles.heroName} numberOfLines={1}>
             {profile.name || t('common.courier')}
@@ -68,6 +155,15 @@ export default function ProfileScreen() {
           <Text style={styles.heroMeta} numberOfLines={1}>
             {vehicleLabel(profile.vehicle)} · {cityLabel(profile.city)}
           </Text>
+          <Pressable
+            onPress={() => router.push('/reviews')}
+            accessibilityRole="button"
+            accessibilityLabel={`${t('reviews.title')}: ${ratingText}`}
+            style={({ pressed }) => [styles.ratingRow, pressed && styles.pressed]}
+          >
+            <Star size={14} strokeWidth={2} color={STAR_COLOR} fill={rating ? STAR_COLOR : 'none'} />
+            <Text style={[styles.ratingText, !rating && styles.ratingMuted]}>{ratingText}</Text>
+          </Pressable>
           {docState ? (
             <View style={styles.heroBadge}>
               <StatusPill tone={docState.tone} icon={docState.icon}>
@@ -78,6 +174,11 @@ export default function ProfileScreen() {
           {since ? <Text style={styles.since}>{t('profile.since', { date: since })}</Text> : null}
         </View>
       </View>
+      {photoError ? (
+        <Text style={styles.photoError}>{photoError}</Text>
+      ) : !photoUrl ? (
+        <Text style={styles.photoHint}>{t('photo.hint')}</Text>
+      ) : null}
 
       <Card title={t('profile.details')}>
         {lockedRow('name', User, t('profile.name'), profile.name)}
@@ -98,6 +199,7 @@ export default function ProfileScreen() {
       </Card>
 
       <Card title={t('profile.account')}>
+        <ListRow icon={Star} label={t('reviews.title')} value={ratingText} onPress={() => router.push('/reviews')} />
         <ListRow
           icon={Landmark}
           label={t('profile.billing')}
@@ -125,6 +227,18 @@ export default function ProfileScreen() {
           { label: t('common.distance'), value: formatKm(stats.km) },
         ]}
       />
+
+      <ChoiceSheet
+        visible={photoSheet}
+        title={t('photo.title')}
+        options={[
+          { key: 'camera', label: t('docs.takePhoto'), icon: Camera },
+          { key: 'library', label: t('docs.fromLibrary'), icon: ImageIcon },
+          ...(photoUrl ? [{ key: 'remove', label: t('photo.remove'), icon: Trash2 }] : []),
+        ]}
+        onSelect={choosePhoto}
+        onClose={() => setPhotoSheet(false)}
+      />
     </Screen>
   )
 }
@@ -141,13 +255,79 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: colors.surface,
   },
+  avatarWrap: {
+    width: 72,
+    height: 72,
+  },
+  pressed: {
+    opacity: 0.7,
+  },
   avatar: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 72,
+    height: 72,
+    overflow: 'hidden',
+    borderRadius: 36,
     backgroundColor: colors.orange,
+  },
+  avatarImage: {
+    width: 72,
+    height: 72,
+  },
+  avatarBusy: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(20, 21, 15, 0.45)',
+  },
+  cameraBadge: {
+    position: 'absolute',
+    right: -2,
+    bottom: -2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 26,
+    height: 26,
+    borderWidth: 2,
+    borderColor: colors.surface,
+    borderRadius: 13,
+    backgroundColor: colors.black,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 4,
+  },
+  ratingText: {
+    fontFamily: fonts.semibold,
+    fontSize: 13,
+    color: colors.black,
+  },
+  ratingMuted: {
+    fontFamily: fonts.regular,
+    color: colors.textMuted,
+  },
+  photoHint: {
+    marginTop: -4,
+    marginHorizontal: 4,
+    fontFamily: fonts.regular,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.textMuted,
+  },
+  photoError: {
+    marginTop: -4,
+    marginHorizontal: 4,
+    fontFamily: fonts.medium,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.danger,
   },
   avatarText: {
     fontFamily: fonts.display,

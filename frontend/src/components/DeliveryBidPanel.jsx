@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Bike, Car, Check, Minus, Plus, Timer, Zap } from 'lucide-react'
+import { Bike, Car, Check, ChevronDown, Minus, Plus, Star, Timer, Zap } from 'lucide-react'
 import { formatPrice } from '../lib/format.js'
 import { DELIVERY_BID, clampBidCents } from '../lib/deliveryTime.js'
 import {
@@ -7,6 +7,9 @@ import {
   acceptBid,
   bidErrorText,
   cancelNegotiation,
+  courierPhotoUrl,
+  fetchBidCourierReviews,
+  formatRating,
   setDeliveryOffer,
   useDeliveryNegotiation,
 } from '../lib/deliveryBids.js'
@@ -38,6 +41,77 @@ function formatClock(seconds) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
 }
 
+function initials(name) {
+  return (name ?? '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join('')
+}
+
+// Kuljettajan kuva (tai nimikirjaimet) ja kulkuneuvo pienenä merkkinä kulmassa
+// (migraatio 0062: kuljettaja lisää kuvan sovelluksessa).
+function CourierAvatar({ bid }) {
+  const Icon = VEHICLE_ICONS[bid.vehicle] ?? Bike
+  const photo = courierPhotoUrl(bid.courier_photo_path)
+  return (
+    <span className="bid-card__avatar" aria-hidden="true">
+      {photo ? <img src={photo} alt="" loading="lazy" /> : initials(bid.courier_name) || <Icon size={18} />}
+      <span className="bid-card__vehicle">
+        <Icon size={11} strokeWidth={2.4} />
+      </span>
+    </span>
+  )
+}
+
+function StarRow({ stars }) {
+  return (
+    <span className="bid-review__stars" role="img" aria-label={`${stars} / 5 tähteä`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <Star key={n} size={12} strokeWidth={2} fill={n <= stars ? 'currentColor' : 'none'} aria-hidden="true" />
+      ))}
+    </span>
+  )
+}
+
+// Kuljettajan uusimmat kirjoitetut arviot (avautuu tähtiarviota napauttamalla).
+function BidReviews({ bidId }) {
+  const [reviews, setReviews] = useState(null)
+  useEffect(() => {
+    let cancelled = false
+    fetchBidCourierReviews(bidId).then(
+      (data) => !cancelled && setReviews(data ?? []),
+      () => !cancelled && setReviews([]),
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [bidId])
+
+  if (!reviews) return <p className="bid-reviews bid-reviews--empty">Ladataan arvioita…</p>
+  if (!reviews.length) {
+    return (
+      <p className="bid-reviews bid-reviews--empty">Asiakkaat ovat antaneet vain tähtiä, ei kirjoitettuja arvioita.</p>
+    )
+  }
+  return (
+    <ul className="bid-reviews">
+      {reviews.map((review) => (
+        <li key={review.created_at} className="bid-review">
+          <span className="bid-review__head">
+            <StarRow stars={review.stars} />
+            <time dateTime={review.created_at}>
+              {new Date(review.created_at).toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric' })}
+            </time>
+          </span>
+          <p>{review.comment}</p>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
 // Kuljetushinnan sopiminen (käyttäjän malli): lähellä olevat kuljettajat
 // tarjoavat hinnan, asiakas hyväksyy yhden tai tarjoaa omaa hintaansa.
 // Ravintola saa tilauksen vasta, kun hinnasta on sovittu. Näkyy kassan
@@ -49,6 +123,7 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
   const [error, setError] = useState('')
   const [draft, setDraft] = useState(null)
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const [reviewsOpen, setReviewsOpen] = useState(null)
 
   if (!orderId || !loaded || !order) {
     return (
@@ -135,15 +210,31 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
       ) : (
         <ul className="bid-panel__list" aria-live="polite">
           {offeredBids.map((bid) => {
-            const Icon = VEHICLE_ICONS[bid.vehicle] ?? Bike
             const distance = formatKm(bid.distance_km)
+            const reviewCount = bid.courier_review_count ?? 0
+            const open = reviewsOpen === bid.id
             return (
               <li key={bid.id} className="bid-card">
-                <span className="bid-card__avatar" aria-hidden="true">
-                  <Icon size={18} strokeWidth={2} />
-                </span>
+                <CourierAvatar bid={bid} />
                 <span className="bid-card__info">
                   <strong>{bid.courier_name}</strong>
+                  {reviewCount > 0 && bid.courier_rating != null ? (
+                    <button
+                      type="button"
+                      className="bid-card__rating"
+                      aria-expanded={open}
+                      onClick={() => setReviewsOpen(open ? null : bid.id)}
+                    >
+                      <Star size={13} strokeWidth={2} fill="currentColor" aria-hidden="true" />
+                      <b>{formatRating(bid.courier_rating)}</b>
+                      <span>
+                        · {reviewCount} {reviewCount === 1 ? 'arvio' : 'arviota'}
+                      </span>
+                      <ChevronDown size={14} strokeWidth={2} aria-hidden="true" className={open ? 'is-open' : ''} />
+                    </button>
+                  ) : (
+                    <span className="bid-card__new">Uusi kuljettaja</span>
+                  )}
                   <span>
                     {VEHICLE_LABELS[bid.vehicle] ?? 'Kuljettaja'}
                     {distance ? ` · ${distance} ravintolasta` : ''}
@@ -159,6 +250,7 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
                 >
                   {busy === bid.id ? <span className="bid-panel__spinner" aria-hidden="true" /> : 'Hyväksy'}
                 </button>
+                {open && <BidReviews bidId={bid.id} />}
               </li>
             )
           })}
@@ -200,7 +292,13 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
             disabled={Boolean(busy) || expired || draftCents === activeOffer}
             onClick={() => run('offer', () => setDeliveryOffer(orderId, draftCents)).then((ok) => ok && setDraft(null))}
           >
-            {busy === 'offer' ? <span className="bid-panel__spinner" aria-hidden="true" /> : activeOffer ? 'Päivitä' : 'Tarjoa'}
+            {busy === 'offer' ? (
+              <span className="bid-panel__spinner" aria-hidden="true" />
+            ) : activeOffer ? (
+              'Päivitä'
+            ) : (
+              'Tarjoa'
+            )}
           </button>
         </div>
         {activeOffer != null && (
@@ -221,9 +319,7 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
         </p>
       )}
 
-      <p className="bid-panel__note">
-        Ravintola saa tilauksen, kun hinnasta on sovittu.
-      </p>
+      <p className="bid-panel__note">Ravintola saa tilauksen, kun hinnasta on sovittu.</p>
 
       {confirmCancel ? (
         <div className="bid-panel__confirm" role="group" aria-label="Vahvista peruutus">
