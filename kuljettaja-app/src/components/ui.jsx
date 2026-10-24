@@ -221,8 +221,9 @@ export function ProfileCard({ tag, name, lines = [], onPress }) {
 }
 
 // Tunnusluvut yhtenä rivinä ohuin pystyviivoin. items: [{ label, value }],
-// title: kortin otsikko lukujen yläpuolelle.
-export function StatRow({ items, style, title }) {
+// title: kortin otsikko lukujen yläpuolelle. onPress: koko kortti avaa
+// näkymän (otsikon vieressä nuoli), esim. Profiilin luvut -> Ansiot.
+export function StatRow({ items, style, title, onPress }) {
   const stats = items.map(({ label, value }, index) => (
     <View key={label} style={[styles.stat, index > 0 && styles.statDivider]}>
       <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>
@@ -233,15 +234,29 @@ export function StatRow({ items, style, title }) {
       </Text>
     </View>
   ))
-  if (title) {
-    return (
-      <View style={[styles.card, styles.cardWithTitle, style]}>
+  const content = title ? (
+    <>
+      <View style={styles.statHeader}>
         <SectionTitle>{title}</SectionTitle>
-        <View style={styles.statsInTitledCard}>{stats}</View>
+        {onPress ? <ChevronRight size={20} strokeWidth={1.75} color={colors.textMuted} /> : null}
       </View>
-    )
-  }
-  return <View style={[styles.card, styles.stats, style]}>{stats}</View>
+      <View style={styles.statsInTitledCard}>{stats}</View>
+    </>
+  ) : (
+    stats
+  )
+  const cardStyle = [styles.card, title ? styles.cardWithTitle : styles.stats, style]
+  if (!onPress) return <View style={cardStyle}>{content}</View>
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      style={({ pressed }) => [...cardStyle, pressed && styles.rowPressed]}
+    >
+      {content}
+    </Pressable>
+  )
 }
 
 export function Button({ title, onPress, icon: Icon, variant = 'primary', disabled = false }) {
@@ -460,6 +475,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 0,
     paddingVertical: 16,
+  },
+  statHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   statsInTitledCard: {
     flexDirection: 'row',

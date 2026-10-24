@@ -11,6 +11,7 @@
     "expo-asset": "~57.0.20",
     "expo-audio": "~57.0.5",
     "expo-constants": "~57.0.21",
+    "expo-dev-client": "~57.0.20",
     "expo-font": "~57.0.4",
     "expo-haptics": "~57.0.3",
     "expo-image-picker": "~57.0.20",
@@ -21,6 +22,7 @@
     "expo-router": "~57.0.25",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.4",
+    "expo-updates": "~57.0.26",
     "lucide-react-native": "^1.55.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -33,6 +35,7 @@
   },
   "scripts": {
     "start": "expo start",
+    "go": "expo start --go",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",

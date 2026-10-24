@@ -40,8 +40,8 @@ import { colors, fonts } from '../theme'
 
 const STAR_COLOR = '#f5a524'
 
-// Profiili: ylhäällä kuljettajan kortti (kuva, nimi, kulkuneuvo, tähtiarvio,
-// hyväksynnän tila), sitten omat tiedot. Kuvan kuljettaja vaihtaa itse
+// Profiili: ylhäällä kuljettajan kortti (kuva keskellä, sen alla nimi,
+// kulkuneuvo, tähtiarvio ja hyväksynnän tila), sitten omat tiedot. Kuvan kuljettaja vaihtaa itse
 // napauttamalla sitä (asiakas näkee sen hintatarjouksessa, migraatio 0062).
 // Nimi, sähköposti, kulkuneuvo ja kaupunki ovat tarkistettuja: rivi avaa
 // muutospyynnön, jonka Bidrop hyväksyy (migraatio 0051), ja kesken oleva tai
@@ -145,7 +145,7 @@ export default function ProfileScreen() {
             ) : null}
           </View>
           <View style={styles.cameraBadge}>
-            <Camera size={13} strokeWidth={2.2} color="#ffffff" />
+            <Camera size={15} strokeWidth={2.2} color="#ffffff" />
           </View>
         </Pressable>
         <View style={styles.heroText}>
@@ -221,6 +221,7 @@ export default function ProfileScreen() {
 
       <StatRow
         title={t('profile.stats')}
+        onPress={() => router.push('/earnings')}
         items={[
           { label: t('profile.gigs'), value: String(stats.count) },
           { label: t('profile.earnings'), value: formatEuro(stats.total) },
@@ -244,11 +245,13 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
+  // Kuva ylhäällä keskellä, nimi ja tiedot sen alla (käyttäjän pyyntö 24.10.2026,
+  // samaan malliin kuin asiakkaan näkemä kuljettajan profiili).
   hero: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
-    paddingVertical: 18,
+    gap: 12,
+    paddingTop: 24,
+    paddingBottom: 20,
     paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: '#ececec',
@@ -256,8 +259,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   avatarWrap: {
-    width: 72,
-    height: 72,
+    width: 104,
+    height: 104,
   },
   pressed: {
     opacity: 0.7,
@@ -265,15 +268,15 @@ const styles = StyleSheet.create({
   avatar: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 72,
-    height: 72,
+    width: 104,
+    height: 104,
     overflow: 'hidden',
-    borderRadius: 36,
+    borderRadius: 52,
     backgroundColor: colors.orange,
   },
   avatarImage: {
-    width: 72,
-    height: 72,
+    width: 104,
+    height: 104,
   },
   avatarBusy: {
     position: 'absolute',
@@ -287,22 +290,22 @@ const styles = StyleSheet.create({
   },
   cameraBadge: {
     position: 'absolute',
-    right: -2,
-    bottom: -2,
+    right: 2,
+    bottom: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 26,
-    height: 26,
-    borderWidth: 2,
+    width: 32,
+    height: 32,
+    borderWidth: 3,
     borderColor: colors.surface,
-    borderRadius: 13,
+    borderRadius: 16,
     backgroundColor: colors.black,
   },
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    marginTop: 4,
+    marginTop: 6,
   },
   ratingText: {
     fontFamily: fonts.semibold,
@@ -315,49 +318,55 @@ const styles = StyleSheet.create({
   },
   photoHint: {
     marginTop: -4,
-    marginHorizontal: 4,
+    marginHorizontal: 12,
     fontFamily: fonts.regular,
     fontSize: 13,
     lineHeight: 18,
+    textAlign: 'center',
     color: colors.textMuted,
   },
   photoError: {
     marginTop: -4,
-    marginHorizontal: 4,
+    marginHorizontal: 12,
     fontFamily: fonts.medium,
     fontSize: 13,
     lineHeight: 18,
+    textAlign: 'center',
     color: colors.danger,
   },
   avatarText: {
     fontFamily: fonts.display,
-    fontSize: 24,
-    letterSpacing: -0.4,
+    fontSize: 36,
+    letterSpacing: -0.6,
     color: '#ffffff',
   },
   heroText: {
-    flex: 1,
+    alignSelf: 'stretch',
+    alignItems: 'center',
     gap: 2,
   },
   heroName: {
     fontFamily: fonts.display,
-    fontSize: 22,
+    fontSize: 24,
     letterSpacing: -0.4,
+    textAlign: 'center',
     color: colors.black,
   },
   heroMeta: {
     fontFamily: fonts.regular,
     fontSize: 14,
+    textAlign: 'center',
     color: colors.textMuted,
   },
   heroBadge: {
     flexDirection: 'row',
-    marginTop: 8,
+    marginTop: 10,
   },
   since: {
     marginTop: 8,
     fontFamily: fonts.regular,
     fontSize: 12,
+    textAlign: 'center',
     color: colors.textMuted,
   },
   lockedNote: {

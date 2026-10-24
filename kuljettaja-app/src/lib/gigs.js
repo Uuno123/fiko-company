@@ -17,14 +17,21 @@ export const HISTORY_DAYS = 28
 // keikalle sopimuksessa (orders.courier_fee_cents, migraatio 0058).
 const GIG_FIELDS =
   'id, order_number, delivery_address, delivery_lat, delivery_lng, courier_assigned_at, picked_up_at, delivered_at, courier_fee_cents, delivery_price_cents, restaurants(name, address, lat, lng)'
+// Milloin palkkio maksettiin tilille (migraatio 0064, Ansioiden pallo).
+const GIG_FIELDS_WITH_PAYOUT = `${GIG_FIELDS}, courier_paid_at`
 
 // Aiempi versio tallensi ajetut keikat puhelimeen - tieto on nyt tietokannassa.
 AsyncStorage.removeItem('delivo-completed-gigs').catch(() => {})
 
 // "Kauppakatu 18, 70100 Kuopio" -> { street: 'Kauppakatu 18', area: 'Kuopio' }
 function splitAddress(address) {
-  const [street, ...rest] = String(address ?? '').split(',').map((part) => part.trim())
-  const area = rest.join(', ').replace(/\b\d{5}\b/, '').trim()
+  const [street, ...rest] = String(address ?? '')
+    .split(',')
+    .map((part) => part.trim())
+  const area = rest
+    .join(', ')
+    .replace(/\b\d{5}\b/, '')
+    .trim()
   return { street: street || 'Toimitusosoite', area: area || 'Asiakas' }
 }
 
@@ -53,6 +60,8 @@ function orderToGig(order) {
     durationMin: Math.max(1, Math.round((deliveredAt - acceptedAt) / 60000)),
     // price: asiakkaan maksama kuljetushinta, total: kuljettajan osuus siitä.
     pay: { price: order.delivery_price_cents ?? null, tip: 0, total: fee },
+    // null = palkkio odottaa maksua (lib/payouts.js).
+    paidAt: order.courier_paid_at ? new Date(order.courier_paid_at) : null,
   }
 }
 
@@ -63,14 +72,18 @@ const listeners = new Set()
 export async function refreshGigs(courierId) {
   if (!courierId || !supabase) return
   const since = new Date(Date.now() - HISTORY_DAYS * 86400000).toISOString()
-  const { data, error } = await supabase
-    .from('orders')
-    .select(GIG_FIELDS)
-    .eq('courier_id', courierId)
-    .eq('courier_status', 'delivered')
-    .gte('delivered_at', since)
-    .order('delivered_at', { ascending: false })
-    .limit(500)
+  const query = (fields) =>
+    supabase
+      .from('orders')
+      .select(fields)
+      .eq('courier_id', courierId)
+      .eq('courier_status', 'delivered')
+      .gte('delivered_at', since)
+      .order('delivered_at', { ascending: false })
+      .limit(500)
+  let { data, error } = await query(GIG_FIELDS_WITH_PAYOUT)
+  // Migraatio 0064 ajamatta: keikat ilman maksutietoa.
+  if (error?.code === '42703') ({ data, error } = await query(GIG_FIELDS))
   if (error) return
   cache = (data ?? []).map(orderToGig)
   listeners.forEach((listener) => listener(cache))
