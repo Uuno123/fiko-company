@@ -13,8 +13,9 @@ const DRAG_SLOP_PX = 6
 // puhelimella lähes koko näytön korkuinen - ylhäällä näkyy himmennettynä sivu,
 // jonka päällä paneeli on. Paneelin saa kiinni pyyhkäisemällä alas (kahvasta
 // tai mistä tahansa, kun sisältö on vieritetty ylös), taustaa napauttamalla,
-// ✕:llä tai Escillä. Työpöydällä keskitetty ikkuna.
-function BottomSheet({ onClose, labelledBy, children }) {
+// ✕:llä tai Escillä. Työpöydällä keskitetty ikkuna. footer: aina näkyvä
+// alapalkki (esim. hinta ja hyväksyntä), joka ei vierity sisällön mukana.
+function BottomSheet({ onClose, labelledBy, footer, children }) {
   const [leaving, setLeaving] = useState(false)
   const sheetRef = useRef(null)
   const bodyRef = useRef(null)
@@ -151,6 +152,7 @@ function BottomSheet({ onClose, labelledBy, children }) {
         <div ref={bodyRef} className="bottom-sheet__body">
           {children}
         </div>
+        {footer ? <div className="bottom-sheet__footer">{footer}</div> : null}
       </div>
     </>
   )

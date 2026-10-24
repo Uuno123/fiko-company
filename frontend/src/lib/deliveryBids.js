@@ -121,9 +121,14 @@ export function setDeliveryOffer(orderId, priceCents) {
   return rpc('customer_set_delivery_offer', { p_order_id: orderId, p_price_cents: priceCents })
 }
 
-// Tarjouksen kuljettajan uusimmat kirjoitetut arviot: [{ stars, comment, created_at }].
-export function fetchBidCourierReviews(bidId) {
-  return rpc('bid_courier_reviews', { p_bid_id: bidId })
+// Tarjouksen kuljettajan koko profiili (migraatio 0063): { name, photo_path,
+// vehicle, since, rating, review_count, deliveries, distribution, reviews }.
+// Ennen 0063:a vain uusimmat kirjoitetut arviot (0062): { reviews }.
+export async function fetchBidCourierProfile(bidId) {
+  const { data, error } = await supabase.rpc('bid_courier_profile', { p_bid_id: bidId })
+  if (!error) return data
+  if (!['PGRST202', '42883'].includes(error.code)) throw error
+  return { reviews: (await rpc('bid_courier_reviews', { p_bid_id: bidId })) ?? [] }
 }
 
 export function cancelNegotiation(orderId) {

@@ -113,40 +113,32 @@
   box-shadow: 0 4px 14px rgba(17, 17, 17, 0.06);
 }
 
-/* Kuljettajan kuva tai nimikirjaimet, kulkuneuvo pienenä merkkinä kulmassa. */
-.bid-card__avatar {
-  position: relative;
+/* Kuljettajan kuva, nimi ja tähdet yhtenä nappina: avaa koko profiilin. */
+.bid-card__courier {
+  grid-column: span 2;
   display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: #fff1ec;
-  color: var(--delivo-orange);
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  margin: -4px;
+  padding: 4px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
 }
 
-.bid-card__avatar img {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
+.bid-card__courier:hover {
+  background: var(--surface-muted);
 }
 
-.bid-card__vehicle {
-  position: absolute;
-  right: -3px;
-  bottom: -3px;
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--surface);
-  border-radius: 50%;
-  background: var(--delivo-black);
-  color: #fff;
+.bid-card__courier:focus-visible {
+  outline: 2px solid var(--delivo-orange);
+  outline-offset: 2px;
 }
 
 .bid-card__info {
@@ -156,11 +148,19 @@
 }
 
 .bid-card__info strong {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   overflow: hidden;
   font-size: 0.95rem;
   white-space: nowrap;
   text-overflow: ellipsis;
   color: var(--delivo-black);
+}
+
+.bid-card__info strong svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
 }
 
 .bid-card__info > span {
@@ -171,40 +171,20 @@
   color: var(--text-muted);
 }
 
-/* Tähtiarvio: napautus avaa kuljettajan kirjoitetut arviot. */
-.bid-card__rating {
+.bid-card__info .bid-card__rating {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  justify-self: start;
-  padding: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  cursor: pointer;
 }
 
-.bid-card__rating svg:first-child {
+.bid-card__rating svg {
+  flex-shrink: 0;
   color: #f5a524;
 }
 
 .bid-card__rating b {
   font-weight: 700;
   color: var(--delivo-black);
-}
-
-.bid-card__rating:hover span {
-  text-decoration: underline;
-}
-
-.bid-card__rating .is-open {
-  transform: rotate(180deg);
-}
-
-.bid-card__rating svg:last-child {
-  transition: transform 0.2s ease;
 }
 
 .bid-card__info .bid-card__new {
@@ -215,44 +195,6 @@
   font-size: 0.72rem;
   font-weight: 700;
   color: #1a8a4a;
-}
-
-/* Kirjoitetut arviot kortin alla koko leveydeltä. */
-.bid-reviews {
-  grid-column: 1 / -1;
-  display: grid;
-  gap: 8px;
-  margin: 2px 0 0;
-  padding: 10px 0 0;
-  border-top: 1px solid var(--border);
-  list-style: none;
-}
-
-.bid-reviews--empty {
-  font-size: 0.82rem;
-  color: var(--text-muted);
-}
-
-.bid-review__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.bid-review__stars {
-  display: inline-flex;
-  gap: 1px;
-  color: #f5a524;
-}
-
-.bid-review p {
-  margin: 3px 0 0;
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: var(--delivo-black);
 }
 
 .bid-card__price {
