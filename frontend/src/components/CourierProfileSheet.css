@@ -1,0 +1,215 @@
+/* Kuljettajan profiili asiakkaalle (CourierProfileSheet, BottomSheetin sisällä). */
+.courier-profile {
+  display: grid;
+  gap: 20px;
+}
+
+.courier-profile__head {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding-top: 10px;
+  text-align: center;
+}
+
+.courier-profile__head .courier-avatar {
+  margin-bottom: 8px;
+}
+
+.courier-profile__head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  letter-spacing: -0.01em;
+  color: var(--delivo-black);
+}
+
+.courier-profile__head p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.courier-profile__new {
+  margin-top: 4px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: #e8f6ee;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1a8a4a;
+}
+
+/* Luvut rinnakkain: arvio, arviot, toimitukset, aloitus. */
+.courier-profile__stats {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.courier-profile__stats > div {
+  display: grid;
+  gap: 2px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.courier-profile__stats > div + div {
+  border-left: 1px solid var(--border);
+}
+
+.courier-profile__stats dt {
+  order: 2;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.courier-profile__stats dd {
+  order: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+.courier-profile__stats dd svg {
+  color: #f5a524;
+}
+
+/* Viimeinen luku ("9.2026 alkaen") on pidempi - pienempi fontti. */
+.courier-profile__stats > div:nth-child(4) dd {
+  font-size: 0.9rem;
+}
+
+/* Tähtien jakauma palkkeina. */
+.courier-profile__bars {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.courier-profile__bars li {
+  display: grid;
+  grid-template-columns: 10px 14px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.courier-profile__bars svg {
+  color: #f5a524;
+}
+
+.courier-profile__bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--round-button-bg);
+}
+
+.courier-profile__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #f5a524;
+}
+
+.courier-profile__bar-count {
+  text-align: right;
+}
+
+.courier-profile__reviews h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--delivo-black);
+}
+
+.courier-profile__reviews ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.courier-profile__review {
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.courier-profile__review-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.courier-profile__review p {
+  margin: 4px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--delivo-black);
+}
+
+.courier-profile__muted {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* Alapalkki: hinta ja hyväksyntä (BottomSheetin footer). */
+.courier-profile__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.courier-profile__footer > span {
+  display: grid;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.courier-profile__footer strong {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--delivo-black);
+}
+
+.courier-profile__accept {
+  flex: 1;
+  max-width: 220px;
+  height: 48px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--delivo-orange);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.courier-profile__accept:hover:not(:disabled) {
+  background: var(--delivo-orange-dark);
+}
+
+.courier-profile__accept:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

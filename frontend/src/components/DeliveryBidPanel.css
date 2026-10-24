@@ -113,22 +113,44 @@
   box-shadow: 0 4px 14px rgba(17, 17, 17, 0.06);
 }
 
-.bid-card__avatar {
+/* Kuljettajan kuva, nimi ja tähdet yhtenä nappina: avaa koko profiilin. */
+.bid-card__courier {
+  grid-column: span 2;
   display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: #fff1ec;
-  color: var(--delivo-orange);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  margin: -4px;
+  padding: 4px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.bid-card__courier:hover {
+  background: var(--surface-muted);
+}
+
+.bid-card__courier:focus-visible {
+  outline: 2px solid var(--delivo-orange);
+  outline-offset: 2px;
 }
 
 .bid-card__info {
   display: grid;
+  gap: 1px;
   min-width: 0;
 }
 
 .bid-card__info strong {
+  display: flex;
+  align-items: center;
+  gap: 2px;
   overflow: hidden;
   font-size: 0.95rem;
   white-space: nowrap;
@@ -136,12 +158,43 @@
   color: var(--delivo-black);
 }
 
-.bid-card__info span {
+.bid-card__info strong svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.bid-card__info > span {
   overflow: hidden;
   font-size: 0.8rem;
   white-space: nowrap;
   text-overflow: ellipsis;
   color: var(--text-muted);
+}
+
+.bid-card__info .bid-card__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.bid-card__rating svg {
+  flex-shrink: 0;
+  color: #f5a524;
+}
+
+.bid-card__rating b {
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+.bid-card__info .bid-card__new {
+  justify-self: start;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: #e8f6ee;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #1a8a4a;
 }
 
 .bid-card__price {

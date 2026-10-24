@@ -33,7 +33,14 @@ export function StarPicker({ value, onChange, size = 30 }) {
 
 // Arvostelulomake: tähdet ja vapaaehtoinen teksti. onSubmit(rating, comment)
 // heittää virheen, jos tallennus epäonnistuu - virhe näytetään lomakkeessa.
-function ReviewForm({ initial, editing = false, cancelLabel = 'Peruuta', onCancel, onSubmit }) {
+function ReviewForm({
+  initial,
+  editing = false,
+  cancelLabel = 'Peruuta',
+  placeholder = 'Miten ruoka ja toimitus onnistuivat?',
+  onCancel,
+  onSubmit,
+}) {
   const [rating, setRating] = useState(initial?.rating ?? 0)
   const [comment, setComment] = useState(initial?.comment ?? '')
   const [saving, setSaving] = useState(false)
@@ -64,7 +71,7 @@ function ReviewForm({ initial, editing = false, cancelLabel = 'Peruuta', onCance
           value={comment}
           maxLength={REVIEW_MAX_LENGTH}
           rows={4}
-          placeholder="Miten ruoka ja toimitus onnistuivat?"
+          placeholder={placeholder}
           onChange={(e) => setComment(e.target.value)}
         />
         <span className="review-form__count">

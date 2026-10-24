@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { X } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext.jsx'
+import { courierPhotoUrl } from '../lib/deliveryBids.js'
 import {
   finishedAtLabel,
   findOrderToReview,
   markRestaurantOrdersReviewed,
   markReviewPromptHandled,
+  submitCourierReview,
   submitReview,
 } from '../lib/reviews.js'
 import { supabase } from '../lib/supabaseClient.js'
@@ -123,10 +125,17 @@ function ReviewPrompt() {
     else setDragY(0)
   }
 
+  // Ravintolan jälkeen kuljettaja, jos tilauksen toi kuljettaja (migraatio 0062).
   async function handleSubmit(stars, comment) {
     await submitReview(order.restaurant_id, stars, comment)
     markReviewPromptHandled(order.id)
     markRestaurantOrdersReviewed(customerId, order.restaurant_id)
+    setStage(order.courier ? 'courier' : 'thanks')
+  }
+
+  async function handleCourierSubmit(stars, comment) {
+    await submitCourierReview(order.id, stars, comment)
+    markReviewPromptHandled(order.id)
     setStage('thanks')
   }
 
@@ -169,14 +178,43 @@ function ReviewPrompt() {
               <span>Se auttaa muita valitsemaan.</span>
             </span>
           </div>
+        ) : stage === 'courier' ? (
+          <>
+            <p className="review-prompt__kicker">
+              Kuljetus · {finishedAtLabel(order.delivered_at ?? order.updated_at)}
+            </p>
+            <div className="review-prompt__courier">
+              <span className="review-prompt__courier-avatar" aria-hidden="true">
+                {courierPhotoUrl(order.courier.photo_path) ? (
+                  <img src={courierPhotoUrl(order.courier.photo_path)} alt="" />
+                ) : (
+                  order.courier.courier_name.charAt(0)
+                )}
+              </span>
+              <h2 className="review-prompt__title">Miten {order.courier.courier_name} onnistui?</h2>
+            </div>
+            <ReviewForm
+              key="courier"
+              cancelLabel="Ohita"
+              placeholder="Oliko kuljettaja ajoissa ja ystävällinen?"
+              onCancel={dismiss}
+              onSubmit={handleCourierSubmit}
+            />
+          </>
         ) : (
           <>
             <p className="review-prompt__kicker">
-              {restaurantName} · {delivered ? 'toimitettu' : 'noudettu'} {finishedAtLabel(order.delivered_at ?? order.updated_at)}
+              {restaurantName} · {delivered ? 'toimitettu' : 'noudettu'}{' '}
+              {finishedAtLabel(order.delivered_at ?? order.updated_at)}
             </p>
             <h2 className="review-prompt__title">Miten tilaus onnistui?</h2>
             {order.hasReview && <p className="review-prompt__hint">Uusi arvio päivittää aiemman arvostelusi.</p>}
-            <ReviewForm cancelLabel="Ei nyt" onCancel={dismiss} onSubmit={handleSubmit} />
+            <ReviewForm
+              key="restaurant"
+              cancelLabel={order.courier ? 'Ohita' : 'Ei nyt'}
+              onCancel={order.courier ? () => setStage('courier') : dismiss}
+              onSubmit={handleSubmit}
+            />
           </>
         )}
       </aside>

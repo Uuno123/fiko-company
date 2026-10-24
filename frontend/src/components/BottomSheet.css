@@ -86,6 +86,13 @@
   padding: 18px 22px calc(28px + env(safe-area-inset-bottom, 0px));
 }
 
+.bottom-sheet__footer {
+  flex-shrink: 0;
+  padding: 12px 22px calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
 /* Työpöytä: keskitetty ikkuna, korkeus sisällön mukaan. */
 @media (min-width: 640px) {
   .bottom-sheet {
@@ -113,6 +120,11 @@
 
   .bottom-sheet__body {
     padding: 44px 36px 32px;
+  }
+
+  .bottom-sheet__footer {
+    padding: 14px 36px;
+    border-radius: 0 0 24px 24px;
   }
 }
 

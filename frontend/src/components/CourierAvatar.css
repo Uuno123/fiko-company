@@ -1,0 +1,57 @@
+/* Kuljettajan kuva tai nimikirjaimet, kulkuneuvo pienenä merkkinä kulmassa
+   (tarjouskortti ja kuljettajan profiili). */
+.courier-avatar {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: #fff1ec;
+  color: var(--delivo-orange);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.courier-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.courier-avatar__vehicle {
+  position: absolute;
+  right: -3px;
+  bottom: -3px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+.courier-avatar--large {
+  width: 96px;
+  height: 96px;
+  font-size: 2rem;
+}
+
+.courier-avatar--large .courier-avatar__vehicle {
+  right: 0;
+  bottom: 0;
+  width: 30px;
+  height: 30px;
+  border-width: 3px;
+}
+
+.courier-stars {
+  display: inline-flex;
+  gap: 1px;
+  color: #f5a524;
+}

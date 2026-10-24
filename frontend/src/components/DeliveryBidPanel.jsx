@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Bike, Car, Check, Minus, Plus, Timer, Zap } from 'lucide-react'
+import { Check, ChevronRight, Minus, Plus, Star, Timer } from 'lucide-react'
+import { CourierAvatar } from './CourierAvatar.jsx'
+import CourierProfileSheet from './CourierProfileSheet.jsx'
 import { formatPrice } from '../lib/format.js'
 import { DELIVERY_BID, clampBidCents } from '../lib/deliveryTime.js'
 import {
@@ -7,6 +9,7 @@ import {
   acceptBid,
   bidErrorText,
   cancelNegotiation,
+  formatRating,
   setDeliveryOffer,
   useDeliveryNegotiation,
 } from '../lib/deliveryBids.js'
@@ -15,8 +18,6 @@ import './DeliveryBidPanel.css'
 // Oman tarjouksen säätö 50 sentin askelin (tietokanta pyöristää 10 senttiin).
 const OFFER_STEP_CENTS = 50
 const DEFAULT_OFFER_CENTS = 399
-
-const VEHICLE_ICONS = { bike: Bike, ebike: Zap, scooter: Bike, car: Car }
 
 function formatKm(km) {
   if (!Number.isFinite(km)) return null
@@ -49,6 +50,8 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
   const [error, setError] = useState('')
   const [draft, setDraft] = useState(null)
   const [confirmCancel, setConfirmCancel] = useState(false)
+  // Tarjous, jonka kuljettajan profiili on auki (napautus kortista).
+  const [profileBid, setProfileBid] = useState(null)
 
   if (!orderId || !loaded || !order) {
     return (
@@ -135,20 +138,38 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
       ) : (
         <ul className="bid-panel__list" aria-live="polite">
           {offeredBids.map((bid) => {
-            const Icon = VEHICLE_ICONS[bid.vehicle] ?? Bike
             const distance = formatKm(bid.distance_km)
+            const reviewCount = bid.courier_review_count ?? 0
             return (
               <li key={bid.id} className="bid-card">
-                <span className="bid-card__avatar" aria-hidden="true">
-                  <Icon size={18} strokeWidth={2} />
-                </span>
-                <span className="bid-card__info">
-                  <strong>{bid.courier_name}</strong>
-                  <span>
-                    {VEHICLE_LABELS[bid.vehicle] ?? 'Kuljettaja'}
-                    {distance ? ` · ${distance} ravintolasta` : ''}
+                {/* Kuva, nimi ja tähdet: napautus avaa kuljettajan koko profiilin. */}
+                <button
+                  type="button"
+                  className="bid-card__courier"
+                  onClick={() => setProfileBid(bid)}
+                  aria-label={`Näytä kuljettajan ${bid.courier_name} profiili`}
+                >
+                  <CourierAvatar name={bid.courier_name} photoPath={bid.courier_photo_path} vehicle={bid.vehicle} />
+                  <span className="bid-card__info">
+                    <strong>
+                      {bid.courier_name}
+                      <ChevronRight size={15} strokeWidth={2.2} aria-hidden="true" />
+                    </strong>
+                    {reviewCount > 0 && bid.courier_rating != null ? (
+                      <span className="bid-card__rating">
+                        <Star size={13} strokeWidth={2} fill="currentColor" aria-hidden="true" />
+                        <b>{formatRating(bid.courier_rating)}</b> · {reviewCount}{' '}
+                        {reviewCount === 1 ? 'arvio' : 'arviota'}
+                      </span>
+                    ) : (
+                      <span className="bid-card__new">Uusi kuljettaja</span>
+                    )}
+                    <span>
+                      {VEHICLE_LABELS[bid.vehicle] ?? 'Kuljettaja'}
+                      {distance ? ` · ${distance} ravintolasta` : ''}
+                    </span>
                   </span>
-                </span>
+                </button>
                 <span className="bid-card__price">{formatPrice(bid.price_cents)}</span>
                 <button
                   type="button"
@@ -163,6 +184,19 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
             )
           })}
         </ul>
+      )}
+
+      {profileBid && (
+        <CourierProfileSheet
+          bid={profileBid}
+          distance={formatKm(profileBid.distance_km)}
+          disabled={Boolean(busy) || expired || !offeredBids.some((bid) => bid.id === profileBid.id)}
+          onAccept={(bid) => {
+            setProfileBid(null)
+            run(bid.id, () => acceptBid(bid.id))
+          }}
+          onClose={() => setProfileBid(null)}
+        />
       )}
 
       <div className="bid-panel__offer">
@@ -200,7 +234,13 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
             disabled={Boolean(busy) || expired || draftCents === activeOffer}
             onClick={() => run('offer', () => setDeliveryOffer(orderId, draftCents)).then((ok) => ok && setDraft(null))}
           >
-            {busy === 'offer' ? <span className="bid-panel__spinner" aria-hidden="true" /> : activeOffer ? 'Päivitä' : 'Tarjoa'}
+            {busy === 'offer' ? (
+              <span className="bid-panel__spinner" aria-hidden="true" />
+            ) : activeOffer ? (
+              'Päivitä'
+            ) : (
+              'Tarjoa'
+            )}
           </button>
         </div>
         {activeOffer != null && (
@@ -221,9 +261,7 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
         </p>
       )}
 
-      <p className="bid-panel__note">
-        Ravintola saa tilauksen, kun hinnasta on sovittu.
-      </p>
+      <p className="bid-panel__note">Ravintola saa tilauksen, kun hinnasta on sovittu.</p>
 
       {confirmCancel ? (
         <div className="bid-panel__confirm" role="group" aria-label="Vahvista peruutus">

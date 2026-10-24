@@ -36,11 +36,31 @@ export async function submitReview(restaurantId, rating, comment) {
   return data
 }
 
+// Kuljettajan arvio toimitetusta tilauksesta (migraatio 0062). Yksi per tilaus,
+// uusi lähetys muokkaa sitä.
+export async function submitCourierReview(orderId, stars, comment) {
+  const { data, error } = await supabase.rpc('submit_courier_review', {
+    p_order_id: orderId,
+    p_stars: stars,
+    p_comment: comment,
+  })
+  if (error) throw error
+  return data
+}
+
+// { courier_name, photo_path, review } tai null (ei kuljettajan toimittama).
+async function fetchCourierReviewStatus(orderId) {
+  const { data, error } = await supabase.rpc('courier_review_status', { p_order_id: orderId })
+  if (error) throw error
+  return data
+}
+
 export function reviewErrorText(error) {
   const code = error?.code ?? ''
   const message = String(error?.message ?? '')
   if (['42P01', '42883', 'PGRST202', 'PGRST205'].includes(code)) return 'Arvostelut eivät ole vielä käytössä.'
   if (message.includes('review_requires_order')) return 'Voit arvostella ravintolan, kun olet tilannut sieltä.'
+  if (message.includes('review_requires_delivery')) return 'Voit arvioida kuljettajan, kun tilaus on toimitettu.'
   if (message.includes('invalid_rating')) return 'Valitse 1–5 tähteä.'
   if (message.includes('comment_too_long')) return `Arvostelu voi olla enintään ${REVIEW_MAX_LENGTH} merkkiä.`
   if (message.includes('not_signed_in')) return 'Kirjaudu sisään arvostellaksesi.'
@@ -74,7 +94,9 @@ export function markReviewPromptHandled(...orderIds) {
 function recentCompletedOrders(customerId, restaurantId) {
   let query = supabase
     .from('orders')
-    .select('id, order_number, restaurant_id, delivery_method, status, courier_status, delivered_at, updated_at, restaurants(name)')
+    .select(
+      'id, order_number, restaurant_id, delivery_method, status, courier_status, delivered_at, updated_at, restaurants(name)',
+    )
     .eq('customer_id', customerId)
     // Valmis = nouto noudettu, tai kotiinkuljetus perillä. Ravintolan "completed"
     // tarkoittaa kotiinkuljetuksessa vain luovutusta kuljettajalle - toimitus on
@@ -128,7 +150,20 @@ export async function findOrderToReview(customerId) {
   if (!order) return null
   try {
     const status = await fetchMyReviewStatus(order.restaurant_id)
-    return status?.can_review ? { ...order, hasReview: Boolean(status.review) } : null
+    if (!status?.can_review) return null
+    return { ...order, hasReview: Boolean(status.review), courier: await courierToReview(order) }
+  } catch {
+    return null
+  }
+}
+
+// Kuljettajan toimittamasta tilauksesta kysytään myös kuljettajan arvio, ellei
+// sitä ole jo annettu. null, jos ei kuljettajaa tai 0062 ajamatta.
+async function courierToReview(order) {
+  if (order.courier_status !== 'delivered') return null
+  try {
+    const status = await fetchCourierReviewStatus(order.id)
+    return status && !status.review ? status : null
   } catch {
     return null
   }
