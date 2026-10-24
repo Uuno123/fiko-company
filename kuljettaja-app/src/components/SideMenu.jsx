@@ -24,9 +24,9 @@ const APP_VERSION = Constants.expoConfig?.version ?? '1.0.0'
 
 const useNativeDriver = Platform.OS !== 'web'
 
-// Vasemmalta liukuva sivuvalikko. Sulkeutuu kun napauttaa karttaa valikon
-// vieressä, pyyhkäisee valikkoa vasemmalle, painaa ruksia tai Androidin
-// takaisin-nappia. onNavigate(path): avaa valikon kohdan näkymän.
+// Vasemmalta liukuva sivuvalikko koko näytön levyisenä (käyttäjän pyyntö
+// 24.10.2026). Sulkeutuu kun pyyhkäisee valikkoa vasemmalle, painaa ruksia tai
+// Androidin takaisin-nappia. onNavigate(path): avaa valikon kohdan näkymän.
 //
 // Ulkoasu sama kuin pääsivun alapaneelissa: "Kuljettaja / nimi" kuten
 // "Toimitusalue / Kuopio", tila pallolla kuten alueen kysyntä ja rivit kuin
@@ -49,7 +49,8 @@ export default function SideMenu({ open, onClose, onNavigate }) {
   // kuin ChoiceSheetissä).
   const screen = Dimensions.get('screen')
   const backdropSize = { width: Math.max(width, screen.width), height: Math.max(height, screen.height) }
-  const panelWidth = Math.min(340, Math.round(width * 0.86))
+  // Koko näytön levyinen: tummennus näkyy vain liukumisen aikana.
+  const panelWidth = width
   const progress = useRef(new Animated.Value(0)).current
   const [mounted, setMounted] = useState(open)
   const openRef = useRef(open)
@@ -80,8 +81,8 @@ export default function SideMenu({ open, onClose, onNavigate }) {
     }
   }, [open, progress])
 
-  // Pyyhkäisy vasemmalle missä tahansa (valikon tai kartan päällä) vetää
-  // valikkoa sormen mukana. Capture-vaihe ottaa eleen ennen valikon rivejä,
+  // Pyyhkäisy vasemmalle missä tahansa valikon päällä vetää valikkoa sormen
+  // mukana. Capture-vaihe ottaa eleen ennen valikon rivejä,
   // joten veto toimii myös rivin päältä aloitettuna. Lyhytkin nopea pyyhkäisy
   // riittää sulkemaan.
   const latest = useRef({ panelWidth, onClose })
@@ -106,8 +107,8 @@ export default function SideMenu({ open, onClose, onNavigate }) {
   return (
     <Modal visible={mounted} transparent animationType="none" statusBarTranslucent navigationBarTranslucent onRequestClose={onClose}>
       <View style={styles.root} {...swipe.panHandlers}>
-        {/* Kartan kosketus sulkee valikon heti kun sormi osuu - ei vasta
-            irrotettaessa, ja myös nopealla napautuksella. */}
+        {/* Tummennus näkyy liukumisen aikana. Jos sitä ehtii koskettaa,
+            valikko sulkeutuu heti. */}
         <Animated.View
           style={[styles.backdrop, backdropSize, { opacity: progress }]}
           onStartShouldSetResponder={() => true}
@@ -208,16 +209,12 @@ const styles = StyleSheet.create({
     left: 0,
     backgroundColor: 'rgba(20, 21, 15, 0.55)',
   },
-  // Kulmat kuten pääsivun alapaneelissa (BottomSheet).
   panel: {
     position: 'absolute',
     top: 0,
     bottom: 0,
     left: 0,
     backgroundColor: colors.surface,
-    borderTopRightRadius: 24,
-    borderBottomRightRadius: 24,
-    boxShadow: '8px 0 32px rgba(20, 21, 15, 0.18)',
   },
   top: {
     flexDirection: 'row',

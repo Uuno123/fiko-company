@@ -12,7 +12,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff",
+        "backgroundColor": "#000000",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -24,7 +24,10 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.MODIFY_AUDIO_SETTINGS"
-      ]
+      ],
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -73,6 +76,9 @@
         "projectId": "2bd3b4b1-c95a-4e5c-bc13-c0009bd4c1b1"
       }
     },
-    "owner": "uuno123"
+    "owner": "uuno123",
+    "updates": {
+      "url": "https://u.expo.dev/2bd3b4b1-c95a-4e5c-bc13-c0009bd4c1b1"
+    }
   }
 }
