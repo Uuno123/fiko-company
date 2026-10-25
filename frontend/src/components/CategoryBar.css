@@ -1,0 +1,142 @@
+/* Työpöydän tekstikategoriat headerin alla (CategoryBar.jsx). Kiinnittyy
+   headerin alareunaan: top on headerin mitattu korkeus (Header.jsx asettaa
+   --site-header-actual-height; header on kapeammalla näytöllä kaksirivinen),
+   z-index headerin (50) alapuolella. */
+.category-bar {
+  position: sticky;
+  top: var(--site-header-actual-height, calc(var(--site-header-height) + 1px));
+  z-index: 40;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  transition:
+    transform 0.25s ease,
+    visibility 0s;
+}
+
+/* Alas vieritettäessä headerin alle piiloon. visibility vaihtuu vasta
+   liu'un jälkeen, jotta piilossa olevat linkit eivät saa fokusta. */
+.category-bar--hidden {
+  transform: translateY(-100%);
+  visibility: hidden;
+  transition:
+    transform 0.25s ease,
+    visibility 0s 0.25s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-bar,
+  .category-bar--hidden {
+    transition: none;
+  }
+}
+
+/* Sama vaakareunus kuin etusivun sisällöllä (.home-content, Home.css). */
+.category-bar__inner {
+  position: relative;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+@media (min-width: 1900px) {
+  .category-bar__inner {
+    max-width: 1600px;
+  }
+}
+
+/* Negatiivinen vasen marginaali kumoaa linkin oman täytteen, jotta
+   ensimmäinen nimi alkaa samasta kohdasta kuin sivun sisältö. */
+.category-bar__track {
+  display: flex;
+  gap: 6px;
+  margin-left: -14px;
+  padding: 7px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.category-bar__track::-webkit-scrollbar {
+  display: none;
+}
+
+.category-bar__link {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  /* Hieman pyöreämpi fontti, paksu ja harmaa (käyttäjän toiveet). Nunito
+     ladataan index.html:ssä. */
+  font-family: 'Nunito', var(--font-body);
+  font-size: 1rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+/* Osoitettaessa pyöreä vaalea kapseli nimen taakse ja teksti tummuu. */
+.category-bar__link:hover {
+  background: var(--surface-muted);
+  color: var(--delivo-black);
+}
+
+.category-bar__link--offers {
+  font-weight: 800;
+  color: var(--delivo-orange);
+}
+
+.category-bar__link--offers:hover {
+  background: var(--delivo-orange-soft);
+  color: var(--delivo-orange-dark);
+}
+
+/* Nuolet valkoisen liukuman päällä, jotta reunaan katkeava nimi ei näy
+   nuolen alta. */
+.category-bar__arrow {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  width: 72px;
+  padding: 0;
+  border: none;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.category-bar__arrow svg {
+  width: 30px;
+  height: 30px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.category-bar__arrow:hover svg {
+  border-color: var(--delivo-black);
+}
+
+.category-bar__arrow--prev {
+  left: 0;
+  justify-content: flex-start;
+  padding-left: 24px;
+  background: linear-gradient(90deg, #fff 55%, rgba(255, 255, 255, 0));
+}
+
+.category-bar__arrow--next {
+  right: 0;
+  justify-content: flex-end;
+  padding-right: 24px;
+  background: linear-gradient(270deg, #fff 55%, rgba(255, 255, 255, 0));
+}
+
+@media (max-width: 560px) {
+  .category-bar {
+    display: none;
+  }
+}

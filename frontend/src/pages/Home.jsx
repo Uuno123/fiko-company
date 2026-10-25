@@ -2,11 +2,13 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ShoppingBag, Trash2 } from 'lucide-react'
 import Header from '../components/Header.jsx'
+import CategoryBar from '../components/CategoryBar.jsx'
 import Footer from '../components/Footer.jsx'
-import CategoryFilter from '../components/CategoryFilter.jsx'
 import PickupOfferBanner from '../components/PickupOfferBanner.jsx'
 import RankingInfo from '../components/RankingInfo.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
+import DealsRow from '../components/DealsRow.jsx'
+import OffersTile, { OFFERS_TILE_INDEX } from '../components/OffersTile.jsx'
 import Spinner from '../components/Spinner.jsx'
 import SearchSuggest, { RestaurantResultCard } from '../components/SearchSuggest.jsx'
 import { getRestaurants } from '../lib/api.js'
@@ -14,7 +16,7 @@ import {
   ALL,
   CATEGORY_TILE_META,
   DEFAULT_TILE_META,
-  CATEGORY_NAMES,
+  DEALS_RESTAURANTS,
   FILLER_TEMPLATES_BY_CATEGORY,
   categorySlug,
   padWithFillers,
@@ -32,6 +34,9 @@ const HIDDEN_MOBILE_CATEGORIES = ['Kahvila']
 // "Lähelläsi"-rivi osoitteen antaneille: näin monta lähintä kaikista kategorioista.
 const NEARBY_COUNT = 10
 const NEARBY_ROW = 'Lähelläsi'
+// Kovimmat tarjoukset -rivi tulee tämän kategoriarivin jälkeen. Ravintolat ja
+// järjestys: DEALS_RESTAURANTS (lib/categories.js, sama lista kuin haussa).
+const DEALS_AFTER = 'Kebab & Pizza'
 
 // Mainokset kiertävät automaattisesti. Kaikki kolme ovat oikeita: DELIVO10 ja
 // TERVETULOA löytyvät kassan PROMO_CODES-listalta ja backendin payments-reitiltä,
@@ -148,12 +153,6 @@ function Home() {
     }
   }, [])
 
-  // Kategoriarivi näyttää koko vakiolistan (CATEGORY_NAMES), ei vain niitä
-  // joissa on jo ravintoloita - muuten uusi kategoria ei näkyisi ennen kuin
-  // sinne saadaan ensimmäinen ravintola. "Ilmainen kuljetus" ei ole enää
-  // rivillä: se on suodatin, ei ruokalaji.
-  const categories = [ALL, ...CATEGORY_NAMES]
-
   // Kaupunkisuodatin korvattiin toimitusosoitteella: ravintoloita ei enää
   // piiloteta kaupungin mukaan, vaan ne järjestetään etäisyyden mukaan.
   const normalizedQuery = searchQuery.trim().toLowerCase()
@@ -208,6 +207,20 @@ function Home() {
     activeCategory === ALL
       ? [...(nearbyGroup ? [nearbyGroup] : []), ...mobileCategoryGroups]
       : mobileCategoryGroups.filter((group) => group.category === activeCategory)
+
+  // Kovimmat tarjoukset -rivi (DealsRow) Kebab & Pizza -rivin jälkeen:
+  // DEALS_RESTAURANTS-listan ravintolat samoista (täydennetyistä) riveistä,
+  // listan järjestyksessä. Korttien sponsorimerkit pois. Noutokuponki siirtyy
+  // yhden rivin alemmas, ettei kaksi nostoa osu peräkkäin.
+  const rowRestaurants = mobileCategoryGroups.flatMap((group) => group.items)
+  const dealsItems = DEALS_RESTAURANTS.map((name) => rowRestaurants.find((r) => r.name === name))
+    .filter(Boolean)
+    .map(({ sponsored: _sponsored, ...r }) => r)
+  const dealsAfterIndex =
+    activeCategory === ALL && dealsItems.length > 0
+      ? visibleCategoryGroups.findIndex((group) => group.category === DEALS_AFTER)
+      : -1
+  const pickupAfterIndex = dealsAfterIndex >= 0 ? dealsAfterIndex + 1 : 1
 
   // Mobiilin kategoriarivi (käyttäjän toiveet): omalla paikallaan pyöreät
   // pallot, ja kun rivi on tarttunut headeriin, siitä tulee pillerit - jotka
@@ -372,11 +385,6 @@ function Home() {
     [restaurants, deliveryAddress, popularity],
   )
 
-  function scrollToCategory(e, category) {
-    e.preventDefault()
-    document.getElementById(`cat-${categorySlug(category)}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
   // Kategoriarivin nuolet. Vieritettävä säiliö haetaan napin omasta rivistä,
   // jolloin jokainen rivi ei tarvitse omaa refiä. Askel on kaksi korttia,
   // jotta nuoli tuntuu liikuttavan riviä eikä nytkäyttävän sitä.
@@ -463,7 +471,7 @@ function Home() {
                       return (
                         <Link
                           key={category}
-                          to={`/kategoria/${categorySlug(category)}`}
+                          to={`/haku?q=${encodeURIComponent(category)}`}
                           className="home-cat-tile"
                           onClick={() => setSearchOpen(false)}
                         >
@@ -510,6 +518,10 @@ function Home() {
         }
       />
 
+      {/* Työpöydän kategoriat teksteinä headerin alla, kiinni vieritettäessä. Tämä on
+          sivun suora lapsi eikä .home-contentin sisällä, jotta sticky pysyy koko sivun. */}
+      <CategoryBar />
+
       <main className="home-content">
         {/* Mobiilin yläosa: haku. Toimitusosoite kysytään vasta ravintolaa
             avattaessa (AddressGate), ei etusivulla. */}
@@ -537,14 +549,8 @@ function Home() {
 
         </div>
 
-        {/* Kategoriat ennen banneria: sama järjestys kuin Woltissa - ensin
-            mitä haetaan, sitten kampanja, sitten ravintolat. Mobiilissa tämä
-            rivi on piilossa (CategoryFilter.css), joten mobiilin järjestys ei
-            muutu: haku, banneri, sticky kategoriarivi, kategoriarivit. */}
-        {status === 'ready' && categories.length > 1 && (
-          <CategoryFilter categories={categories} />
-        )}
-
+        {/* Työpöydän värikkäät kategorialaatikot korvattiin tekstipalkilla
+            headerin alla (CategoryBar, käyttäjän pyyntö 25.10.2026). */}
         <div className="home-promo">
           <div className="home-ad">
             {/* Vierivä rata, jossa banneri kerrallaan näkyy useampi - sama idea
@@ -624,22 +630,26 @@ function Home() {
                 className={`home-quick-cats__row home-quick-cats__row--${variant}`}
                 inert={(variant === 'pill') !== catsPill || undefined}
               >
-                {mobileCategoryGroups.map(({ category }) => {
+                {mobileCategoryGroups.map(({ category }, index) => {
                   const tile = CATEGORY_TILE_META[category] ?? DEFAULT_TILE_META
                   return (
-                    <a
-                      key={category}
-                      href={`#cat-${categorySlug(category)}`}
-                      className={`home-cat-tile${
-                        activeRowSlug === categorySlug(category) ? ' home-cat-tile--active' : ''
-                      }`}
-                      onClick={(e) => scrollToCategory(e, category)}
-                    >
-                      <span className="home-cat-tile__art" aria-hidden="true">
-                        {tile.img ? <img src={tile.img} alt="" loading="lazy" /> : tile.emoji}
-                      </span>
-                      <span className="home-cat-tile__label">{category}</span>
-                    </a>
+                    <Fragment key={category}>
+                      {/* Oranssi Tarjoukset-laatikko kolmantena (OffersTile). */}
+                      {index === OFFERS_TILE_INDEX && <OffersTile />}
+                      {/* Laatikko hakee kategorian nimellä (käyttäjän pyyntö
+                          24.10.2026; aiemmin vieritti riviin). */}
+                      <Link
+                        to={`/haku?q=${encodeURIComponent(category)}`}
+                        className={`home-cat-tile${
+                          activeRowSlug === categorySlug(category) ? ' home-cat-tile--active' : ''
+                        }`}
+                      >
+                        <span className="home-cat-tile__art" aria-hidden="true">
+                          {tile.img ? <img src={tile.img} alt="" loading="lazy" /> : tile.emoji}
+                        </span>
+                        <span className="home-cat-tile__label">{category}</span>
+                      </Link>
+                    </Fragment>
                   )
                 })}
               </div>
@@ -713,9 +723,18 @@ function Home() {
                       </div>
                     </section>
 
-                    {/* Tumma noutokuponki toisen kategoriarivin jälkeen:
-                        rytmittää valkoista sivua ja mainostaa noutotarjousta. */}
-                    {groupIndex === 1 && <PickupOfferBanner />}
+                    {/* Kebab & Pizza -rivin jälkeen Kovimmat tarjoukset, sen jälkeisen
+                        rivin perään tumma noutokuponki: rytmittää valkoista sivua
+                        ja mainostaa noutotarjousta. */}
+                    {groupIndex === dealsAfterIndex && (
+                      <DealsRow
+                        items={dealsItems}
+                        favoriteIds={favoriteIds}
+                        onToggleFavorite={toggleFavorite}
+                        onScrollRow={scrollRow}
+                      />
+                    )}
+                    {groupIndex === pickupAfterIndex && <PickupOfferBanner />}
                   </Fragment>
                 ),
             )}

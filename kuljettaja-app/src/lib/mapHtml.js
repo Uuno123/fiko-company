@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { tuneMapStyle } from '../../../frontend/src/lib/mapStyle'
+import { tr } from './i18n'
 
 // Kartta piirretään WebView'n sisällä MapLibrellä samalla OpenFreeMap-pohjalla
 // ja delivon väreillä kuin verkkosivulla: ilmainen, ei avainta eikä laskua, ja
@@ -15,11 +16,14 @@ export const LAND_COLOR = '#f2f3f5'
 
 export const KUOPIO = { lat: 62.8924, lng: 27.677 }
 
-const LOCALE = {
-  'Map.Title': 'Kartta',
-  'NavigationControl.ZoomIn': 'Lähennä',
-  'NavigationControl.ZoomOut': 'Loitonna',
-  'AttributionControl.ToggleAttribution': 'Näytä kartan tekijätiedot',
+// Kartan nappien ruudunlukijatekstit valitulla kielellä.
+function mapLocale() {
+  return {
+    'Map.Title': tr('common.map'),
+    'NavigationControl.ZoomIn': tr('map.zoomIn'),
+    'NavigationControl.ZoomOut': tr('map.zoomOut'),
+    'AttributionControl.ToggleAttribution': tr('map.attribution'),
+  }
 }
 
 // Tyyli haetaan ja väritetään kerran, ja sama tulos käy kaikille kartoille.
@@ -58,7 +62,7 @@ function buildMapHtml(style, { center, zoom, dimmed, interactive }) {
     pitchWithRotate: false,
     touchPitch: false,
     attributionControl: false,
-    locale: LOCALE,
+    locale: mapLocale(),
   }
   return `<!doctype html>
 <html>

@@ -21,7 +21,7 @@ function NotOwnerNotice() {
               <button type="button" className="pd-btn pd-btn--secondary" onClick={() => signOut()}>
                 Kirjaudu ulos
               </button>
-              <Link to="/kumppani/rekisteroidy" className="pd-btn pd-btn--primary">
+              <Link to="/kumppanina/hae" className="pd-btn pd-btn--primary">
                 Jätä kumppanuushakemus
               </Link>
             </div>

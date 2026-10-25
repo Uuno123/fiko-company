@@ -267,6 +267,38 @@ export function searchFillerRestaurants(query) {
   return [...direct, ...related]
 }
 
+// Kovimmat tarjoukset (käyttäjän valinta 24.10.2026): etusivun oma rivi ja
+// kategoriarivin oranssi Tarjoukset-laatikko, joka hakee sanalla DEALS_QUERY.
+// Neljä ensimmäistä käyttäjän valitsemia, loput eri ruokalajeista vaihtelun vuoksi.
+export const DEALS_QUERY = 'Tarjoukset'
+export const DEALS_RESTAURANTS = [
+  "McDonald's",
+  'Kuopion Volkan Ravintola',
+  'Hesburger',
+  'Friends & Burgers',
+  'Marina Pizzeria',
+  'Sushi Nami',
+  'Hook Kuopio',
+  'Wok & Roll',
+]
+
+export function isDealsQuery(query) {
+  const term = normalizeSearchText(query ?? '')
+  return term === 'tarjoukset' || term === 'kovimmat tarjoukset'
+}
+
+// Haun tulokset Tarjoukset-sanalle: listan ravintolat täytepohjista tässä
+// järjestyksessä (esittelyravintola McDonald's on klikattava, muut eivät).
+export function dealsFillerRestaurants() {
+  const byName = new Map()
+  for (const [category, templates] of Object.entries(FILLER_TEMPLATES_BY_CATEGORY)) {
+    templates.forEach((template, index) => {
+      if (!byName.has(template.name)) byName.set(template.name, buildFillerRestaurant(category, index, template))
+    })
+  }
+  return DEALS_RESTAURANTS.map((name) => byName.get(name)).filter(Boolean)
+}
+
 // Suodatinrivin "kaikki"-vaihtoehto. Jaettu, jotta kategoriarivi tunnistaa sen
 // ilman omaa merkkijonokopiota.
 export const ALL = 'Kaikki'

@@ -20,7 +20,7 @@ function Footer() {
         <nav className="site-footer__links" aria-label="Footer">
           <Link to="/">Etusivu</Link>
           <Link to="/kumppanina">Ravintoloille</Link>
-          <Link to="/kumppani/kuljettajaksi">Kuljettajaksi</Link>
+          <Link to="/kumppanina/kuljettajat">Kuljettajaksi</Link>
           <Link to="/login">Kirjaudu</Link>
           <Link to="/register">Rekisteröidy</Link>
           <button type="button" onClick={openCookieSettings}>

@@ -3,21 +3,30 @@ import Svg, { Circle, Ellipse, G, Line, Path, Rect } from 'react-native-svg'
 import { LOGO_ACCENT_PATH, LOGO_LETTERS_PATH } from '../../../frontend/src/lib/logoPaths'
 import { colors } from '../theme'
 
-// Kirjautumisnäkymän kuvitus: delivo-kuljettaja polkupyörällä, selässä
-// delivo-reppu, taustalla kaupungin siluetti ja Puijon torni oranssilla
-// taivaalla. Kuvan valkoinen maa jatkuu sen alla olevaan valkoiseen paneeliin,
-// joten kuva sijoitetaan oranssin yläosan alareunaan koko leveydelle.
+// Kirjautumisnäkymän kuvitus: Bidrop-kuljettaja polkupyörällä, selässä
+// Bidrop-reppu, taustalla kaupungin siluetti ja Puijon torni yötaivaalla
+// (musta yläosa, sama ilme kuin sovelluksen kuvakkeessa). Kuljettajalla on
+// oranssi takki ja pyörässä vaaleat osat, jotta ne erottuvat mustasta.
+// Kuvan valkoinen maa jatkuu sen alla olevaan valkoiseen paneeliin, joten kuva
+// sijoitetaan mustan yläosan alareunaan koko leveydelle.
 const INK = colors.black
 const ORANGE = colors.orange
-const SKYLINE = '#ff8a5f'
+// Sama kuin kirjautumisnäkymän yläosa (login.jsx), kuunsirpin varjoon.
+const SKY = '#000000'
+const SKYLINE = '#1f2024'
+const WINDOW = '#ffb547'
+const JACKET = ORANGE
+const SLEEVE = '#d9430f'
+const METAL = '#a7abb3'
+const TIRE = '#4a4c53'
 const SKIN = '#f3c6a0'
 const SKIN_SHADE = '#e2a985'
 const LIP = '#c98a66'
-const JACKET_FAR = '#25261f'
-const COLLAR = '#2c2e27'
-const PANTS = '#3a3e49'
-const PANTS_FAR = '#2a2d36'
-const SHOE_FAR = '#1d1e18'
+const JACKET_FAR = '#a8360c'
+const COLLAR = '#c23d12'
+const PANTS = '#565c6b'
+const PANTS_FAR = '#444956'
+const SHOE_FAR = '#3b3d44'
 const RIM = '#d6d8dc'
 const BAG_SHADE = '#eceef1'
 
@@ -25,7 +34,7 @@ function Wheel({ cx }) {
   const cy = 182
   return (
     <>
-      <Circle cx={cx} cy={cy} r={27} fill="none" stroke={INK} strokeWidth={7} />
+      <Circle cx={cx} cy={cy} r={27} fill="none" stroke={TIRE} strokeWidth={7} />
       <Circle cx={cx} cy={cy} r={21} fill="none" stroke={RIM} strokeWidth={2} />
       <G stroke="#ffffff" strokeWidth={1.2} opacity={0.8}>
         <Line x1={cx - 21} y1={cy} x2={cx + 21} y2={cy} />
@@ -42,29 +51,32 @@ export default function LoginIllustration({ style }) {
   return (
     <View style={style} accessible={false} importantForAccessibility="no-hide-descendants">
       <Svg width="100%" height="100%" viewBox="0 -60 400 310" preserveAspectRatio="xMidYMax slice">
-        {/* Taivas: aurinko, pilvet ja linnut */}
-        <Circle cx={318} cy={10} r={30} fill="#ffffff" opacity={0.18} />
+        {/* Yötaivas: kuunsirppi, pilvet ja tähdet */}
+        <Circle cx={318} cy={10} r={30} fill="#ffffff" opacity={0.9} />
+        <Circle cx={331} cy={1} r={27} fill={SKY} />
         <Path
           d="M60 18 C52 18 52 7 61 7 C63 0 73 -2 77 4 C80 -3 92 -2 93 7 C101 7 102 18 94 18 Z"
           fill="#ffffff"
-          opacity={0.28}
+          opacity={0.16}
         />
         <Path
           d="M250 40 C242 40 242 29 251 29 C253 22 263 20 267 26 C270 19 282 20 283 29 C291 29 292 40 284 40 Z"
           fill="#ffffff"
-          opacity={0.22}
+          opacity={0.12}
         />
-        <Path
-          d="M150 -20 Q155 -26 160 -20 Q165 -26 170 -20"
-          stroke="#ffffff"
-          strokeWidth={2.2}
-          strokeLinecap="round"
-          fill="none"
-          opacity={0.7}
-        />
+        <G fill="#ffffff" opacity={0.75}>
+          <Circle cx={30} cy={-30} r={1.6} />
+          <Circle cx={128} cy={-38} r={1.2} />
+          <Circle cx={162} cy={-14} r={1.8} />
+          <Circle cx={212} cy={-42} r={1.3} />
+          <Circle cx={262} cy={-8} r={1.1} />
+          <Circle cx={380} cy={-40} r={1.5} />
+          <Circle cx={120} cy={40} r={1.2} />
+          <Circle cx={20} cy={60} r={1.1} />
+        </G>
 
         {/* Kaupungin siluetti vasemmalla ja Puijon torni kukkulalla oikealla */}
-        <G fill={SKYLINE} opacity={0.55}>
+        <G fill={SKYLINE}>
           <Path d="M270 200 C290 150 340 132 400 140 L400 200 Z" />
           <Rect x={352} y={40} width={9} height={100} />
           <Rect x={344} y={30} width={25} height={14} rx={3} />
@@ -75,7 +87,8 @@ export default function LoginIllustration({ style }) {
           <Rect x={54} y={132} width={40} height={68} />
           <Rect x={90} y={108} width={24} height={92} />
         </G>
-        <G fill="#ffffff" opacity={0.16}>
+        <Circle cx={356.5} cy={7} r={2.6} fill={ORANGE} />
+        <G fill={WINDOW} opacity={0.85}>
           <Rect x={36} y={104} width={6} height={8} />
           <Rect x={46} y={104} width={6} height={8} />
           <Rect x={36} y={120} width={6} height={8} />
@@ -101,7 +114,7 @@ export default function LoginIllustration({ style }) {
         <Path d="M188 120 L214 132" stroke={PANTS_FAR} strokeWidth={14} strokeLinecap="round" />
         <Path d="M214 132 L190 168" stroke={PANTS_FAR} strokeWidth={11} strokeLinecap="round" />
         <Path d="M182 168 h16 a4 4 0 0 1 0 8 h-14 a5 5 0 0 1 -2 -8z" fill={SHOE_FAR} />
-        <Line x1={198} y1={184} x2={188} y2={174} stroke={INK} strokeWidth={4} strokeLinecap="round" />
+        <Line x1={198} y1={184} x2={188} y2={174} stroke={METAL} strokeWidth={4} strokeLinecap="round" />
 
         {/* Renkaat */}
         <Wheel cx={150} />
@@ -113,11 +126,11 @@ export default function LoginIllustration({ style }) {
           <Path d="M186 134 L246 136 L198 186" />
           <Path d="M244 128 L252 150 Q258 166 264 182" />
         </G>
-        <Line x1={186} y1={132} x2={182} y2={122} stroke={INK} strokeWidth={4} strokeLinecap="round" />
-        <Path d="M168 120 Q182 116 196 121" stroke={INK} strokeWidth={6} strokeLinecap="round" fill="none" />
+        <Line x1={186} y1={132} x2={182} y2={122} stroke={METAL} strokeWidth={4} strokeLinecap="round" />
+        <Path d="M168 120 Q182 116 196 121" stroke={METAL} strokeWidth={6} strokeLinecap="round" fill="none" />
         <Path
           d="M244 128 L242 118 L258 116 Q266 118 264 128"
-          stroke={INK}
+          stroke={METAL}
           strokeWidth={4}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -135,13 +148,13 @@ export default function LoginIllustration({ style }) {
         />
         <Circle cx={258} cy={118} r={4.5} fill={SKIN_SHADE} />
 
-        {/* Vartalo: takki kauluksineen ja oranssi heijastinraita */}
+        {/* Vartalo: oranssi takki kauluksineen ja valkoinen heijastinraita */}
         <Path
           d="M176 120 C178 102 194 84 214 74 C224 69 236 72 238 82 C240 94 226 110 204 126 C194 133 174 132 176 120 Z"
-          fill={INK}
+          fill={JACKET}
         />
         <Path d="M222 72 Q232 70 238 78" stroke={COLLAR} strokeWidth={4} strokeLinecap="round" fill="none" />
-        <Path d="M198 116 L230 88" stroke={ORANGE} strokeWidth={3} strokeLinecap="round" />
+        <Path d="M198 116 L230 88" stroke="#ffffff" strokeWidth={3} strokeLinecap="round" />
 
         {/* Bidrop-reppu selässä selän kulmassa */}
         <G rotation={-40} originX={190} originY={80}>
@@ -169,7 +182,7 @@ export default function LoginIllustration({ style }) {
         {/* Lähempi käsi */}
         <Path
           d="M230 84 L242 104 L262 120"
-          stroke={INK}
+          stroke={SLEEVE}
           strokeWidth={10}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -179,7 +192,7 @@ export default function LoginIllustration({ style }) {
 
         {/* Ketjuratas, lähempi poljin ja jalka */}
         <Circle cx={198} cy={186} r={8} fill="#ffffff" stroke={INK} strokeWidth={2.5} />
-        <Line x1={198} y1={186} x2={210} y2={197} stroke={INK} strokeWidth={4} strokeLinecap="round" />
+        <Line x1={198} y1={186} x2={210} y2={197} stroke={METAL} strokeWidth={4} strokeLinecap="round" />
         <Path d="M190 122 L222 140" stroke={PANTS} strokeWidth={15} strokeLinecap="round" />
         <Path d="M222 140 L212 188" stroke={PANTS} strokeWidth={12} strokeLinecap="round" />
         <Path d="M204 188 h18 a5 5 0 0 1 0 10 h-16 a5 5 0 0 1 -2 -10z" fill="#ffffff" stroke={INK} strokeWidth={2} />

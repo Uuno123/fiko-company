@@ -13,6 +13,7 @@ import SlideToConfirm from '../components/SlideToConfirm'
 import TopBar from '../components/TopBar'
 import DelivoLogo from '../components/DelivoLogo'
 import { useAuth } from '../lib/auth'
+import { useBackgroundLocation } from '../lib/backgroundLocation'
 import { useBidRequests } from '../lib/bids'
 import { useCourier } from '../lib/courier'
 import { formatEuro, formatTime } from '../lib/format'
@@ -22,7 +23,7 @@ import { missingDocuments, useDocuments } from '../lib/documents'
 import { useT } from '../lib/i18n'
 import { useCourierLocation } from '../lib/location'
 import { navigationAppLabel, openRoute } from '../lib/navigationApps'
-import { ACTIVE_PHASES, hasCoords, useCourierJobs } from '../lib/jobs'
+import { ACTIVE_PHASES, MOVING_PHASES, hasCoords, useCourierJobs } from '../lib/jobs'
 import { colors, fonts } from '../theme'
 
 // Kartan päällä kelluvien nappien (valikko, Hylkää) varaama korkeus.
@@ -65,6 +66,8 @@ export default function HomeScreen() {
   })
   const { phase, job: offer } = jobs
   const gigActive = ACTIVE_PHASES.includes(phase) && offer
+  // Sijainti palvelimelle myös taustalla (navigointi toisessa sovelluksessa, näyttö lukossa).
+  useBackgroundLocation({ courierId: courier?.id ?? null, online, onGig: MOVING_PHASES.includes(phase) })
   // Kuljetuspyynnöt, kun ollaan online-tilassa ilman keikkaa (migraatio 0058).
   const bids = useBidRequests({
     courierId: courier?.id ?? null,

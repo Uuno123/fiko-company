@@ -13,15 +13,15 @@ import { colors } from '../theme'
 // Bidropin sanamerkki samoista vektoreista kuin verkkosivulla
 // (frontend/src/lib/logoPaths.js): "bidrop" + oranssi i:n piste.
 // size: suunnilleen sama näkyvä koko kuin vanhalla pillerilogolla.
-// inverted: oranssille pohjalle, kaikki valkoista (oranssi piste ei erottuisi).
+// dark: mustalle pohjalle, valkoiset kirjaimet ja oranssi piste (kuten sovelluksen kuvake).
 // p:n alaosa piirtyy laatikon alapuolelle, jotta kirjainten koko ja asettelu
 // pysyvät samoina kuin ennen.
-export default function DelivoLogo({ size = 20, inverted = false, style }) {
+export default function DelivoLogo({ size = 20, dark = false, style }) {
   const height = Math.round(size * 1.15)
   const width = (height * LOGO_WIDTH) / LOGO_HEIGHT
   const fullHeight = (height * (LOGO_HEIGHT + LOGO_DESCENT)) / LOGO_HEIGHT
-  const letters = inverted ? '#ffffff' : colors.black
-  const accent = inverted ? '#ffffff' : LOGO_ORANGE
+  const letters = dark ? '#ffffff' : colors.black
+  const accent = LOGO_ORANGE
   return (
     <View
       style={[{ width, height, alignSelf: 'flex-start', overflow: 'visible' }, style]}

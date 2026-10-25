@@ -5,12 +5,20 @@ import { usePartnerAuth } from '../lib/PartnerAuthContext.jsx'
 import DelivoLogo from './DelivoLogo.jsx'
 import './PartnerHeader.css'
 
+// Kumppanin kirjautumis- ja kojelautasivujen yläpalkki. Linkit vievät uusille
+// kumppanisivuille (24.10.2026): ravintolat /kumppanina, kuljettajat omalla sivullaan.
 const NAV_ITEMS = [
-  { href: '/kumppanina#ravintoloille', label: 'Ravintoloille' },
-  { href: '/kumppanina#hinnoittelu', label: 'Hinnoittelu' },
-  { href: '/kumppanina#kuljettajille', label: 'Kuljettajille' },
+  { href: '/kumppanina', label: 'Ravintoloille' },
+  { href: '/kumppanina#hinnat', label: 'Hinnat' },
+  { href: '/kumppanina/kuljettajat', label: 'Kuljettajille' },
   { href: '/kumppanina#ukk', label: 'UKK' },
 ]
+
+// Aktiivinen kohta: sama sivu ja sama #-osio (Ravintoloille ilman osiota).
+function isActive(href, location) {
+  const [pathname, hash = ''] = href.split('#')
+  return location.pathname === pathname && location.hash === (hash ? `#${hash}` : '')
+}
 
 function PersonIcon() {
   return (
@@ -51,13 +59,17 @@ function PartnerHeader() {
           <span className="partner-header__sublabel">Kumppanit</span>
         </Link>
 
-        {/* Tavalliset <a>-linkit eikä <Link>: React Router ei vieritä #-ankkuriin,
-            selain tekee sen itse - samalla sivulla ilman uudelleenlatausta. */}
-        <nav className="partner-header__nav" aria-label="Kumppanisivun osiot">
+        {/* Sivun vaihto ilman uudelleenlatausta; #-osioon vierittää PartnerLanding. */}
+        <nav className="partner-header__nav" aria-label="Kumppanisivut">
           {NAV_ITEMS.map((item) => (
-            <a key={item.href} href={item.href} className="partner-header__nav-link">
+            <Link
+              key={item.href}
+              to={item.href}
+              className={`partner-header__nav-link${isActive(item.href, location) ? ' is-active' : ''}`}
+              aria-current={isActive(item.href, location) ? 'page' : undefined}
+            >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -77,7 +89,7 @@ function PartnerHeader() {
                 <PersonIcon />
                 Kirjaudu
               </Link>
-              <Link to="/kumppani/rekisteroidy" className="partner-header__pill-btn">
+              <Link to="/kumppanina/hae" className="partner-header__pill-btn">
                 Jätä hakemus
               </Link>
             </>
@@ -97,13 +109,13 @@ function PartnerHeader() {
 
       {menuOpen && (
         <>
-          <nav id="partner-mobile-menu" className="partner-header__mobile-nav" aria-label="Kumppanisivun osiot">
+          <nav id="partner-mobile-menu" className="partner-header__mobile-nav" aria-label="Kumppanisivut">
             {NAV_ITEMS.map((item) => (
-              <a key={item.href} href={item.href} onClick={() => setMenuOpen(false)}>
+              <Link key={item.href} to={item.href} onClick={() => setMenuOpen(false)}>
                 {item.label}
-              </a>
+              </Link>
             ))}
-            <Link to="/kumppani/kuljettajaksi" className="partner-header__mobile-cta">
+            <Link to="/kumppanina/kuljettajat/hae" className="partner-header__mobile-cta">
               Hae kuljettajaksi
             </Link>
           </nav>

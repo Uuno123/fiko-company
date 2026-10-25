@@ -36,7 +36,7 @@ export const OFFER_SECONDS = 60
 // kuin ravintola saa tilauksen: kuljettaja odottaa vahvistusta lähtemättä.
 export const RESTAURANT_ACCEPT_SECONDS = 90
 export const ACTIVE_PHASES = ['awaitingRestaurant', 'toRestaurant', 'atRestaurant', 'toCustomer', 'completed']
-const MOVING_PHASES = ['awaitingRestaurant', 'toRestaurant', 'atRestaurant', 'toCustomer']
+export const MOVING_PHASES = ['awaitingRestaurant', 'toRestaurant', 'atRestaurant', 'toCustomer']
 const RESTAURANT_RECHECK_MS = 10_000
 
 // Ajoajat ja -matkat: sama malli kuin asiakkaan saapumisarviossa verkkosivulla

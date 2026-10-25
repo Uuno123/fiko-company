@@ -2,7 +2,7 @@
   "expo": {
     "name": "Bidrop kuljettaja",
     "slug": "delivo-kuljettaja",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -39,7 +39,8 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Bidrop näyttää sijaintisi kartalla ja tarjoaa sinulle lähimpiä keikkoja."
+          "locationWhenInUsePermission": "Bidrop näyttää sijaintisi kartalla ja tarjoaa sinulle lähimpiä keikkoja.",
+          "isAndroidForegroundServiceEnabled": true
         }
       ],
       "expo-font",
