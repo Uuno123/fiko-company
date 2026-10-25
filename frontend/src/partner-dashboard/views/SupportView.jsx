@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom'
 import { ChevronDown, FileText, Mail } from 'lucide-react'
 import { Card, PageHeader } from '../ui.jsx'
 
-// Kumppanisivun ehdot ja hinnasto (/kumppanina).
+// Kumppanisivun ehdot ja hinnasto (/kumppanina/ehdot ja /kumppanina#hinnat).
 const SUPPORT_LINKS = [
-  { to: '/kumppanina#ehdot', label: 'Ravintolaehdot' },
-  { to: '/kumppanina#hinnoittelu', label: 'Paketit ja hinnasto' },
+  { to: '/kumppanina/ehdot', label: 'Ravintolaehdot' },
+  { to: '/kumppanina#hinnat', label: 'Paketit ja hinnasto' },
 ]
 
 const TOPICS = [

@@ -7,7 +7,7 @@ import RestaurantCard from '../components/RestaurantCard.jsx'
 import Spinner from '../components/Spinner.jsx'
 import { useCart } from '../lib/CartContext.jsx'
 import { formatPrice } from '../lib/format.js'
-import { searchFillerRestaurants } from '../lib/categories.js'
+import { dealsFillerRestaurants, isDealsQuery, searchFillerRestaurants } from '../lib/categories.js'
 import { restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { supabase } from '../lib/supabaseClient.js'
@@ -109,7 +109,11 @@ function SearchResults() {
     }
     const real = [...restaurants, ...fromItems].map((r) => ({ ...rankingDetails.get(r.id), ...r }))
     const realNames = new Set(real.map((r) => r.name?.toLowerCase()))
-    const fillers = searchFillerRestaurants(query).filter((f) => !realNames.has(f.name.toLowerCase()))
+    // Tarjoukset-laatikko (kategoriarivi) hakee sanalla "Tarjoukset": tulokset
+    // ovat etusivun Kovimmat tarjoukset -rivin ravintolat.
+    const fillers = (isDealsQuery(query) ? dealsFillerRestaurants() : searchFillerRestaurants(query)).filter(
+      (f) => !realNames.has(f.name.toLowerCase()),
+    )
     return [...real, ...fillers].map((r) => ({ ...r, distance_km: restaurantDistanceKm(r, deliveryAddress) }))
   }, [restaurants, items, query, deliveryAddress, rankingDetails])
 

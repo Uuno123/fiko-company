@@ -88,7 +88,7 @@ function PartnerLogin() {
           </form>
 
           <p className="auth-footer">
-            Etkö ole vielä kumppani? <Link to="/kumppani/rekisteroidy">Jätä kumppanuushakemus</Link>
+            Etkö ole vielä kumppani? <Link to="/kumppanina/hae">Jätä kumppanuushakemus</Link>
           </p>
           <p className="auth-footer">
             <Link to="/kumppanina">← Takaisin kumppani-infoon</Link>

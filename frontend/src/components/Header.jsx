@@ -108,14 +108,20 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
   // Hakutulokset (SearchSuggest.css) avautuvat headerin alle. Paneelin yläreuna
   // seuraa headerin todellista korkeutta, ei oletettua --site-header-height-arvoa:
   // kapealla näytöllä header voi olla korkeampi, ja paneeli peitti sen alaosan.
+  // Arvo asetetaan juureen, jotta myös headerin alle kiinnittyvä etusivun
+  // kategoriapalkki (CategoryBar.css) näkee sen.
   useEffect(() => {
     const header = headerRef.current
     if (!header || typeof ResizeObserver === 'undefined') return undefined
-    const update = () => header.style.setProperty('--site-header-actual-height', `${header.offsetHeight}px`)
+    const root = document.documentElement
+    const update = () => root.style.setProperty('--site-header-actual-height', `${header.offsetHeight}px`)
     update()
     const observer = new ResizeObserver(update)
     observer.observe(header)
-    return () => observer.disconnect()
+    return () => {
+      observer.disconnect()
+      root.style.removeProperty('--site-header-actual-height')
+    }
   }, [])
 
   return (

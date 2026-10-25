@@ -1,0 +1,117 @@
+/* Tarjoukset-laatikko kategoriarivissä: oranssi, iso valkoinen %-merkki
+   kupongin katkoviivarenkaassa, musta tarra ja ajoittain ohi liukuva
+   kiilto. Koko tulee rivin omista säännöistä (Home.css);
+   tämä vaihtaa vain ilmeen. Valitsimissa kaksi luokkaa, jotta ne voittavat
+   rivien omat taustasäännöt latausjärjestyksestä riippumatta. */
+
+.home-cat-tile--offers .offers-tile__art {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.38), transparent 46%),
+    linear-gradient(140deg, #ff8a4c 0%, var(--delivo-orange) 55%, var(--delivo-orange-dark) 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 20px -12px rgba(217, 63, 16, 0.75);
+}
+
+/* Kupongin katkoviivarengas %-merkin ympärillä. */
+.home-cat-tile--offers .offers-tile__art::before {
+  content: '';
+  position: absolute;
+  inset: 17%;
+  border: 2px dashed rgba(255, 255, 255, 0.6);
+  border-radius: 50%;
+}
+
+/* Kiilto liukuu laatikon yli muutaman sekunnin välein. */
+.home-cat-tile--offers .offers-tile__art::after {
+  content: '';
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 38%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: translateX(-160%) skewX(-18deg);
+  animation: offers-tile-shine 4.2s ease-in-out infinite;
+}
+
+@keyframes offers-tile-shine {
+  0%,
+  62% {
+    transform: translateX(-160%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(330%) skewX(-18deg);
+  }
+}
+
+.offers-tile__sign {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1;
+  transform: rotate(-8deg);
+  text-shadow: 0 3px 0 rgba(20, 21, 15, 0.14);
+}
+
+.home-cat-tile--offers .offers-tile__sign {
+  font-size: 2rem;
+}
+
+.offers-tile__badge {
+  position: absolute;
+  top: 8%;
+  right: 7%;
+  padding: 3px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--delivo-black);
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+  color: #ffffff;
+  transform: rotate(8deg);
+}
+
+.home-cat-tile--offers .home-cat-tile__label {
+  font-weight: 800;
+  color: var(--delivo-orange);
+}
+
+/* Puhelimen kiinnitetty pilleririvi: koko kapseli oranssi, pieni valkoinen
+   ruutu oranssilla %-merkillä. */
+@media (max-width: 560px) {
+  .home-quick-cats__row--pill .home-cat-tile.home-cat-tile--offers {
+    border-color: var(--delivo-orange);
+    background: var(--delivo-orange);
+  }
+
+  .home-quick-cats__row--pill .home-cat-tile--offers .offers-tile__art {
+    background: #ffffff;
+    color: var(--delivo-orange);
+    box-shadow: none;
+  }
+
+  .home-quick-cats__row--pill .home-cat-tile--offers .offers-tile__art::before,
+  .home-quick-cats__row--pill .home-cat-tile--offers .offers-tile__art::after,
+  .home-quick-cats__row--pill .home-cat-tile--offers .offers-tile__badge {
+    display: none;
+  }
+
+  .home-quick-cats__row--pill .home-cat-tile--offers .offers-tile__sign {
+    font-size: 1.05rem;
+    text-shadow: none;
+  }
+
+  .home-quick-cats__row--pill .home-cat-tile--offers .home-cat-tile__label {
+    color: #ffffff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-cat-tile--offers .offers-tile__art::after {
+    animation: none;
+    display: none;
+  }
+}

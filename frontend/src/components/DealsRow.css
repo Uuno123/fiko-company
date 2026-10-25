@@ -1,0 +1,67 @@
+/* Kovimmat tarjoukset -rivi: vaalea oranssi koko levyinen kaista, isommat nostokortit
+   (leveämpi kortti, korkeampi kuva, isompi nimi) ja pieni oranssi
+   Tarjous-merkki otsikon vieressä (käyttäjän valinta). Rivin perusasettelu
+   tulee Home.css:n kategoriariveistä; Home.css latautuu tämän jälkeen, joten
+   valitsimissa on yksi luokka enemmän kuin sen vastaavissa säännöissä. */
+
+/* Tausta koko näytön levyisenä kaistana (ei kelluvana laatikkona): varjo
+   levittää värin sivun reunoihin ja clip-path rajaa sen rivin korkeuteen.
+   Sisältö pysyy samassa linjassa muiden rivien kanssa. Varjo ei vaikuta
+   asetteluun, joten vaakavieritystä ei synny. */
+.category-row--deals {
+  padding: 30px 0 12px;
+  background: var(--delivo-orange-soft);
+  box-shadow: 0 0 0 100vmax var(--delivo-orange-soft);
+  clip-path: inset(0 -100vmax);
+}
+
+.deals-row__heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.deals-row__tag {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--delivo-orange-dark);
+}
+
+@media (min-width: 561px) {
+  .category-row--deals .category-row__scroll .restaurant-card {
+    flex: 0 0 456px;
+  }
+
+  .page--home .category-row--deals .category-row__scroll .restaurant-card__media {
+    aspect-ratio: 2 / 1;
+  }
+
+  .category-row--deals .category-row__scroll .restaurant-card__body {
+    padding: 12px 16px 14px;
+  }
+
+  .category-row--deals .category-row__scroll .restaurant-card__heading h3 {
+    font-size: 1.12rem;
+  }
+}
+
+/* Puhelimella kortti leveämpi ja kuva korkeampi kuin muilla riveillä. */
+@media (max-width: 560px) {
+  .page--home .category-row--deals .restaurant-card {
+    width: 86vw;
+    max-width: 360px;
+  }
+
+  .page--home .category-row--deals .restaurant-card__media {
+    aspect-ratio: 1.85 / 1;
+  }
+
+  .category-row--deals .restaurant-card__heading h3 {
+    font-size: 1.06rem;
+  }
+}

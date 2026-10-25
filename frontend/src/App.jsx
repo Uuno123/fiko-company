@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Routes, Route, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { AuthProvider } from './lib/AuthContext.jsx'
 import { CartProvider } from './lib/CartContext.jsx'
 import { PartnerAuthProvider } from './lib/PartnerAuthContext.jsx'
@@ -24,10 +24,11 @@ import SettingsPassword from './pages/SettingsPassword.jsx'
 import SettingsPayments from './pages/SettingsPayments.jsx'
 import SettingsNotifications from './pages/SettingsNotifications.jsx'
 import OrderHistory from './pages/OrderHistory.jsx'
-import PartnerLanding from './pages/PartnerLanding.jsx'
+import PartnerRestaurants from './pages/PartnerRestaurants.jsx'
+import PartnerCouriers from './pages/PartnerCouriers.jsx'
+import PartnerTerms from './pages/PartnerTerms.jsx'
+import PartnerApply from './pages/PartnerApply.jsx'
 import PartnerLogin from './pages/PartnerLogin.jsx'
-import PartnerRegister from './pages/PartnerRegister.jsx'
-import CourierApplication from './pages/CourierApplication.jsx'
 import PartnerDashboard from './partner-dashboard/PartnerDashboard.jsx'
 import PreviewDashboard from './pages/__PreviewDashboard.jsx'
 import PreviewAccount from './pages/__PreviewAccount.jsx'
@@ -122,10 +123,17 @@ function AppRoutes() {
           }
         >
           <Route path="/__preview-dashboard/*" element={<PreviewDashboard />} />
-          <Route path="/kumppanina" element={<PartnerLanding />} />
+          {/* Kumppanisivu uusittu 24.10.2026: ravintolat pääsivuna, kuljettajat ja
+              ehdot omina sivuinaan. Vanhat osoitteet ohjataan uusille. */}
+          <Route path="/kumppanina" element={<PartnerRestaurants />} />
+          <Route path="/kumppanina/kuljettajat" element={<PartnerCouriers />} />
+          <Route path="/kumppanina/ehdot" element={<PartnerTerms />} />
+          <Route path="/kumppanina/hae" element={<PartnerApply kind="restaurant" />} />
+          <Route path="/kumppanina/kuljettajat/hae" element={<PartnerApply kind="courier" />} />
+          <Route path="/kumppanina/ravintolat" element={<Navigate to="/kumppanina" replace />} />
           <Route path="/kumppani/kirjaudu" element={<PartnerLogin />} />
-          <Route path="/kumppani/rekisteroidy" element={<PartnerRegister />} />
-          <Route path="/kumppani/kuljettajaksi" element={<CourierApplication />} />
+          <Route path="/kumppani/rekisteroidy" element={<Navigate to="/kumppanina/hae" replace />} />
+          <Route path="/kumppani/kuljettajaksi" element={<Navigate to="/kumppanina/kuljettajat/hae" replace />} />
           <Route
             path="/kumppani/dashboard/*"
             element={

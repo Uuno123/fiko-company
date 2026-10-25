@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
-import { ChevronLeft, ChevronRight, CircleCheck, Landmark } from 'lucide-react-native'
+import { ChevronLeft, ChevronRight, CircleCheck, Landmark, ReceiptText } from 'lucide-react-native'
 import { Card, ListRow, Screen } from '../components/ui'
 import {
   addDays,
@@ -291,6 +291,7 @@ export default function EarningsScreen() {
           <Text style={styles.earlier}>{t('earnings.earlier', { amount: formatEuro(earlierTotal) })}</Text>
         ) : null}
         <View style={styles.payoutBilling}>
+          <ListRow icon={ReceiptText} label={t('payouts.title')} onPress={() => router.push('/payouts')} />
           <ListRow icon={Landmark} label={t('profile.billing')} onPress={() => router.push('/billing')} />
         </View>
       </Card>

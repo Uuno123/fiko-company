@@ -25,6 +25,8 @@ import { isSupabaseConfigured } from '../lib/supabase'
 import { colors, fonts } from '../theme'
 
 const useNativeDriver = Platform.OS !== 'web'
+// Sama musta kuin sovelluksen kuvakkeessa ja käynnistysruudussa.
+const HERO_BLACK = '#000000'
 
 // Supabasen virheviestit suomeksi.
 function loginErrorText(err) {
@@ -35,8 +37,8 @@ function loginErrorText(err) {
   return message || tr('login.errFailed')
 }
 
-// Kuljettajan kirjautuminen Wolt Partner -sovelluksen mallin mukaan: oranssi
-// yläosa logolla ja kuvituksella, alla kirjautumistavat. "Kirjaudu
+// Kuljettajan kirjautuminen Wolt Partner -sovelluksen mallin mukaan: musta
+// yläosa logolla ja kuvituksella (sama ilme kuin sovelluksen kuvakkeessa), alla kirjautumistavat. "Kirjaudu
 // sähköpostilla" avaa lomakkeen (samat tunnukset kuin delivon verkkosivulla).
 // Google- ja Apple-napit ovat toistaiseksi vain ulkoasua (demo).
 export default function LoginScreen() {
@@ -57,7 +59,7 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.screen}>
-      {/* Valkoiset kellonaika ja kuvakkeet oranssin yläosan päällä. */}
+      {/* Valkoiset kellonaika ja kuvakkeet mustan yläosan päällä. */}
       <StatusBar style="light" />
       {mode === 'start' ? (
         <StartView onEmail={() => setMode('email')} />
@@ -87,7 +89,7 @@ function StartView({ onEmail }) {
     <>
       <View style={[styles.hero, { paddingTop: insets.top }]}>
         <View style={styles.brand}>
-          <DelivoLogo size={38} inverted style={styles.logo} />
+          <DelivoLogo size={38} dark style={styles.logo} />
           <Text style={styles.brandLabel}>{t('login.courier')}</Text>
         </View>
         <LoginIllustration style={styles.illustration} />
@@ -144,7 +146,7 @@ function EmailForm({ signIn, onBack }) {
   const passwordRef = useRef(null)
   const enter = useRef(new Animated.Value(0)).current
 
-  // Lomake nousee alhaalta oranssin yläosan päälle.
+  // Lomake nousee alhaalta mustan yläosan päälle.
   useEffect(() => {
     Animated.spring(enter, { toValue: 1, bounciness: 0, speed: 16, useNativeDriver }).start()
   }, [enter])
@@ -183,7 +185,7 @@ function EmailForm({ signIn, onBack }) {
         >
           <ChevronLeft size={24} strokeWidth={2.4} color="#ffffff" />
         </Pressable>
-        <DelivoLogo size={26} inverted />
+        <DelivoLogo size={26} dark />
         <View style={styles.backSpacer} />
       </View>
 
@@ -288,11 +290,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.surface,
   },
-  // Aloitusnäkymä: oranssi yläosa täyttää tilan napeista ylöspäin.
+  // Aloitusnäkymä: musta yläosa täyttää tilan napeista ylöspäin.
   hero: {
     flex: 1,
     overflow: 'hidden',
-    backgroundColor: colors.orange,
+    backgroundColor: HERO_BLACK,
   },
   brand: {
     flex: 1,
@@ -308,7 +310,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.semibold,
     fontSize: 14,
     letterSpacing: 5,
-    color: '#ffffff',
+    color: colors.orange,
   },
   illustration: {
     width: '100%',
@@ -386,14 +388,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.danger,
   },
-  // Sähköpostilomake: matala oranssi yläosa, jonka päälle valkoinen lomake nousee.
+  // Sähköpostilomake: matala musta yläosa, jonka päälle valkoinen lomake nousee.
   heroCompact: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingBottom: 46,
-    backgroundColor: colors.orange,
+    backgroundColor: HERO_BLACK,
   },
   back: {
     alignItems: 'center',

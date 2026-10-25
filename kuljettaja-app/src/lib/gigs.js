@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { coordinate, hasCoords, routeKm } from '../../../frontend/src/lib/deliveryTime'
 import { dayKey, startOfDay } from './format'
 import { useAuth } from './auth'
+import { tr } from './i18n'
 import { supabase } from './supabase'
 
 // Kuljettajan toimitetut keikat tietokannasta: tilaukset, joissa kuljettaja on
@@ -32,14 +33,14 @@ function splitAddress(address) {
     .join(', ')
     .replace(/\b\d{5}\b/, '')
     .trim()
-  return { street: street || 'Toimitusosoite', area: area || 'Asiakas' }
+  return { street: street || tr('common.dropoffAddress'), area: area || tr('common.customer') }
 }
 
 function orderToGig(order) {
   const fee = order.courier_fee_cents ?? 0
   const { street, area } = splitAddress(order.delivery_address)
   const restaurant = {
-    name: order.restaurants?.name ?? 'Ravintola',
+    name: order.restaurants?.name ?? tr('common.restaurant'),
     address: order.restaurants?.address ?? '',
     lat: coordinate(order.restaurants?.lat),
     lng: coordinate(order.restaurants?.lng),
@@ -69,9 +70,9 @@ function orderToGig(order) {
 let cache = []
 const listeners = new Set()
 
-export async function refreshGigs(courierId) {
-  if (!courierId || !supabase) return
-  const since = new Date(Date.now() - HISTORY_DAYS * 86400000).toISOString()
+// Toimitetut keikat annetulta määrältä päiviä, uusin ensin. null = haku epäonnistui.
+async function fetchGigs(courierId, days, limit) {
+  const since = new Date(Date.now() - days * 86400000).toISOString()
   const query = (fields) =>
     supabase
       .from('orders')
@@ -80,13 +81,52 @@ export async function refreshGigs(courierId) {
       .eq('courier_status', 'delivered')
       .gte('delivered_at', since)
       .order('delivered_at', { ascending: false })
-      .limit(500)
+      .limit(limit)
   let { data, error } = await query(GIG_FIELDS_WITH_PAYOUT)
   // Migraatio 0064 ajamatta: keikat ilman maksutietoa.
   if (error?.code === '42703') ({ data, error } = await query(GIG_FIELDS))
-  if (error) return
-  cache = (data ?? []).map(orderToGig)
+  if (error) return null
+  return (data ?? []).map(orderToGig)
+}
+
+export async function refreshGigs(courierId) {
+  if (!courierId || !supabase) return
+  const gigs = await fetchGigs(courierId, HISTORY_DAYS, 500)
+  if (!gigs) return
+  cache = gigs
   listeners.forEach((listener) => listener(cache))
+}
+
+// Tilitykset: noin puoli vuotta taaksepäin (13 kahden viikon jaksoa).
+export const PAYOUT_HISTORY_DAYS = 182
+let payoutCache = null
+
+// Tilitysten keikat. { gigs, status: 'loading' | 'ready' | 'error' }. Välimuisti
+// jaetaan listan ja yksittäisen raportin kesken, ja se haetaan uudelleen aina
+// kun näkymä avataan.
+export function usePayoutGigs() {
+  const { courier } = useAuth()
+  const courierId = courier?.id ?? null
+  const [state, setState] = useState(() =>
+    payoutCache ? { gigs: payoutCache, status: 'ready' } : { gigs: [], status: 'loading' },
+  )
+
+  useEffect(() => {
+    if (!courierId || !supabase) return undefined
+    let cancelled = false
+    fetchGigs(courierId, PAYOUT_HISTORY_DAYS, 2000).then((gigs) => {
+      if (cancelled) return
+      if (gigs) payoutCache = gigs
+      setState((current) =>
+        gigs ? { gigs, status: 'ready' } : { ...current, status: current.gigs.length ? 'ready' : 'error' },
+      )
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [courierId])
+
+  return state
 }
 
 // Toimitetut keikat uusimmasta vanhimpaan. Haetaan uudelleen aina kun näkymä
