@@ -63,7 +63,7 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
     >
       <div className="restaurant-card__media">
         {imageUrl ? (
-          <img src={imageUrl} alt={name} loading="lazy" />
+          <img src={imageUrl} alt={name} loading="lazy" decoding="async" />
         ) : (
           <RestaurantAvatarPlaceholder name={name} />
         )}

@@ -271,6 +271,9 @@ export function searchFillerRestaurants(query) {
 // kategoriarivin oranssi Tarjoukset-laatikko, joka hakee sanalla DEALS_QUERY.
 // Neljä ensimmäistä käyttäjän valitsemia, loput eri ruokalajeista vaihtelun vuoksi.
 export const DEALS_QUERY = 'Tarjoukset'
+// Oranssin Tarjoukset-linkin paikka kategoriariveissä (työpöydän CategoryBar ja
+// mobiilin etusivun rivi): kolmantena.
+export const DEALS_LINK_INDEX = 2
 export const DEALS_RESTAURANTS = [
   "McDonald's",
   'Kuopion Volkan Ravintola',

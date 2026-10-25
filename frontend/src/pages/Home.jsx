@@ -3,12 +3,12 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ShoppingBag, Trash2 } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import CategoryBar from '../components/CategoryBar.jsx'
+import MobileCategoryRow from '../components/MobileCategoryRow.jsx'
 import Footer from '../components/Footer.jsx'
 import PickupOfferBanner from '../components/PickupOfferBanner.jsx'
 import RankingInfo from '../components/RankingInfo.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import DealsRow from '../components/DealsRow.jsx'
-import OffersTile, { OFFERS_TILE_INDEX } from '../components/OffersTile.jsx'
 import Spinner from '../components/Spinner.jsx'
 import SearchSuggest, { RestaurantResultCard } from '../components/SearchSuggest.jsx'
 import { getRestaurants } from '../lib/api.js'
@@ -102,11 +102,8 @@ function Home() {
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '')
   const deliveryAddress = useDeliveryAddress()
   const { popularity } = useRankingSignals()
-  const [catsPill, setCatsPill] = useState(false)
-  const quickCatsRef = useRef(null)
   const [adIndex, setAdIndex] = useState(0)
   const { favoriteIds, toggleFavorite } = useFavorites()
-  const [activeRowSlug, setActiveRowSlug] = useState(null)
   const [cartFabOpen, setCartFabOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const navigate = useNavigate()
@@ -222,37 +219,6 @@ function Home() {
       : -1
   const pickupAfterIndex = dealsAfterIndex >= 0 ? dealsAfterIndex + 1 : 1
 
-  // Mobiilin kategoriarivi (käyttäjän toiveet): omalla paikallaan pyöreät
-  // pallot, ja kun rivi on tarttunut headeriin, siitä tulee pillerit - jotka
-  // pysyvät näkyvissä vieritettiin kumpaan suuntaan tahansa.
-  // Pallot ja pillerit ovat kaksi valmista riviä päällekkäin, ja tilanvaihto on
-  // pelkkää opacity/transform-siirtymää. Aiempi versio animoi kokoja (width,
-  // height, padding...) jokaisessa laatikossa, mikä nyki vierittäessä.
-  //
-  // "Kiinni" päätellään rivin edellisen sisaruksen (mainoskaruselli) alareunasta
-  // + flex-välistä: sticky-rivin oma sijainti on kiinni ollessaan aina sama.
-  useEffect(() => {
-    let frame = 0
-    function update() {
-      frame = 0
-      const row = quickCatsRef.current
-      const prev = row?.previousElementSibling
-      if (!row || !prev) return
-      const stickyTop = parseFloat(getComputedStyle(row).top) || 0
-      const gap = parseFloat(getComputedStyle(row.parentElement).rowGap) || 0
-      setCatsPill(prev.getBoundingClientRect().bottom + gap <= stickyTop + 1)
-    }
-    function onScroll() {
-      if (!frame) frame = requestAnimationFrame(update)
-    }
-    update()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      cancelAnimationFrame(frame)
-    }
-  }, [])
-
   // adIndex riippuvuutena: ajastin nollautuu myös kun palloa painetaan, jolloin
   // käsin valittu mainos ehtii näkyä täyden ajan.
   useEffect(() => {
@@ -331,25 +297,6 @@ function Home() {
       clearTimeout(adScrollSafetyTimer.current)
     }
   }, [])
-
-  // Korostaa kategoriapallon sen mukaan mikä rivi on näkyvissä, jotta aktiivinen
-  // tila kertoo oikeasti sijainnin sivulla eikä ole pelkkä koriste.
-  useEffect(() => {
-    const sections = rowsRef.current?.querySelectorAll('.category-row')
-    if (!sections?.length) return undefined
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
-        if (visible) setActiveRowSlug(visible.target.id.replace(/^cat-/, ''))
-      },
-      { rootMargin: '-150px 0px -60% 0px' },
-    )
-    sections.forEach((section) => observer.observe(section))
-    return () => observer.disconnect()
-  }, [mobileCategoryGroups.length])
 
   // Painallus napin ulkopuolelle sulkee sen, ettei laajennettu tila jää päälle
   // ja tee seuraavasta osumasta vahingossa navigointia.
@@ -618,43 +565,7 @@ function Home() {
             pysyy vain oman vanhempansa laatikon sisällä, joten hakukentän
             vieressä se irtoaisi heti kun hakukenttä on vieritetty ohi. */}
         {mobileCategoryGroups.length > 0 && (
-          <div
-            ref={quickCatsRef}
-            className={`home-quick-cats${catsPill ? ' home-quick-cats--pill' : ''}`}
-          >
-            {/* Pallorivi määrää korkeuden; pilleririvi on sen päällä. Näkymätön
-                rivi on inert, jottei sama linkki ole kahdesti näppäimistön tiellä. */}
-            {['round', 'pill'].map((variant) => (
-              <div
-                key={variant}
-                className={`home-quick-cats__row home-quick-cats__row--${variant}`}
-                inert={(variant === 'pill') !== catsPill || undefined}
-              >
-                {mobileCategoryGroups.map(({ category }, index) => {
-                  const tile = CATEGORY_TILE_META[category] ?? DEFAULT_TILE_META
-                  return (
-                    <Fragment key={category}>
-                      {/* Oranssi Tarjoukset-laatikko kolmantena (OffersTile). */}
-                      {index === OFFERS_TILE_INDEX && <OffersTile />}
-                      {/* Laatikko hakee kategorian nimellä (käyttäjän pyyntö
-                          24.10.2026; aiemmin vieritti riviin). */}
-                      <Link
-                        to={`/haku?q=${encodeURIComponent(category)}`}
-                        className={`home-cat-tile${
-                          activeRowSlug === categorySlug(category) ? ' home-cat-tile--active' : ''
-                        }`}
-                      >
-                        <span className="home-cat-tile__art" aria-hidden="true">
-                          {tile.img ? <img src={tile.img} alt="" loading="lazy" /> : tile.emoji}
-                        </span>
-                        <span className="home-cat-tile__label">{category}</span>
-                      </Link>
-                    </Fragment>
-                  )
-                })}
-              </div>
-            ))}
-          </div>
+          <MobileCategoryRow categories={mobileCategoryGroups.map((group) => group.category)} rowsRef={rowsRef} />
         )}
 
         {status === 'loading' && <Spinner label="Haetaan ravintoloita" />}
