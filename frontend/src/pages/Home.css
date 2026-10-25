@@ -239,14 +239,16 @@
   }
 
   /* Headerin korkeus muuttujana, koska sticky kategoriarivi kiinnittyy tasan
-     sen alareunaan - jos toinen muuttuu ilman toista, väliin jää rako. */
+     sen alareunaan - jos toinen muuttuu ilman toista, väliin jää rako.
+     Madallettu 58 -> 52px (käyttäjän pyyntö 25.10.2026); korkein sisältö
+     (Kirjaudu-nappi) on 34px. */
   .page--home {
-    --home-header-h: 58px;
+    --home-header-h: 52px;
   }
 
   .page--home .site-header__inner {
     min-height: var(--home-header-h);
-    padding: 8px 16px;
+    padding: 6px 16px;
     grid-template-columns: auto 1fr auto;
     gap: 12px;
   }
@@ -348,12 +350,9 @@
     height: 12px;
   }
 
-  /* Tarttuu headerin alareunaan vieritettäessä. Kaksi valmista riviä
-     päällekkäin: pallot (omalla paikallaan) ja pillerit (kiinni headerissa).
-     Kaikki siirtymät ovat transform/opacity-siirtymiä, joita selain ei joudu
-     laskemaan sivun asettelusta uudelleen - aiempi kokoja animoiva versio nyki.
-     Kääre itse on läpinäkyvä eikä ota kosketuksia: pillerimuodossa pallorivin
-     paikka jää näkymättömäksi, ja sen alla oleva sisältö pitää voida painaa. */
+  /* Tarttuu headerin alareunaan vieritettäessä ja pysyy näkyvissä.
+     Kategoriat pelkkinä teksteinä kuten työpöydän palkissa (CategoryBar.css,
+     käyttäjän pyyntö 25.10.2026). */
   .home-quick-cats {
     /* display kumoaa työpöydän display:none:n (tiedoston alussa). */
     display: block;
@@ -361,89 +360,71 @@
     top: calc(var(--home-header-h) + env(safe-area-inset-top, 0px));
     z-index: 40;
     margin: 0 -16px;
-    pointer-events: none;
-  }
-
-  .home-quick-cats__row {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    /* Alareunan väljyys, ettei laatikoiden varjo leikkaudu vieritettävän
-       säiliön reunaan (overflow-x:auto leikkaa myös pystysuunnassa). */
-    padding: 8px 16px 15px;
     background: #ffffff;
     box-shadow: 0 1px 0 var(--border);
-    pointer-events: auto;
-    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition:
+      transform 0.25s ease,
+      visibility 0s;
+  }
+
+  /* Alas vieritettäessä headerin alle piiloon (MobileCategoryRow.jsx).
+     visibility vaihtuu vasta liu'un jälkeen, jotta piilossa olevat linkit
+     eivät saa fokusta. */
+  .home-quick-cats--hidden {
+    transform: translateY(-100%);
+    visibility: hidden;
+    transition:
+      transform 0.25s ease,
+      visibility 0s 0.25s;
+  }
+
+  /* Vaakatäyte + linkin oma täyte = 16px, sama reuna kuin sivun sisällöllä. */
+  .home-quick-cats__row {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 6px;
   }
 
   .home-quick-cats__row::-webkit-scrollbar {
     display: none;
   }
 
-  /* Pilleririvi pallorivin päällä, levossa näkymätön. */
-  .home-quick-cats__row--pill {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    align-items: center;
-    gap: 7px;
-    padding: 7px 16px 8px;
-    opacity: 0;
-    transform: translateY(-6px);
-    pointer-events: none;
-  }
-
-  .home-quick-cats--pill .home-quick-cats__row--round {
-    opacity: 0;
-    transform: translateY(-6px);
-    pointer-events: none;
-  }
-
-  .home-quick-cats--pill .home-quick-cats__row--pill {
-    opacity: 1;
-    transform: none;
-    pointer-events: auto;
-  }
-
-  /* Pilleri: pieni pallokuva ja nimi vierekkäin reunuksellisessa kapselissa. */
-  .home-quick-cats__row--pill .home-cat-tile {
-    width: auto;
-    flex-direction: row;
-    gap: 7px;
-    padding: 4px 13px 4px 4px;
-    border: 1.5px solid var(--border);
+  .home-cat-text {
+    flex-shrink: 0;
+    padding: 7px 10px;
     border-radius: var(--radius-pill);
-    background: var(--surface);
-  }
-
-  .home-quick-cats__row--pill .home-cat-tile__art {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    font-size: 1rem;
-    box-shadow: 0 1px 3px rgba(20, 21, 15, 0.14);
-  }
-
-  /* Pillerissä valinta näkyy kapselin oranssina reunana, ei kuvan renkaana. */
-  .home-quick-cats__row--pill .home-cat-tile--active .home-cat-tile__art {
-    box-shadow: 0 1px 3px rgba(20, 21, 15, 0.14);
-  }
-
-  .home-quick-cats__row--pill .home-cat-tile__label {
-    font-size: 0.78rem;
+    font-family: 'Nunito', var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 700;
     white-space: nowrap;
+    color: var(--text-muted);
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      color 0.18s ease,
+      background-color 0.18s ease;
   }
 
-  .home-quick-cats__row--pill .home-cat-tile--active {
-    border-color: var(--delivo-orange);
+  .home-cat-text--active,
+  .home-cat-text:active {
+    background: var(--surface-muted);
+    color: var(--delivo-black);
   }
 
-  /* Kategorialaatikot: värikkäät pyöristetyt laatikot (käyttäjän valinta
-     24.10.2026 pallojen tilalle). Nimi laatikon alla. */
+  .home-cat-text--offers {
+    font-weight: 800;
+    color: var(--delivo-orange);
+  }
+
+  .home-cat-text--offers:active {
+    background: var(--delivo-orange-soft);
+    color: var(--delivo-orange-dark);
+  }
+
+  /* Kategorialaatikot haun aloitusnäkymässä: värikkäät pyöristetyt laatikot,
+     nimi laatikon alla. */
   .home-cat-tile {
     flex-shrink: 0;
     width: 78px;
@@ -457,9 +438,7 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Kuva tuo oman pastellitaustansa, joten laatikolla ei ole omaa väriä.
-     Aktiivinen merkitään oranssilla renkaalla: aktiivisuus tulee scroll-
-     spystä eli kertoo missä kohtaa sivua ollaan, ei ole pelkkä koriste. */
+  /* Kuva tuo oman pastellitaustansa, joten laatikolla ei ole omaa väriä. */
   .home-cat-tile__art {
     display: flex;
     align-items: center;
@@ -480,16 +459,6 @@
     height: 100%;
     object-fit: cover;
     border-radius: inherit;
-  }
-
-  .home-cat-tile--active .home-cat-tile__art {
-    box-shadow:
-      0 0 0 2px #ffffff,
-      0 0 0 4px var(--delivo-orange);
-  }
-
-  .home-cat-tile--active .home-cat-tile__label {
-    color: var(--delivo-orange);
   }
 
   .home-cat-tile:active .home-cat-tile__art {
@@ -518,7 +487,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .home-quick-cats,
-  .home-quick-cats__row,
+  .home-cat-text,
   .home-cat-tile,
   .home-cat-tile__art,
   .home-cat-tile__label,

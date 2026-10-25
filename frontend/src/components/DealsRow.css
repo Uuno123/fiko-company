@@ -4,15 +4,26 @@
    tulee Home.css:n kategoriariveistä; Home.css latautuu tämän jälkeen, joten
    valitsimissa on yksi luokka enemmän kuin sen vastaavissa säännöissä. */
 
-/* Tausta koko näytön levyisenä kaistana (ei kelluvana laatikkona): varjo
-   levittää värin sivun reunoihin ja clip-path rajaa sen rivin korkeuteen.
-   Sisältö pysyy samassa linjassa muiden rivien kanssa. Varjo ei vaikuta
-   asetteluun, joten vaakavieritystä ei synny. */
+/* Tausta koko näytön levyisenä kaistana (ei kelluvana laatikkona): rivin
+   takana oleva 100vw-levyinen pseudoelementti. Sisältö pysyy samassa linjassa
+   muiden rivien kanssa, ja html:n overflow-x: hidden estää vaakavierityksen.
+   Aiempi 100vmax-varjo + clip-path oli puhelimella raskas vierittää. */
 .category-row--deals {
+  position: relative;
+  isolation: isolate;
   padding: 30px 0 12px;
+}
+
+.category-row--deals::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  z-index: -1;
+  width: 100vw;
   background: var(--delivo-orange-soft);
-  box-shadow: 0 0 0 100vmax var(--delivo-orange-soft);
-  clip-path: inset(0 -100vmax);
+  transform: translateX(-50%);
 }
 
 .deals-row__heading {

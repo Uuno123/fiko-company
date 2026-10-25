@@ -1,12 +1,11 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CATEGORY_NAMES, DEALS_QUERY } from '../lib/categories.js'
-import { OFFERS_TILE_INDEX } from './OffersTile.jsx'
+import { CATEGORY_NAMES, DEALS_LINK_INDEX, DEALS_QUERY } from '../lib/categories.js'
 import './CategoryBar.css'
 
 // Työpöydän kategoriat pelkkinä teksteinä headerin alla, kiinni yläreunassa
 // vieritettäessä (käyttäjän pyyntö 25.10.2026, värikkäiden laatikoiden
-// tilalle). Jokainen nimi hakee kategorialla kuten puhelimen laatikot;
+// tilalle). Jokainen nimi hakee kategorialla kuten mobiilin tekstirivi;
 // oranssi Tarjoukset kolmantena. Puhelimella piilossa (CategoryBar.css).
 //
 // Kaikki nimet eivät mahdu kapeammalle näytölle, joten rivi vierii ja reunoissa
@@ -90,7 +89,7 @@ function CategoryBar() {
         <div className="category-bar__track" ref={trackRef} onScroll={updateEdges}>
           {CATEGORY_NAMES.map((category, index) => (
             <Fragment key={category}>
-              {index === OFFERS_TILE_INDEX && (
+              {index === DEALS_LINK_INDEX && (
                 <Link
                   to={`/haku?q=${encodeURIComponent(DEALS_QUERY)}`}
                   className="category-bar__link category-bar__link--offers"
