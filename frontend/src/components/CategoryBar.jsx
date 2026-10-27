@@ -12,12 +12,38 @@ import './CategoryBar.css'
 // Kaikki nimet eivät mahdu kapeammalle näytölle, joten rivi vierii ja reunoissa
 // on nuolet silloin kun sivuun jää piiloon nimiä.
 //
-// Palkki pysyy kiinni headerin alla myös alas vieritettäessä (käyttäjän pyyntö
-// 27.10.2026 - aiempi piiloon liukuminen poistettu).
+// Alas vieritettäessä palkki liukuu headerin alle piiloon ja ylös vieritettäessä
+// takaisin (käyttäjän pyyntö 27.10.2026). Vain työpöydällä: puhelimen
+// kategoriarivi (MobileCategoryRow) pysyy aina kiinni.
+const HIDE_AFTER_PX = 80
+// Pieni liike (esim. kosketuslevyn värinä) ei vaihda tilaa.
+const SCROLL_SLOP_PX = 6
 
 function CategoryBar() {
   const trackRef = useRef(null)
   const [edges, setEdges] = useState({ start: true, end: true })
+  const [hidden, setHidden] = useState(false)
+
+  useEffect(() => {
+    let lastY = window.scrollY
+    let frame = 0
+    function onScroll() {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        const y = window.scrollY
+        if (y <= HIDE_AFTER_PX) setHidden(false)
+        else if (y > lastY + SCROLL_SLOP_PX) setHidden(true)
+        else if (y < lastY - SCROLL_SLOP_PX) setHidden(false)
+        else return
+        lastY = y
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(frame)
+    }
+  }, [])
 
   function updateEdges() {
     const track = trackRef.current
@@ -42,7 +68,7 @@ function CategoryBar() {
   }
 
   return (
-    <nav className="category-bar" aria-label="Kategoriat">
+    <nav className={`category-bar${hidden ? ' category-bar--hidden' : ''}`} aria-label="Kategoriat">
       <div className="category-bar__inner">
         {!edges.start && (
           <button
