@@ -75,7 +75,6 @@ function MenuSearch({ items, restaurantName, onPick, onClose, modalOpen }) {
       </div>
 
       <div className="menu-search__body">
-        {!query.trim() && <p className="menu-search__hint">Etsi tuotteita nimellä tai ainesosalla, esim. "pekoni".</p>}
 
         {query.trim() && results.length === 0 && (
           <p className="menu-search__hint">Ei tuotteita haulle "{query.trim()}".</p>

@@ -166,11 +166,6 @@ function LocationModal({ mode = 'change', onClose }) {
         <h2 className="location-modal__title" id="location-modal-title">
           {isWelcome ? 'Minne toimitetaan?' : 'Toimitusosoite'}
         </h2>
-        <p className="location-modal__lead">
-          {isWelcome
-            ? 'Lisää osoitteesi, niin näytämme lähimmät ravintolat ja niiden toimitusajat.'
-            : 'Näytämme lähimmät ravintolat ja kassa täyttää osoitteen valmiiksi.'}
-        </p>
 
         <button type="button" className="location-modal__geo" onClick={useMyLocation} disabled={locating}>
           <span className="location-modal__geo-icon" aria-hidden="true">

@@ -90,8 +90,12 @@
 /* Työpöydällä pelkkä tekstilinkki nuolten vieressä, kuten Woltissa - musta
    pilleri kilpaili otsikon kanssa rivin ainoasta painopisteestä. Mobiilissa
    pilleri jää (alempana), koska siellä se on rivin ainoa kosketuskohde. */
+/* "Kaikki →" (käyttäjän kuva 27.10.2026). */
 .category-row__see-all {
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 0 6px;
   color: var(--delivo-orange);
   font-size: 0.9rem;
@@ -297,7 +301,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    height: 52px;
+    height: 46px;
     padding: 0 18px;
     border: 1px solid #ececec;
     border-radius: var(--radius-pill);
@@ -667,7 +671,8 @@
   flex: 0 0 calc(50% - 8px);
   display: flex;
   align-items: center;
-  padding: 28px 36px;
+  /* Vasen täyte väistää edellinen-nuolen (työpöytä), ettei se peitä tekstiä. */
+  padding: 28px 36px 28px 72px;
   border-radius: 20px;
   overflow: hidden;
   scroll-snap-align: start;
@@ -678,6 +683,16 @@
   background-position: center;
   background-size: cover;
   background-repeat: no-repeat;
+}
+
+/* Ruokakuvien (ravintolanostot) päällä tumma liukuma vasemmalta, jotta valkoinen
+   teksti erottuu kuvasta (käyttäjän pyyntö 27.10.2026). Kampanjakuvissa tekstille
+   on jo oma tyhjä tausta. */
+.home-ad__slide--photo::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(12, 13, 9, 0.72) 0%, rgba(12, 13, 9, 0.45) 42%, rgba(12, 13, 9, 0) 75%);
 }
 
 .home-ad__content {
@@ -698,6 +713,7 @@
   font-size: 0.95rem;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
 }
 
 .home-ad__code {
@@ -709,8 +725,39 @@
   font-weight: 800;
 }
 
+/* "Tilaa nyt →" bannerin otsikon alla (käyttäjän kuva 27.10.2026). Oranssi
+   kuvien päällä; --light valkoinen oranssi- ja punapohjaisilla kampanjakuvilla. */
+.home-ad__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 9px 16px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--delivo-orange);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 6px 14px -6px rgba(20, 21, 15, 0.45);
+  transition: transform 0.15s ease;
+}
+
+.home-ad__cta:active {
+  transform: scale(0.96);
+}
+
+.home-ad__cta--light {
+  background: #fff;
+  color: var(--delivo-orange);
+}
+
 .home-ad__title {
   max-width: 56%;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
   font-family: var(--font-display);
   font-size: 2rem;
   font-weight: 700;
@@ -774,6 +821,12 @@
 
   .home-ad__title {
     font-size: 1.3rem;
+  }
+
+  .home-ad__cta {
+    margin-top: 4px;
+    padding: 7px 13px;
+    font-size: 0.8rem;
   }
 
   .home-promo {

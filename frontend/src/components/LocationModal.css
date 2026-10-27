@@ -89,11 +89,9 @@
   color: var(--delivo-black);
 }
 
-.location-modal__lead {
-  margin: 8px 0 22px;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: var(--text-muted);
+/* Väli otsikon ja ensimmäisen vaihtoehdon välissä (selitysteksti poistettu). */
+.location-modal__title + * {
+  margin-top: 20px;
 }
 
 /* Paikannus on nopein tapa, joten se on ensimmäinen ja isoin vaihtoehto. */

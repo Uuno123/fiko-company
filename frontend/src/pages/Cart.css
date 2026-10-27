@@ -95,12 +95,6 @@
   font-size: 1.6rem;
 }
 
-.cart-panel__subtitle {
-  margin: -12px 0 0;
-  color: var(--text-muted);
-  font-size: 0.92rem;
-}
-
 .cart-panel__back {
   display: flex;
   align-items: center;
