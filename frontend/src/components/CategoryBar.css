@@ -8,26 +8,6 @@
   z-index: 40;
   background: #fff;
   border-bottom: 1px solid var(--border);
-  transition:
-    transform 0.25s ease,
-    visibility 0s;
-}
-
-/* Alas vieritettäessä headerin alle piiloon. visibility vaihtuu vasta
-   liu'un jälkeen, jotta piilossa olevat linkit eivät saa fokusta. */
-.category-bar--hidden {
-  transform: translateY(-100%);
-  visibility: hidden;
-  transition:
-    transform 0.25s ease,
-    visibility 0s 0.25s;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .category-bar,
-  .category-bar--hidden {
-    transition: none;
-  }
 }
 
 /* Sama vaakareunus kuin etusivun sisällöllä (.home-content, Home.css). */

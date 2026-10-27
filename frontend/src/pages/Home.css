@@ -363,20 +363,6 @@
     margin: 0 -16px;
     background: #ffffff;
     box-shadow: 0 1px 0 var(--border);
-    transition:
-      transform 0.25s ease,
-      visibility 0s;
-  }
-
-  /* Alas vieritettäessä headerin alle piiloon (MobileCategoryRow.jsx).
-     visibility vaihtuu vasta liu'un jälkeen, jotta piilossa olevat linkit
-     eivät saa fokusta. */
-  .home-quick-cats--hidden {
-    transform: translateY(-100%);
-    visibility: hidden;
-    transition:
-      transform 0.25s ease,
-      visibility 0s 0.25s;
   }
 
   /* Pillerit: CategoryPill.css. Sama 16px reuna kuin sivun sisällöllä. */

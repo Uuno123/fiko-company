@@ -1,7 +1,7 @@
 /* Kategoriapilleri (CategoryPill.jsx): ikoni + nimi vaaleanharmaassa
    kapselissa, musta teksti. Neutraali harmaa eikä --surface-muted, joka on
-   kellertävän murrettu sävy. Tarjoukset oranssina, valittu (scroll-spy)
-   mustana. Nunito ladataan index.html:ssä. */
+   kellertävän murrettu sävy. Tarjoukset oranssina; aktiivista
+   tilaa ei ole. Nunito ladataan index.html:ssä. */
 .cat-pill {
   flex-shrink: 0;
   display: inline-flex;
@@ -29,12 +29,6 @@
 
 .cat-pill:active {
   background: #e4e4e2;
-}
-
-.cat-pill--active,
-.cat-pill--active:active {
-  background: var(--delivo-black);
-  color: #fff;
 }
 
 /* Tarjoukset: kiiltävä oranssi liukuväri tasaisen oranssin tilalle (käyttäjän
@@ -94,10 +88,6 @@
 @media (hover: hover) {
   .cat-pill:hover {
     background: #e4e4e2;
-  }
-
-  .cat-pill--active:hover {
-    background: var(--delivo-black);
   }
 
   .cat-pill--offers:hover {

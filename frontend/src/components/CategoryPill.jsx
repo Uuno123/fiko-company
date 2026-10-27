@@ -47,14 +47,12 @@ const ICONS = {
   Aamiainen: EggFried,
 }
 
-// offers: oranssi Tarjoukset-pilleri. active: puhelimen rivin scroll-spy.
-function CategoryPill({ category, offers = false, active = false }) {
+// offers: oranssi Tarjoukset-pilleri. Pilleri ei koskaan muutu aktiiviseksi
+// (käyttäjän pyyntö 27.10.2026).
+function CategoryPill({ category, offers = false }) {
   const Icon = ICONS[category] ?? UtensilsCrossed
   return (
-    <Link
-      to={`/haku?q=${encodeURIComponent(category)}`}
-      className={`cat-pill${offers ? ' cat-pill--offers' : ''}${active ? ' cat-pill--active' : ''}`}
-    >
+    <Link to={`/haku?q=${encodeURIComponent(category)}`} className={`cat-pill${offers ? ' cat-pill--offers' : ''}`}>
       <Icon size={18} strokeWidth={2} aria-hidden="true" />
       {category}
     </Link>
