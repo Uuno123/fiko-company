@@ -1067,3 +1067,81 @@
 }
 
 
+
+/* Bannerissa ei ole "Tilaa nyt" -nappia: koko kortti on nappi (käyttäjän pyyntö
+   27.10.2026, ensin puhelimelle ja sitten työpöydälle). Nappi venytetään kortin
+   päälle näkymättömänä - sama toiminto ja ruudunlukija kuulee yhä "Tilaa nyt".
+   Tekstiosan kerros puretaan, jotta venytys mitoittuu korttiin eikä vain
+   tekstialueeseen; tekstit pidetään kuvan tummennuksen päällä. */
+.home-ad__content {
+  position: static;
+}
+
+.home-ad__slide--photo::before {
+  z-index: 0;
+}
+
+.home-ad__lead,
+.home-ad__title {
+  position: relative;
+  z-index: 1;
+}
+
+.home-ad__cta,
+.home-ad__cta--light {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: inherit;
+  background: transparent;
+  box-shadow: none;
+  color: transparent;
+  font-size: 0;
+}
+
+.home-ad__cta svg {
+  display: none;
+}
+
+.home-ad__cta:active {
+  transform: none;
+}
+
+.home-ad__slide {
+  transition: transform 0.15s ease;
+}
+
+.home-ad__slide:has(.home-ad__cta:active) {
+  transform: scale(0.985);
+}
+
+.home-ad__cta:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
+}
+
+/* Puhelimella tekstit isommiksi. */
+@media (max-width: 560px) {
+  .home-ad__lead {
+    font-size: 0.92rem;
+  }
+
+  .home-ad__code {
+    font-size: 0.85rem;
+  }
+
+  .home-ad__title {
+    font-size: 1.6rem;
+  }
+}
+
+/* Työpöydällä ruokakuvabannereissa ei tummennusta (käyttäjän pyyntö 27.10.2026) -
+   kuvat kuten ennen. Puhelimella tummennus jää isomman tekstin taustaksi. */
+@media (min-width: 561px) {
+  .home-ad__slide--photo::before {
+    content: none;
+  }
+}
