@@ -120,11 +120,7 @@ function SavedCards() {
 
       <div className="settings-panel">
         {cards.length === 0 && !adding && (
-          <SettingsRow
-            icon={CreditCard}
-            label="Ei vielä tallennettuja maksukortteja"
-            hint="Lisää kortti, niin maksaminen nopeutuu."
-          />
+          <SettingsRow icon={CreditCard} label="Ei vielä tallennettuja maksukortteja" />
         )}
 
         {cards.length > 0 && (
@@ -210,10 +206,6 @@ function SavedCards() {
                 Peruuta
               </button>
             </div>
-
-            <p className="settings-empty__hint">
-              Esittelytila: korttia ei veloiteta eikä sen numeroa tallenneta - vain 4 viimeistä numeroa näytetään.
-            </p>
           </form>
         )}
       </div>
@@ -287,7 +279,7 @@ const METHODS = [
 
 function SettingsPayments() {
   return (
-    <SettingsLayout title="Maksutavat" description="Tallennetut kortit ja muut maksutavat.">
+    <SettingsLayout title="Maksutavat">
       <SavedCards />
 
       <section className="settings-section">
@@ -305,10 +297,6 @@ function SettingsPayments() {
             </div>
           ))}
         </div>
-        <p className="settings-section__note">
-          Korttien ja muiden maksutapojen tallennus tulee käyttöön kun oikea maksupalvelu (esim. Stripe) on kytketty -
-          korttitietoja ei koskaan tallenneta suoraan omaan tietokantaan.
-        </p>
       </section>
     </SettingsLayout>
   )

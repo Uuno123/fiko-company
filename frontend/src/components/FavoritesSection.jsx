@@ -103,9 +103,6 @@ function FavoritesSection({ customerId }) {
           </span>
           <div className="settings-empty">
             <p>Ei vielä suosikkeja.</p>
-            <span className="settings-empty__hint">
-              Napauta sydäntä ravintolan kortissa tai sivulla, niin löydät sen aina täältä.
-            </span>
           </div>
         </div>
       )}

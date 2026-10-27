@@ -81,7 +81,6 @@ function Login({ onDone }) {
       {mode === 'login' ? (
         <>
           <h1 id="auth-title">Kirjaudu sisään Bidropiin</h1>
-          <p className="auth-card__subtitle">Näet tilaushistoriasi ja tilaat nopeammin uudelleen.</p>
 
           <GoogleAuthButton returnTo={redirectTo} />
           <AppleAuthButton />

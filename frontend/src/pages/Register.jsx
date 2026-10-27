@@ -251,9 +251,6 @@ function Register({ preview } = {}) {
     return (
       <div className="auth-card">
         <h1 id="auth-title">Viimeistele tilisi</h1>
-        <p className="auth-card__subtitle">
-          {needsPassword ? 'Sähköposti vahvistettu. Lisää vielä tietosi ja salasana.' : 'Lisää vielä tietosi.'}
-        </p>
 
         <form className="auth-form" onSubmit={completeProfile}>
           {errorMessage && <p className="auth-error">{errorMessage}</p>}
@@ -329,9 +326,6 @@ function Register({ preview } = {}) {
   return (
     <div className="auth-card">
       <h1 id="auth-title">Luo Bidrop-tili</h1>
-      <p className="auth-card__subtitle">
-        Näet tilaushistoriasi ja tilaat nopeammin uudelleen. Voit tilata myös ilman tiliä.
-      </p>
 
       {status === 'code-sent' || status === 'verifying' ? (
         <form

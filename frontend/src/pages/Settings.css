@@ -1141,13 +1141,6 @@
   padding: 20px;
 }
 
-.settings-section__note {
-  margin: 2px 4px 0;
-  font-size: 0.82rem;
-  line-height: 1.45;
-  color: var(--text-muted);
-}
-
 /* Profiilikortti (puhelimen tilisivu): iso oranssi nimikirjain. */
 .profile-card {
   display: flex;

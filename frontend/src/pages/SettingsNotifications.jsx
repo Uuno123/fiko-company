@@ -35,7 +35,7 @@ function SettingsNotifications() {
   const marketingOptIn = Boolean(customer?.marketing_opt_in)
 
   return (
-    <SettingsLayout title="Ilmoitukset" description="Valitse, mistä haluat kuulla sähköpostilla.">
+    <SettingsLayout title="Ilmoitukset">
       {error && <p className="auth-error">{error}</p>}
 
       <section className="settings-section">
@@ -46,13 +46,11 @@ function SettingsNotifications() {
           <SettingsRow
             icon={Receipt}
             label="Tilausvahvistukset ja -päivitykset"
-            hint="Kuittaus tilauksesta ja ilmoitus kun se on valmis - lähetetään aina, jotta pysyt kartalla."
             trailing={<span className="toggle-row__fixed">Aina päällä</span>}
           />
           <SettingsRow
             icon={Megaphone}
             label="Tarjoukset ja uutiset"
-            hint="Satunnaisia etuja ja uutuuksia Bidropin ravintoloilta."
             trailing={
               <button
                 type="button"

@@ -38,7 +38,7 @@ function SettingsProfile() {
   ]
 
   return (
-    <SettingsLayout title="Omat tiedot" description="Yhteystietosi, toimitusosoitteesi ja tallennetut ravintolasi.">
+    <SettingsLayout title="Omat tiedot">
       {savedField && (
         <p className="auth-success">
           {savedField === 'address' ? 'Toimitusosoite tallennettu.' : 'Tiedot tallennettu.'}
@@ -58,12 +58,7 @@ function SettingsProfile() {
             value={formatPhone(customer?.phone) || 'Lisää puhelinnumero'}
             onClick={() => openEditor('phone')}
           />
-          <SettingsRow
-            icon={Mail}
-            label="Sähköposti"
-            value={customer?.email || '-'}
-            hint="Sähköpostin vaihto ei ole vielä mahdollista täältä."
-          />
+          <SettingsRow icon={Mail} label="Sähköposti" value={customer?.email || '-'} />
         </div>
       </section>
 
@@ -90,12 +85,7 @@ function SettingsProfile() {
               onClick={() => openEditor('address')}
             />
           ) : (
-            <SettingsRow
-              icon={MapPin}
-              label="Lisää toimitusosoite"
-              hint="Asunnon tyyppi, osoite ja ohjeet kuljettajalle. Kassa täyttää ne valmiiksi."
-              onClick={() => openEditor('address')}
-            />
+            <SettingsRow icon={MapPin} label="Lisää toimitusosoite" onClick={() => openEditor('address')} />
           )}
         </div>
       </section>
@@ -107,16 +97,10 @@ function SettingsProfile() {
           <h2>Tili</h2>
         </div>
         <div className="settings-panel">
-          <SettingsRow
-            icon={LogOut}
-            label="Kirjaudu ulos"
-            hint="Kirjaudu ulos tältä laitteelta."
-            onClick={handleSignOut}
-          />
+          <SettingsRow icon={LogOut} label="Kirjaudu ulos" onClick={handleSignOut} />
           <SettingsRow
             icon={Trash2}
             label="Pyydä tilin poistoa"
-            hint="Pyyntö lähtee asiakastukeen sähköpostilla."
             href="mailto:tuki@bidrop.fi?subject=Tilin%20poistopyynt%C3%B6"
             danger
           />
