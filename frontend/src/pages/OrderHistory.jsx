@@ -141,7 +141,7 @@ function OrderHistory() {
   const pastOrders = orders.filter((o) => !ACTIVE_STATUSES.includes(o.status))
 
   return (
-    <SettingsLayout title="Tilaukset" description="Käynnissä olevat ja aiemmat tilauksesi.">
+    <SettingsLayout title="Tilaukset">
       {status === 'loading' && (
         <section className="auth-card">
           <p className="state-message">Ladataan...</p>
@@ -158,7 +158,6 @@ function OrderHistory() {
         <section className="auth-card">
           <div className="settings-empty">
             <p>Ei vielä tilauksia.</p>
-            <p className="settings-empty__hint">Tehdyt tilauksesi näkyvät täällä.</p>
           </div>
           <Link to="/" className="auth-submit settings-empty__cta">
             Selaa ravintoloita

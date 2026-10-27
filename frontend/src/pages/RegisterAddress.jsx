@@ -35,9 +35,6 @@ export function AddressStepForm({ customer, userId, preview }) {
       <main className="auth-page auth-page--full-height register-address">
         <div className="auth-card">
           <h1 id="auth-title">Minne tilaukset tuodaan?</h1>
-          <p className="auth-card__subtitle">
-            Kuljettaja löytää perille näillä tiedoilla. Voit muuttaa niitä myöhemmin.
-          </p>
           <DeliveryAddressForm
             customer={customer}
             userId={userId}

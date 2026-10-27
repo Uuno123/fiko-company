@@ -31,7 +31,7 @@ function SettingsPassword() {
   }
 
   return (
-    <SettingsLayout title="Salasana" description="Vaihda kirjautumisessa käyttämäsi salasana.">
+    <SettingsLayout title="Salasana">
       <section className="settings-section">
         <div className="settings-section__head">
           <h2>Vaihda salasana</h2>
