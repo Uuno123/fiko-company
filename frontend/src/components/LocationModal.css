@@ -216,7 +216,7 @@ button.location-modal__option:hover {
 }
 
 .location-modal__field:focus-within {
-  border-color: var(--delivo-black);
+  border-color: var(--field-focus-border);
   background: var(--surface);
 }
 

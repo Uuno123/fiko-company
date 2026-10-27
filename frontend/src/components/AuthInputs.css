@@ -1,0 +1,153 @@
+/* Rekisteröitymisen erikoiskentät (AuthInputs.jsx). Reunat, pyöristys ja
+   fokusrengas samat kuin AuthForm.css:n .auth-field input -kentissä. */
+
+/* Koodi: kuusi ruutua rivissä. */
+.auth-code-boxes {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* Kaksi luokkaa, jotta voittaa AuthForm.css:n .auth-field input -säännön.
+   Kohdistuksen reuna: --field-focus-border (index.css). */
+.auth-code-boxes .auth-code-box {
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 1 / 1.15;
+  padding: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  font-family: var(--font-body);
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--delivo-black);
+  caret-color: var(--delivo-orange);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-code-boxes .auth-code-box:focus {
+  outline: none;
+  border-color: var(--field-focus-border);
+}
+
+.auth-code-boxes .auth-code-box:disabled {
+  opacity: 0.6;
+}
+
+/* Puhelin: lippu ja +358 kentän sisällä vasemmalla, ohut erotinviiva. */
+.auth-phone {
+  display: flex;
+  align-items: stretch;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-phone:focus-within {
+  border-color: var(--field-focus-border);
+}
+
+.auth-phone__prefix {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 16px;
+  border-right: 1px solid var(--border);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+  white-space: nowrap;
+}
+
+.auth-phone__flag {
+  width: 22px;
+  height: 14px;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(20, 21, 15, 0.12);
+}
+
+/* Kenttä itse ilman omaa reunaa: kehys on .auth-phone. */
+.auth-field .auth-phone input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  border-radius: 0 14px 14px 0;
+  padding-left: 12px;
+  box-shadow: none;
+  background: transparent;
+}
+
+.auth-field .auth-phone input:focus {
+  box-shadow: none;
+}
+
+/* Syntymäaika: päivä, kuukausi ja vuosi rinnakkain. */
+.auth-birth {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr) minmax(0, 1.1fr);
+  gap: 8px;
+}
+
+.auth-select {
+  width: 100%;
+  min-width: 0;
+  padding: 14px 34px 14px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='m6 8 4 4 4-4' stroke='%2314150f' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    no-repeat right 10px center / 16px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--delivo-black);
+  appearance: none;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-select.is-empty {
+  color: var(--text-muted);
+}
+
+.auth-select:focus {
+  outline: none;
+  border-color: var(--field-focus-border);
+}
+
+.auth-select option {
+  color: var(--delivo-black);
+}
+
+/* Etu- ja sukunimi rinnakkain. */
+.auth-field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 380px) {
+  .auth-code-boxes {
+    gap: 6px;
+  }
+
+  .auth-birth {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.5fr) minmax(0, 1.2fr);
+    gap: 6px;
+  }
+
+  .auth-select {
+    padding-left: 10px;
+    padding-right: 28px;
+    background-position: right 8px center;
+  }
+}

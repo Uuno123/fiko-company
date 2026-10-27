@@ -49,10 +49,31 @@
 
 /* Ostoskorinappi samaan tyyliin kuin takaisin-nuoli, sydän ja haku: kuvan
    päällä valkoinen varjolla, vieritettynä harmaa (käyttäjän pyyntö - valkoinen
-   katosi valkoiseen headeriin). Sama 38px koko kuin muilla pyöreillä napeilla. */
+   katosi valkoiseen headeriin). Sama koko kuin muilla pyöreillä napeilla. */
 .site-header--overlay .cart-menu__trigger {
   width: 38px;
   height: 38px;
+}
+
+/* Ravintolasivun yläpalkin pyöreät napit (takaisin, ostoskori, sydän, haku)
+   hieman pienempinä: 38 -> 34px (käyttäjän pyyntö 27.10.2026). Kaksi luokkaa,
+   jotta voittaa yksittäisten nappien omat koot. */
+.site-header--overlay .site-header__back,
+.site-header--overlay .cart-menu__trigger,
+.site-header--overlay .site-header__round-btn {
+  width: 34px;
+  height: 34px;
+}
+
+.site-header--overlay .site-header__back svg,
+.site-header--overlay .cart-menu__trigger svg,
+.site-header--overlay .site-header__round-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.site-header--overlay .site-header__round-actions {
+  gap: 8px;
 }
 
 .site-header--overlay.site-header--transparent .cart-menu__trigger {
@@ -1188,7 +1209,7 @@
 }
 
 .site-header:not(.site-header--dark):not(.site-header--overlay) .search-field-bar:focus-within {
-  border-color: var(--delivo-black);
+  border-color: var(--field-focus-border);
   box-shadow: none;
 }
 

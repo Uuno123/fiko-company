@@ -1,4 +1,4 @@
-/* Työpöydän tekstikategoriat headerin alla (CategoryBar.jsx). Kiinnittyy
+/* Työpöydän kategoriapilleririvi headerin alla (CategoryBar.jsx). Kiinnittyy
    headerin alareunaan: top on headerin mitattu korkeus (Header.jsx asettaa
    --site-header-actual-height; header on kapeammalla näytöllä kaksirivinen),
    z-index headerin (50) alapuolella. */
@@ -43,13 +43,11 @@
   }
 }
 
-/* Negatiivinen vasen marginaali kumoaa linkin oman täytteen, jotta
-   ensimmäinen nimi alkaa samasta kohdasta kuin sivun sisältö. */
+/* Pillerit: CategoryPill.css. */
 .category-bar__track {
   display: flex;
-  gap: 6px;
-  margin-left: -14px;
-  padding: 7px 0;
+  gap: 8px;
+  padding: 10px 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -58,40 +56,7 @@
   display: none;
 }
 
-.category-bar__link {
-  flex-shrink: 0;
-  padding: 7px 14px;
-  border-radius: var(--radius-pill);
-  /* Hieman pyöreämpi fontti, paksu ja harmaa (käyttäjän toiveet). Nunito
-     ladataan index.html:ssä. */
-  font-family: 'Nunito', var(--font-body);
-  font-size: 1rem;
-  font-weight: 700;
-  white-space: nowrap;
-  color: var(--text-muted);
-  text-decoration: none;
-  transition:
-    color 0.18s ease,
-    background-color 0.18s ease;
-}
-
-/* Osoitettaessa pyöreä vaalea kapseli nimen taakse ja teksti tummuu. */
-.category-bar__link:hover {
-  background: var(--surface-muted);
-  color: var(--delivo-black);
-}
-
-.category-bar__link--offers {
-  font-weight: 800;
-  color: var(--delivo-orange);
-}
-
-.category-bar__link--offers:hover {
-  background: var(--delivo-orange-soft);
-  color: var(--delivo-orange-dark);
-}
-
-/* Nuolet valkoisen liukuman päällä, jotta reunaan katkeava nimi ei näy
+/* Nuolet valkoisen liukuman päällä, jotta reunaan katkeava pilleri ei näy
    nuolen alta. */
 .category-bar__arrow {
   position: absolute;

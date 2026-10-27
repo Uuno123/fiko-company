@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ShoppingBag, Trash2 } from 'lucide-react'
+import { ShoppingBag } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import CategoryBar from '../components/CategoryBar.jsx'
 import MobileCategoryRow from '../components/MobileCategoryRow.jsx'
@@ -104,11 +104,9 @@ function Home() {
   const { popularity } = useRankingSignals()
   const [adIndex, setAdIndex] = useState(0)
   const { favoriteIds, toggleFavorite } = useFavorites()
-  const [cartFabOpen, setCartFabOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const navigate = useNavigate()
   const rowsRef = useRef(null)
-  const cartFabRef = useRef(null)
   const adTrackRef = useRef(null)
   // Ohjelmallinen scrollTo laukaisee itse scroll-tapahtumia koko animaation ajan
   // - ilman tätä lippua alla oleva scroll-kuuntelija tulkitsisi ne pyyhkäisyksi
@@ -297,17 +295,6 @@ function Home() {
       clearTimeout(adScrollSafetyTimer.current)
     }
   }, [])
-
-  // Painallus napin ulkopuolelle sulkee sen, ettei laajennettu tila jää päälle
-  // ja tee seuraavasta osumasta vahingossa navigointia.
-  useEffect(() => {
-    if (!cartFabOpen) return undefined
-    function handleClickOutside(e) {
-      if (!cartFabRef.current?.contains(e.target)) setCartFabOpen(false)
-    }
-    document.addEventListener('click', handleClickOutside)
-    return () => document.removeEventListener('click', handleClickOutside)
-  }, [cartFabOpen])
 
   // Hakuehdotukset ovat datassa oikeasti esiintyviä kategorioita, yleisimmät
   // ensin - ei käsin keksittyä listaa, joka vanhenisi kun valikoima muuttuu.
@@ -655,45 +642,20 @@ function Home() {
 
       </main>
 
-      {/* Kelluva ostoskori alareunassa headerin korikuvakkeen sijaan: se on
-          peukalon ulottuvilla ja näyttää summan ilman että koria avaa.
-          Ensimmäinen painallus levittää napin ja paljastaa tyhjennyksen,
-          toinen vie ostoskoriin - näin tyhjennys ei ole vahingossa osuvan
-          napin takana, mutta kassalle pääsee silti kahdella painalluksella. */}
+      {/* Kelluva ostoskori oikeassa alakulmassa headerin korikuvakkeen sijaan:
+          pieni oranssi pallo, jossa vain ikoni ja tuotemäärä (käyttäjän pyyntö
+          27.10.2026). Vie suoraan ostoskoriin; kori tyhjennetään siellä. */}
       {cart.count > 0 && (
-        <div className={`home-cart-fab${cartFabOpen ? ' home-cart-fab--open' : ''}`} ref={cartFabRef}>
-          <Link
-            to="/ostoskori"
-            className="home-cart-fab__main"
-            onClick={(e) => {
-              if (!cartFabOpen) {
-                e.preventDefault()
-                setCartFabOpen(true)
-              }
-            }}
-          >
-            <span className="home-cart-fab__icon" aria-hidden="true">
-              <ShoppingBag size={18} />
-              <span className="home-cart-fab__count">{cart.count}</span>
-            </span>
-            <span>Ostoskori</span>
-            <span className="home-cart-fab__total">{formatPrice(cart.totalCents)}</span>
-          </Link>
-
-          <button
-            type="button"
-            className="home-cart-fab__clear"
-            aria-hidden={!cartFabOpen}
-            tabIndex={cartFabOpen ? 0 : -1}
-            onClick={() => {
-              cart.clear()
-              setCartFabOpen(false)
-            }}
-          >
-            <Trash2 size={15} aria-hidden="true" />
-            Tyhjennä
-          </button>
-        </div>
+        <Link
+          to="/ostoskori"
+          className="home-cart-fab"
+          aria-label={`Ostoskori: ${cart.count} ${cart.count === 1 ? 'tuote' : 'tuotetta'}, ${formatPrice(cart.totalCents)}`}
+        >
+          <ShoppingBag size={22} strokeWidth={2} aria-hidden="true" />
+          <span className="home-cart-fab__count" aria-hidden="true">
+            {cart.count}
+          </span>
+        </Link>
       )}
 
       <Footer />

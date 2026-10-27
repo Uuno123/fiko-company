@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import { CreditCard } from 'lucide-react'
 import SettingsLayout from '../components/SettingsLayout.jsx'
+import { SettingsRow } from '../components/SettingsRow.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { loadCards, saveCards } from '../lib/demoCards.js'
 import './AuthForm.css'
@@ -104,8 +106,8 @@ function SavedCards() {
   }
 
   return (
-    <section className="auth-card">
-      <div className="saved-cards__head">
+    <section className="settings-section">
+      <div className="settings-section__head">
         <h2>Tallennetut kortit</h2>
         {!adding && (
           <button type="button" className="settings-section__action" onClick={startAdding}>
@@ -116,101 +118,105 @@ function SavedCards() {
 
       {saved && <p className="auth-success">Kortti lisätty.</p>}
 
-      {cards.length === 0 && !adding && (
-        <div className="settings-empty">
-          <p>Ei vielä tallennettuja maksukortteja.</p>
-        </div>
-      )}
+      <div className="settings-panel">
+        {cards.length === 0 && !adding && (
+          <SettingsRow
+            icon={CreditCard}
+            label="Ei vielä tallennettuja maksukortteja"
+            hint="Lisää kortti, niin maksaminen nopeutuu."
+          />
+        )}
 
-      {cards.length > 0 && (
-        <ul className="saved-cards">
-          {cards.map((card, index) => (
-            <li key={card.id} className="saved-card">
-              <span className={`card-brand card-brand--${card.brand.toLowerCase()}`}>
-                {card.brand === 'Mastercard' ? 'MC' : card.brand.toUpperCase()}
-              </span>
-              <span className="saved-card__main">
-                <span className="saved-card__number">
-                  {card.brand} •••• {card.last4}
-                  {index === 0 && <span className="saved-card__default">Oletus</span>}
+        {cards.length > 0 && (
+          <ul className="saved-cards">
+            {cards.map((card, index) => (
+              <li key={card.id} className="saved-card">
+                <span className={`card-brand card-brand--${card.brand.toLowerCase()}`}>
+                  {card.brand === 'Mastercard' ? 'MC' : card.brand.toUpperCase()}
                 </span>
-                <span className="saved-card__expiry">Voimassa {card.expiry}</span>
-              </span>
-              <button type="button" className="settings-panel__link" onClick={() => removeCard(card.id)}>
-                Poista
+                <span className="saved-card__main">
+                  <span className="saved-card__number">
+                    {card.brand} •••• {card.last4}
+                    {index === 0 && <span className="saved-card__default">Oletus</span>}
+                  </span>
+                  <span className="saved-card__expiry">Voimassa {card.expiry}</span>
+                </span>
+                <button type="button" className="settings-panel__link" onClick={() => removeCard(card.id)}>
+                  Poista
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {adding && (
+          <form className="auth-form card-form settings-panel__body" onSubmit={handleSubmit} noValidate>
+            <div className="auth-field">
+              <label htmlFor="card-number">Kortin numero</label>
+              <input
+                id="card-number"
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="1234 5678 9012 3456"
+                value={form.number}
+                onChange={(e) => setForm((f) => ({ ...f, number: formatCardNumber(e.target.value) }))}
+              />
+              {errors.number && <span className="card-form__error">{errors.number}</span>}
+            </div>
+
+            <div className="card-form__row">
+              <div className="auth-field">
+                <label htmlFor="card-expiry">Voimassa</label>
+                <input
+                  id="card-expiry"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="KK/VV"
+                  value={form.expiry}
+                  onChange={(e) => setForm((f) => ({ ...f, expiry: formatExpiry(e.target.value) }))}
+                />
+                {errors.expiry && <span className="card-form__error">{errors.expiry}</span>}
+              </div>
+              <div className="auth-field">
+                <label htmlFor="card-cvc">Turvakoodi</label>
+                <input
+                  id="card-cvc"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="CVC"
+                  value={form.cvc}
+                  onChange={(e) => setForm((f) => ({ ...f, cvc: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
+                />
+                {errors.cvc && <span className="card-form__error">{errors.cvc}</span>}
+              </div>
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="card-name">Kortinhaltijan nimi</label>
+              <input
+                id="card-name"
+                autoComplete="off"
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              />
+              {errors.name && <span className="card-form__error">{errors.name}</span>}
+            </div>
+
+            <div className="profile-edit-actions">
+              <button type="submit" className="auth-submit">
+                Tallenna kortti
               </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {adding && (
-        <form className="auth-form card-form" onSubmit={handleSubmit} noValidate>
-          <div className="auth-field">
-            <label htmlFor="card-number">Kortin numero</label>
-            <input
-              id="card-number"
-              inputMode="numeric"
-              autoComplete="off"
-              placeholder="1234 5678 9012 3456"
-              value={form.number}
-              onChange={(e) => setForm((f) => ({ ...f, number: formatCardNumber(e.target.value) }))}
-            />
-            {errors.number && <span className="card-form__error">{errors.number}</span>}
-          </div>
-
-          <div className="card-form__row">
-            <div className="auth-field">
-              <label htmlFor="card-expiry">Voimassa</label>
-              <input
-                id="card-expiry"
-                inputMode="numeric"
-                autoComplete="off"
-                placeholder="KK/VV"
-                value={form.expiry}
-                onChange={(e) => setForm((f) => ({ ...f, expiry: formatExpiry(e.target.value) }))}
-              />
-              {errors.expiry && <span className="card-form__error">{errors.expiry}</span>}
+              <button type="button" className="auth-link-button" onClick={() => setAdding(false)}>
+                Peruuta
+              </button>
             </div>
-            <div className="auth-field">
-              <label htmlFor="card-cvc">Turvakoodi</label>
-              <input
-                id="card-cvc"
-                inputMode="numeric"
-                autoComplete="off"
-                placeholder="CVC"
-                value={form.cvc}
-                onChange={(e) => setForm((f) => ({ ...f, cvc: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
-              />
-              {errors.cvc && <span className="card-form__error">{errors.cvc}</span>}
-            </div>
-          </div>
 
-          <div className="auth-field">
-            <label htmlFor="card-name">Kortinhaltijan nimi</label>
-            <input
-              id="card-name"
-              autoComplete="off"
-              value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            />
-            {errors.name && <span className="card-form__error">{errors.name}</span>}
-          </div>
-
-          <div className="profile-edit-actions">
-            <button type="submit" className="auth-submit">
-              Tallenna kortti
-            </button>
-            <button type="button" className="auth-link-button" onClick={() => setAdding(false)}>
-              Peruuta
-            </button>
-          </div>
-
-          <p className="settings-empty__hint">
-            Esittelytila: korttia ei veloiteta eikä sen numeroa tallenneta - vain 4 viimeistä numeroa näytetään.
-          </p>
-        </form>
-      )}
+            <p className="settings-empty__hint">
+              Esittelytila: korttia ei veloiteta eikä sen numeroa tallenneta - vain 4 viimeistä numeroa näytetään.
+            </p>
+          </form>
+        )}
+      </div>
     </section>
   )
 }
@@ -284,18 +290,22 @@ function SettingsPayments() {
     <SettingsLayout title="Maksutavat" description="Tallennetut kortit ja muut maksutavat.">
       <SavedCards />
 
-      <section className="auth-card">
-        <h2>Muut maksutavat</h2>
-        <div className="payment-methods">
+      <section className="settings-section">
+        <div className="settings-section__head">
+          <h2>Muut maksutavat</h2>
+        </div>
+        <div className="settings-panel">
           {METHODS.map(({ id, label, Badge }) => (
-            <div className="payment-method-row" key={id}>
+            <div className="srow" key={id}>
               <Badge />
-              <span className="payment-method-row__label">{label}</span>
+              <span className="srow__text">
+                <span className="srow__title">{label}</span>
+              </span>
               <span className="payment-method-row__status">Tulossa</span>
             </div>
           ))}
         </div>
-        <p className="settings-empty__hint">
+        <p className="settings-section__note">
           Korttien ja muiden maksutapojen tallennus tulee käyttöön kun oikea maksupalvelu (esim. Stripe) on kytketty -
           korttitietoja ei koskaan tallenneta suoraan omaan tietokantaan.
         </p>

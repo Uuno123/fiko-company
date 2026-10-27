@@ -1,7 +1,8 @@
 .home-content {
   width: 100%;
   margin: 0 auto;
-  padding: 40px 32px 64px;
+  /* Yläväli kategoriapalkin ja bannereiden välissä (käyttäjän pyyntö 27.10.2026). */
+  padding: 61px 32px 64px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -351,8 +352,8 @@
   }
 
   /* Tarttuu headerin alareunaan vieritettäessä ja pysyy näkyvissä.
-     Kategoriat pelkkinä teksteinä kuten työpöydän palkissa (CategoryBar.css,
-     käyttäjän pyyntö 25.10.2026). */
+     Kategoriat ikoni + nimi -pillereinä kuten työpöydän palkissa
+     (MobileCategoryRow.jsx, CategoryPill.css). */
   .home-quick-cats {
     /* display kumoaa työpöydän display:none:n (tiedoston alussa). */
     display: block;
@@ -378,49 +379,17 @@
       visibility 0s 0.25s;
   }
 
-  /* Vaakatäyte + linkin oma täyte = 16px, sama reuna kuin sivun sisällöllä. */
+  /* Pillerit: CategoryPill.css. Sama 16px reuna kuin sivun sisällöllä. */
   .home-quick-cats__row {
     display: flex;
-    gap: 2px;
+    gap: 8px;
     overflow-x: auto;
     scrollbar-width: none;
-    padding: 6px;
+    padding: 8px 16px;
   }
 
   .home-quick-cats__row::-webkit-scrollbar {
     display: none;
-  }
-
-  .home-cat-text {
-    flex-shrink: 0;
-    padding: 7px 10px;
-    border-radius: var(--radius-pill);
-    font-family: 'Nunito', var(--font-body);
-    font-size: 0.95rem;
-    font-weight: 700;
-    white-space: nowrap;
-    color: var(--text-muted);
-    text-decoration: none;
-    -webkit-tap-highlight-color: transparent;
-    transition:
-      color 0.18s ease,
-      background-color 0.18s ease;
-  }
-
-  .home-cat-text--active,
-  .home-cat-text:active {
-    background: var(--surface-muted);
-    color: var(--delivo-black);
-  }
-
-  .home-cat-text--offers {
-    font-weight: 800;
-    color: var(--delivo-orange);
-  }
-
-  .home-cat-text--offers:active {
-    background: var(--delivo-orange-soft);
-    color: var(--delivo-orange-dark);
   }
 
   /* Kategorialaatikot haun aloitusnäkymässä: värikkäät pyöristetyt laatikot,
@@ -487,7 +456,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .home-quick-cats,
-  .home-cat-text,
   .home-cat-tile,
   .home-cat-tile__art,
   .home-cat-tile__label,
@@ -520,103 +488,55 @@
     display: none;
   }
 
+  /* Pieni oranssi pallo oikeassa alakulmassa (käyttäjän pyyntö 27.10.2026):
+     vain kassi-ikoni ja tuotemäärä. Kiiltävä liukuväri kuten Tarjoukset-pillerissä. */
   .home-cart-fab {
     position: fixed;
-    left: 50%;
+    right: 16px;
     bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    transform: translateX(-50%);
     z-index: 45;
-    display: inline-flex;
-    align-items: center;
-    max-width: calc(100vw - 32px);
-    border-radius: var(--radius-pill);
-    background: var(--delivo-black);
-    color: #fff;
-    font-size: 0.92rem;
-    font-weight: 700;
-    white-space: nowrap;
-    /* Tämä on aidosti leijuva elementti, joten varjo on perusteltu. */
-    box-shadow: 0 8px 22px -8px rgba(20, 21, 15, 0.5);
-  }
-
-  .home-cart-fab__main {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 11px 18px 11px 13px;
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .home-cart-fab__main:active {
-    opacity: 0.85;
-  }
-
-  /* Tyhjennys on aina DOM:ssa mutta kutistettuna, jotta leviäminen voidaan
-     animoida - max-width:auto ei animoidu. */
-  .home-cart-fab__clear {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    max-width: 0;
-    padding: 11px 0;
-    overflow: hidden;
-    border: none;
-    border-left: 1px solid rgba(255, 255, 255, 0);
-    background: none;
-    color: #fff;
-    font-family: inherit;
-    font-size: 0.88rem;
-    font-weight: 700;
-    white-space: nowrap;
-    opacity: 0;
-    cursor: pointer;
-    transition: max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-      opacity 0.2s ease, border-color 0.25s ease;
-  }
-
-  .home-cart-fab--open .home-cart-fab__clear {
-    max-width: 150px;
-    padding: 11px 18px 11px 14px;
-    border-left-color: rgba(255, 255, 255, 0.28);
-    opacity: 1;
-  }
-
-  .home-cart-fab__clear svg {
-    flex-shrink: 0;
-  }
-
-  .home-cart-fab__icon {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.22);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 55%),
+      linear-gradient(120deg, #ff9b5c 0%, var(--delivo-orange) 48%, #e2380c 100%);
+    color: #fff;
+    text-decoration: none;
+    /* Tämä on aidosti leijuva elementti, joten varjo on perusteltu. */
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.35),
+      0 10px 22px -8px rgba(217, 63, 16, 0.75);
+    transition: transform 0.15s ease;
+  }
+
+  .home-cart-fab:active {
+    transform: scale(0.94);
+  }
+
+  .home-cart-fab:focus-visible {
+    outline: 2px solid var(--delivo-orange);
+    outline-offset: 3px;
   }
 
   .home-cart-fab__count {
     position: absolute;
-    top: -4px;
-    right: -4px;
-    min-width: 17px;
-    height: 17px;
-    padding: 0 4px;
+    top: -3px;
+    right: -3px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    border: 2px solid var(--delivo-orange);
     border-radius: var(--radius-pill);
-    border: 1.5px solid var(--delivo-black);
     background: #fff;
-    color: var(--delivo-black);
-    font-size: 0.68rem;
-    line-height: 15px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 16px;
     text-align: center;
-  }
-
-  .home-cart-fab__total {
-    padding-left: 10px;
-    border-left: 1px solid rgba(255, 255, 255, 0.22);
+    color: var(--delivo-orange-dark);
   }
 
   /* Tilaa napille, ettei se peitä viimeistä korttiriviä. */

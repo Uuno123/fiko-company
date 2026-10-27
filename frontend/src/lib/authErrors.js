@@ -4,6 +4,8 @@ const KNOWN_ERRORS = [
   { match: /invalid login credentials/i, message: 'Väärä sähköposti tai salasana.' },
   { match: /email not confirmed/i, message: 'Vahvista ensin sähköpostiosoitteesi - tarkista saapunut-kansio.' },
   { match: /invalid email/i, message: 'Sähköpostiosoite ei kelpaa.' },
+  { match: /token has expired or is invalid|otp.*(expired|invalid)|invalid.*otp/i, message: 'Koodi on väärä tai vanhentunut. Tarkista koodi tai lähetä uusi.' },
+  { match: /only request this after/i, message: 'Odota hetki ennen kuin pyydät uuden koodin.' },
   { match: /rate limit|too many requests/i, message: 'Liikaa yrityksiä lyhyessä ajassa. Yritä hetken kuluttua uudelleen.' },
 ]
 

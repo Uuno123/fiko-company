@@ -1,0 +1,125 @@
+/* Kategoriapilleri (CategoryPill.jsx): ikoni + nimi vaaleanharmaassa
+   kapselissa, musta teksti. Neutraali harmaa eikä --surface-muted, joka on
+   kellertävän murrettu sävy. Tarjoukset oranssina, valittu (scroll-spy)
+   mustana. Nunito ladataan index.html:ssä. */
+.cat-pill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px 0 13px;
+  border-radius: var(--radius-pill);
+  background: #f1f1f0;
+  font-family: 'Nunito', var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--delivo-black);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.cat-pill svg {
+  flex-shrink: 0;
+}
+
+.cat-pill:active {
+  background: #e4e4e2;
+}
+
+.cat-pill--active,
+.cat-pill--active:active {
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+/* Tarjoukset: kiiltävä oranssi liukuväri tasaisen oranssin tilalle (käyttäjän
+   pyyntö 27.10.2026). Yläpuoliskon heijastus (::before) ja ajoittain ohi
+   liukuva kiilto (::after) ovat sisällön alla: isolation tekee pilleristä oman
+   pinon, jolloin z-index -1 jää taustan päälle mutta tekstin ja ikonin alle. */
+.cat-pill--offers {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(120deg, #ff9b5c 0%, var(--delivo-orange) 48%, #e2380c 100%);
+  color: #fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 4px 12px -5px rgba(217, 63, 16, 0.7);
+}
+
+.cat-pill--offers::before,
+.cat-pill--offers::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.cat-pill--offers::before {
+  inset: 0 0 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0));
+}
+
+.cat-pill--offers::after {
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+  transform: translateX(-160%) skewX(-18deg);
+  animation: cat-pill-shine 4.2s ease-in-out infinite;
+}
+
+@keyframes cat-pill-shine {
+  0%,
+  62% {
+    transform: translateX(-160%) skewX(-18deg);
+  }
+
+  100% {
+    transform: translateX(330%) skewX(-18deg);
+  }
+}
+
+.cat-pill--offers:active {
+  background: linear-gradient(120deg, #f58a48 0%, var(--delivo-orange-dark) 100%);
+}
+
+/* Hover vain hiirellä: kosketusnäytöllä se jäisi painalluksen jälkeen päälle. */
+@media (hover: hover) {
+  .cat-pill:hover {
+    background: #e4e4e2;
+  }
+
+  .cat-pill--active:hover {
+    background: var(--delivo-black);
+  }
+
+  .cat-pill--offers:hover {
+    background: linear-gradient(120deg, #ff8f4e 0%, var(--delivo-orange-dark) 100%);
+  }
+}
+
+@media (max-width: 560px) {
+  .cat-pill {
+    height: 36px;
+    padding: 0 14px 0 12px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cat-pill {
+    transition: none;
+  }
+
+  .cat-pill--offers::after {
+    display: none;
+    animation: none;
+  }
+}

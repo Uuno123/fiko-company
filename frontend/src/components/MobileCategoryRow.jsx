@@ -1,10 +1,11 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { DEALS_LINK_INDEX, DEALS_QUERY, categorySlug } from '../lib/categories.js'
+import CategoryPill from './CategoryPill.jsx'
 
-// Mobiilin etusivun kategoriarivi pelkkinä teksteinä kuten työpöydän palkissa
-// (käyttäjän pyyntö 25.10.2026). Nimi hakee kategorialla, oranssi Tarjoukset
-// kolmantena. Tyylit Home.css:ssä (.home-quick-cats, .home-cat-text).
+// Mobiilin etusivun kategoriarivi: ikoni + nimi -pillerit (CategoryPill), sama
+// tyyli kuin työpöydän palkissa (käyttäjän valinta 27.10.2026). Pilleri hakee
+// kategorialla, oranssi Tarjoukset kolmantena. Rivin tyylit Home.css:ssä
+// (.home-quick-cats).
 //
 // Aktiivinen nimi seuraa näkyvää kategoriariviä (scroll-spy). Tila on tässä
 // eikä Homessa, jotta korostuksen vaihtuminen kesken vierityksen ei piirrä koko
@@ -65,17 +66,8 @@ function MobileCategoryRow({ categories, rowsRef }) {
       <div className="home-quick-cats__row">
         {categories.map((category, index) => (
           <Fragment key={category}>
-            {index === DEALS_LINK_INDEX && (
-              <Link to={`/haku?q=${encodeURIComponent(DEALS_QUERY)}`} className="home-cat-text home-cat-text--offers">
-                {DEALS_QUERY}
-              </Link>
-            )}
-            <Link
-              to={`/haku?q=${encodeURIComponent(category)}`}
-              className={`home-cat-text${activeSlug === categorySlug(category) ? ' home-cat-text--active' : ''}`}
-            >
-              {category}
-            </Link>
+            {index === DEALS_LINK_INDEX && <CategoryPill category={DEALS_QUERY} offers />}
+            <CategoryPill category={category} active={activeSlug === categorySlug(category)} />
           </Fragment>
         ))}
       </div>

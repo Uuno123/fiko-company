@@ -24,7 +24,7 @@
 }
 
 .address-picker__field:hover {
-  border-color: var(--delivo-black);
+  border-color: var(--field-focus-border);
 }
 
 .address-picker__field > svg {

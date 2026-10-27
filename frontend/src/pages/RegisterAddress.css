@@ -1,0 +1,6 @@
+/* Rekisteröitymisen osoitesivu (RegisterAddress.jsx). Lomakkeen tyylit ovat
+   components/DeliveryAddressForm.css:ssä. Sivu on lomakkeista pisin, joten se
+   alkaa ylhäältä eikä keskity pystysuunnassa. */
+.register-address {
+  justify-content: flex-start;
+}

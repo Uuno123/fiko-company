@@ -29,7 +29,17 @@
   background: var(--surface);
   box-shadow: 0 -12px 40px -12px rgba(20, 21, 15, 0.35);
   animation: bottom-sheet-up 0.42s cubic-bezier(0.32, 0.72, 0, 1);
-  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+  /* height: sisällön muuttuessa ikkuna kasvaa/kutistuu pehmeästi (BottomSheet.jsx). */
+  transition:
+    transform 0.25s cubic-bezier(0.32, 0.72, 0, 1),
+    height 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Lyhyt lomake: puhelimella sisällön korkuinen eikä koko näytön. */
+.bottom-sheet--compact {
+  height: auto;
+  max-height: calc(100vh - 44px);
+  max-height: calc(100dvh - 44px);
 }
 
 .bottom-sheet.is-leaving {
@@ -170,5 +180,9 @@
   .bottom-sheet,
   .bottom-sheet__backdrop {
     animation-duration: 0.01ms;
+  }
+
+  .bottom-sheet {
+    transition: none;
   }
 }

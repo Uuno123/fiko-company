@@ -16,6 +16,8 @@ import RestaurantPage from './pages/RestaurantPage.jsx'
 import CategoryPage from './pages/CategoryPage.jsx'
 import Cart from './pages/Cart.jsx'
 import Register from './pages/Register.jsx'
+import RegisterAddress from './pages/RegisterAddress.jsx'
+import { REGISTER_ADDRESS_PATH } from './lib/customerAddress.js'
 import Login from './pages/Login.jsx'
 import ResetPassword from './pages/ResetPassword.jsx'
 import Settings from './pages/Settings.jsx'
@@ -34,6 +36,7 @@ import PreviewDashboard from './pages/__PreviewDashboard.jsx'
 import PreviewAccount from './pages/__PreviewAccount.jsx'
 import PreviewCart from './pages/__PreviewCart.jsx'
 import PreviewTracking from './pages/__PreviewTracking.jsx'
+import PreviewRegister from './pages/__PreviewRegister.jsx'
 
 // React Router ei nollaa vieritystä sivunvaihdossa - ilman tätä esim. ravintolan sivulle
 // PALATESSA (selaimen takaisin-painike tms.) sivu renderöityy edelliseen vieritysasentoon,
@@ -104,9 +107,13 @@ function AppRoutes() {
         <Route path="/ostoskori" element={<Cart />} />
         <Route path="/login" element={<AuthPage>{authContent}</AuthPage>} />
         <Route path="/register" element={<AuthPage>{authContent}</AuthPage>} />
+        {/* Rekisteröitymisen osoitevaihe omana sivunaan myös puhelimella (ei paneelissa). */}
+        <Route path={REGISTER_ADDRESS_PATH} element={<RegisterAddress />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/asetukset" element={<Settings />} />
         <Route path="/asetukset/tiedot" element={<SettingsProfile />} />
+        {/* Toimitusosoite muokataan nyt Omien tietojen ikkunassa. */}
+        <Route path="/asetukset/osoite" element={<Navigate to="/asetukset/tiedot" replace />} />
         <Route path="/asetukset/salasana" element={<SettingsPassword />} />
         <Route path="/asetukset/maksutavat" element={<SettingsPayments />} />
         <Route path="/asetukset/ilmoitukset" element={<SettingsNotifications />} />
@@ -114,6 +121,7 @@ function AppRoutes() {
         <Route path="/__preview-account" element={<PreviewAccount />} />
         <Route path="/__preview-cart" element={<PreviewCart />} />
         <Route path="/__preview-tracking" element={<PreviewTracking />} />
+        <Route path="/__preview-register" element={<PreviewRegister />} />
 
         <Route
           element={

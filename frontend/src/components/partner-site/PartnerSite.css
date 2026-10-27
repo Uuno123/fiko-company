@@ -1179,7 +1179,7 @@
 
 .ps-field input:focus,
 .ps-field select:focus {
-  border-color: var(--ps-ink);
+  border-color: var(--field-focus-border);
   outline: none;
 }
 
