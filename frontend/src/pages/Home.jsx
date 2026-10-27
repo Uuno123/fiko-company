@@ -106,7 +106,6 @@ function Home() {
   const { favoriteIds, toggleFavorite } = useFavorites()
   const [searchOpen, setSearchOpen] = useState(false)
   const navigate = useNavigate()
-  const rowsRef = useRef(null)
   const adTrackRef = useRef(null)
   // Ohjelmallinen scrollTo laukaisee itse scroll-tapahtumia koko animaation ajan
   // - ilman tätä lippua alla oleva scroll-kuuntelija tulkitsisi ne pyyhkäisyksi
@@ -552,7 +551,7 @@ function Home() {
             pysyy vain oman vanhempansa laatikon sisällä, joten hakukentän
             vieressä se irtoaisi heti kun hakukenttä on vieritetty ohi. */}
         {mobileCategoryGroups.length > 0 && (
-          <MobileCategoryRow categories={mobileCategoryGroups.map((group) => group.category)} rowsRef={rowsRef} />
+          <MobileCategoryRow categories={mobileCategoryGroups.map((group) => group.category)} />
         )}
 
         {status === 'loading' && <Spinner label="Haetaan ravintoloita" />}
@@ -570,7 +569,7 @@ function Home() {
             kertaan ilman kategoriaotsikoita. Rivit näytetään myös ilman yhtään
             oikeaa ravintolaa (0042 poisti ne) - silloin niissä on pelkät mallit. */}
         {status === 'ready' && visibleCategoryGroups.length > 0 && (
-          <div className="category-rows" ref={rowsRef}>
+          <div className="category-rows">
             {visibleCategoryGroups.map(
               ({ category, items }, groupIndex) =>
                 items.length > 0 && (
