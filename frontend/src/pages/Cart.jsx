@@ -1520,7 +1520,6 @@ function Cart() {
                 Takaisin ostoskoriin
               </button>
               <h1 className="cart-panel__title">Maksutiedot</h1>
-              <p className="cart-panel__subtitle">Stripe-testitila - kokeile esim. korttia 4242 4242 4242 4242.</p>
 
               {(payError || activeRestaurantClosed) && (
                 <p className="payment-field__error payment-field__error--center">

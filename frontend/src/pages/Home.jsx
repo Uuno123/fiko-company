@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ShoppingBag } from 'lucide-react'
+import { ArrowRight, ShoppingBag } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import CategoryBar from '../components/CategoryBar.jsx'
 import MobileCategoryRow from '../components/MobileCategoryRow.jsx'
@@ -46,6 +46,9 @@ const DEALS_AFTER = 'Kebab & Pizza'
 // erillään toisistaan niin ettei kaksi punaista diaa voi koskaan osua
 // peräkkäin - työpöydällä niitä näkyy kaksi rinnakkain kerrallaan, joten
 // vierekkäiset diat näkyvät aina samaan aikaan.
+// "Tilaa nyt" (käyttäjän kuva 27.10.2026): ravintolanostot hakevat ravintolan
+// (search), koodi- ja noutobannerit vierittävät ravintolalistaan. light: valkoinen
+// nappi oranssi- ja punapohjaisilla kampanjakuvilla, joilla oranssi katoaisi.
 const HOME_ADS = [
   {
     id: 'bidrop10',
@@ -53,6 +56,7 @@ const HOME_ADS = [
     code: 'BIDROP10',
     lead: 'Käytä koodia',
     title: 'Saat 10 % alennuksen tilauksestasi!',
+    cta: { light: true },
   },
   {
     id: 'nosto-2',
@@ -60,6 +64,7 @@ const HOME_ADS = [
     code: null,
     lead: 'Suosittu juuri nyt',
     title: 'Hesburger Kuopio',
+    cta: { search: 'Hesburger' },
   },
   {
     id: 'tervetuloa',
@@ -67,6 +72,7 @@ const HOME_ADS = [
     code: 'TERVETULOA',
     lead: 'Käytä koodia',
     title: 'Saat 3 € alennuksen tilauksestasi!',
+    cta: { light: true },
   },
   {
     id: 'nosto-3',
@@ -74,6 +80,7 @@ const HOME_ADS = [
     code: null,
     lead: 'Ilmainen kuljetus juuri nyt',
     title: 'Volkan ravintola',
+    cta: { search: 'Volkan' },
   },
   {
     id: 'nosto-1',
@@ -81,6 +88,7 @@ const HOME_ADS = [
     code: null,
     lead: 'Kuumana juuri nyt',
     title: 'Mcdonalds',
+    cta: { search: "McDonald's" },
   },
   {
     id: 'nouto',
@@ -88,6 +96,7 @@ const HOME_ADS = [
     code: null,
     lead: 'Nouda itse ravintolasta',
     title: 'Ei kuljetusmaksua — nouda itse',
+    cta: { light: true },
   },
 ]
 const AD_ROTATE_MS = 5000
@@ -295,6 +304,12 @@ function Home() {
     }
   }, [])
 
+  // Kampanjabannerin "Tilaa nyt": ensimmäiseen ravintolariviin (rivien
+  // scroll-margin jättää headerin ja kategoriarivin alle tilaa).
+  function scrollToRestaurants() {
+    document.querySelector('.category-row')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   // Hakuehdotukset ovat datassa oikeasti esiintyviä kategorioita, yleisimmät
   // ensin - ei käsin keksittyä listaa, joka vanhenisi kun valikoima muuttuu.
   const popularSearches = useMemo(() => {
@@ -493,7 +508,7 @@ function Home() {
               {HOME_ADS.map((ad) => (
                 <article
                   key={ad.id}
-                  className={`home-ad__slide home-ad__slide--${ad.kind ?? 'promo'}`}
+                  className={`home-ad__slide home-ad__slide--${ad.kind ?? 'promo'}${ad.cta.search ? ' home-ad__slide--photo' : ''}`}
                   style={{ backgroundImage: `url(${ad.img})` }}
                 >
                   <div className="home-ad__content">
@@ -503,6 +518,19 @@ function Home() {
                       {ad.code && ' kassalla'}
                     </span>
                     <strong className="home-ad__title">{ad.title}</strong>
+                    {ad.cta.search ? (
+                      <Link to={`/haku?q=${encodeURIComponent(ad.cta.search)}`} className="home-ad__cta">
+                        Tilaa nyt <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        className={`home-ad__cta${ad.cta.light ? ' home-ad__cta--light' : ''}`}
+                        onClick={scrollToRestaurants}
+                      >
+                        Tilaa nyt <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
+                      </button>
+                    )}
                   </div>
                 </article>
               ))}
@@ -581,7 +609,7 @@ function Home() {
                           {/* Lähelläsi-rivi ei ole kategoria, joten sillä ei ole omaa sivua. */}
                           {category !== NEARBY_ROW && (
                             <Link className="category-row__see-all" to={`/kategoria/${categorySlug(category)}`}>
-                              Kaikki
+                              Kaikki <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
                             </Link>
                           )}
                           {/* Nuolet vain työpöydällä - puhelimella rivi pyyhkäistään. */}
