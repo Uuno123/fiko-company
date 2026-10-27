@@ -1,9 +1,10 @@
-/* Sama ilme kuin LocationModal.css:n osoiteikkunassa. z-index sen (960)
+/* Sama ilme kuin LocationModal.css:n osoiteikkunassa. z-index sen (960) ja
+   muokkausikkunan (BottomSheet 975, josta osoite voidaan valita - Omat tiedot)
    yläpuolella mutta evästebannerin (1000) alapuolella. */
 .address-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 970;
+  z-index: 985;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,8 +100,7 @@
 
 .address-modal__search input:focus {
   outline: none;
-  border-color: var(--delivo-black);
-  box-shadow: 0 0 0 4px rgba(20, 21, 15, 0.12);
+  border-color: var(--field-focus-border);
 }
 
 .address-modal__spinner {

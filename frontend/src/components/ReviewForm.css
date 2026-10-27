@@ -93,10 +93,10 @@
   border-color: #c9ccd1;
 }
 
+/* Sama kohdistus kuin muissa tekstikentissä (--field-focus-border, index.css). */
 .review-form__field textarea:focus {
   outline: none;
-  border-color: var(--delivo-orange);
-  box-shadow: 0 0 0 3px rgba(244, 80, 30, 0.14);
+  border-color: var(--field-focus-border);
 }
 
 .review-form__count {

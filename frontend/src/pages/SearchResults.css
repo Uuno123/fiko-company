@@ -231,11 +231,11 @@
 }
 
 .search-sort__control select:hover {
-  border-color: var(--delivo-black);
+  border-color: var(--field-focus-border);
 }
 
 .search-sort__control select:focus-visible {
-  outline: 2px solid var(--delivo-black);
+  outline: 2px solid var(--field-focus-border);
   outline-offset: 2px;
 }
 

@@ -15,10 +15,14 @@ const DRAG_SLOP_PX = 6
 // tai mistä tahansa, kun sisältö on vieritetty ylös), taustaa napauttamalla,
 // ✕:llä tai Escillä. Työpöydällä keskitetty ikkuna. footer: aina näkyvä
 // alapalkki (esim. hinta ja hyväksyntä), joka ei vierity sisällön mukana.
-function BottomSheet({ onClose, labelledBy, footer, children }) {
+// compact: puhelimella sisällön korkuinen (lyhyet lomakkeet, esim. nimen muokkaus).
+// children voi olla funktio, joka saa close-funktion: tallennuksen jälkeen
+// paneeli sulkeutuu animaation kautta.
+function BottomSheet({ onClose, labelledBy, footer, compact = false, children }) {
   const [leaving, setLeaving] = useState(false)
   const sheetRef = useRef(null)
   const bodyRef = useRef(null)
+  const contentRef = useRef(null)
   const handleRef = useRef(null)
   const onCloseRef = useRef(onClose)
   useEffect(() => {
@@ -46,6 +50,54 @@ function BottomSheet({ onClose, labelledBy, footer, children }) {
       window.removeEventListener('keydown', onKeyDown)
     }
   }, [close])
+
+  // Korkeuden muutos animoidaan (käyttäjän pyyntö 27.10.2026): kun sisältö
+  // muuttuu (esim. lomakkeeseen tulee kenttiä tai virheviesti), ikkuna kasvaa
+  // tai kutistuu pehmeästi eikä hyppää. CSS ei osaa siirtymää height: auto
+  // -arvoon, joten korkeus pidetään pikseleinä: luonnollinen korkeus mitataan
+  // hetkeksi auto-arvolla (max-height huomioiden) ja asetetaan uudeksi
+  // kohteeksi, jolloin CSS-siirtymä hoitaa liikkeen. Koskee työpöydän ikkunaa ja
+  // compact-paneelia; puhelimen täyskorkea paneeli on aina saman korkuinen.
+  useEffect(() => {
+    const sheet = sheetRef.current
+    const content = contentRef.current
+    if (!sheet || !content || typeof ResizeObserver === 'undefined') return undefined
+    const desktop = window.matchMedia('(min-width: 640px)')
+    let measured = false
+
+    function fit() {
+      if (!desktop.matches && !compact) {
+        sheet.style.height = ''
+        measured = false
+        return
+      }
+      const current = sheet.style.height
+      sheet.style.height = 'auto'
+      const target = sheet.offsetHeight
+      sheet.style.height = current
+      if (!measured || !current) {
+        // Ensimmäinen mitta ilman siirtymää - avautumisella on oma animaationsa.
+        sheet.style.transition = 'none'
+        sheet.style.height = `${target}px`
+        void sheet.offsetHeight
+        sheet.style.transition = ''
+        measured = true
+        return
+      }
+      if (current === `${target}px`) return
+      void sheet.offsetHeight
+      sheet.style.height = `${target}px`
+    }
+
+    fit()
+    const observer = new ResizeObserver(fit)
+    observer.observe(content)
+    window.addEventListener('resize', fit)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', fit)
+    }
+  }, [compact])
 
   // Pyyhkäisy alas. Paneeli seuraa sormea suoraan tyylin kautta (ei uudelleen-
   // piirtoa joka liikkeellä). Kosketus: mistä kohtaa tahansa, kun sisältö on
@@ -138,7 +190,7 @@ function BottomSheet({ onClose, labelledBy, footer, children }) {
       <div className={`bottom-sheet__backdrop${leaving ? ' is-leaving' : ''}`} onClick={close} aria-hidden="true" />
       <div
         ref={sheetRef}
-        className={`bottom-sheet${leaving ? ' is-leaving' : ''}`}
+        className={`bottom-sheet${compact ? ' bottom-sheet--compact' : ''}${leaving ? ' is-leaving' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
@@ -150,7 +202,9 @@ function BottomSheet({ onClose, labelledBy, footer, children }) {
           <X size={18} strokeWidth={2} aria-hidden="true" />
         </button>
         <div ref={bodyRef} className="bottom-sheet__body">
-          {children}
+          <div ref={contentRef} className="bottom-sheet__content">
+            {typeof children === 'function' ? children(close) : children}
+          </div>
         </div>
         {footer ? <div className="bottom-sheet__footer">{footer}</div> : null}
       </div>

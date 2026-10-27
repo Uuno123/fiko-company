@@ -1,5 +1,7 @@
 import { useState } from 'react'
+import { Megaphone, Receipt } from 'lucide-react'
 import SettingsLayout from '../components/SettingsLayout.jsx'
+import { SettingsRow } from '../components/SettingsRow.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import './Settings.css'
@@ -34,36 +36,37 @@ function SettingsNotifications() {
 
   return (
     <SettingsLayout title="Ilmoitukset" description="Valitse, mistä haluat kuulla sähköpostilla.">
-      <section className="auth-card">
-        <h2>Sähköposti-ilmoitukset</h2>
-        {error && <p className="auth-error">{error}</p>}
+      {error && <p className="auth-error">{error}</p>}
 
-        <div className="toggle-row">
-          <div className="toggle-row__text">
-            <p className="toggle-row__title">Tilausvahvistukset ja -päivitykset</p>
-            <p className="toggle-row__hint">
-              Kuittaus tilauksesta ja ilmoitus kun se on valmis - lähetetään aina, jotta pysyt kartalla.
-            </p>
-          </div>
-          <span className="toggle-row__fixed">Aina päällä</span>
+      <section className="settings-section">
+        <div className="settings-section__head">
+          <h2>Sähköposti-ilmoitukset</h2>
         </div>
-
-        <div className="toggle-row">
-          <div className="toggle-row__text">
-            <p className="toggle-row__title">Tarjoukset ja uutiset</p>
-            <p className="toggle-row__hint">Satunnaisia etuja ja uutuuksia Bidropin ravintoloilta.</p>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={marketingOptIn}
-            aria-label="Tarjoukset ja uutiset sähköpostitse"
-            className={`toggle-switch${marketingOptIn ? ' toggle-switch--on' : ''}`}
-            onClick={handleToggleMarketing}
-            disabled={saving}
-          >
-            <span className="toggle-switch__thumb" />
-          </button>
+        <div className="settings-panel">
+          <SettingsRow
+            icon={Receipt}
+            label="Tilausvahvistukset ja -päivitykset"
+            hint="Kuittaus tilauksesta ja ilmoitus kun se on valmis - lähetetään aina, jotta pysyt kartalla."
+            trailing={<span className="toggle-row__fixed">Aina päällä</span>}
+          />
+          <SettingsRow
+            icon={Megaphone}
+            label="Tarjoukset ja uutiset"
+            hint="Satunnaisia etuja ja uutuuksia Bidropin ravintoloilta."
+            trailing={
+              <button
+                type="button"
+                role="switch"
+                aria-checked={marketingOptIn}
+                aria-label="Tarjoukset ja uutiset sähköpostitse"
+                className={`toggle-switch${marketingOptIn ? ' toggle-switch--on' : ''}`}
+                onClick={handleToggleMarketing}
+                disabled={saving}
+              >
+                <span className="toggle-switch__thumb" />
+              </button>
+            }
+          />
         </div>
       </section>
     </SettingsLayout>

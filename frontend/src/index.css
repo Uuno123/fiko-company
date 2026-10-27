@@ -1,4 +1,7 @@
 :root {
+  /* Tekstikenttien kohdistus ja hover: hieman tummempi harmaa reuna - ei mustaa
+     reunaa eikä harmaata rengasta (käyttäjän pyyntö 27.10.2026, kaikkialla). */
+  --field-focus-border: #b9bcb3;
   /* Ei puhdas #000000 vaan hieman lämmin musta, jotta kaikki "musta" pinta
      koko sivustolla on samaa sävyä. */
   --delivo-black: #14150f;

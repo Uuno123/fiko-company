@@ -1,194 +1,103 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { LogOut, Mail, MapPin, Phone, Trash2, User } from 'lucide-react'
 import SettingsLayout from '../components/SettingsLayout.jsx'
-import AddressPickerModal from '../components/AddressPickerModal.jsx'
 import FavoritesSection from '../components/FavoritesSection.jsx'
+import { SettingsRow } from '../components/SettingsRow.jsx'
+import ProfileEditSheet from '../components/ProfileEditSheet.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
-import { supabase } from '../lib/supabaseClient.js'
-import { formatDisplayAddress } from '../lib/format.js'
+import { formatDisplayAddress, formatPhone } from '../lib/format.js'
+import { savedAddressSummary } from '../lib/customerAddress.js'
 import '../pages/AuthForm.css'
 import './Settings.css'
 
-function PinIcon() {
-  return (
-    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <path
-        d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <circle cx="10" cy="8" r="2.25" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
-  )
-}
-
+// Omat tiedot ryhmiteltynä listana (käyttäjän valinta 27.10.2026): henkilötiedot,
+// toimitusosoite, lempipaikat ja tili. Nimen, puhelimen ja osoitteen rivi avaa
+// muokkausikkunan keskelle näyttöä (ProfileEditSheet, käyttäjän pyyntö).
 function SettingsProfile() {
-  const { customer, refreshCustomer, signOut } = useAuth()
+  const { customer, signOut } = useAuth()
   const navigate = useNavigate()
-
-  const [editing, setEditing] = useState(false)
-  const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
-  const [status, setStatus] = useState('idle')
-  const [error, setError] = useState('')
-  const [saved, setSaved] = useState(false)
-
-  const [addressModalOpen, setAddressModalOpen] = useState(false)
-  const closeAddressModal = useCallback(() => setAddressModalOpen(false), [])
-
-  useEffect(() => {
-    if (customer) {
-      setName(customer.name || '')
-      setPhone(customer.phone || '')
-    }
-  }, [customer])
+  // Avoinna oleva muokkausikkuna: 'name' | 'phone' | 'address' | null.
+  const [editField, setEditField] = useState(null)
+  // Viimeksi tallennettu: ilmoitus sivun ylälaitaan.
+  const [savedField, setSavedField] = useState(null)
 
   async function handleSignOut() {
     await signOut()
     navigate('/')
   }
 
-  function startEditing() {
-    setError('')
-    setSaved(false)
-    setEditing(true)
+  function openEditor(field) {
+    setSavedField(null)
+    setEditField(field)
   }
 
-  function cancelEditing() {
-    if (customer) {
-      setName(customer.name || '')
-      setPhone(customer.phone || '')
-    }
-    setError('')
-    setEditing(false)
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
-    setStatus('submitting')
-
-    const { error: updateError } = await supabase
-      .from('customers')
-      .update({ name: name.trim(), phone: phone.trim() })
-      .eq('id', customer.id)
-
-    if (updateError) {
-      setError('Tallennus epäonnistui. Yritä hetken kuluttua uudelleen.')
-      setStatus('idle')
-      return
-    }
-
-    await refreshCustomer()
-    setStatus('idle')
-    setEditing(false)
-    setSaved(true)
-  }
-
-  // Osoiteikkunan vahvistus tallentaa suoraan. Virhe heitetään ikkunalle, joka
-  // pysyy auki ja näyttää viestin.
-  async function handleAddressSave({ address }) {
-    const { error: updateError } = await supabase
-      .from('customers')
-      .update({ address: address.trim() || null })
-      .eq('id', customer.id)
-
-    if (updateError) throw new Error(`Tallennus epäonnistui: ${updateError.message}`)
-
-    await refreshCustomer()
-    setAddressModalOpen(false)
-  }
+  const addressHints = [
+    savedAddressSummary(customer),
+    customer?.courier_instructions && `Ohjeet: ${customer.courier_instructions}`,
+  ]
 
   return (
     <SettingsLayout title="Omat tiedot" description="Yhteystietosi, toimitusosoitteesi ja tallennetut ravintolasi.">
-      {saved && <p className="auth-success">Tiedot tallennettu.</p>}
+      {savedField && (
+        <p className="auth-success">
+          {savedField === 'address' ? 'Toimitusosoite tallennettu.' : 'Tiedot tallennettu.'}
+        </p>
+      )}
 
       <section className="settings-section">
         <div className="settings-section__head">
           <h2>Henkilötiedot</h2>
-          {!editing && (
-            <button type="button" className="settings-section__action" onClick={startEditing}>
-              Muokkaa
-            </button>
-          )}
         </div>
 
-        {editing ? (
-          <form className="settings-panel settings-panel--padded auth-form" onSubmit={handleSubmit}>
-            {error && <p className="auth-error">{error}</p>}
-
-            <div className="auth-field">
-              <label htmlFor="profile-name">Nimi</label>
-              <input id="profile-name" type="text" required value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-
-            <div className="auth-field">
-              <label htmlFor="profile-email">Sähköposti</label>
-              <input id="profile-email" type="email" value={customer?.email || ''} disabled />
-              <span className="auth-field__hint">Sähköpostin vaihto ei ole vielä tuettu täältä</span>
-            </div>
-
-            <div className="auth-field">
-              <label htmlFor="profile-phone">Puhelinnumero</label>
-              <input id="profile-phone" type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
-
-            <div className="profile-edit-actions">
-              <button type="submit" className="auth-submit" disabled={status === 'submitting'}>
-                {status === 'submitting' ? 'Tallennetaan...' : 'Tallenna'}
-              </button>
-              <button type="button" className="auth-link-button" onClick={cancelEditing}>
-                Peruuta
-              </button>
-            </div>
-          </form>
-        ) : (
-          <div className="settings-panel">
-            <div className="settings-panel__row">
-              <span className="settings-panel__label">Nimi</span>
-              <span className="settings-panel__value">{customer?.name || '-'}</span>
-            </div>
-            <div className="settings-panel__row">
-              <span className="settings-panel__label">Sähköposti</span>
-              <span className="settings-panel__value">{customer?.email}</span>
-            </div>
-            <div className="settings-panel__row">
-              <span className="settings-panel__label">Puhelinnumero</span>
-              <span className="settings-panel__value">{customer?.phone || '-'}</span>
-            </div>
-          </div>
-        )}
+        <div className="settings-panel">
+          <SettingsRow icon={User} label="Nimi" value={customer?.name || '-'} onClick={() => openEditor('name')} />
+          <SettingsRow
+            icon={Phone}
+            label="Puhelinnumero"
+            value={formatPhone(customer?.phone) || 'Lisää puhelinnumero'}
+            onClick={() => openEditor('phone')}
+          />
+          <SettingsRow
+            icon={Mail}
+            label="Sähköposti"
+            value={customer?.email || '-'}
+            hint="Sähköpostin vaihto ei ole vielä mahdollista täältä."
+          />
+        </div>
       </section>
+
+      {editField && customer && (
+        <ProfileEditSheet
+          field={editField}
+          customer={customer}
+          onClose={() => setEditField(null)}
+          onSaved={() => setSavedField(editField)}
+        />
+      )}
 
       <section className="settings-section">
         <div className="settings-section__head">
           <h2>Toimitusosoite</h2>
-          <button type="button" className="settings-section__action" onClick={() => setAddressModalOpen(true)}>
-            {customer?.address ? 'Muuta' : 'Lisää'}
-          </button>
         </div>
-
         <div className="settings-panel">
-          <div className="settings-panel__row address-row">
-            <span className="address-row__icon">
-              <PinIcon />
-            </span>
-            <span className={`settings-panel__value${customer?.address ? '' : ' settings-panel__value--muted'}`}>
-              {formatDisplayAddress(customer?.address) || 'Ei vielä lisätty. Osoite täytetään valmiiksi kassalla.'}
-            </span>
-          </div>
+          {customer?.address ? (
+            <SettingsRow
+              icon={MapPin}
+              label="Osoite"
+              value={formatDisplayAddress(customer.address)}
+              hint={addressHints}
+              onClick={() => openEditor('address')}
+            />
+          ) : (
+            <SettingsRow
+              icon={MapPin}
+              label="Lisää toimitusosoite"
+              hint="Asunnon tyyppi, osoite ja ohjeet kuljettajalle. Kassa täyttää ne valmiiksi."
+              onClick={() => openEditor('address')}
+            />
+          )}
         </div>
-
-        {addressModalOpen && (
-          <AddressPickerModal
-            title="Toimitusosoite"
-            confirmLabel="Tallenna osoite"
-            initial={customer?.address ? { address: customer.address } : null}
-            onConfirm={handleAddressSave}
-            onClose={closeAddressModal}
-          />
-        )}
       </section>
 
       <FavoritesSection customerId={customer?.id} />
@@ -198,25 +107,19 @@ function SettingsProfile() {
           <h2>Tili</h2>
         </div>
         <div className="settings-panel">
-          <div className="settings-panel__row">
-            <span className="settings-panel__label">Kirjautuminen</span>
-            <span className="settings-panel__value settings-panel__value--muted">Kirjaudu ulos tältä laitteelta.</span>
-            <button type="button" className="settings-panel__link" onClick={handleSignOut}>
-              Kirjaudu ulos
-            </button>
-          </div>
-          <div className="settings-panel__row">
-            <span className="settings-panel__label">Tilin poistaminen</span>
-            <span className="settings-panel__value settings-panel__value--muted">
-              Pyyntö lähtee asiakastukeen sähköpostilla.
-            </span>
-            <a
-              href="mailto:tuki@bidrop.fi?subject=Tilin%20poistopyynt%C3%B6"
-              className="settings-panel__link settings-panel__link--danger"
-            >
-              Pyydä poistoa
-            </a>
-          </div>
+          <SettingsRow
+            icon={LogOut}
+            label="Kirjaudu ulos"
+            hint="Kirjaudu ulos tältä laitteelta."
+            onClick={handleSignOut}
+          />
+          <SettingsRow
+            icon={Trash2}
+            label="Pyydä tilin poistoa"
+            hint="Pyyntö lähtee asiakastukeen sähköpostilla."
+            href="mailto:tuki@bidrop.fi?subject=Tilin%20poistopyynt%C3%B6"
+            danger
+          />
         </div>
       </section>
     </SettingsLayout>

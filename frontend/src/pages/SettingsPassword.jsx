@@ -32,8 +32,11 @@ function SettingsPassword() {
 
   return (
     <SettingsLayout title="Salasana" description="Vaihda kirjautumisessa käyttämäsi salasana.">
-      <section className="auth-card">
-        <form className="auth-form" onSubmit={handleSubmit}>
+      <section className="settings-section">
+        <div className="settings-section__head">
+          <h2>Vaihda salasana</h2>
+        </div>
+        <form className="settings-panel settings-panel__body auth-form" onSubmit={handleSubmit}>
           {error && <p className="auth-error">{error}</p>}
           {saved && <p className="auth-success">Salasana vaihdettu.</p>}
 

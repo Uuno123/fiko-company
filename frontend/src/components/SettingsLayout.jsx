@@ -117,7 +117,6 @@ function SettingsLayout({ title, description, children, variant }) {
           {children}
         </main>
       </div>
-
     </div>
   )
 }

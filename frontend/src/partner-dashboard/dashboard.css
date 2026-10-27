@@ -971,8 +971,7 @@
 .pd-input:focus,
 .pd-select:focus {
   outline: none;
-  border-color: var(--pd-ink);
-  box-shadow: 0 0 0 3px rgba(20, 21, 15, 0.1);
+  border-color: var(--field-focus-border);
 }
 
 .pd-textarea {
@@ -2203,7 +2202,7 @@ a.pd-customer__line {
 }
 
 .pd-search:focus-within {
-  border-color: var(--pd-ink);
+  border-color: var(--field-focus-border);
 }
 
 .pd-search input {

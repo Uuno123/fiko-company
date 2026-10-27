@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ChevronDown, Clock, MessageSquareText, Trash2, User } from 'lucide-react'
+import { ChevronDown, Clock, MapPin, MessageSquareText, Trash2, User } from 'lucide-react'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import AccountMenu from '../components/AccountMenu.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
@@ -9,7 +9,6 @@ import { DELIVERY_ETA_BUFFER_MINUTES, estimatedArrivalAt } from '../lib/orderSta
 import LoginModal from '../components/LoginModal.jsx'
 import AddressPickerModal from '../components/AddressPickerModal.jsx'
 import DeliveryBidPanel from '../components/DeliveryBidPanel.jsx'
-import DeliveryRouteMap from '../components/DeliveryRouteMap.jsx'
 import { geocodeAddress, haversineKm } from '../lib/geocode.js'
 import { getDeliveryAddress } from '../lib/deliveryAddress.js'
 import { DELIVERY_PRICE_RANGE } from '../lib/delivery.js'
@@ -18,7 +17,16 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import { getRestaurantById, createPaymentIntent } from '../lib/api.js'
 import { stripePromise } from '../lib/stripeClient.js'
-import { formatDisplayAddress, formatPrice, joinAddress, splitAddress } from '../lib/format.js'
+import {
+  formatDisplayAddress,
+  formatPhone,
+  formatPrice,
+  internationalPhone,
+  joinAddress,
+  nationalPhone,
+  splitAddress,
+} from '../lib/format.js'
+import { addressTypeLabel, hasSavedAddress, savedApartmentLine, savedCourierNotes } from '../lib/customerAddress.js'
 import './Cart.css'
 
 const STRIPE_APPEARANCE = {
@@ -103,6 +111,12 @@ const PROMO_CODES = {
     pickupOnly: true,
     label: '15 % noutoalennus (enint. 5 €)',
   },
+}
+
+// Sama osoite kirjoitusasusta riippumatta (kassan osoite vs. profiilin osoite).
+function sameAddress(a, b) {
+  const normalize = (value) => (formatDisplayAddress(value) || '').trim().toLowerCase()
+  return Boolean(a && b) && normalize(a) === normalize(b)
 }
 
 // Sama ehto kuin validateDetails-funktiossa: talon numero, 5-numeroinen
@@ -358,7 +372,9 @@ function Cart() {
   })
   const [addressModalOpen, setAddressModalOpen] = useState(false)
   const closeAddressModal = useCallback(() => setAddressModalOpen(false), [])
-  const [addressExpanded, setAddressExpanded] = useState(false)
+  // Asiakas on muuttanut osoitetta tai kuljettajan tietoja tässä kassassa -
+  // profiilin tiedot eivät enää korvaa niitä.
+  const addressTouched = useRef(false)
   // Katu/postinumero/kaupunki-kentät vain kun valitusta osoitteesta puuttuu
   // jotain. Kerran avattuna ne pysyvät auki, jottei kenttä katoa kesken
   // kirjoittamisen heti kun puuttuva numero on lisätty. Uusi osoite ikkunasta
@@ -409,6 +425,12 @@ function Cart() {
   ]
     .filter(Boolean)
     .join(' · ')
+  const addressNote = [
+    sameAddress(delivery.address, customer?.address) ? addressTypeLabel(customer?.address_type) : null,
+    delivery.apartment.trim(),
+  ]
+    .filter(Boolean)
+    .join(' · ')
   const contactComplete = delivery.name.trim().length >= 2 && delivery.phone.trim().length >= 6
   const showContactFields = contactOpen || !contactComplete || Boolean(detailsErrors.name || detailsErrors.phone)
   const deliveryDistanceKm =
@@ -421,14 +443,36 @@ function Cart() {
   // Esitäyttää myös osoitteen profiilista. Vain jos osoitetta ei vielä ole -
   // säilyttää käyttäjän oman valinnan, jos hän ehti valita osoitteen ennen
   // kuin customer ladataan.
+  // Kirjautuneen asiakkaan tallennetut tiedot ovat kassassa aina valmiina
+  // (käyttäjän pyyntö 27.10.2026): osoite koordinaatteineen, porras ja asunto
+  // sekä ohjeet kuljettajalle (lib/customerAddress.js), myös jos selaimeen on
+  // valittu jokin muu osoite. Kassassa tehty oma muutos (addressTouched) jää.
+  // Ilman tallennettua osoitetta profiilin osoite täytetään vain tyhjään kenttään.
   useEffect(() => {
     if (!customer) return
     setDelivery((d) => {
+      const contact = {
+        name: d.name || customer.name || '',
+        phone: d.phone || nationalPhone(customer.phone),
+      }
+      if (hasSavedAddress(customer) && !addressTouched.current) {
+        const profileAddress = formatDisplayAddress(customer.address)
+        return {
+          ...d,
+          ...contact,
+          address: profileAddress,
+          ...splitAddress(profileAddress),
+          ...(customer.address_lat != null && customer.address_lng != null
+            ? { lat: customer.address_lat, lng: customer.address_lng }
+            : {}),
+          apartment: savedApartmentLine(customer),
+          notes: savedCourierNotes(customer),
+        }
+      }
       const profileAddress = d.address ? null : formatDisplayAddress(customer.address)
       return {
         ...d,
-        name: d.name || customer.name || '',
-        phone: d.phone || customer.phone || '',
+        ...contact,
         ...(profileAddress ? { address: profileAddress, ...splitAddress(profileAddress) } : {}),
       }
     })
@@ -545,6 +589,7 @@ function Cart() {
 
   function updateDelivery(field) {
     return (e) => {
+      if (['street', 'postalCode', 'city', 'apartment', 'notes'].includes(field)) addressTouched.current = true
       setDelivery((d) => ({ ...d, [field]: e.target.value }))
       setDetailsErrors((errors) => {
         if (!errors[field]) return errors
@@ -696,7 +741,7 @@ function Cart() {
         customer_id: customer.id,
         delivery_method: delivery.method,
         delivery_name: delivery.name.trim(),
-        delivery_phone: delivery.phone.trim(),
+        delivery_phone: internationalPhone(delivery.phone),
         delivery_address: isDelivery ? fullDeliveryAddress : null,
         delivery_lat: isDelivery ? deliveryLat : null,
         delivery_lng: isDelivery ? deliveryLng : null,
@@ -1078,55 +1123,29 @@ function Cart() {
                 {delivery.method === 'delivery' ? (
                   <>
                     <div className="payment-field">
-                      {/* Ilman paikannettua osoitetta ei ole reittiä näytettäväksi, joten
-                          rivi avaa suoraan osoiteikkunan. */}
+                      {/* Osoite yhtenä korttina (käyttäjän pyyntö 27.10.2026): osoite ja
+                          asunnon tiedot, oikealla Muuta. Ei reittikarttaa eikä aika/matka-
+                          merkkiä (käyttäjän pyyntö) - kortin painallus avaa osoitteen valinnan. */}
                       <button
                         type="button"
                         id="delivery-address"
-                        aria-label={`Toimitusosoite: ${fullDeliveryAddress || 'ei valittu'}`}
-                        className={`address-summary-row${addressExpanded ? ' address-summary-row--open' : ''}`}
-                        onClick={() => (hasDeliveryCoords ? setAddressExpanded((v) => !v) : setAddressModalOpen(true))}
+                        className="address-card"
+                        aria-label={`Toimitusosoite: ${fullDeliveryAddress || 'ei valittu'}. Muuta osoitetta`}
+                        onClick={() => setAddressModalOpen(true)}
                       >
-                        <span className="address-summary-row__icon">
-                          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                            <path
-                              d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10Z"
-                              stroke="currentColor"
-                              strokeWidth="1.5"
-                              strokeLinejoin="round"
-                            />
-                            <circle cx="10" cy="8" r="2.25" stroke="currentColor" strokeWidth="1.5" />
-                          </svg>
+                        <span className="address-card__icon" aria-hidden="true">
+                          <MapPin size={17} strokeWidth={2} />
                         </span>
-                        <span className="address-summary-row__text">{fullDeliveryAddress || 'Valitse toimitusosoite'}</span>
-                        <svg className="address-summary-row__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                          <path
-                            d="m6 8 4 4 4-4"
-                            stroke="currentColor"
-                            strokeWidth="1.6"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
+                        <span className="address-card__text">
+                          <strong>{joinAddress({ ...delivery, apartment: '' }) || 'Valitse toimitusosoite'}</strong>
+                          {addressNote && <span>{addressNote}</span>}
+                        </span>
+                        <span className="address-card__change" aria-hidden="true">
+                          {delivery.address ? 'Muuta' : 'Valitse'}
+                        </span>
                       </button>
 
                       {detailsErrors.address && <span className="payment-field__error">{detailsErrors.address}</span>}
-
-                      {addressExpanded && hasDeliveryCoords && (
-                        <div className="address-summary-row__panel">
-                          <DeliveryRouteMap
-                            restaurant={
-                              activeRestaurant
-                                ? { lat: activeRestaurant.lat, lng: activeRestaurant.lng, name: activeGroup.restaurantName }
-                                : null
-                            }
-                            destination={{ lat: delivery.lat, lng: delivery.lng, address: fullDeliveryAddress }}
-                          />
-                          <button type="button" className="edit-address-btn" onClick={() => setAddressModalOpen(true)}>
-                            Muokkaa osoitetta
-                          </button>
-                        </div>
-                      )}
 
                       {addressModalOpen && (
                         <AddressPickerModal
@@ -1136,10 +1155,10 @@ function Cart() {
                           }
                           onConfirm={({ address, lat, lng }) => {
                             const parts = splitAddress(address)
+                            addressTouched.current = true
                             setDelivery((d) => ({ ...d, address, ...parts, lat, lng }))
                             setAddressFieldsOpen(!addressPartsComplete(parts))
                             setAddressModalOpen(false)
-                            setAddressExpanded(true)
                           }}
                           onClose={closeAddressModal}
                         />
@@ -1341,7 +1360,7 @@ function Cart() {
                         <User size={17} strokeWidth={1.8} />
                       </span>
                       <span className="checkout-row__text">
-                        {delivery.name} · {delivery.phone}
+                        {delivery.name} · {formatPhone(delivery.phone)}
                       </span>
                       <span className="checkout-row__action">Muokkaa</span>
                     </button>
