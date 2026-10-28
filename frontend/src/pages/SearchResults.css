@@ -98,6 +98,54 @@
   height: 12px;
 }
 
+/* Vieritettäessä matalampi palkki (käyttäjän pyyntö 28.10.2026): pienempi
+   kenttä ja nappi, ohut viiva alla. Kentän fonttikoko pysyy 16 px:ssä (iOS-zoom). */
+.search-topbar {
+  transition:
+    padding 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.search-topbar__back,
+.search-topbar__field {
+  transition:
+    width 0.2s ease,
+    height 0.2s ease,
+    padding 0.2s ease;
+}
+
+.search-topbar--compact {
+  padding-top: calc(6px + env(safe-area-inset-top, 0px));
+  padding-bottom: 6px;
+  box-shadow: 0 1px 0 #ececec;
+}
+
+.search-topbar--compact .search-topbar__back {
+  width: 32px;
+  height: 32px;
+}
+
+.search-topbar--compact .search-topbar__back svg {
+  width: 17px;
+  height: 17px;
+}
+
+.search-topbar--compact .search-topbar__field {
+  height: 38px;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.search-topbar--compact .search-topbar__field > svg {
+  width: 17px;
+  height: 17px;
+}
+
+.search-topbar--compact .search-topbar__field button {
+  width: 22px;
+  height: 22px;
+}
+
 .search-results {
   width: 100%;
   max-width: 1080px;
@@ -140,15 +188,101 @@
   color: var(--delivo-black);
 }
 
-/* Kaksi otsikkoa DOM:ssa, CSS valitsee kumpi näkyy - työpöydällä kiinteä
-   "Hakutulokset" (haettu sana näkyy jo headerin hakukentässä, kuten Woltissa),
-   mobiilissa haettu sana itse otsikkona, koska omaa hakukenttää ei näy. */
-.search-results__heading--desktop {
-  display: none;
+/* Otsikko ja mobiilin suodatinpainike samalla rivillä. */
+.search-results__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.search-results__heading--mobile {
-  font-size: 1.1rem;
+/* Pyöreä suodatinpainike (vain mobiilissa - työpöydällä lajitteluvalikko). */
+.search-filter-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--round-button-bg);
+  color: var(--delivo-black);
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.search-filter-btn:active {
+  background: var(--round-button-bg-pressed);
+  transform: scale(0.95);
+}
+
+.search-filter-btn.is-active::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+}
+
+/* Lajittelupaneeli (BottomSheet). */
+.sort-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+.sort-sheet h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+.sort-sheet__options {
+  display: flex;
+  flex-direction: column;
+}
+
+.sort-sheet__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 52px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.sort-sheet__option:active {
+  background: #f4f4f4;
+}
+
+.sort-sheet__option.is-selected {
+  background: #fff4ef;
+  font-weight: 700;
+  color: var(--delivo-orange-dark);
+}
+
+/* Sama "Hakutulokset"-otsikko kaikilla leveyksillä (mobiilissa isona
+   28.10.2026, aiemmin haettu sana pienenä); haettu sana alla vain työpöydällä. */
+.search-results__heading {
+  font-size: 2rem;
+  letter-spacing: -0.03em;
 }
 
 .search-results__heading-sub {
@@ -159,16 +293,19 @@
 }
 
 @media (min-width: 561px) {
-  .search-results__heading--desktop {
-    display: block;
-  }
-
-  .search-results__heading--mobile {
-    display: none;
+  /* Isompi otsikko työpöydällä (käyttäjän pyyntö 28.10.2026). */
+  .search-results__heading {
+    font-size: 2.5rem;
   }
 
   .search-results__heading-sub {
     display: block;
+    font-size: 1.08rem;
+  }
+
+  /* Työpöydällä lajittelu on valikkona osion otsikon vieressä. */
+  .search-filter-btn {
+    display: none;
   }
 }
 

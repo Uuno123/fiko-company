@@ -10,7 +10,8 @@ import './Header.css'
 
 // showAddress: toimitusosoite logon vieressä (selaussivut). Osoiteikkuna itse
 // on AddressGatessa, jotta sama ikkuna aukeaa myös ensikäynnillä.
-function Header({ search, showAddress, cart, variant, back, actions, hideAccount }) {
+// flatUntilScroll: ei varjoa ennen kuin sivua vieritetään (hakutulokset).
+function Header({ search, showAddress, cart, variant, back, actions, hideAccount, flatUntilScroll }) {
   const location = useLocation()
   const navigate = useNavigate()
   const deliveryAddress = useDeliveryAddress()
@@ -66,15 +67,18 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
   }, [cart?.count])
 
   useEffect(() => {
-    if (variant !== 'overlay') return undefined
+    if (variant !== 'overlay' && !flatUntilScroll) return undefined
 
+    // Kuvan päällä läpinäkyvä header vaihtuu vasta 40 px kohdalla; varjo
+    // ilmestyy heti kun sivu liikkuu.
+    const threshold = variant === 'overlay' ? 40 : 4
     function handleScroll() {
-      setIsScrolled(window.scrollY > 40)
+      setIsScrolled(window.scrollY > threshold)
     }
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [variant])
+  }, [variant, flatUntilScroll])
 
   const isTransparent = variant === 'overlay' && !isScrolled
 
@@ -129,7 +133,9 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
       ref={headerRef}
       className={`site-header${variant === 'overlay' ? ' site-header--overlay' : ''}${
         variant === 'dark' ? ' site-header--dark' : ''
-      }${isTransparent ? ' site-header--transparent' : ''}${isSearchFocused ? ' site-header--searching' : ''}`}
+      }${isTransparent ? ' site-header--transparent' : ''}${isSearchFocused ? ' site-header--searching' : ''}${
+        flatUntilScroll ? ' site-header--scroll-shadow' : ''
+      }${flatUntilScroll && !isScrolled ? ' site-header--flat' : ''}`}
     >
       <div className="site-header__inner">
         <div className="site-header__left">
