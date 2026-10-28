@@ -1294,3 +1294,20 @@
     box-shadow: none;
   }
 }
+
+/* Hakutulossivulla headerissa ei varjoa ennen kuin sivua vieritetään (käyttäjän
+   pyyntö 28.10.2026, Header-prop flatUntilScroll). Sama tarkkuus kuin vaalean
+   headerin varjosäännöllä yllä, ja tämä on myöhemmin, joten tämä voittaa. */
+.site-header--scroll-shadow {
+  transition: box-shadow 0.2s ease;
+}
+
+.site-header--flat:not(.site-header--dark):not(.site-header--overlay) {
+  box-shadow: none;
+}
+
+/* Vieritettynä pieni mutta selvä varjo (käyttäjän pyyntö 28.10.2026) - vaalean
+   headerin oletusvarjo oli niin kevyt, ettei sitä huomannut. */
+.site-header--scroll-shadow:not(.site-header--flat):not(.site-header--dark):not(.site-header--overlay) {
+  box-shadow: 0 4px 14px -6px rgba(20, 21, 15, 0.22);
+}

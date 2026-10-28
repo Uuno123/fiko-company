@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Check, ListFilter } from 'lucide-react'
+import BottomSheet from '../components/BottomSheet.jsx'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
-import RankingInfo from '../components/RankingInfo.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import Spinner from '../components/Spinner.jsx'
 import { useCart } from '../lib/CartContext.jsx'
@@ -12,6 +13,15 @@ import { restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { supabase } from '../lib/supabaseClient.js'
 import './SearchResults.css'
+
+// Lajitteluvaihtoehdot: työpöydän valikko ja mobiilin suodatinpaneeli.
+// "Lähin ensin" vain kun toimitusosoite on annettu.
+const SORT_OPTIONS = [
+  { value: 'relevance', label: 'Suositellut' },
+  { value: 'rating', label: 'Paras arvio' },
+  { value: 'eta', label: 'Nopein toimitus' },
+  { value: 'distance', label: 'Lähin ensin', needsAddress: true },
+]
 
 const RESULT_LIMIT = 20
 // Ravintoloissa näytetään kaikki joihin haku liittyy mitenkään (nimi, kategoria tai
@@ -26,6 +36,17 @@ function SearchResults() {
   const [items, setItems] = useState([])
   const [status, setStatus] = useState('idle')
   const [restaurantSort, setRestaurantSort] = useState('relevance')
+  const [sortSheetOpen, setSortSheetOpen] = useState(false)
+  // Mobiilin yläpalkki madaltuu heti kun sivua vieritetään.
+  const [topbarCompact, setTopbarCompact] = useState(() => window.scrollY > 8)
+
+  useEffect(() => {
+    function handleScroll() {
+      setTopbarCompact(window.scrollY > 8)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
   const cart = useCart()
   const navigate = useNavigate()
   const deliveryAddress = useDeliveryAddress()
@@ -138,6 +159,7 @@ function SearchResults() {
           home-mobile-top / restaurant-grid--desktop). */}
       <Header
         showAddress
+        flatUntilScroll
         search={{
           value: inputValue,
           onChange: setInputValue,
@@ -157,7 +179,7 @@ function SearchResults() {
         }
       />
 
-      <div className="search-topbar">
+      <div className={`search-topbar${topbarCompact ? ' search-topbar--compact' : ''}`}>
         <button type="button" className="search-topbar__back" aria-label="Takaisin" onClick={() => navigate('/')}>
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path d="M12 5 7 10l5 5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
@@ -188,14 +210,54 @@ function SearchResults() {
 
       <main className="search-results">
         <div className="search-results__heading-row">
-          {/* Työpöytä: kiinteä otsikko kuten Woltissa - haettu sana näkyy jo
-              yläreunan hakukentässä, joten sitä ei tarvitse toistaa isolla. */}
-          <h1 className="search-results__heading search-results__heading--desktop">Hakutulokset</h1>
-          {/* Mobiili: haettu sana on itse otsikko, koska omaa hakukenttää
-              sisältävää headeria ei näytetä. */}
-          {query && <h1 className="search-results__heading search-results__heading--mobile">“{query}”</h1>}
+          {/* Kiinteä otsikko kuten Woltissa - haettu sana näkyy jo hakukentässä
+              (työpöydällä headerissa, mobiilissa yläpalkissa). Mobiilissa oikealla
+              suodatinpainike, joka avaa lajittelun (käyttäjän kuva 28.10.2026);
+              oranssi piste kertoo, että muu kuin oletuslajittelu on valittu. */}
+          <div className="search-results__title-row">
+            <h1 className="search-results__heading">Hakutulokset</h1>
+            {status === 'ready' && allRestaurants.length > 1 && (
+              <button
+                type="button"
+                className={`search-filter-btn${restaurantSort !== 'relevance' ? ' is-active' : ''}`}
+                aria-label="Lajittele hakutulokset"
+                aria-haspopup="dialog"
+                onClick={() => setSortSheetOpen(true)}
+              >
+                <ListFilter size={20} strokeWidth={2.2} aria-hidden="true" />
+              </button>
+            )}
+          </div>
           {query && <p className="search-results__heading-sub">haulle &quot;{query}&quot;</p>}
         </div>
+
+        {sortSheetOpen && (
+          <BottomSheet onClose={() => setSortSheetOpen(false)} labelledBy="sort-sheet-title" compact>
+            {(close) => (
+              <div className="sort-sheet">
+                <h2 id="sort-sheet-title">Lajittelu</h2>
+                <div className="sort-sheet__options" role="radiogroup" aria-labelledby="sort-sheet-title">
+                  {SORT_OPTIONS.filter((option) => !option.needsAddress || deliveryAddress).map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={restaurantSort === option.value}
+                      className={`sort-sheet__option${restaurantSort === option.value ? ' is-selected' : ''}`}
+                      onClick={() => {
+                        setRestaurantSort(option.value)
+                        close()
+                      }}
+                    >
+                      {option.label}
+                      {restaurantSort === option.value && <Check size={18} strokeWidth={2.6} aria-hidden="true" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </BottomSheet>
+        )}
 
         {status === 'loading' && <Spinner label="Haetaan" />}
 
@@ -225,10 +287,11 @@ function SearchResults() {
                       value={restaurantSort}
                       onChange={(e) => setRestaurantSort(e.target.value)}
                     >
-                      <option value="relevance">Suositellut</option>
-                      <option value="rating">Paras arvio</option>
-                      <option value="eta">Nopein toimitus</option>
-                      {deliveryAddress && <option value="distance">Lähin ensin</option>}
+                      {SORT_OPTIONS.filter((option) => !option.needsAddress || deliveryAddress).map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
                     </select>
                     <svg className="search-sort__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                       <path
@@ -249,7 +312,6 @@ function SearchResults() {
                 <RestaurantCard key={r.id} restaurant={r} disabled={r.isPlaceholder} />
               ))}
             </div>
-            <RankingInfo />
           </section>
         )}
       </main>
