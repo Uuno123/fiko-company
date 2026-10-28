@@ -25,7 +25,7 @@ import { useAuth } from '../lib/auth'
 import { changeRowStatus, useChangeRequests } from '../lib/changeRequests'
 import { billingMethodLabel, cityLabel, useCourier, vehicleLabel } from '../lib/courier'
 import { missingDocuments, pickDocumentImage, useDocuments } from '../lib/documents'
-import { formatEuro, formatKm, initials } from '../lib/format'
+import { formatEuro, formatKm, formatPhone, initials } from '../lib/format'
 import { summarize, useGigs } from '../lib/gigs'
 import { useT } from '../lib/i18n'
 import {
@@ -188,7 +188,7 @@ export default function ProfileScreen() {
         <LockedRow
           icon={Phone}
           label={t('profile.phone')}
-          value={profile.phone || t('common.notSet')}
+          value={formatPhone(profile.phone) || t('common.notSet')}
           locked={false}
           onPress={() => router.push('/phone')}
         />

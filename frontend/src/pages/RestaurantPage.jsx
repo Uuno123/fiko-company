@@ -341,7 +341,10 @@ function RestaurantPage() {
   return (
     <div className="page page--restaurant">
       <Header
-        back
+        // Takaisin-nuoli vain kapealla näytöllä. Työpöydällä headerissa on Bidrop-logo
+        // kuten muillakin sivuilla (käyttäjän pyyntö 28.10.2026) - logo vie
+        // etusivulle, ja selaimen oma takaisin-nappi riittää.
+        back={compactLayout}
         showAddress
         variant={compactLayout ? 'overlay' : undefined}
         // Kapealla näytöllä sydän ja haku headerissa tilivalikon tilalla (Woltin

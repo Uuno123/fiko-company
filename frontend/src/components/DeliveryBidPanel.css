@@ -311,14 +311,42 @@
   cursor: default;
 }
 
-.bid-stepper output {
+/* Hinta on kenttä: tarkan summan voi kirjoittaa (esim. 3,76 €). */
+.bid-stepper__value {
+  display: flex;
   flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
   font-family: var(--font-display);
   font-size: 1.05rem;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  text-align: center;
   color: var(--delivo-black);
+  cursor: text;
+}
+
+.bid-stepper__value input {
+  width: 4ch;
+  min-width: 0;
+  padding: 2px 0;
+  border: none;
+  border-bottom: 1.5px dashed #c9cbc4;
+  border-radius: 0;
+  background: transparent;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: inherit;
+  outline: none;
+}
+
+.bid-stepper__value input:focus {
+  border-bottom-color: var(--delivo-orange);
+}
+
+.bid-stepper__value.is-invalid {
+  color: #c2334a;
 }
 
 .bid-panel__link {

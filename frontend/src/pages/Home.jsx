@@ -3,10 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowRight, ShoppingBag } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import CategoryBar from '../components/CategoryBar.jsx'
-import MobileCategoryRow from '../components/MobileCategoryRow.jsx'
 import Footer from '../components/Footer.jsx'
-import PickupOfferBanner from '../components/PickupOfferBanner.jsx'
-import RankingInfo from '../components/RankingInfo.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import DealsRow from '../components/DealsRow.jsx'
 import Spinner from '../components/Spinner.jsx'
@@ -14,12 +11,14 @@ import SearchSuggest, { RestaurantResultCard } from '../components/SearchSuggest
 import { getRestaurants } from '../lib/api.js'
 import {
   ALL,
+  CATEGORY_NAMES,
   CATEGORY_TILE_META,
   DEFAULT_TILE_META,
   DEALS_RESTAURANTS,
   FILLER_TEMPLATES_BY_CATEGORY,
   categorySlug,
   padWithFillers,
+  searchFillerRestaurants,
 } from '../lib/categories.js'
 import { useFavorites } from '../lib/useFavorites.js'
 import { useCart } from '../lib/CartContext.jsx'
@@ -31,6 +30,12 @@ import './Home.css'
 // Mobiilin kategoriariveille ei näytetä kahvilaosiota lainkaan (käyttäjän päätös).
 const HIDDEN_MOBILE_CATEGORIES = ['Kahvila']
 
+// Haun aloitusnäkymän värikkäät kategorialaatikot: sama lista kuin työpöydän
+// kategoriapalkissa (käyttäjän pyyntö 28.10.2026, aiemmin vain etusivun rivien
+// kuusi), paitsi ne joista haku ei vielä löydä yhtään ravintolaa (esim.
+// Tacot) - laatikko ei saa viedä tyhjään hakuun.
+const SEARCH_CATEGORIES_WITH_FILLERS = CATEGORY_NAMES.filter((name) => searchFillerRestaurants(name).length > 0)
+
 // "Lähelläsi"-rivi osoitteen antaneille: näin monta lähintä kaikista kategorioista.
 const NEARBY_COUNT = 10
 const NEARBY_ROW = 'Lähelläsi'
@@ -38,25 +43,26 @@ const NEARBY_ROW = 'Lähelläsi'
 // järjestys: DEALS_RESTAURANTS (lib/categories.js, sama lista kuin haussa).
 const DEALS_AFTER = 'Kebab & Pizza'
 
-// Mainokset kiertävät automaattisesti. Kaikki kolme ovat oikeita: DELIVO10 ja
-// TERVETULOA löytyvät kassan PROMO_CODES-listalta ja backendin payments-reitiltä,
-// ja noudossa ei tosiaan veloiteta kuljetusmaksua (kuljetushinta sovitaan vain kotiinkuljetuksessa).
-// Järjestys on tarkoituksella sekoitettu väreittäin, ei lisäysjärjestyksessä:
-// tervetuloa (punainen lahjapaketti) ja Mcdonalds (punainen kuva) on pidetty
-// erillään toisistaan niin ettei kaksi punaista diaa voi koskaan osua
-// peräkkäin - työpöydällä niitä näkyy kaksi rinnakkain kerrallaan, joten
-// vierekkäiset diat näkyvät aina samaan aikaan.
+// Mainokset kiertävät automaattisesti. Tarjoukset ovat oikeita: TERVETULOA
+// löytyy kassan PROMO_CODES-listalta ja backendin payments-reitiltä, ja
+// noudossa ei tosiaan veloiteta kuljetusmaksua (kuljetushinta sovitaan vain
+// kotiinkuljetuksessa). Järjestys on sekoitettu väreittäin, ettei kaksi
+// samanväristä diaa osu peräkkäin - työpöydällä vierekkäiset diat näkyvät
+// rinnakkain samaan aikaan.
 // "Tilaa nyt" (käyttäjän kuva 27.10.2026): ravintolanostot hakevat ravintolan
 // (search), koodi- ja noutobannerit vierittävät ravintolalistaan. light: valkoinen
 // nappi oranssi- ja punapohjaisilla kampanjakuvilla, joilla oranssi katoaisi.
+// Omat kuvat (käyttäjän kuvat 28.10.2026, public/promo-*.webp): hampurilaisateria
+// Bidrop-kassilla ensimmäisenä ja kebab + pizza keskellä, nappi hakee kategorian.
+// BIDROP10- ja McDonald's-diat poistettiin 28.10.2026 (käyttäjän pyyntö).
 const HOME_ADS = [
   {
-    id: 'bidrop10',
-    img: '/promo-banner.png',
-    code: 'BIDROP10',
-    lead: 'Käytä koodia',
-    title: 'Saat 10 % alennuksen tilauksestasi!',
-    cta: { light: true },
+    id: 'kuva-burgerit',
+    img: '/promo-burger-bag.webp',
+    code: null,
+    lead: 'Nälkä yllätti?',
+    title: 'Burgerit perille lämpiminä',
+    cta: { search: 'Burgerit' },
   },
   {
     id: 'nosto-2',
@@ -65,6 +71,14 @@ const HOME_ADS = [
     lead: 'Suosittu juuri nyt',
     title: 'Hesburger Kuopio',
     cta: { search: 'Hesburger' },
+  },
+  {
+    id: 'kuva-kebab-pizza',
+    img: '/promo-kebab-pizza.webp',
+    code: null,
+    lead: 'Kebabia vai pizzaa?',
+    title: 'Kebab & pizza lähelläsi',
+    cta: { search: 'Kebab' },
   },
   {
     id: 'tervetuloa',
@@ -83,19 +97,13 @@ const HOME_ADS = [
     cta: { search: 'Volkan' },
   },
   {
-    id: 'nosto-1',
-    img: 'https://imageproxy.wolt.com/assets/6735be5986f45b72713e2127',
-    code: null,
-    lead: 'Kuumana juuri nyt',
-    title: 'Mcdonalds',
-    cta: { search: "McDonald's" },
-  },
-  {
     id: 'nouto',
     img: '/promo-banner-shopping-bag-v2.png',
     code: null,
-    lead: 'Nouda itse ravintolasta',
-    title: 'Ei kuljetusmaksua — nouda itse',
+    // Lyhyt yläteksti ja kahdelle riville jakautuva otsikko (28.10.2026): aiempi
+    // 'Ei kuljetusmaksua — nouda itse' rivittyi rikki ja toisti nouda itse.
+    lead: 'Ei kuljetusmaksua',
+    title: 'Nouda itse ravintolasta',
     cta: { light: true },
   },
 ]
@@ -170,6 +178,9 @@ function Home() {
   const categoriesWithContent = Array.from(
     new Set([...baseFiltered.map((r) => r.category), ...Object.keys(FILLER_TEMPLATES_BY_CATEGORY)]),
   )
+  const searchCategories = CATEGORY_NAMES.filter(
+    (name) => SEARCH_CATEGORIES_WITH_FILLERS.includes(name) || restaurants.some((r) => r.category === name),
+  )
   const mobileCategoryGroups = categoriesWithContent
     .filter((category) => !HIDDEN_MOBILE_CATEGORIES.includes(category))
     .map((category) => ({
@@ -213,8 +224,8 @@ function Home() {
 
   // Kovimmat tarjoukset -rivi (DealsRow) Kebab & Pizza -rivin jälkeen:
   // DEALS_RESTAURANTS-listan ravintolat samoista (täydennetyistä) riveistä,
-  // listan järjestyksessä. Korttien sponsorimerkit pois. Noutokuponki siirtyy
-  // yhden rivin alemmas, ettei kaksi nostoa osu peräkkäin.
+  // listan järjestyksessä. Korttien sponsorimerkit pois. (Noutokuponki
+  // PickupOfferBanner poistettiin 28.10.2026, käyttäjän pyyntö.)
   const rowRestaurants = mobileCategoryGroups.flatMap((group) => group.items)
   const dealsItems = DEALS_RESTAURANTS.map((name) => rowRestaurants.find((r) => r.name === name))
     .filter(Boolean)
@@ -223,7 +234,6 @@ function Home() {
     activeCategory === ALL && dealsItems.length > 0
       ? visibleCategoryGroups.findIndex((group) => group.category === DEALS_AFTER)
       : -1
-  const pickupAfterIndex = dealsAfterIndex >= 0 ? dealsAfterIndex + 1 : 1
 
   // adIndex riippuvuutena: ajastin nollautuu myös kun palloa painetaan, jolloin
   // käsin valittu mainos ehtii näkyä täyden ajan.
@@ -410,11 +420,11 @@ function Home() {
                 </section>
               )}
 
-              {mobileCategoryGroups.length > 0 && (
+              {searchCategories.length > 0 && (
                 <section className="home-search-start__section">
                   <h3 className="search-suggest-section__title">Kategoriat</h3>
                   <div className="home-search-cats">
-                    {mobileCategoryGroups.map(({ category }) => {
+                    {searchCategories.map((category) => {
                       const tile = CATEGORY_TILE_META[category] ?? DEFAULT_TILE_META
                       return (
                         <Link
@@ -508,7 +518,7 @@ function Home() {
               {HOME_ADS.map((ad) => (
                 <article
                   key={ad.id}
-                  className={`home-ad__slide home-ad__slide--${ad.kind ?? 'promo'}${ad.cta.search ? ' home-ad__slide--photo' : ''}`}
+                  className={`home-ad__slide home-ad__slide--${ad.kind ?? 'promo'}${ad.cta.search ? ' home-ad__slide--photo' : ''}${ad.code ? ' home-ad__slide--code' : ''}`}
                   style={{ backgroundImage: `url(${ad.img})` }}
                 >
                   <div className="home-ad__content">
@@ -573,14 +583,6 @@ function Home() {
             ))}
           </div>
         </div>
-
-        {/* Sticky kategoriarivi tarttuu headeriin. Tämä on tarkoituksella
-            .home-content:n suora lapsi eikä .home-mobile-top:n sisällä: sticky
-            pysyy vain oman vanhempansa laatikon sisällä, joten hakukentän
-            vieressä se irtoaisi heti kun hakukenttä on vieritetty ohi. */}
-        {mobileCategoryGroups.length > 0 && (
-          <MobileCategoryRow categories={mobileCategoryGroups.map((group) => group.category)} />
-        )}
 
         {status === 'loading' && <Spinner label="Haetaan ravintoloita" />}
 
@@ -648,9 +650,7 @@ function Home() {
                       </div>
                     </section>
 
-                    {/* Kebab & Pizza -rivin jälkeen Kovimmat tarjoukset, sen jälkeisen
-                        rivin perään tumma noutokuponki: rytmittää valkoista sivua
-                        ja mainostaa noutotarjousta. */}
+                    {/* Kebab & Pizza -rivin jälkeen Kovimmat tarjoukset. */}
                     {groupIndex === dealsAfterIndex && (
                       <DealsRow
                         items={dealsItems}
@@ -659,11 +659,9 @@ function Home() {
                         onScrollRow={scrollRow}
                       />
                     )}
-                    {groupIndex === pickupAfterIndex && <PickupOfferBanner />}
                   </Fragment>
                 ),
             )}
-            <RankingInfo />
           </div>
         )}
 

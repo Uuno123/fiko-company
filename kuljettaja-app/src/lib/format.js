@@ -86,3 +86,29 @@ export function initials(name) {
   if (!parts.length) return '?'
   return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase()
 }
+
+// Suomalainen puhelinnumero kentän muodossa ilman +358-etuliitettä ja etunollaa:
+// "+358 40 123 4567", "0401234567" -> "40 123 4567" / "401234567" (sama kuin
+// verkkosivun frontend/src/lib/format.js).
+export function nationalPhone(phone) {
+  return String(phone ?? '')
+    .trim()
+    .replace(/^(\+|00)\s*358\s*/, '')
+    .replace(/^0/, '')
+}
+
+// Tallennettava muoto: "+358401234567". Toimii suoraan tel:-linkkinä.
+export function internationalPhone(phone) {
+  const digits = nationalPhone(phone).replace(/\D/g, '')
+  return digits ? `+358${digits}` : ''
+}
+
+// Näyttömuoto: "+358 40 123 4567". Ulkomainen numero (muu kuin +358) näytetään sellaisenaan.
+export function formatPhone(phone) {
+  const raw = String(phone ?? '').trim()
+  if (/^\+(?!358)/.test(raw)) return raw
+  const digits = nationalPhone(raw).replace(/\D/g, '')
+  if (!digits) return ''
+  const groups = digits.length === 9 ? [digits.slice(0, 2), digits.slice(2, 5), digits.slice(5)] : digits.match(/.{1,3}/g)
+  return `+358 ${groups.join(' ')}`
+}

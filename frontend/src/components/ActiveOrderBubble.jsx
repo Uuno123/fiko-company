@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Minus } from 'lucide-react'
+import { ChevronRight, ShoppingBag } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import { useDeliveryNegotiation } from '../lib/deliveryBids.js'
@@ -73,9 +73,11 @@ function orderProgress(order, now) {
 const RING_RADIUS = 21
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS
 
+
 // Ravintolan logo (tai kansikuva) ja sen ympärillä rengas, joka täyttyy
 // tilauksen edetessä. Ennen arvioitua aikaa rengas pyörii odotuksena. Ilman
-// kuvaa (tai jos kuva ei lataudu) delivon merkki, sama ruksi kuin faviconissa.
+// kuvaa (tai jos kuva ei lataudu) oranssi pallo ja ostoskassi (vanha delivon
+// ruksi poistettiin 28.10.2026).
 function OrderMark({ progress, imageUrl }) {
   const [broken, setBroken] = useState(null)
   const showImage = Boolean(imageUrl) && broken !== imageUrl
@@ -91,23 +93,13 @@ function OrderMark({ progress, imageUrl }) {
           strokeDasharray={progress == null ? `${RING_LENGTH * 0.22} ${RING_LENGTH}` : RING_LENGTH}
           strokeDashoffset={progress == null ? 0 : RING_LENGTH * (1 - progress)}
         />
-        {!showImage && (
-          <>
-            <circle cx="24" cy="24" r="16" fill="#f4501e" />
-            <path
-              d="M17.3 35.4L27.5 48.9L46.7 15"
-              transform="translate(24 24) scale(0.4) translate(-32 -32)"
-              fill="none"
-              stroke="#fff"
-              strokeWidth="8.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </>
-        )}
       </svg>
-      {showImage && (
+      {showImage ? (
         <img className="active-order-bubble__logo" src={imageUrl} alt="" onError={() => setBroken(imageUrl)} />
+      ) : (
+        <span className="active-order-bubble__fallback">
+          <ShoppingBag size={15} strokeWidth={2.3} />
+        </span>
       )}
     </span>
   )
@@ -137,27 +129,6 @@ function savePosition(position) {
     localStorage.setItem(POSITION_KEY, JSON.stringify(position))
   } catch {
     // Ei tallennustilaa - paikka pätee vain tämän sivulatauksen ajan.
-  }
-}
-
-// Pienennetty tila (käyttäjän pyyntö: kuplan voi pienentää laatikoksi) muistetaan
-// sivulta toiselle.
-const MINIMIZED_KEY = 'delivo-order-bubble-minimized'
-
-function loadMinimized() {
-  try {
-    return localStorage.getItem(MINIMIZED_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
-function saveMinimized(minimized) {
-  try {
-    if (minimized) localStorage.setItem(MINIMIZED_KEY, '1')
-    else localStorage.removeItem(MINIMIZED_KEY)
-  } catch {
-    // Ei tallennustilaa - tila pätee vain tämän sivulatauksen ajan.
   }
 }
 
@@ -264,14 +235,12 @@ function ActiveOrderBubble() {
   const suppressClickRef = useRef(false)
   const [position, setPosition] = useState(loadPosition)
   const [dragging, setDragging] = useState(false)
-  const [minimized, setMinimized] = useState(loadMinimized)
 
-  // Uloskirjautuessa (lib/signOutCleanup.js) paikka ja pienennys nollautuvat
-  // myös muistista, ettei seuraava kirjautuja saa edellisen asetuksia.
+  // Uloskirjautuessa (lib/signOutCleanup.js) paikka nollautuu myös muistista,
+  // ettei seuraava kirjautuja saa edellisen asetuksia.
   useEffect(() => {
     function onSignedOut() {
       setPosition({})
-      setMinimized(false)
     }
     window.addEventListener(SIGNED_OUT_EVENT, onSignedOut)
     return () => window.removeEventListener(SIGNED_OUT_EVENT, onSignedOut)
@@ -303,7 +272,7 @@ function ActiveOrderBubble() {
     keepInside()
     window.addEventListener('resize', keepInside)
     return () => window.removeEventListener('resize', keepInside)
-  }, [hasOrder, layoutKey, minimized])
+  }, [hasOrder, layoutKey])
 
   // Ei näytetä kumppanipuolella (myös dashboardin esikatselu /__preview-dashboard -
   // asiakkaan tilauskupla näkyi siellä ravintolan näkymän päällä), tilausnäkymässä
@@ -418,7 +387,7 @@ function ActiveOrderBubble() {
     })
   }
 
-  // Raahauksen jälkeen selaimen click ei saa avata seurantaa eikä pienentää.
+  // Raahauksen jälkeen selaimen click ei saa avata seurantaa.
   function guarded(action) {
     return () => {
       if (suppressClickRef.current) {
@@ -429,16 +398,11 @@ function ActiveOrderBubble() {
     }
   }
 
-  function changeMinimized(next) {
-    setMinimized(next)
-    saveMinimized(next)
-  }
-
   return (
     <>
       <div
         ref={bubbleRef}
-        className={`active-order-bubble${dragging ? ' is-dragging' : ''}${minimized ? ' is-minimized' : ''}${awaitingCourier && bidCount > 0 ? ' has-bids' : ''}`}
+        className={`active-order-bubble${dragging ? ' is-dragging' : ''}${awaitingCourier && bidCount > 0 ? ' has-bids' : ''}`}
         style={positionStyle}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -446,42 +410,20 @@ function ActiveOrderBubble() {
         onPointerCancel={finishPress}
         onContextMenu={(e) => e.preventDefault()}
       >
-        {minimized ? (
-          // Pienennettynä pelkkä merkki renkaineen; napautus palauttaa täyden kuplan.
-          <button
-            type="button"
-            className="active-order-bubble__box"
-            onClick={guarded(() => changeMinimized(false))}
-            aria-label={`Näytä tilauksen seuranta${minutes ? ` (${minutes} min)` : ''}`}
-          >
-            {mark}
-          </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              className="active-order-bubble__main"
-              onClick={guarded(() => setShowModal(true))}
-              aria-haspopup="dialog"
-            >
-              {mark}
-              <span className="active-order-bubble__text">
-                <span className="active-order-bubble__title">{title}</span>
-                <span className="active-order-bubble__status">
-                  {order.restaurants?.name ?? 'Tilaus'} · {customerStatusLabel(order)}
-                </span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className="active-order-bubble__minimize"
-              onClick={guarded(() => changeMinimized(true))}
-              aria-label="Pienennä tilauksen seuranta"
-            >
-              <Minus size={18} strokeWidth={2.2} aria-hidden="true" />
-            </button>
-          </>
-        )}
+        {/* Pieni pilleri kuten ostoskoripallo (käyttäjän valinta 28.10.2026):
+            logo renkaineen, aika ja nuoli. Tila, ravintola ja vaiheet näkyvät
+            seurannassa, joka aukeaa napautuksesta. */}
+        <button
+          type="button"
+          className="active-order-bubble__main"
+          onClick={guarded(() => setShowModal(true))}
+          aria-haspopup="dialog"
+          aria-label={`${title}. ${order.restaurants?.name ?? 'Tilaus'} · ${customerStatusLabel(order)}. Avaa tilauksen seuranta`}
+        >
+          {mark}
+          <span className="active-order-bubble__title">{title}</span>
+          <ChevronRight className="active-order-bubble__chevron" size={18} strokeWidth={2.4} aria-hidden="true" />
+        </button>
       </div>
 
       {showModal && <OrderTrackingModal order={order} onClose={() => setShowModal(false)} />}

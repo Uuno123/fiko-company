@@ -94,17 +94,30 @@
     padding-top: 40px;
   }
 
+  /* Samankokoiset kortit kuin etusivun riveillä (käyttäjän pyyntö 28.10.2026,
+     Home.css .category-row__scroll): 336 px leveä, kuva 2.25:1 ja tiivis
+     tekstiosa. Aiemmin kortit venyivät leveiksi ruudukon mukana. */
   .category-page__list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, 336px);
   }
 
-  /* Kortti levenee rivin mukana, mutta ei pitene: kuvalla kiinteä korkeus
-     16:9-suhteen sijaan (sama korkeus kuin aiemmin ~340 px leveässä kortissa).
-     .page--category voittaa Home.css:n jaetun 16:9-säännön. */
+  /* .page--category voittaa Home.css:n jaetun 16:9-säännön. */
   .page--category .category-page__list .restaurant-card__media {
-    aspect-ratio: auto;
-    height: 190px;
+    aspect-ratio: 2.25 / 1;
+  }
+
+  .category-page__list .restaurant-card__body {
+    padding: 9px 14px 11px;
+    gap: 3px;
+  }
+
+  .category-page__list .restaurant-card__heading h3 {
+    font-size: 1.02rem;
+  }
+
+  .category-page__list .restaurant-card__meta {
+    gap: 7px;
   }
 }
 

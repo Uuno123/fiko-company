@@ -1284,3 +1284,13 @@
     height: 19px;
   }
 }
+
+/* Mobiilissa headerin alla ei varjoa (käyttäjän pyyntö 28.10.2026): vaalean
+   headerin reunan erottaa alareunan ohut viiva. Ravintolasivun --overlay-
+   headerin ohut viiva (0 1px 0) jää ennalleen. */
+@media (max-width: 720px) {
+  .site-header:not(.site-header--overlay),
+  .site-header:not(.site-header--dark):not(.site-header--overlay) {
+    box-shadow: none;
+  }
+}

@@ -7,11 +7,14 @@ import {
   Bell,
   BellRing,
   ExternalLink,
+  Info,
   Languages,
   LocateFixed,
   Lock,
   Map as MapIcon,
+  MapPinned,
   Navigation,
+  RotateCcw,
   SunMedium,
   Vibrate,
 } from 'lucide-react-native'
@@ -20,6 +23,7 @@ import { Card, ListRow, ProfileCard, Screen } from '../components/ui'
 import { vehicleIcon } from '../components/vehicleIcons'
 import { useAuth } from '../lib/auth'
 import { useCourier } from '../lib/courier'
+import { formatPhone } from '../lib/format'
 import { LANGUAGES, useT } from '../lib/i18n'
 import { getNotificationPermission, registerForPushNotifications } from '../lib/notifications'
 import { NAVIGATION_APPS, navigationAppLabel } from '../lib/navigationApps'
@@ -87,12 +91,7 @@ export default function SettingsScreen() {
 
   return (
     <Screen title={t('settings.title')}>
-      <ProfileCard
-        tag={t('common.courier')}
-        name={profile.name}
-        lines={[profile.email, profile.phone]}
-        onPress={() => router.push('/profile')}
-      />
+      <ProfileCard name={profile.name} lines={[profile.email, formatPhone(profile.phone)]} onPress={() => router.push('/profile')} />
 
       <Card title={t('settings.driving')}>
         <ListRow
@@ -151,9 +150,13 @@ export default function SettingsScreen() {
       </Card>
 
       <Card title={t('settings.about')}>
-        <ListRow label={t('common.version')} value={APP_VERSION} />
-        <ListRow label={t('settings.mapData')} onPress={() => Linking.openURL('https://www.openstreetmap.org/copyright').catch(() => {})} />
-        <ListRow label={t('settings.reset')} onPress={confirmReset} right={null} danger />
+        <ListRow icon={Info} label={t('common.version')} value={APP_VERSION} />
+        <ListRow
+          icon={MapPinned}
+          label={t('settings.mapData')}
+          onPress={() => Linking.openURL('https://www.openstreetmap.org/copyright').catch(() => {})}
+        />
+        <ListRow icon={RotateCcw} label={t('settings.reset')} onPress={confirmReset} danger />
       </Card>
 
       <ChoiceSheet
