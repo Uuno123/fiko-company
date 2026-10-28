@@ -48,11 +48,6 @@ export function courierPhotoUrl(path) {
   return supabase.storage.from(PHOTO_BUCKET).getPublicUrl(path).data.publicUrl
 }
 
-// 4.8 -> "4,8"
-export function formatRating(value) {
-  return Number(value).toLocaleString('fi-FI', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-}
-
 // Tilauksen hintaneuvottelu: tilauksen tila ja kuljettajien tarjoukset (halvin
 // ensin). orderId null = ei mitään (esim. noutotilaus).
 export function useDeliveryNegotiation(orderId) {

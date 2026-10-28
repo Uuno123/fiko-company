@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Star, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { formatReviewAge } from '../lib/demoReviews.js'
 import {
@@ -11,20 +11,16 @@ import {
   submitReview,
 } from '../lib/reviews.js'
 import ReviewForm from './ReviewForm.jsx'
+import { ScoreSmiley } from './Smiley.jsx'
+import { formatReviewScore, formatScore } from '../lib/score.js'
 import './ReviewsModal.css'
 
-function Stars({ value, size = 14 }) {
+// Yksittäisen arvostelun hymiö ja arvosana 0–10 (tallennettu 1–5, lib/score.js).
+function Score({ value }) {
   return (
-    <span className="reviews-modal__stars" role="img" aria-label={`${value} / 5 tähteä`}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <Star
-          key={n}
-          size={size}
-          fill={n <= Math.round(value) ? 'currentColor' : 'none'}
-          className={n <= Math.round(value) ? '' : 'is-empty'}
-          aria-hidden="true"
-        />
-      ))}
+    <span className="reviews-modal__score" role="img" aria-label={`${formatReviewScore(value)} / 10`}>
+      <ScoreSmiley rating={value} size={18} />
+      <b>{formatReviewScore(value)}</b>
     </span>
   )
 }
@@ -173,9 +169,10 @@ function ReviewsModal({ restaurantId, restaurantName, rating, reviewCount, demoR
         <div className="reviews-modal__body">
           {rating != null && (
             <div className="reviews-modal__summary">
-              <strong>{Number(rating).toFixed(1)}</strong>
+              <ScoreSmiley rating={rating} size={40} />
+              <strong>{formatScore(rating)}</strong>
               <span className="reviews-modal__summary-side">
-                <Stars value={Number(rating)} size={18} />
+                <span className="reviews-modal__summary-scale">/ 10</span>
                 <span>{reviewCount}</span>
               </span>
             </div>
@@ -198,7 +195,7 @@ function ReviewsModal({ restaurantId, restaurantName, rating, reviewCount, demoR
                       <span>{formatReviewAge(review.daysAgo)}</span>
                     </span>
                   </div>
-                  <Stars value={review.rating} />
+                  <Score value={review.rating} />
                   {review.text && <p>{review.text}</p>}
                   {review.reply && (
                     <div className="reviews-modal__reply">

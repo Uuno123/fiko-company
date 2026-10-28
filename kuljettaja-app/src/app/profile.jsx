@@ -14,11 +14,11 @@ import {
   Mail,
   MapPin,
   Phone,
-  Star,
   Trash2,
   User,
 } from 'lucide-react-native'
 import ChoiceSheet from '../components/ChoiceSheet'
+import { ScoreSmiley, SmileyIcon } from '../components/Smiley'
 import { Card, ListRow, LockedRow, Screen, StatRow, StatusPill } from '../components/ui'
 import { vehicleIcon } from '../components/vehicleIcons'
 import { useAuth } from '../lib/auth'
@@ -37,8 +37,6 @@ import {
   uploadProfilePhoto,
 } from '../lib/photo'
 import { colors, fonts } from '../theme'
-
-const STAR_COLOR = '#f5a524'
 
 // Profiili: ylhäällä kuljettajan kortti (kuva keskellä, sen alla nimi,
 // kulkuneuvo, tähtiarvio ja hyväksynnän tila), sitten omat tiedot. Kuvan kuljettaja vaihtaa itse
@@ -161,7 +159,7 @@ export default function ProfileScreen() {
             accessibilityLabel={`${t('reviews.title')}: ${ratingText}`}
             style={({ pressed }) => [styles.ratingRow, pressed && styles.pressed]}
           >
-            <Star size={14} strokeWidth={2} color={STAR_COLOR} fill={rating ? STAR_COLOR : 'none'} />
+            <ScoreSmiley rating={rating?.average} size={16} />
             <Text style={[styles.ratingText, !rating && styles.ratingMuted]}>{ratingText}</Text>
           </Pressable>
           {docState ? (
@@ -199,7 +197,7 @@ export default function ProfileScreen() {
       </Card>
 
       <Card title={t('profile.account')}>
-        <ListRow icon={Star} label={t('reviews.title')} value={ratingText} onPress={() => router.push('/reviews')} />
+        <ListRow icon={SmileyIcon} label={t('reviews.title')} value={ratingText} onPress={() => router.push('/reviews')} />
         <ListRow
           icon={Landmark}
           label={t('profile.billing')}

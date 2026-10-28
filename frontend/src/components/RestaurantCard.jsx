@@ -1,17 +1,37 @@
 import { Link } from 'react-router-dom'
-import { Bike, Heart, Tag } from 'lucide-react'
+import { BadgePercent, Bike, Gift, Heart, ShoppingBag, Tag } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
+import { ScoreSmiley } from './Smiley.jsx'
 import { DELIVERY_PRICE_RANGE, formatEtaRange } from '../lib/delivery.js'
 import { formatPrice } from '../lib/format.js'
+import { formatScore } from '../lib/score.js'
 import './RestaurantCard.css'
 
-// Tähti arvosanan edessä.
-function StarIcon() {
-  return (
-    <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-      <path d="M10 2.5l2.35 4.76 5.25.76-3.8 3.7.9 5.23L10 14.5l-4.7 2.47.9-5.23-3.8-3.7 5.25-.76L10 2.5z" />
-    </svg>
-  )
+// Tarjousmerkki vaihtelee ravintolan mukaan (käyttäjän pyyntö 28.10.2026), lyhyt
+// mutta kertoo mistä alennus tulee (koodi näkyy kassalla). Jokainen merkki on totta: koodit toimivat kassalla (Cart.jsx PROMO_CODES ja
+// backendin payments.js - sama katto ja ehdot molemmissa). Ilmainen kuljetus vain
+// ravintoloille, joilla se on (free_delivery, näkyy myös tietorivillä 0,00 €).
+const OFFER_BADGES = [
+  // SUURTILAUS: 30 %, enintään 7 €, tilaus vähintään 50 €.
+  { Icon: Tag, text: '−30 % (enintään 7 €)' },
+  // BIDROP10
+  { Icon: BadgePercent, text: '−10 % tilauksesta' },
+  // TERVETULOA
+  { Icon: Gift, text: '−3 € tilauksesta' },
+  // NOUTO15: 15 % noutotilauksista, enintään 5 €.
+  { Icon: ShoppingBag, text: '−15 % noudosta' },
+]
+const FREE_DELIVERY_BADGE = { Icon: Bike, text: 'Ilmainen kuljetus' }
+
+// Sama ravintola saa aina saman merkin (ei vaihdu sivun päivittyessä). Burgereilla
+// aina −30 % (enintään 7 €) (käyttäjän pyyntö 28.10.2026).
+function offerBadge(restaurant) {
+  if (restaurant.category === 'Burgerit') return OFFER_BADGES[0]
+  if (restaurant.free_delivery) return FREE_DELIVERY_BADGE
+  const key = String(restaurant.id ?? restaurant.name ?? '')
+  let hash = 0
+  for (const char of key) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
+  return OFFER_BADGES[hash % OFFER_BADGES.length]
 }
 
 function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) {
@@ -27,6 +47,7 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
   } = restaurant
 
   const etaRange = formatEtaRange(pickupEstimateMinutes)
+  const badge = offerBadge(restaurant)
 
   // Yksi tietorivi: arvosana · aika · kuljetusmaksu (käyttäjä: etäisyys pois
   // korteista; etäisyys vaikuttaa edelleen järjestykseen, lib/ranking.js).
@@ -35,8 +56,9 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
   const stats = [
     rating != null && (
       <span key="rating" className="restaurant-card__stat restaurant-card__stat--rating">
-        <StarIcon />
-        {Number(rating).toFixed(1)}
+        {/* Hymiö ja arvosana 0–10 (tähtien tilalle 28.10.2026, lib/score.js). */}
+        <ScoreSmiley rating={rating} />
+        {formatScore(rating)}
       </span>
     ),
     etaRange && (
@@ -68,12 +90,10 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
           <RestaurantAvatarPlaceholder name={name} />
         )}
 
-        {/* Merkki on totta: SUURTILAUS antaa kassalla oikeasti 30 % (enint. 7 €)
-            kun tilaus on vähintään 50 € - sama katto ja raja on sekä täällä
-            (Cart.jsx) että backendin payments.js:ssä, joka veloittaa summan. */}
+        {/* Merkki on totta, ks. OFFER_BADGES yllä. */}
         <span className="restaurant-card__promo">
-          <Tag size={12} aria-hidden="true" />
-          −30 % (enint. 7 €)
+          <badge.Icon size={12} aria-hidden="true" />
+          {badge.text}
         </span>
 
         {onToggleFavorite && (

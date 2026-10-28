@@ -163,3 +163,15 @@ button {
   flex-shrink: 0;
   overflow: visible;
 }
+
+/* Arvosanan hymiö (components/Smiley.jsx), tähtien tilalla 28.10.2026:
+   viivapiirros tekstin värissä, ei oranssia. */
+.smiley {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.smiley--muted {
+  color: #c9ccc4;
+}

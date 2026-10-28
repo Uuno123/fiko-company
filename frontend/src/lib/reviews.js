@@ -61,7 +61,7 @@ export function reviewErrorText(error) {
   if (['42P01', '42883', 'PGRST202', 'PGRST205'].includes(code)) return 'Arvostelut eivät ole vielä käytössä.'
   if (message.includes('review_requires_order')) return 'Voit arvostella ravintolan, kun olet tilannut sieltä.'
   if (message.includes('review_requires_delivery')) return 'Voit arvioida kuljettajan, kun tilaus on toimitettu.'
-  if (message.includes('invalid_rating')) return 'Valitse 1–5 tähteä.'
+  if (message.includes('invalid_rating')) return 'Valitse arvio.'
   if (message.includes('comment_too_long')) return `Arvostelu voi olla enintään ${REVIEW_MAX_LENGTH} merkkiä.`
   if (message.includes('not_signed_in')) return 'Kirjaudu sisään arvostellaksesi.'
   return 'Arvostelun tallennus epäonnistui. Yritä hetken kuluttua uudelleen.'

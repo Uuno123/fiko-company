@@ -1,37 +1,42 @@
 import { useState } from 'react'
-import { Star } from 'lucide-react'
+import { Smiley } from './Smiley.jsx'
 import { REVIEW_MAX_LENGTH, reviewErrorText } from '../lib/reviews.js'
+import { RATING_CHOICES, formatReviewScore } from '../lib/score.js'
 import './ReviewForm.css'
 
-const STAR_LABELS = ['', 'Huono', 'Välttävä', 'Ok', 'Hyvä', 'Erinomainen']
-
-// Tähtien valinta: viisi nappia, valittu määrä keltaisena. Samaa käyttää
-// arviointipyyntö (ReviewPrompt) ilman lomaketta.
-export function StarPicker({ value, onChange, size = 30 }) {
+// Arvion valinta: viisi hymiötä surullisesta iloiseen (tähtien tilalle
+// 28.10.2026). Valittu (ja osoitettu) oranssina ja suurempana, muut harmaina.
+// Tallennetaan 1–5, näkyy asteikolla 0–10 (lib/score.js).
+export function RatingPicker({ value, onChange, size = 40 }) {
   const [hover, setHover] = useState(0)
   const shown = hover || value
+  const choice = RATING_CHOICES.find((option) => option.value === shown)
   return (
-    <div className="review-form__stars" role="radiogroup" aria-label="Arvosana" onMouseLeave={() => setHover(0)}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <button
-          key={n}
-          type="button"
-          role="radio"
-          aria-checked={value === n}
-          aria-label={`${n} / 5 tähteä`}
-          className={n <= shown ? 'is-on' : ''}
-          onMouseEnter={() => setHover(n)}
-          onClick={() => onChange(n)}
-        >
-          <Star size={size} strokeWidth={1.6} fill={n <= shown ? 'currentColor' : 'none'} aria-hidden="true" />
-        </button>
-      ))}
-      <span className="review-form__star-label">{STAR_LABELS[shown]}</span>
+    <div className="review-form__faces" role="radiogroup" aria-label="Arvio" onMouseLeave={() => setHover(0)}>
+      <div className="review-form__face-row">
+        {RATING_CHOICES.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={value === option.value}
+            aria-label={`${option.label} (${formatReviewScore(option.value)} / 10)`}
+            className={option.value === shown ? 'is-on' : ''}
+            onMouseEnter={() => setHover(option.value)}
+            onClick={() => onChange(option.value)}
+          >
+            <Smiley face={option.face} size={size} muted={option.value !== shown} />
+          </button>
+        ))}
+      </div>
+      <span className="review-form__face-label">
+        {choice ? `${choice.label} · ${formatReviewScore(choice.value)} / 10` : 'Valitse arvio'}
+      </span>
     </div>
   )
 }
 
-// Arvostelulomake: tähdet ja vapaaehtoinen teksti. onSubmit(rating, comment)
+// Arvostelulomake: hymiöt ja vapaaehtoinen teksti. onSubmit(rating, comment)
 // heittää virheen, jos tallennus epäonnistuu - virhe näytetään lomakkeessa.
 function ReviewForm({
   initial,
@@ -49,7 +54,7 @@ function ReviewForm({
   async function handleSubmit(e) {
     e.preventDefault()
     if (!rating) {
-      setError('Valitse 1–5 tähteä.')
+      setError('Valitse arvio.')
       return
     }
     setSaving(true)
@@ -64,7 +69,7 @@ function ReviewForm({
 
   return (
     <form className="review-form" onSubmit={handleSubmit}>
-      <StarPicker value={rating} onChange={setRating} />
+      <RatingPicker value={rating} onChange={setRating} />
       <label className="review-form__field">
         <span className="review-form__label">Kerro kokemuksestasi (vapaaehtoinen)</span>
         <textarea

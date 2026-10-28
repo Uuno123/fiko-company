@@ -279,14 +279,14 @@
 }
 
 /* Sama "Hakutulokset"-otsikko kaikilla leveyksillä (mobiilissa isona
-   28.10.2026, aiemmin haettu sana pienenä); haettu sana alla vain työpöydällä. */
+   28.10.2026, aiemmin haettu sana pienenä). Haettu sana näkyy otsikon alla
+   ("haulle "pizza"") myös mobiilissa (käyttäjän pyyntö 28.10.2026). */
 .search-results__heading {
   font-size: 2rem;
   letter-spacing: -0.03em;
 }
 
 .search-results__heading-sub {
-  display: none;
   margin: 0;
   font-size: 0.95rem;
   color: var(--text-muted);
@@ -299,7 +299,6 @@
   }
 
   .search-results__heading-sub {
-    display: block;
     font-size: 1.08rem;
   }
 

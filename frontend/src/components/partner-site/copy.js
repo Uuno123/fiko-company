@@ -873,7 +873,7 @@ const COURIER = {
       },
       {
         q: 'Mitä asiakas näkee minusta?',
-        a: 'Tarjouksessa asiakas näkee nimesi muodossa "Janne K.", profiilikuvasi, tähtiarviosi ja kulkuneuvosi.',
+        a: 'Tarjouksessa asiakas näkee nimesi muodossa "Janne K.", profiilikuvasi, arviosi (0–10) ja kulkuneuvosi.',
       },
       {
         q: 'Millä puhelimella sovellus toimii?',
@@ -1024,7 +1024,7 @@ const COURIER = {
       },
       {
         q: 'What does the customer see about me?',
-        a: 'With your offer, the customer sees your name as "Janne K.", your profile photo, your star rating and your vehicle.',
+        a: 'With your offer, the customer sees your name as "Janne K.", your profile photo, your rating (0–10) and your vehicle.',
       },
       {
         q: 'Which phones does the app work on?',

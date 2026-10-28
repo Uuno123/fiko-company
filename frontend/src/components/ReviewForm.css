@@ -7,57 +7,73 @@
   gap: 14px;
 }
 
-.review-form__stars {
+/* Arvion valinta: viisi hymiötä (RatingPicker), valittu oranssina ja isompana,
+   muut harmaina. Selite (esim. "Hyvä · 8 / 10") hymiörivin alla. */
+.review-form__faces {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 8px;
 }
 
-.review-form__stars button {
+.review-form__face-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.review-form__faces button {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
   padding: 0;
   border: none;
   border-radius: 50%;
   background: none;
-  color: #d0d3d8;
   cursor: pointer;
-  transition: color 0.18s ease, transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.review-form__stars button.is-on {
-  color: #f5a623;
+.review-form__faces .smiley {
+  color: var(--delivo-black);
+  transition: color 0.18s ease;
 }
 
-.review-form__stars button:hover {
+.review-form__faces .smiley--muted {
+  color: #c9ccc4;
+}
+
+.review-form__faces button.is-on {
+  transform: scale(1.15);
+}
+
+.review-form__faces button:hover {
   transform: scale(1.18) rotate(-6deg);
 }
 
-.review-form__stars button:active {
-  transform: scale(0.88);
+.review-form__faces button:active {
+  transform: scale(0.9);
 }
 
-/* Valittu tähti hyppää kerran (aria-checked vaihtuu valittaessa). */
-.review-form__stars button[aria-checked='true'] {
-  animation: review-form-star-pick 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+/* Valittu hymiö hyppää kerran (aria-checked vaihtuu valittaessa). */
+.review-form__faces button[aria-checked='true'] {
+  animation: review-form-face-pick 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes review-form-star-pick {
+@keyframes review-form-face-pick {
   40% {
     transform: scale(1.35) rotate(-10deg);
   }
 }
 
-.review-form__stars button:focus-visible {
+.review-form__faces button:focus-visible {
   outline: 2px solid var(--delivo-black);
 }
 
-.review-form__star-label {
-  min-width: 80px;
-  margin-left: 8px;
-  font-size: 0.88rem;
+.review-form__face-label {
+  min-height: 1.2em;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--delivo-black);
 }

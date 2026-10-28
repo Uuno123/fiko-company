@@ -1,12 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { BadgePercent, Bike, ChevronRight, CircleArrowRight, Clock, Heart, MapPin, Plus, Search, Star, X } from 'lucide-react'
+import { BadgePercent, Bike, ChevronRight, Clock, Gift, Heart, MapPin, Percent, Plus, Search, ShoppingBag, X } from 'lucide-react'
+import { ScoreSmiley } from '../components/Smiley.jsx'
+import { formatScore } from '../lib/score.js'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import Spinner from '../components/Spinner.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
 import MenuSearch, { matchesMenuQuery } from '../components/MenuSearch.jsx'
 import ReviewsModal from '../components/ReviewsModal.jsx'
+import OfferSheet from '../components/OfferSheet.jsx'
 import { getRestaurantById } from '../lib/api.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { addFavorite, isRestaurantFavorited, removeFavorite } from '../lib/favorites.js'
@@ -27,10 +30,30 @@ import {
 } from '../lib/menuOptions.js'
 import './RestaurantPage.css'
 
-// "Kuumana nyt" -merkki vain esittelyravintolalle (lib/demoRestaurants.js).
-// Aiemmin sekä merkki että nimi "McDonald's" oli pakotettu KAIKILLE
-// ravintoloille - oikealle ravintolalle merkki olisi keksitty väite.
-const DEMO_TAGLINE = 'Kuumana nyt'
+// Tarjoukset vaakarivinä (Wolt-tyyli, käyttäjän valinta 28.10.2026). Jokainen on
+// oikea kassalla toimiva koodi (Cart.jsx PROMO_CODES ja backendin payments.js,
+// sama katto ja ehdot molemmissa). Napautus avaa tarjouksen tiedot (OfferSheet).   = sitova väli,
+// ettei luku ja yksikkö (50 €) rivity eri riveille.
+const RESTAURANT_OFFERS = [
+  { code: 'SUURTILAUS', Icon: BadgePercent, title: '−30 % vähintään 50 € tilauksista', note: 'enintään 7 €' },
+  { code: 'NOUTO15', Icon: ShoppingBag, title: '−15 % noudosta', note: 'enintään 5 €' },
+  { code: 'BIDROP10', Icon: Percent, title: '−10 % tilauksesta' },
+  { code: 'TERVETULOA', Icon: Gift, title: '−3 € tilauksesta' },
+]
+
+// Tarjouspaneelin ehdot - samat kuin kassan PROMO_CODES (Cart.jsx): alennus
+// lasketaan tuotteiden hinnasta, katot ja noutoehto kuten siellä.
+const BOTH_METHODS = 'Käy sekä kotiinkuljetukseen että noutoon.'
+const OFFER_TERMS = {
+  SUURTILAUS: [
+    '30 % alennus tuotteiden hinnasta, enintään 7 €.',
+    'Tilauksen on oltava vähintään 50 € ennen alennusta.',
+    BOTH_METHODS,
+  ],
+  NOUTO15: ['15 % alennus tuotteiden hinnasta, enintään 5 €.', 'Vain noutotilauksiin: haet ruoan itse ravintolasta.'],
+  BIDROP10: ['10 % alennus tuotteiden hinnasta.', BOTH_METHODS],
+  TERVETULOA: ['3 € alennus tuotteiden hinnasta.', BOTH_METHODS],
+}
 
 // TILAPÄINEN: sama id:t kuin supabase/migrations/0039_remove_burger_talli_placeholder_items.sql -
 // piilotetaan täältä heti esikatselua varten kunnes käyttäjä ajaa migraation Supabasessa.
@@ -126,7 +149,9 @@ function RestaurantPage() {
   const [quantity, setQuantity] = useState(1)
   const [optionSelections, setOptionSelections] = useState({})
   const [justAdded, setJustAdded] = useState(false)
-  const [offerDetailsOpen, setOfferDetailsOpen] = useState(false)
+  // Tarjous (koodi), jonka tiedot ovat auki alhaalta liukuvassa paneelissa.
+  const [openOfferCode, setOpenOfferCode] = useState(null)
+  const shownOffer = RESTAURANT_OFFERS.find((offer) => offer.code === openOfferCode)
   const { customer } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -211,8 +236,40 @@ function RestaurantPage() {
     demoReviews.length > 0
       ? `${pseudoReviewCount(restaurant.id)}+ arviota`
       : `${reviewTotal} ${reviewTotal === 1 ? 'arvio' : 'arviota'}`
+  const reviewCountShort = demoReviews.length > 0 ? `${pseudoReviewCount(restaurant.id)}+` : String(reviewTotal)
   // Ennen ensimmäistä vieritystä korostetaan ensimmäinen osio.
   const shownCategory = activeCategory ?? groupedMenu[0]?.[0] ?? null
+  const tabsRef = useRef(null)
+  // Onko osiorivillä vieritettävää vasemmalle/oikealle (häivytys ja nuoli).
+  const [tabsOverflow, setTabsOverflow] = useState({ left: false, right: false })
+  const updateTabsOverflow = useCallback(() => {
+    const nav = tabsRef.current
+    if (!nav) return
+    const left = nav.scrollLeft > 4
+    const right = nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 4
+    setTabsOverflow((current) => (current.left === left && current.right === right ? current : { left, right }))
+  }, [])
+  const menuCategoryCount = groupedMenu.length
+
+  useEffect(() => {
+    if (status !== 'ready') return undefined
+    const frame = requestAnimationFrame(updateTabsOverflow)
+    window.addEventListener('resize', updateTabsOverflow)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('resize', updateTabsOverflow)
+    }
+  }, [status, menuCategoryCount, updateTabsOverflow])
+
+  // Sivuttain vieritettävällä kategoriarivillä aktiivinen kategoria siirtyy
+  // keskelle näkyviin (vain rivi vierii, ei sivu).
+  useEffect(() => {
+    const nav = tabsRef.current
+    const active = nav?.querySelector('[aria-current="true"]')
+    if (!active) return
+    const left = active.offsetLeft - (nav.clientWidth - active.offsetWidth) / 2
+    nav.scrollTo({ left: Math.max(0, left), behavior: 'smooth' })
+  }, [shownCategory])
   const etaRange = formatEtaRange(restaurant?.pickup_estimate_minutes)
   const distance = restaurant ? formatDistance(restaurantDistanceKm(restaurant, deliveryAddress)) : null
 
@@ -396,56 +453,55 @@ function RestaurantPage() {
               className={`restaurant-info${restaurant.image_url ? ' restaurant-info--banner' : ''}`}
               style={restaurant.image_url ? { '--restaurant-banner': `url("${restaurant.image_url}")` } : undefined}
             >
-              <div className="restaurant-info__main">
-                {restaurant.isDemo && <p className="restaurant-info__tagline">{DEMO_TAGLINE}</p>}
-                <h1 className="restaurant-info__title">{restaurant.name}</h1>
-                <ul className="restaurant-info__meta">
-                  <li className="restaurant-info__rating">
-                    {/* Arvosana on nappi arvosteluihin (käyttäjän pyyntö: arvostelut
-                        eivät näy sivulla, vaan avautuvat omaan ikkunaansa, jossa
-                        voi myös kirjoittaa oman arvostelun). */}
-                    <button
-                      type="button"
-                      className="restaurant-info__rating-btn"
-                      onClick={() => setReviewsOpen(true)}
-                      aria-label={
-                        shownRating != null
-                          ? `Arvostelut: ${Number(shownRating).toFixed(1)} tähteä, ${reviewCountLabel}`
-                          : 'Arvostelut: ei vielä arvosteluja'
-                      }
-                    >
-                      <Star size={15} fill={shownRating != null ? 'currentColor' : 'none'} aria-hidden="true" />
-                      {shownRating != null ? (
-                        <>
-                          <strong>{Number(shownRating).toFixed(1)}</strong>
-                          <span>({reviewCountLabel})</span>
-                        </>
-                      ) : (
-                        <span>Ei vielä arvosteluja</span>
-                      )}
-                      <ChevronRight size={15} strokeWidth={2.2} aria-hidden="true" />
-                    </button>
-                  </li>
+              {/* Käyttäjän mallikuvan mukaan (28.10.2026): nimi ja tiedot ikoneineen.
+                  Työpöydällä tiedot yhdellä rivillä nimen alla, puhelimella allekkain
+                  (kuva reunasta reunaan, alareuna häivytetty). Arvio avaa arvostelut. */}
+              <div className="restaurant-head">
+                <h1 className="restaurant-head__name">{restaurant.name}</h1>
+                <div className="restaurant-head__facts">
+                  <button
+                    type="button"
+                    className="restaurant-head__rating"
+                    onClick={() => setReviewsOpen(true)}
+                    aria-label={
+                      shownRating != null
+                        ? `Arvostelut: ${formatScore(shownRating)} / 10, ${reviewCountLabel}`
+                        : 'Arvostelut: ei vielä arvosteluja'
+                    }
+                  >
+                    <ScoreSmiley rating={shownRating} size={18} />
+                    {shownRating != null ? (
+                      <>
+                        <strong>{formatScore(shownRating)}</strong>
+                        <span>({reviewCountShort})</span>
+                      </>
+                    ) : (
+                      <span>Ei vielä arvioita</span>
+                    )}
+                  </button>
                   {etaRange && (
-                    <li>
-                      <Clock size={15} aria-hidden="true" />
+                    <span>
+                      <Clock size={17} strokeWidth={2.1} aria-hidden="true" />
                       {etaRange}
-                    </li>
+                    </span>
                   )}
-                  <li className={restaurant.free_delivery ? 'restaurant-info__free' : undefined}>
-                    <Bike size={15} aria-hidden="true" />
+                </div>
+                <div className="restaurant-head__facts">
+                  <span className={restaurant.free_delivery ? 'is-free' : undefined}>
+                    <Bike size={17} strokeWidth={2.1} aria-hidden="true" />
                     {restaurant.free_delivery ? 'Ilmainen toimitus' : `Toimitus ${DELIVERY_PRICE_RANGE}`}
-                  </li>
-                  {distance && (
-                    <li>
-                      <MapPin size={15} aria-hidden="true" />
-                      {distance}
-                    </li>
-                  )}
-                  {todayHoursLabel && <li>Avoinna tänään {todayHoursLabel}</li>}
-                </ul>
-                {restaurant.address && (
-                  <p className="restaurant-info__address">{formatDisplayAddress(restaurant.address)}</p>
+                  </span>
+                </div>
+                {/* Osoite ja etäisyys omalla rivillään (käyttäjän pyyntö 28.10.2026). */}
+                {(restaurant.address || distance) && (
+                  <p className="restaurant-head__address">
+                    <MapPin size={17} strokeWidth={2.1} aria-hidden="true" />
+                    <span>
+                      {[restaurant.address && formatDisplayAddress(restaurant.address), distance]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </span>
+                  </p>
                 )}
               </div>
 
@@ -487,58 +543,71 @@ function RestaurantPage() {
 
             {allMenuItems.length > 0 ? (
               <>
-                {/* Ruokalistan oikeat osiot - klikkaus vierittää osioon, ja vieritys
-                    korostaa osion jossa ollaan. Kiinnittyy headerin alle. */}
-                <nav className="restaurant-menu-tabs" aria-label="Ruokalistan osiot">
-                  {groupedMenu.map(([category]) => (
-                    <button
-                      type="button"
-                      key={category}
-                      aria-current={shownCategory === category ? 'true' : undefined}
-                      className={`restaurant-menu-tabs__btn${shownCategory === category ? ' restaurant-menu-tabs__btn--active' : ''}`}
-                      onClick={() => scrollToCategory(category)}
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </nav>
-
-                {/* Järjestys käyttäjän pyynnöstä: ensin kategoriat (välilehdet), sitten
-                    tarjoukset ja sitten tuotteet. Tarjous oli aiemmin kuvan päällä. */}
+                {/* Järjestys käyttäjän pyynnöstä (28.10.2026): ensin tarjoukset, sitten
+                    kategoriat (välilehdet) ja sitten tuotteet. */}
                 <section className="restaurant-offers" aria-label="Tarjoukset">
                   <h2 className="restaurant-offers__title">Tarjoukset</h2>
-                  {/* Merkki on totta: SUURTILAUS antaa kassalla oikeasti 30 % (enint. 7 €)
-                      kun tilaus on vähintään 50 € - sama katto ja raja on sekä täällä
-                      (Cart.jsx) että backendin payments.js:ssä, joka veloittaa summan. */}
                   {/* Woltin tarjouskortin mallin mukaan (käyttäjän referenssi): lippumainen
-                      kortti lovineen, prosenttimerkki, lyhyt otsikko ja lisätietolinkki. */}
-                  <div className="menu-offer-card">
-                    <BadgePercent className="menu-offer-card__icon" size={34} strokeWidth={1.9} aria-hidden="true" />
-                    <div className="menu-offer-card__body">
-                      <p className="menu-offer-card__title">−30 % vähintään 50 € tilauksista</p>
+                      kortti lovineen. Kortit vaakarivinä (RESTAURANT_OFFERS), koodi näkyy
+                      kortissa ja napautus avaa tarjouksen tiedot alhaalta. */}
+                  <div className="restaurant-offers__row">
+                    {RESTAURANT_OFFERS.map(({ code, Icon, title, note }) => (
                       <button
                         type="button"
-                        className="menu-offer-card__toggle"
-                        aria-expanded={offerDetailsOpen}
-                        onClick={() => setOfferDetailsOpen((v) => !v)}
+                        key={code}
+                        className="menu-offer-card"
+                        aria-label={`${title}. Näytä tarjouksen tiedot`}
+                        onClick={() => setOpenOfferCode(code)}
                       >
-                        {offerDetailsOpen ? 'Piilota lisätiedot' : 'Näytä lisätiedot'}
-                        <CircleArrowRight
-                          size={15}
-                          strokeWidth={2}
-                          className={`menu-offer-card__arrow${offerDetailsOpen ? ' is-open' : ''}`}
-                          aria-hidden="true"
-                        />
+                        <Icon className="menu-offer-card__icon" size={30} strokeWidth={1.9} aria-hidden="true" />
+                        <span className="menu-offer-card__body">
+                          <span className="menu-offer-card__title">{title}</span>
+                          <span className="menu-offer-card__code">
+                            {code}
+                            {note ? ` · ${note}` : ''}
+                            <ChevronRight size={14} strokeWidth={2.4} aria-hidden="true" />
+                          </span>
+                        </span>
                       </button>
-                      {offerDetailsOpen && (
-                        <p className="menu-offer-card__details">
-                          Koodilla <strong>SUURTILAUS</strong> kassalla. Alennus lasketaan välisummasta ennen
-                          toimitusmaksua, enintään 7 €.
-                        </p>
-                      )}
-                    </div>
+                    ))}
                   </div>
                 </section>
+
+                {/* Ruokalistan oikeat osiot sivuttain vieritettävänä rivinä - klikkaus
+                    vierittää osioon, ja vieritys korostaa osion jossa ollaan.
+                    Kiinnittyy headerin alle. */}
+                <div
+                  className={`restaurant-menu-tabs-wrap${tabsOverflow.left ? ' can-scroll-left' : ''}${tabsOverflow.right ? ' can-scroll-right' : ''}`}
+                >
+                  <nav
+                    className="restaurant-menu-tabs"
+                    ref={tabsRef}
+                    onScroll={updateTabsOverflow}
+                    aria-label="Ruokalistan osiot"
+                  >
+                    {groupedMenu.map(([category]) => (
+                      <button
+                        type="button"
+                        key={category}
+                        aria-current={shownCategory === category ? 'true' : undefined}
+                        className={`restaurant-menu-tabs__btn${shownCategory === category ? ' restaurant-menu-tabs__btn--active' : ''}`}
+                        onClick={() => scrollToCategory(category)}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </nav>
+                  {tabsOverflow.right && (
+                    <button
+                      type="button"
+                      className="restaurant-menu-tabs__more"
+                      aria-label="Näytä lisää osioita"
+                      onClick={() => tabsRef.current?.scrollBy({ left: tabsRef.current.clientWidth * 0.6, behavior: 'smooth' })}
+                    >
+                      <ChevronRight size={18} strokeWidth={2.4} aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
 
                 <div className="menu">
                   {groupedMenu.length === 0 && (
@@ -578,8 +647,8 @@ function RestaurantPage() {
                                 <span className="menu-card__name">{item.name}</span>
                                 {item.is_available !== false && (
                                   <span className="menu-card__rating">
-                                    <Star size={12} fill="currentColor" aria-hidden="true" />
-                                    {pseudoItemRating(item.id).rating}
+                                    <ScoreSmiley rating={pseudoItemRating(item.id).rating} size={13} />
+                                    {formatScore(pseudoItemRating(item.id).rating)}
                                     <span className="menu-card__rating-count">
                                       ({pseudoItemRating(item.id).count}+)
                                     </span>
@@ -626,6 +695,10 @@ function RestaurantPage() {
       </main>
 
       <Footer />
+
+      {shownOffer && (
+        <OfferSheet offer={shownOffer} terms={OFFER_TERMS[shownOffer.code]} onClose={() => setOpenOfferCode(null)} />
+      )}
 
       {reviewsOpen && restaurant && (
         <ReviewsModal

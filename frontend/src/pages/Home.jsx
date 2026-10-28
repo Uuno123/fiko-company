@@ -53,7 +53,8 @@ const DEALS_AFTER = 'Kebab & Pizza'
 // (search), koodi- ja noutobannerit vierittävät ravintolalistaan. light: valkoinen
 // nappi oranssi- ja punapohjaisilla kampanjakuvilla, joilla oranssi katoaisi.
 // Omat kuvat (käyttäjän kuvat 28.10.2026, public/promo-*.webp): hampurilaisateria
-// Bidrop-kassilla ensimmäisenä ja kebab + pizza keskellä, nappi hakee kategorian.
+// Bidrop-kassilla ensimmäisenä ja kebab + pizza keskellä, nappi hakee kategorian;
+// pyörälähetti kebab-dian jälkeen.
 // BIDROP10- ja McDonald's-diat poistettiin 28.10.2026 (käyttäjän pyyntö).
 const HOME_ADS = [
   {
@@ -79,6 +80,17 @@ const HOME_ADS = [
     lead: 'Kebabia vai pizzaa?',
     title: 'Kebab & pizza lähelläsi',
     cta: { search: 'Kebab' },
+  },
+  {
+    // Pyörälähetti syysillassa (käyttäjän kuva 28.10.2026): Bidropin idea -
+    // kuljettajat tarjoavat hinnan, asiakas valitsee. Kuvan vasen puoli on
+    // valmiiksi tumma, joten tummennusta ei tarvita; napautus vierittää ravintoloihin.
+    id: 'kuva-kuljettaja',
+    img: '/promo-courier-night.webp',
+    code: null,
+    lead: 'Kuljettajat tarjoavat, sinä valitset',
+    title: 'Kuljetus sinun hinnallasi',
+    cta: {},
   },
   {
     id: 'tervetuloa',
