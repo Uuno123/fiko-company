@@ -179,7 +179,7 @@
 
 .bid-card__rating svg {
   flex-shrink: 0;
-  color: #f5a524;
+  color: var(--delivo-black);
 }
 
 .bid-card__rating b {

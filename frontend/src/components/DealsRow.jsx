@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import RestaurantCard from './RestaurantCard.jsx'
 import './DealsRow.css'
 
@@ -7,7 +8,40 @@ import './DealsRow.css'
 // otsikon Tarjous-merkillä. Ravintolat: DEALS_RESTAURANTS (lib/categories.js).
 // Samat luokat kuin kategoriariveillä, joten nuolet (onScrollRow) toimivat
 // samalla tavalla.
+//
+// Kortit vaihtuvat itsestään kuten etusivun mainoskaruselli (käyttäjän pyyntö
+// 28.10.2026): rivi siirtyy kortin verran DEALS_ROTATE_MS välein ja palaa
+// lopusta alkuun. Ei liikettä, kun hiiri tai sormi on rivillä, sivu on
+// taustalla tai käyttäjä on pyytänyt vähemmän liikettä.
+const DEALS_ROTATE_MS = 4000
+
 function DealsRow({ items, favoriteIds, onToggleFavorite, onScrollRow }) {
+  const scrollRef = useRef(null)
+  const pausedRef = useRef(false)
+
+  useEffect(() => {
+    const scroller = scrollRef.current
+    if (!scroller || items.length < 2) return undefined
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
+    const timer = setInterval(() => {
+      if (pausedRef.current || document.hidden) return
+      const card = scroller.querySelector('.restaurant-card')
+      if (!card) return
+      const gap = parseFloat(getComputedStyle(scroller).columnGap) || 16
+      const step = card.getBoundingClientRect().width + gap
+      const atEnd = scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 4
+      scroller.scrollTo({ left: atEnd ? 0 : scroller.scrollLeft + step, behavior: 'smooth' })
+    }, DEALS_ROTATE_MS)
+    return () => clearInterval(timer)
+  }, [items.length])
+
+  const pause = () => {
+    pausedRef.current = true
+  }
+  const resume = () => {
+    pausedRef.current = false
+  }
+
   return (
     <section className="category-row category-row--deals" aria-labelledby="deals-row-title">
       <div className="category-row__header">
@@ -52,7 +86,16 @@ function DealsRow({ items, favoriteIds, onToggleFavorite, onScrollRow }) {
           </button>
         </div>
       </div>
-      <div className="category-row__scroll">
+      <div
+        ref={scrollRef}
+        className="category-row__scroll"
+        onMouseEnter={pause}
+        onMouseLeave={resume}
+        onTouchStart={pause}
+        onTouchEnd={resume}
+        onFocus={pause}
+        onBlur={resume}
+      >
         {items.map((restaurant) => (
           <RestaurantCard
             key={restaurant.id}

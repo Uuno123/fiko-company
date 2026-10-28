@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react'
-import { Check, ChevronRight, Minus, Plus, Star, Timer } from 'lucide-react'
+import { Check, ChevronRight, Minus, Plus, Timer } from 'lucide-react'
 import { CourierAvatar } from './CourierAvatar.jsx'
+import { ScoreSmiley } from './Smiley.jsx'
 import CourierProfileSheet from './CourierProfileSheet.jsx'
 import { formatPrice } from '../lib/format.js'
 import { DELIVERY_BID, bidInputText, clampBidCents, isBidInRange, parseBidInput } from '../lib/deliveryTime.js'
+import { formatScore } from '../lib/score.js'
 import {
   VEHICLE_LABELS,
   acceptBid,
   bidErrorText,
   cancelNegotiation,
-  formatRating,
   setDeliveryOffer,
   useDeliveryNegotiation,
 } from '../lib/deliveryBids.js'
@@ -163,8 +164,8 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
                     </strong>
                     {reviewCount > 0 && bid.courier_rating != null ? (
                       <span className="bid-card__rating">
-                        <Star size={13} strokeWidth={2} fill="currentColor" aria-hidden="true" />
-                        <b>{formatRating(bid.courier_rating)}</b> · {reviewCount}{' '}
+                        <ScoreSmiley rating={bid.courier_rating} size={15} />
+                        <b>{formatScore(bid.courier_rating)}</b> · {reviewCount}{' '}
                         {reviewCount === 1 ? 'arvio' : 'arviota'}
                       </span>
                     ) : (

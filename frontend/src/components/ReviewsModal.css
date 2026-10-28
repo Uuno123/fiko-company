@@ -112,14 +112,19 @@
   color: var(--text-muted);
 }
 
-.reviews-modal__stars {
-  display: inline-flex;
-  gap: 2px;
-  color: #f5a623;
+.reviews-modal__summary-scale {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--delivo-black);
 }
 
-.reviews-modal__stars .is-empty {
-  color: #d9d9d9;
+/* Yksittäisen arvostelun hymiö ja arvosana 0–10. */
+.reviews-modal__score {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.92rem;
+  color: var(--delivo-black);
 }
 
 .reviews-modal__list {
@@ -222,24 +227,24 @@
   font-weight: 600;
 }
 
+/* Huomaamaton pieni harmaa nappi, ei iso oranssi (käyttäjän pyyntö
+   28.10.2026): arvostelut ovat ikkunan pääasia, kirjoittaminen sivuasia. */
 .reviews-modal__write-btn {
-  height: 44px;
-  padding: 0 20px;
+  height: 34px;
+  padding: 0 14px;
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--delivo-orange);
-  color: #fff;
+  background: #f0f0ee;
+  color: var(--delivo-black);
   font-family: inherit;
-  font-size: 0.92rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease;
 }
 
 .reviews-modal__write-btn:hover {
-  background: var(--delivo-orange-dark);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px -8px rgba(244, 80, 30, 0.6);
+  background: #e6e6e3;
 }
 
 .reviews-modal__write-btn:active {

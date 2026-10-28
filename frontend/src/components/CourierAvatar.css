@@ -50,8 +50,14 @@
   border-width: 3px;
 }
 
+/* Arvion hymiö ja arvosana 0–10 (ReviewScore). */
 .courier-stars {
   display: inline-flex;
-  gap: 1px;
-  color: #f5a524;
+  align-items: center;
+  gap: 5px;
+  color: var(--delivo-black);
+}
+
+.courier-stars b {
+  font-weight: 700;
 }

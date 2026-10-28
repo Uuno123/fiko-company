@@ -1,26 +1,19 @@
 import { StyleSheet, Text, View } from 'react-native'
-import { Star } from 'lucide-react-native'
+import { ScoreSmiley } from '../components/Smiley'
 import { Card, Screen } from '../components/ui'
 import { useAuth } from '../lib/auth'
 import { useCourier } from '../lib/courier'
 import { useT } from '../lib/i18n'
+import { formatReviewScore } from '../../../frontend/src/lib/score'
 import { courierRating, formatRating, useCourierReviews } from '../lib/photo'
 import { colors, fonts } from '../theme'
 
-const STAR_COLOR = '#f5a524'
-
-function Stars({ value, size = 14 }) {
+// Yksittäisen arvion hymiö ja arvosana 0–10 (tähtien tilalle 28.10.2026).
+function Score({ value }) {
   return (
-    <View style={styles.stars}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <Star
-          key={n}
-          size={size}
-          strokeWidth={2}
-          color={STAR_COLOR}
-          fill={n <= Math.round(value) ? STAR_COLOR : 'none'}
-        />
-      ))}
+    <View style={styles.score}>
+      <ScoreSmiley rating={value} size={18} />
+      <Text style={styles.scoreText}>{formatReviewScore(value)}</Text>
     </View>
   )
 }
@@ -43,9 +36,10 @@ export default function ReviewsScreen() {
       <View style={styles.summary}>
         {rating ? (
           <>
+            <ScoreSmiley rating={rating.average} size={40} />
             <Text style={styles.average}>{formatRating(rating.average, settings.language)}</Text>
             <View style={styles.summaryText}>
-              <Stars value={rating.average} size={18} />
+              <Text style={styles.scale}>/ 10</Text>
               <Text style={styles.count}>
                 {rating.count === 1 ? t('reviews.countOne') : t('reviews.count', { count: rating.count })}
               </Text>
@@ -64,7 +58,7 @@ export default function ReviewsScreen() {
           {reviews.map((review, index) => (
             <View key={review.id} style={[styles.review, index > 0 && styles.reviewBorder]}>
               <View style={styles.reviewHead}>
-                <Stars value={review.stars} />
+                <Score value={review.stars} />
                 <Text style={styles.date}>
                   {new Date(review.created_at).toLocaleDateString(locale, {
                     day: 'numeric',
@@ -113,9 +107,20 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 4,
   },
-  stars: {
+  score: {
     flexDirection: 'row',
-    gap: 2,
+    alignItems: 'center',
+    gap: 6,
+  },
+  scoreText: {
+    fontFamily: fonts.bold,
+    fontSize: 15,
+    color: colors.black,
+  },
+  scale: {
+    fontFamily: fonts.semibold,
+    fontSize: 16,
+    color: colors.black,
   },
   count: {
     fontFamily: fonts.regular,

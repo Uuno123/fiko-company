@@ -1,4 +1,6 @@
-import { Bike, Car, Star, Zap } from 'lucide-react'
+import { Bike, Car, Zap } from 'lucide-react'
+import { ScoreSmiley } from './Smiley.jsx'
+import { formatReviewScore } from '../lib/score.js'
 import { courierPhotoUrl } from '../lib/deliveryBids.js'
 import './CourierAvatar.css'
 
@@ -29,18 +31,12 @@ export function CourierAvatar({ name, photoPath, vehicle, large = false }) {
   )
 }
 
-export function StarRow({ stars, size = 12 }) {
+// Yksittäisen arvion hymiö ja arvosana 0–10 (tallennettu 1–5, lib/score.js).
+export function ReviewScore({ stars, size = 16 }) {
   return (
-    <span className="courier-stars" role="img" aria-label={`${stars} / 5 tähteä`}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <Star
-          key={n}
-          size={size}
-          strokeWidth={2}
-          fill={n <= Math.round(stars) ? 'currentColor' : 'none'}
-          aria-hidden="true"
-        />
-      ))}
+    <span className="courier-stars" role="img" aria-label={`${formatReviewScore(stars)} / 10`}>
+      <ScoreSmiley rating={stars} size={size} />
+      <b>{formatReviewScore(stars)}</b>
     </span>
   )
 }

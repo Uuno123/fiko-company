@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Star } from 'lucide-react'
 import BottomSheet from './BottomSheet.jsx'
-import { CourierAvatar, StarRow } from './CourierAvatar.jsx'
+import { CourierAvatar, ReviewScore } from './CourierAvatar.jsx'
+import { ScoreSmiley } from './Smiley.jsx'
 import { formatPrice } from '../lib/format.js'
-import { VEHICLE_LABELS, fetchBidCourierProfile, formatRating } from '../lib/deliveryBids.js'
+import { VEHICLE_LABELS, fetchBidCourierProfile } from '../lib/deliveryBids.js'
+import { formatReviewScore, formatScore } from '../lib/score.js'
 import './CourierProfileSheet.css'
 
 const MONTH_FORMAT = { month: 'numeric', year: 'numeric' }
@@ -77,8 +78,8 @@ export default function CourierProfileSheet({ bid, distance, disabled, onAccept,
             <dd>
               {hasRating ? (
                 <>
-                  <Star size={16} strokeWidth={2} fill="currentColor" aria-hidden="true" />
-                  {formatRating(rating)}
+                  <ScoreSmiley rating={rating} size={18} />
+                  {formatScore(rating)}
                 </>
               ) : (
                 '–'
@@ -104,13 +105,13 @@ export default function CourierProfileSheet({ bid, distance, disabled, onAccept,
         </dl>
 
         {profile?.distribution && hasRating && (
-          <ul className="courier-profile__bars" aria-label="Tähtien jakauma">
+          <ul className="courier-profile__bars" aria-label="Arvioiden jakauma">
             {[5, 4, 3, 2, 1].map((stars) => {
               const n = distribution[stars] ?? 0
               return (
                 <li key={stars}>
-                  <span>{stars}</span>
-                  <Star size={12} strokeWidth={2} fill="currentColor" aria-hidden="true" />
+                  <span>{formatReviewScore(stars)}</span>
+                  <ScoreSmiley rating={stars} size={14} />
                   <span className="courier-profile__bar">
                     <span style={{ width: `${(n / count) * 100}%` }} />
                   </span>
@@ -130,7 +131,7 @@ export default function CourierProfileSheet({ bid, distance, disabled, onAccept,
               {reviews.map((review) => (
                 <li key={review.created_at} className="courier-profile__review">
                   <span className="courier-profile__review-head">
-                    <StarRow stars={review.stars} />
+                    <ReviewScore stars={review.stars} />
                     <time dateTime={review.created_at}>
                       {new Date(review.created_at).toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric' })}
                     </time>
@@ -144,7 +145,7 @@ export default function CourierProfileSheet({ bid, distance, disabled, onAccept,
               {failed
                 ? 'Arvioita ei saatu ladattua.'
                 : hasRating
-                  ? 'Asiakkaat ovat antaneet vain tähtiä, ei kirjoitettuja arvioita.'
+                  ? 'Asiakkaat ovat antaneet vain arvosanoja, ei kirjoitettuja arvioita.'
                   : 'Ei vielä arvioita. Asiakkaat arvioivat kuljettajan toimituksen jälkeen.'}
             </p>
           )}

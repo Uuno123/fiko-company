@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import { scoreFromRating } from '../../../frontend/src/lib/score'
 import { useFocusEffect } from 'expo-router'
 import { useAuth } from './auth'
 import { tr } from './i18n'
@@ -52,9 +53,13 @@ export function courierRating(courier) {
   return { average: courier.rating_sum / count, count }
 }
 
-// 4.8 -> "4,8" (suomeksi) / "4.8"
+// Keskiarvo (1–5) näytetään asteikolla 0–10 kuten verkkosivulla
+// (frontend/src/lib/score.js): 4.8 -> "9,6" (suomeksi) / "9.6", täysi "10".
 export function formatRating(value, language) {
-  return Number(value).toLocaleString(language === 'en' ? 'en-GB' : 'fi-FI', {
+  const score = scoreFromRating(value)
+  if (score == null) return ''
+  if (score >= 10) return '10'
+  return score.toLocaleString(language === 'en' ? 'en-GB' : 'fi-FI', {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   })

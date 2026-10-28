@@ -4,10 +4,11 @@
    tulee Home.css:n kategoriariveistä; Home.css latautuu tämän jälkeen, joten
    valitsimissa on yksi luokka enemmän kuin sen vastaavissa säännöissä. */
 
-/* Tausta koko näytön levyisenä kaistana (ei kelluvana laatikkona): rivin
-   takana oleva 100vw-levyinen pseudoelementti. Sisältö pysyy samassa linjassa
-   muiden rivien kanssa, ja html:n overflow-x: hidden estää vaakavierityksen.
-   Aiempi 100vmax-varjo + clip-path oli puhelimella raskas vierittää. */
+/* Tausta pyöreäkulmaisena paneelina rivin takana (käyttäjän pyyntö 28.10.2026,
+   aiemmin koko näytön levyinen kaista): pseudoelementti hieman rivin sisältöä
+   leveämpänä, joten sisältö pysyy samassa linjassa muiden rivien kanssa.
+   Puhelimella paneeli on samassa linjassa muun sisällön kanssa (16 px näytön
+   reunoista), ja kortit vierivät sen sisällä. */
 .category-row--deals {
   position: relative;
   isolation: isolate;
@@ -18,12 +19,33 @@
   content: '';
   position: absolute;
   top: 0;
+  right: -20px;
   bottom: 0;
-  left: 50%;
+  left: -20px;
   z-index: -1;
-  width: 100vw;
+  border-radius: 28px;
   background: var(--delivo-orange-soft);
-  transform: translateX(-50%);
+}
+
+@media (max-width: 560px) {
+  .category-row--deals {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .category-row--deals::before {
+    right: 0;
+    left: 0;
+    border-radius: 22px;
+  }
+
+  /* Kortit vierivät paneelin sisällä eivätkä jatku sen reunojen yli. */
+  .category-row--deals .category-row__scroll {
+    margin: 0 -12px;
+    padding-right: 12px;
+    padding-left: 12px;
+    scroll-padding-left: 12px;
+  }
 }
 
 .deals-row__heading {

@@ -81,7 +81,7 @@
 }
 
 .courier-profile__stats dd svg {
-  color: #f5a524;
+  color: inherit;
 }
 
 /* Viimeinen luku ("9.2026 alkaen") on pidempi - pienempi fontti. */
@@ -89,7 +89,7 @@
   font-size: 0.9rem;
 }
 
-/* Tähtien jakauma palkkeina. */
+/* Arvioiden jakauma palkkeina (arvosana 0–10 ja hymiö). */
 .courier-profile__bars {
   display: grid;
   gap: 6px;
@@ -100,7 +100,7 @@
 
 .courier-profile__bars li {
   display: grid;
-  grid-template-columns: 10px 14px minmax(0, 1fr) 28px;
+  grid-template-columns: 18px 14px minmax(0, 1fr) 28px;
   align-items: center;
   gap: 6px;
   font-size: 0.8rem;
@@ -108,7 +108,7 @@
 }
 
 .courier-profile__bars svg {
-  color: #f5a524;
+  color: inherit;
 }
 
 .courier-profile__bar {

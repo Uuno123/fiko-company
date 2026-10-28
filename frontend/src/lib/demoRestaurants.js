@@ -139,7 +139,8 @@ const DEMO_RESTAURANTS = {
     lat: 62.8922,
     lng: 27.6795,
     is_open: true,
-    rating: 4.1,
+    // 9,8 / 10 (käyttäjän pyyntö 28.10.2026; 1–5-asteikolla 4.9).
+    rating: 4.9,
     pickup_estimate_minutes: 15,
     free_delivery: false,
     menu_items: MCDONALDS_DEMO_MENU,
