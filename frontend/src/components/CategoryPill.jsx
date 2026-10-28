@@ -24,7 +24,7 @@ import './CategoryPill.css'
 
 // Kategoriapilleri: ohut viivaikoni ja nimi vaaleanharmaassa kapselissa
 // (käyttäjän valinta 27.10.2026, pelkkien tekstien tilalle). Käytössä
-// työpöydän CategoryBarissa ja puhelimen MobileCategoryRow'ssa. Painallus hakee
+// työpöydän CategoryBarissa. Painallus hakee
 // kategorian nimellä. Ei valokuvia eikä emojeja; tuntematon kategoria saa
 // haarukka-veitsi-ikonin.
 const ICONS = {

@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import './RankingInfo.css'
 
-// "Miten järjestys määräytyy?" -linkki listojen alle. Maksettu näkyvyys ja
+// "Miten järjestys määräytyy?" -linkki hakutulosten alle. Maksettu näkyvyys ja
 // järjestyksen pääperusteet pitää kertoa asiakkaalle selvästi (EU:n
-// alustasäännöt ja kuluttajansuoja). Sisältö vastaa lib/ranking.js:n sääntöjä -
+// alustasäännöt ja kuluttajansuoja): hakutuloksista tiedon on oltava helposti
+// saatavilla. Etusivulta ja kategoriasivulta linkki poistettiin 28.10.2026
+// (käyttäjän päätös) - niillä ei ole hakua. Sisältö vastaa lib/ranking.js:n sääntöjä -
 // jos painot muuttuvat siellä, päivitä myös tämä.
 function RankingInfo() {
   const [open, setOpen] = useState(false)

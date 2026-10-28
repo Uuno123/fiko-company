@@ -37,6 +37,27 @@ export function clampBidCents(cents) {
   return Math.min(DELIVERY_BID.maxCents, Math.max(DELIVERY_BID.minCents, Math.round(cents)))
 }
 
+// Kirjoitettu tarkka hinta (käyttäjän pyyntö 28.10.2026: kuljettaja ja asiakas
+// voivat ehdottaa esim. 3,76 €). "3,76", "3.76", "4" ja kesken oleva "3," ->
+// sentteinä, muuten null. Haarukkaa ei tarkisteta tässä (isBidInRange).
+export function parseBidInput(text) {
+  const normalized = String(text ?? '')
+    .replace(/€/g, '')
+    .trim()
+    .replace(',', '.')
+  if (!/^\d{1,2}(\.\d{0,2})?$/.test(normalized)) return null
+  return Math.round(Number(normalized) * 100)
+}
+
+export function isBidInRange(cents) {
+  return Number.isFinite(cents) && cents >= DELIVERY_BID.minCents && cents <= DELIVERY_BID.maxCents
+}
+
+// Hinta kentän tekstiksi: 376 -> "3,76".
+export function bidInputText(cents) {
+  return (cents / 100).toFixed(2).replace('.', ',')
+}
+
 // Tietokannan tyhjä koordinaatti on null - Number(null) olisi 0 (Afrikan edusta),
 // joten tyhjästä tulee NaN, jonka hasCoords hylkää.
 export function coordinate(value) {

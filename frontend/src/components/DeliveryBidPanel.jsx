@@ -3,7 +3,7 @@ import { Check, ChevronRight, Minus, Plus, Star, Timer } from 'lucide-react'
 import { CourierAvatar } from './CourierAvatar.jsx'
 import CourierProfileSheet from './CourierProfileSheet.jsx'
 import { formatPrice } from '../lib/format.js'
-import { DELIVERY_BID, clampBidCents } from '../lib/deliveryTime.js'
+import { DELIVERY_BID, bidInputText, clampBidCents, isBidInRange, parseBidInput } from '../lib/deliveryTime.js'
 import {
   VEHICLE_LABELS,
   acceptBid,
@@ -48,7 +48,8 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
   const secondsLeft = useSecondsLeft(order?.bidding_expires_at)
   const [busy, setBusy] = useState(null)
   const [error, setError] = useState('')
-  const [draft, setDraft] = useState(null)
+  // Oma hinta kirjoitettuna ("3,76"), null = ei muokattu (näytetään nykyinen tai ehdotus).
+  const [draftText, setDraftText] = useState(null)
   const [confirmCancel, setConfirmCancel] = useState(false)
   // Tarjous, jonka kuljettajan profiili on auki (napautus kortista).
   const [profileBid, setProfileBid] = useState(null)
@@ -94,8 +95,13 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
 
   const activeOffer = order.customer_offer_cents
   const cheapest = offeredBids[0]?.price_cents
-  const draftCents =
-    draft ?? activeOffer ?? (cheapest ? clampBidCents(cheapest - OFFER_STEP_CENTS) : DEFAULT_OFFER_CENTS)
+  // Tarkan summan voi kirjoittaa (esim. 3,76 €), +/- säätää 50 senttiä.
+  // Kelvollinen vain haarukassa 1,99–7,99 €; kentästä poistuttaessa rajataan siihen.
+  const suggestedCents = activeOffer ?? (cheapest ? clampBidCents(cheapest - OFFER_STEP_CENTS) : DEFAULT_OFFER_CENTS)
+  const draftValue = draftText ?? bidInputText(suggestedCents)
+  const parsedCents = parseBidInput(draftValue)
+  const draftCents = isBidInRange(parsedCents) ? parsedCents : null
+  const baseCents = clampBidCents(parsedCents ?? suggestedCents)
   const expired = secondsLeft === 0
 
   async function run(key, action) {
@@ -115,7 +121,7 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
   }
 
   function stepDraft(delta) {
-    setDraft(clampBidCents(draftCents + delta))
+    setDraftText(bidInputText(clampBidCents(baseCents + delta)))
   }
 
   return (
@@ -205,7 +211,8 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
           <span>
             {activeOffer
               ? `${formatPrice(activeOffer)} näkyy kuljettajille. Ensimmäinen sen hyväksyvä valitaan heti.`
-              : 'Kuljettaja, joka hyväksyy hintasi, valitaan heti.'}
+              : 'Kuljettaja, joka hyväksyy hintasi, valitaan heti.'}{' '}
+            Kirjoita tarkka summa {formatPrice(DELIVERY_BID.minCents)}–{formatPrice(DELIVERY_BID.maxCents)}.
           </span>
         </div>
         <div className="bid-panel__offer-controls">
@@ -213,16 +220,30 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
             <button
               type="button"
               onClick={() => stepDraft(-OFFER_STEP_CENTS)}
-              disabled={draftCents <= DELIVERY_BID.minCents || expired}
+              disabled={baseCents <= DELIVERY_BID.minCents || expired}
               aria-label="Pienennä hintaa"
             >
               <Minus size={16} strokeWidth={2.4} />
             </button>
-            <output aria-live="polite">{formatPrice(draftCents)}</output>
+            <label className={`bid-stepper__value${draftCents == null ? ' is-invalid' : ''}`}>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={draftValue}
+                maxLength={5}
+                disabled={expired}
+                aria-label="Oma hintasi euroina"
+                aria-invalid={draftCents == null}
+                onFocus={(e) => e.target.select()}
+                onChange={(e) => setDraftText(e.target.value.replace(/[^\d,.]/g, '').slice(0, 5))}
+                onBlur={() => setDraftText(bidInputText(baseCents))}
+              />
+              <span aria-hidden="true">€</span>
+            </label>
             <button
               type="button"
               onClick={() => stepDraft(OFFER_STEP_CENTS)}
-              disabled={draftCents >= DELIVERY_BID.maxCents || expired}
+              disabled={baseCents >= DELIVERY_BID.maxCents || expired}
               aria-label="Suurenna hintaa"
             >
               <Plus size={16} strokeWidth={2.4} />
@@ -231,8 +252,8 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
           <button
             type="button"
             className="bid-panel__offer-btn"
-            disabled={Boolean(busy) || expired || draftCents === activeOffer}
-            onClick={() => run('offer', () => setDeliveryOffer(orderId, draftCents)).then((ok) => ok && setDraft(null))}
+            disabled={Boolean(busy) || expired || draftCents == null || draftCents === activeOffer}
+            onClick={() => run('offer', () => setDeliveryOffer(orderId, draftCents)).then((ok) => ok && setDraftText(null))}
           >
             {busy === 'offer' ? (
               <span className="bid-panel__spinner" aria-hidden="true" />

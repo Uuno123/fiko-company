@@ -1,20 +1,36 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { Children, createContext, Fragment, isValidElement, useContext, useState } from 'react'
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { useAuth } from '../lib/auth'
+import { initials } from '../lib/format'
 import { tr } from '../lib/i18n'
+import { courierPhotoUrl } from '../lib/photo'
 import { ArrowLeft, Check, ChevronRight, Lock } from 'lucide-react-native'
 import { colors, fonts } from '../theme'
 
 // Yhteiset rakennuspalat valikon näkymille (ansiot, historia, asetukset...)
-// samassa ilmeessä kuin verkkosivun mobiilin tilisivu (frontend AccountHub):
-// valkoinen yläpalkki nuolella ja keskitetyllä otsikolla, valkoiset kortit
-// ohuella harmaalla reunuksella, otsikko kortin sisällä ja rivit, joissa ikoni
-// vaaleanharmaassa neliössä ja nuoli - ilman erotinviivoja.
+// samassa ilmeessä kuin verkkosivun asetukset (frontend SettingsRow ja
+// pages/Settings.css, "ryhmitellyt listat" 27.10.2026): valkoinen yläpalkki
+// nuolella ja keskitetyllä otsikolla, ryhmän nimi pienellä harmaalla kortin
+// yläpuolella, kortit ohuella reunuksella ja rivit, joissa ikoni harmaassa
+// neliössä, ohut erotinviiva tekstin kohdalta ja painettaessa harmaa tausta.
 
 const SIDE = 16
 const LINE = '#ececec'
 const TILE = '#f4f4f4'
+const DIVIDER = '#efefef'
+const CHEVRON = '#a3a69e'
+const PRESSED = '#f2f2f1'
+const DANGER = '#b42318'
+// Rivin ikonineliö ja väli tekstiin: erotinviiva alkaa tekstin kohdalta.
+const ICON_TILE = 36
+const ROW_GAP = 14
 export const PAGE_BACKGROUND = colors.surface
+
+// Kortin vaakasisennys riveille: rivit ulottuvat kortin reunasta reunaan, jotta
+// painalluksen harmaa tausta täyttää koko rivin (kuten verkkosivun .srow).
+const CardInset = createContext(0)
 
 // Yläpalkki: takaisin-nuoli vasemmalla, otsikko keskellä.
 export function ScreenHeader({ title }) {
@@ -41,14 +57,15 @@ export function ScreenHeader({ title }) {
 }
 
 // Näkymän runko: yläpalkki ja vieritettävä sisältö, kortit 14 px välein.
-export function Screen({ title, children, scroll = true }) {
+// footer: alareunaan kiinnitetty osa (esim. lähetysnappi), sisältö vierii sen yläpuolella.
+export function Screen({ title, children, scroll = true, footer }) {
   const insets = useSafeAreaInsets()
   return (
     <View style={styles.screen}>
       <ScreenHeader title={title} />
       {scroll ? (
         <ScrollView
-          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]}
+          contentContainerStyle={[styles.content, { paddingBottom: footer ? 24 : insets.bottom + 40 }]}
           keyboardShouldPersistTaps="handled"
         >
           {children}
@@ -56,6 +73,7 @@ export function Screen({ title, children, scroll = true }) {
       ) : (
         children
       )}
+      {footer ? <View style={[styles.footer, { paddingBottom: insets.bottom + 12 }]}>{footer}</View> : null}
     </View>
   )
 }
@@ -69,15 +87,52 @@ export function SectionTitle({ children, style }) {
   )
 }
 
-// Valkoinen kortti ohuella reunuksella. title: otsikko kortin sisälle.
-// flat: ilman reunusta ja sisennystä (esim. alhaalta nousevan valikon sisällä).
+const isRow = (child) => isValidElement(child) && (child.type === ListRow || child.type === LockedRow)
+
+// Valkoinen kortti ohuella reunuksella. title: ryhmän nimi kortin yläpuolelle.
+// Peräkkäisten rivien väliin tulee ohut viiva, ikonillisilla riveillä tekstin
+// kohdalta. flat: ilman reunusta, sisennystä ja viivoja (esim. alhaalta
+// nousevan valikon sisällä).
 export function Card({ title, children, style, flat = false }) {
+  const items = Children.toArray(children)
+  const onlyRows = items.length > 0 && items.every(isRow)
+  const card = (
+    <View style={[styles.card, onlyRows && styles.cardRows, flat && styles.cardFlat, style]}>
+      <CardInset.Provider value={flat ? 0 : SIDE}>
+        {items.map((child, index) => {
+          const previous = items[index - 1]
+          if (flat || !isRow(child) || !isRow(previous)) return child
+          const inset = child.props.icon && previous.props.icon
+          return (
+            <Fragment key={child.key}>
+              <View style={[styles.divider, inset && styles.dividerInset]} />
+              {child}
+            </Fragment>
+          )
+        })}
+      </CardInset.Provider>
+    </View>
+  )
+  return title ? <Group title={title}>{card}</Group> : card
+}
+
+// Ryhmä: nimi pienellä harmaalla sisällön yläpuolella (verkkosivun
+// .settings-section). Card käyttää tätä, kun sillä on otsikko.
+export function Group({ title, children }) {
   return (
-    <View style={[styles.card, title ? styles.cardWithTitle : null, flat && styles.cardFlat, style]}>
-      {title ? <SectionTitle>{title}</SectionTitle> : null}
+    <View style={styles.group}>
+      <Text style={styles.groupTitle} accessibilityRole="header">
+        {title}
+      </Text>
       {children}
     </View>
   )
+}
+
+// Rivin painalluksen tausta kortin reunasta reunaan.
+function useRowStyle() {
+  const inset = useContext(CardInset)
+  return inset ? [styles.row, { marginHorizontal: -inset, paddingHorizontal: inset }] : [styles.row]
 }
 
 // Rivi: ikoni vaaleanharmaassa neliössä, teksti (+ lisärivi), arvo oikealla ja
@@ -85,15 +140,16 @@ export function Card({ title, children, style, flat = false }) {
 // selected: valintarivi, valittu näkyy oranssina ruksina. detailAccent: lisärivi
 // oranssina (esim. "Pyydä muutosta").
 export function ListRow({ icon: Icon, label, detail, detailAccent = false, value, onPress, right, selected, danger = false, role }) {
+  const rowStyle = useRowStyle()
   const choice = selected !== undefined
   let end = right
   if (choice) end = selected ? <Check size={20} strokeWidth={2.4} color={colors.orange} /> : null
-  else if (end === undefined && onPress) end = <ChevronRight size={20} strokeWidth={1.75} color={colors.textMuted} />
+  else if (end === undefined && onPress && !danger) end = <ChevronRight size={18} strokeWidth={1.8} color={CHEVRON} />
   const content = (
     <>
       {Icon ? (
         <View style={[styles.rowIcon, danger && styles.rowIconDanger]}>
-          <Icon size={18} strokeWidth={1.75} color={danger ? colors.danger : colors.black} />
+          <Icon size={18} strokeWidth={1.8} color={danger ? DANGER : colors.black} />
         </View>
       ) : null}
       <View style={styles.rowText}>
@@ -108,11 +164,11 @@ export function ListRow({ icon: Icon, label, detail, detailAccent = false, value
       {end}
     </>
   )
-  if (!onPress) return <View style={styles.row}>{content}</View>
+  if (!onPress) return <View style={rowStyle}>{content}</View>
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+      style={({ pressed }) => [...rowStyle, pressed && styles.rowPressed]}
       accessibilityRole={role ?? 'button'}
       aria-checked={choice ? selected : undefined}
       accessibilityLabel={value ? `${label}, ${value}` : label}
@@ -149,11 +205,12 @@ export function StatusPill({ tone = 'neutral', icon: Icon, children }) {
 // hylätty, ja nuoli jos rivi on painettava. locked=false: kuljettaja muuttaa
 // tiedon itse (puhelinnumero).
 export function LockedRow({ icon: Icon, label, value, status, statusText, detail, onPress, locked = true }) {
+  const rowStyle = useRowStyle()
   const content = (
     <>
       {Icon ? (
         <View style={styles.rowIcon}>
-          <Icon size={18} strokeWidth={1.75} color={colors.black} />
+          <Icon size={18} strokeWidth={1.8} color={colors.black} />
         </View>
       ) : null}
       <View style={styles.rowText}>
@@ -171,15 +228,15 @@ export function LockedRow({ icon: Icon, label, value, status, statusText, detail
         ) : null}
       </View>
       {statusText ? <StatusPill tone={status === 'rejected' ? 'danger' : 'pending'}>{statusText}</StatusPill> : null}
-      {onPress ? <ChevronRight size={20} strokeWidth={1.75} color={colors.textMuted} /> : null}
+      {onPress ? <ChevronRight size={18} strokeWidth={1.8} color={CHEVRON} /> : null}
     </>
   )
   const a11y = [`${label}: ${value || '–'}`, statusText, detail].filter(Boolean).join('. ')
-  if (!onPress) return <View style={styles.row}>{content}</View>
+  if (!onPress) return <View style={rowStyle}>{content}</View>
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+      style={({ pressed }) => [...rowStyle, pressed && styles.rowPressed]}
       accessibilityRole="button"
       accessibilityLabel={a11y}
     >
@@ -188,23 +245,36 @@ export function LockedRow({ icon: Icon, label, value, status, statusText, detail
   )
 }
 
-// Tilikortti kuten verkkosivun tilisivulla: kieleke kulmassa, oranssi
-// nimikirjainpallo, nimi ja yhteystiedot, nuoli.
-export function ProfileCard({ tag, name, lines = [], onPress }) {
-  const initial = (String(name ?? '').trim()[0] ?? '?').toUpperCase()
+// Kuljettajan profiilikuva (courier-photos) tai oranssi nimikirjainpallo, jos
+// kuvaa ei ole tai se ei lataudu. Käytössä kaikkialla, missä kuljettajan
+// profiilimerkki näkyy (asetusten profiilikortti, sivuvalikko).
+export function CourierAvatar({ name, size = 48 }) {
+  const { courier } = useAuth()
+  const uri = courierPhotoUrl(courier?.photo_path)
+  const [failedUri, setFailedUri] = useState(null)
+  const frame = { width: size, height: size, borderRadius: size / 2 }
+  return (
+    <View style={[styles.avatar, frame]}>
+      {uri && uri !== failedUri ? (
+        <Image source={{ uri }} style={frame} onError={() => setFailedUri(uri)} accessibilityIgnoresInvertColors />
+      ) : (
+        <Text style={[styles.avatarText, { fontSize: Math.round(size * 0.36) }]}>{initials(name || tr('common.courier'))}</Text>
+      )}
+    </View>
+  )
+}
+
+// Profiilikortti kuten verkkosivun tilisivulla: profiilikuva, nimi ja
+// yhteystiedot, nuoli.
+export function ProfileCard({ name, lines = [], onPress }) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.card, styles.profileCard, pressed && styles.rowPressed]}
+      style={({ pressed }) => [styles.profileCard, pressed && styles.rowPressed]}
       accessibilityRole="button"
-      accessibilityLabel={`${tag}: ${name}`}
+      accessibilityLabel={name}
     >
-      <View style={styles.profileTag}>
-        <Text style={styles.profileTagText}>{tag}</Text>
-      </View>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{initial}</Text>
-      </View>
+      <CourierAvatar name={name} size={60} />
       <View style={styles.profileText}>
         <Text style={styles.profileName} numberOfLines={1}>
           {name}
@@ -215,7 +285,7 @@ export function ProfileCard({ tag, name, lines = [], onPress }) {
           </Text>
         ))}
       </View>
-      <ChevronRight size={20} strokeWidth={1.75} color={colors.textMuted} />
+      <ChevronRight size={20} strokeWidth={1.8} color={CHEVRON} />
     </Pressable>
   )
 }
@@ -238,7 +308,7 @@ export function StatRow({ items, style, title, onPress }) {
     <>
       <View style={styles.statHeader}>
         <SectionTitle>{title}</SectionTitle>
-        {onPress ? <ChevronRight size={20} strokeWidth={1.75} color={colors.textMuted} /> : null}
+        {onPress ? <ChevronRight size={20} strokeWidth={1.8} color={CHEVRON} /> : null}
       </View>
       <View style={styles.statsInTitledCard}>{stats}</View>
     </>
@@ -318,6 +388,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: SIDE,
     paddingTop: 16,
   },
+  footer: {
+    paddingTop: 12,
+    paddingHorizontal: SIDE,
+    borderTopWidth: 1,
+    borderTopColor: LINE,
+    backgroundColor: colors.surface,
+  },
   sectionTitle: {
     marginBottom: 6,
     fontFamily: fonts.display,
@@ -325,13 +402,31 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
     color: colors.black,
   },
+  // Ryhmä: nimi pienellä harmaalla kortin yläpuolella (verkkosivun
+  // .settings-section__head). marginTop + näkymän väli = 22 px ryhmien välissä.
+  group: {
+    gap: 8,
+    marginTop: 8,
+  },
+  groupTitle: {
+    paddingHorizontal: 4,
+    fontFamily: fonts.bold,
+    fontSize: 12.5,
+    letterSpacing: 0.75,
+    textTransform: 'uppercase',
+    color: colors.textMuted,
+  },
   card: {
-    paddingHorizontal: 16,
+    overflow: 'hidden',
+    paddingHorizontal: SIDE,
     paddingVertical: 4,
     borderWidth: 1,
     borderColor: LINE,
-    borderRadius: 14,
+    borderRadius: 16,
     backgroundColor: colors.surface,
+  },
+  cardRows: {
+    paddingVertical: 0,
   },
   cardWithTitle: {
     paddingTop: 18,
@@ -341,42 +436,50 @@ const styles = StyleSheet.create({
     paddingHorizontal: 0,
     borderWidth: 0,
   },
+  divider: {
+    height: 1,
+    marginRight: -SIDE,
+    backgroundColor: DIVIDER,
+  },
+  dividerInset: {
+    marginLeft: ICON_TILE + ROW_GAP,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    minHeight: 56,
-    paddingVertical: 8,
+    gap: ROW_GAP,
+    minHeight: 60,
+    paddingVertical: 10,
   },
   rowPressed: {
-    opacity: 0.6,
+    backgroundColor: PRESSED,
   },
   rowIcon: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 34,
-    height: 34,
-    borderRadius: 9,
+    width: ICON_TILE,
+    height: ICON_TILE,
+    borderRadius: 10,
     backgroundColor: TILE,
   },
   rowIconDanger: {
-    backgroundColor: '#fdecef',
+    backgroundColor: '#fdecec',
   },
   rowText: {
     flex: 1,
   },
   rowLabel: {
-    fontFamily: fonts.medium,
-    fontSize: 16,
+    fontFamily: fonts.semibold,
+    fontSize: 15.5,
     color: colors.black,
   },
   rowLabelDanger: {
-    color: colors.danger,
+    color: DANGER,
   },
   rowDetail: {
     marginTop: 2,
     fontFamily: fonts.regular,
-    fontSize: 14,
+    fontSize: 13.5,
     color: colors.textMuted,
   },
   rowDetailAccent: {
@@ -411,8 +514,8 @@ const styles = StyleSheet.create({
   },
   lockedValue: {
     marginTop: 1,
-    fontFamily: fonts.medium,
-    fontSize: 16,
+    fontFamily: fonts.semibold,
+    fontSize: 15.5,
     color: colors.black,
   },
   rowValue: {
@@ -425,45 +528,32 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
-    paddingTop: 40,
-    paddingBottom: 18,
-    overflow: 'hidden',
-  },
-  profileTag: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderBottomRightRadius: 10,
-    backgroundColor: colors.black,
-  },
-  profileTagText: {
-    fontFamily: fonts.bold,
-    fontSize: 12,
-    color: '#ffffff',
+    gap: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: LINE,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
   },
   avatar: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    overflow: 'hidden',
     backgroundColor: colors.orange,
   },
   avatarText: {
     fontFamily: fonts.display,
-    fontSize: 19,
+    letterSpacing: -0.4,
     color: '#ffffff',
   },
   profileText: {
     flex: 1,
-    gap: 2,
+    gap: 3,
   },
   profileName: {
-    fontFamily: fonts.bold,
-    fontSize: 17,
+    fontFamily: fonts.display,
+    fontSize: 19,
+    letterSpacing: -0.2,
     color: colors.black,
   },
   profileLine: {

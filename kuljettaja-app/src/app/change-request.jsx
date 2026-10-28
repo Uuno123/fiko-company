@@ -1,9 +1,24 @@
 import { useState } from 'react'
-import { ActivityIndicator, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Camera, Check, CircleAlert, CircleCheck, Clock, FileText, Image as ImageIcon } from 'lucide-react-native'
+import {
+  ArrowDown,
+  Building,
+  Camera,
+  Check,
+  CircleAlert,
+  CircleCheck,
+  Clock,
+  FileText,
+  Image as ImageIcon,
+  Landmark,
+  Mail,
+  MapPin,
+  ReceiptText,
+  User,
+} from 'lucide-react-native'
 import ChoiceSheet from '../components/ChoiceSheet'
-import { Button, Card, ListRow, Screen, StatusPill } from '../components/ui'
+import { Button, Card, Group, Screen, StatusPill } from '../components/ui'
 import { vehicleIcon } from '../components/vehicleIcons'
 import { useAuth } from '../lib/auth'
 import {
@@ -28,12 +43,21 @@ import { formatShortDate, formatTime } from '../lib/format'
 import { useT } from '../lib/i18n'
 import { colors, fonts } from '../theme'
 
-// Muutospyyntö tarkistettuun tietoon (migraatio 0051). Lomake: nykyinen arvo,
-// uusi arvo, vapaaehtoinen perustelu ja tarvittaessa liite (ajokortti tai
-// pankkitodiste) suoraan pyyntöön. Kun pyyntö on lähetetty tai kesken, näkymä
-// näyttää sen tilan aikajanana: lähetetty -> tarkastuksessa -> voimassa.
+// Muutospyyntö tarkistettuun tietoon (migraatio 0051). Ylhäällä kentän ikoni ja
+// nimi, sen alla "Nykyinen -> Uusi" -kortti, jonka alaosaan uusi arvo kirjoitetaan
+// tai valitaan korteista. Perustelu on vapaaehtoinen, ja tarvittaessa liite
+// (ajokortti tai pankkitodiste) lisätään suoraan pyyntöön. Lähetysnappi on
+// kiinni alareunassa. Kun pyyntö on lähetetty tai kesken, näkymä näyttää
+// pyydetyn arvon ja etenemisen aikajanana: lähetetty -> tarkastuksessa -> voimassa.
 
 const normalizeIban = (value) => value.replace(/\s+/g, '').toUpperCase()
+
+// Samat ikonit kuin Profiilin ja Laskutustietojen riveillä.
+const FIELD_ICONS = { name: User, email: Mail, city: MapPin, business_id: Building, billing_method: ReceiptText, iban: Landmark }
+const BILLING_ICONS = { own_company: Building }
+
+const FOCUS_BORDER = '#b9bcb3'
+const LINE = '#ececec'
 
 // Uuden arvon tarkistus ennen lähetystä. Palauttaa virheen tai tyhjän.
 function validate(field, value, t) {
@@ -69,9 +93,13 @@ export default function ChangeRequestScreen() {
 
   const [value, setValue] = useState('')
   const [reason, setReason] = useState('')
+  const [focus, setFocus] = useState(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
+
+  const fieldLabel = changeFieldLabel(field)
+  const icon = field === 'vehicle' ? vehicleIcon(current) : FIELD_ICONS[field]
 
   const submit = async () => {
     const problem = validate(field, value, t)
@@ -103,12 +131,22 @@ export default function ChangeRequestScreen() {
     )
   }
 
-  // Lähetetty tai kesken oleva pyyntö: tila ja eteneminen, liite voi vielä puuttua.
+  // Lähetetty tai kesken oleva pyyntö: pyydetty arvo ja eteneminen, liite voi vielä puuttua.
   if (pending) {
     return (
       <Screen title={t('change.title')}>
+        <Hero icon={icon} title={fieldLabel}>
+          <StatusPill tone="pending" icon={Clock}>
+            {t('status.pending')}
+          </StatusPill>
+        </Hero>
         {sent ? <Banner tone="success" icon={CircleCheck} title={t('change.sentTitle')} /> : null}
-        <PendingRequest field={field} current={current} request={pending} />
+        <Compare currentText={displayChangeValue(field, current)} newLabel={t('change.requestedValue')}>
+          <Text style={styles.compareNew} numberOfLines={1}>
+            {displayChangeValue(field, pending.new_value)}
+          </Text>
+        </Compare>
+        <Progress request={pending} />
         <RequiredDocument type={requiredDocumentFor(field, pending.new_value)} />
       </Screen>
     )
@@ -117,15 +155,14 @@ export default function ChangeRequestScreen() {
   // Lähetys onnistui, mutta pyyntö ei vielä näy listassa (hidas yhteys).
   if (sent) {
     return (
-      <Screen title={t('change.title')}>
-        <Card style={styles.done}>
-          <CircleCheck size={40} strokeWidth={1.75} color={colors.open} />
+      <Screen title={t('change.title')} footer={<Button title={t('common.back')} onPress={() => router.back()} />}>
+        <View style={styles.done}>
+          <View style={styles.doneIcon}>
+            <Check size={34} strokeWidth={2.6} color="#1a8a4a" />
+          </View>
           <Text style={styles.doneTitle}>{t('change.sentTitle')}</Text>
           <Text style={styles.doneText}>{t('change.sentText')}</Text>
-          <View style={styles.doneButton}>
-            <Button title={t('common.back')} onPress={() => router.back()} />
-          </View>
-        </Card>
+        </View>
       </Screen>
     )
   }
@@ -135,15 +172,28 @@ export default function ChangeRequestScreen() {
     field === 'vehicle'
       ? VEHICLES.map(({ key }) => ({ key, label: vehicleLabel(key), icon: vehicleIcon(key) }))
       : field === 'billing_method'
-        ? BILLING_METHODS.map(({ key }) => ({ key, label: billingMethodLabel(key) }))
+        ? BILLING_METHODS.map(({ key }) => ({ key, label: billingMethodLabel(key), icon: BILLING_ICONS[key] ?? ReceiptText }))
         : null
   )?.filter((choice) => choice.key !== current)
   const requiredDoc = requiredDocumentFor(field, value)
   const newLabel = t(`change.new.${field}`)
+  const chosen = choices?.find((choice) => choice.key === value)
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Screen title={t('change.title')}>
+      <Screen
+        title={t('change.title')}
+        footer={
+          <>
+            {error ? <Text style={styles.error}>{error}</Text> : null}
+            <Button title={busy ? t('change.sending') : t('change.send')} onPress={submit} disabled={busy || !value} />
+          </>
+        }
+      >
+        <Hero icon={icon} title={fieldLabel}>
+          <Text style={styles.heroHint}>{t('change.heroHint')}</Text>
+        </Hero>
+
         {rejected ? (
           <Banner
             tone="danger"
@@ -153,37 +203,21 @@ export default function ChangeRequestScreen() {
           />
         ) : null}
 
-        <Card title={changeFieldLabel(field)}>
-          <View style={styles.current}>
-            <Text style={styles.currentLabel}>{t('change.current')}</Text>
-            <Text style={styles.currentValue} numberOfLines={1}>
-              {displayChangeValue(field, current)}
-            </Text>
-          </View>
-
-          <Text style={styles.fieldLabel}>{newLabel}</Text>
+        <Compare currentText={displayChangeValue(field, current)} newLabel={newLabel} focused={focus === 'value'}>
           {choices ? (
-            choices.map((choice) => (
-              <ListRow
-                key={choice.key}
-                icon={choice.icon}
-                label={choice.label}
-                selected={value === choice.key}
-                onPress={() => {
-                  setValue(choice.key)
-                  setError('')
-                }}
-                role="radio"
-              />
-            ))
+            <Text style={[styles.compareNew, !chosen && styles.compareNewEmpty]} numberOfLines={1}>
+              {chosen ? chosen.label : t('change.choose')}
+            </Text>
           ) : (
             <TextInput
-              style={styles.input}
+              style={styles.valueInput}
               value={value}
               onChangeText={(next) => {
                 setValue(next)
                 setError('')
               }}
+              onFocus={() => setFocus('value')}
+              onBlur={() => setFocus(null)}
               autoCapitalize={field === 'name' || field === 'city' ? 'words' : field === 'iban' ? 'characters' : 'none'}
               keyboardType={field === 'email' ? 'email-address' : 'default'}
               placeholder={
@@ -199,32 +233,101 @@ export default function ChangeRequestScreen() {
               accessibilityLabel={newLabel}
             />
           )}
+        </Compare>
 
-          <Text style={styles.fieldLabel}>
-            {t('change.reason')} <Text style={styles.optional}>{t('change.optional')}</Text>
-          </Text>
+        {choices ? (
+          <View style={styles.options} accessibilityRole="radiogroup">
+            {choices.map((choice) => (
+              <Option
+                key={choice.key}
+                icon={choice.icon}
+                label={choice.label}
+                selected={value === choice.key}
+                onPress={() => {
+                  setValue(choice.key)
+                  setError('')
+                }}
+              />
+            ))}
+          </View>
+        ) : null}
+
+        <Group title={`${t('change.reason')} ${t('change.optional')}`}>
           <TextInput
-            style={[styles.input, styles.reason]}
+            style={[styles.reason, focus === 'reason' && styles.focused]}
             value={reason}
             onChangeText={setReason}
+            onFocus={() => setFocus('reason')}
+            onBlur={() => setFocus(null)}
             multiline
             placeholder={t('change.reasonPlaceholder')}
             placeholderTextColor={colors.gray400}
             accessibilityLabel={t('change.reason')}
           />
-        </Card>
+        </Group>
 
         {requiredDoc ? <RequiredDocument type={requiredDoc} /> : null}
-
-        <View style={styles.info}>
-          <Clock size={16} strokeWidth={2} color={colors.textMuted} />
-          <Text style={styles.infoText}>{t('change.processInfo')}</Text>
-        </View>
-
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        <Button title={busy ? t('change.sending') : t('change.send')} onPress={submit} disabled={busy || !value} />
       </Screen>
     </KeyboardAvoidingView>
+  )
+}
+
+// Yläosa: kentän ikoni oranssissa pallossa, kentän nimi ja sen alla lyhyt ohje tai tila.
+function Hero({ icon: Icon, title, children }) {
+  return (
+    <View style={styles.hero}>
+      <View style={styles.heroIcon}>{Icon ? <Icon size={28} strokeWidth={1.8} color={colors.orange} /> : null}</View>
+      <Text style={styles.heroTitle} accessibilityRole="header">
+        {title}
+      </Text>
+      {children}
+    </View>
+  )
+}
+
+// Nykyinen arvo ylhäällä harmaalla ja uusi alhaalla, välissä nuoli: muutos
+// näkyy yhdellä silmäyksellä. focused: uuden arvon kenttä on aktiivinen.
+function Compare({ currentText, newLabel, focused = false, children }) {
+  const t = useT()
+  return (
+    <View style={[styles.compare, focused && styles.focused]}>
+      <View style={[styles.compareHalf, styles.compareHalfCurrent]}>
+        <Text style={styles.compareLabel}>{t('change.current')}</Text>
+        <Text style={styles.compareCurrent} numberOfLines={1}>
+          {currentText}
+        </Text>
+      </View>
+      <View style={styles.compareSeam}>
+        <View style={styles.compareArrow}>
+          <ArrowDown size={16} strokeWidth={2.4} color={colors.orange} />
+        </View>
+      </View>
+      <View style={styles.compareHalf}>
+        <Text style={styles.compareLabel}>{newLabel}</Text>
+        {children}
+      </View>
+    </View>
+  )
+}
+
+// Valintakortti (kulkuneuvo, laskutustapa): ikoni, nimi ja pyöreä valintamerkki.
+function Option({ icon: Icon, label, selected, onPress }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.option, selected && styles.optionSelected, pressed && styles.optionPressed]}
+      accessibilityRole="radio"
+      aria-checked={selected}
+      accessibilityLabel={label}
+    >
+      <View style={[styles.optionIcon, selected && styles.optionIconSelected]}>
+        <Icon size={22} strokeWidth={1.8} color={selected ? colors.orange : colors.black} />
+      </View>
+      <Text style={styles.optionLabel} numberOfLines={2}>
+        {label}
+      </Text>
+      <View style={[styles.radio, selected && styles.radioOn]}>{selected ? <Check size={13} strokeWidth={3} color="#ffffff" /> : null}</View>
+    </Pressable>
   )
 }
 
@@ -233,7 +336,7 @@ const BANNER_TONES = {
   danger: { background: '#fdecef', color: '#c2334a' },
 }
 
-// Ilmoitus näkymän yläreunassa (lähetetty / edellinen pyyntö hylättiin).
+// Ilmoitus (lähetetty / edellinen pyyntö hylättiin).
 function Banner({ tone, icon: Icon, title, text }) {
   const { background, color } = BANNER_TONES[tone]
   return (
@@ -247,8 +350,8 @@ function Banner({ tone, icon: Icon, title, text }) {
   )
 }
 
-// Kesken oleva pyyntö: nykyinen ja pyydetty arvo sekä eteneminen aikajanana.
-function PendingRequest({ field, current, request }) {
+// Kesken olevan pyynnön eteneminen aikajanana.
+function Progress({ request }) {
   const t = useT()
   const sentAt = new Date(request.created_at)
   const steps = [
@@ -263,54 +366,31 @@ function PendingRequest({ field, current, request }) {
   const dotStyle = { done: styles.stepDotDone, current: styles.stepDotCurrent, todo: styles.stepDotTodo }
 
   return (
-    <Card style={styles.pendingCard}>
-      <View style={styles.pendingHead}>
-        <Text style={styles.pendingTitle}>{changeFieldLabel(field)}</Text>
-        <StatusPill tone="pending" icon={Clock}>
-          {t('status.pending')}
-        </StatusPill>
-      </View>
-
-      <View style={styles.compare}>
-        <View style={styles.compareRow}>
-          <Text style={styles.compareLabel}>{t('change.current')}</Text>
-          <Text style={styles.compareValue} numberOfLines={1}>
-            {displayChangeValue(field, current)}
-          </Text>
-        </View>
-        <View style={[styles.compareRow, styles.compareRowLast]}>
-          <Text style={styles.compareLabel}>{t('change.requestedValue')}</Text>
-          <Text style={[styles.compareValue, styles.compareValueNew]} numberOfLines={1}>
-            {displayChangeValue(field, request.new_value)}
-          </Text>
-        </View>
-      </View>
-
-      <View>
-        {steps.map((step, index) => (
-          <View key={step.state} style={styles.step}>
-            <View style={styles.stepRail}>
-              <View style={[styles.stepDot, dotStyle[step.state]]}>
-                {step.state === 'done' ? <Check size={12} strokeWidth={3} color="#ffffff" /> : null}
-                {step.state === 'current' ? <View style={styles.stepDotInner} /> : null}
-              </View>
-              {index < steps.length - 1 ? <View style={[styles.stepLine, step.state === 'done' && styles.stepLineDone]} /> : null}
+    <Card title={t('change.progress')} style={styles.progress}>
+      {steps.map((step, index) => (
+        <View key={step.state} style={styles.step}>
+          <View style={styles.stepRail}>
+            <View style={[styles.stepDot, dotStyle[step.state]]}>
+              {step.state === 'done' ? <Check size={13} strokeWidth={3} color="#ffffff" /> : null}
+              {step.state === 'current' ? <View style={styles.stepDotInner} /> : null}
             </View>
-            <View style={styles.stepText}>
-              <Text style={[styles.stepTitle, step.state === 'todo' && styles.stepTitleTodo]}>{step.title}</Text>
-              <Text style={styles.stepBody}>{step.text}</Text>
-            </View>
+            {index < steps.length - 1 ? <View style={[styles.stepLine, step.state === 'done' && styles.stepLineDone]} /> : null}
           </View>
-        ))}
-      </View>
+          <View style={styles.stepText}>
+            <Text style={[styles.stepTitle, step.state === 'todo' && styles.stepTitleTodo]}>{step.title}</Text>
+            <Text style={styles.stepBody}>{step.text}</Text>
+          </View>
+        </View>
+      ))}
     </Card>
   )
 }
 
 const DOCUMENT_TONES = { approved: 'success', pending: 'pending', rejected: 'danger', missing: 'neutral' }
 
-// Muutoksen hyväksymiseen tarvittava dokumentti suoraan pyynnössä: tila ja
-// kuvan lisäys kamerasta tai galleriasta (tallentuu Dokumentteihin).
+// Muutoksen hyväksymiseen tarvittava dokumentti suoraan pyynnössä. Puuttuva tai
+// hylätty: katkoviivainen latausruutu (kamera tai galleria, tallentuu
+// Dokumentteihin). Ladattu: dokumentin tila.
 function RequiredDocument({ type }) {
   const t = useT()
   const { courier } = useAuth()
@@ -342,39 +422,40 @@ function RequiredDocument({ type }) {
   }
 
   return (
-    <Card title={t('change.attachTitle')}>
-      <View style={styles.docRow}>
-        <View style={styles.docIcon}>
-          <FileText size={18} strokeWidth={1.75} color={colors.black} />
-        </View>
-        <View style={styles.docText}>
-          <Text style={styles.docName}>{documentTypeLabel(type)}</Text>
-          {status === 'missing' ? <Text style={styles.docHint}>{t('change.attachHint', { doc: docName })}</Text> : null}
-          {status === 'rejected' && latest?.admin_note ? (
-            <Text style={[styles.docHint, styles.docHintDanger]}>{latest.admin_note}</Text>
-          ) : null}
-        </View>
-        <StatusPill tone={DOCUMENT_TONES[status]}>{documentStatusLabel(status)}</StatusPill>
-      </View>
-
+    <Group title={t('change.attachTitle')}>
       {canUpload ? (
-        <View style={styles.docButton}>
-          <Button
-            variant="secondary"
-            icon={Camera}
-            title={
-              uploading
-                ? t('change.attachUploading')
-                : status === 'rejected'
-                  ? t('change.attachReplace')
-                  : t('change.attachAdd', { doc: docName })
-            }
-            onPress={() => setPicking(true)}
-            disabled={uploading}
-          />
+        <Pressable
+          onPress={() => setPicking(true)}
+          disabled={uploading}
+          style={({ pressed }) => [styles.upload, pressed && styles.uploadPressed]}
+          accessibilityRole="button"
+          accessibilityLabel={status === 'rejected' ? t('change.attachReplace') : t('change.attachAdd', { doc: docName })}
+        >
+          <View style={styles.uploadIcon}>
+            {uploading ? <ActivityIndicator color={colors.orange} /> : <Camera size={22} strokeWidth={1.9} color={colors.orange} />}
+          </View>
+          <View style={styles.uploadText}>
+            <Text style={styles.uploadTitle}>
+              {uploading ? t('change.attachUploading') : status === 'rejected' ? t('change.attachReplace') : t('change.attachAdd', { doc: docName })}
+            </Text>
+            {status === 'rejected' && latest?.admin_note ? (
+              <Text style={[styles.uploadHint, styles.uploadHintDanger]}>{latest.admin_note}</Text>
+            ) : (
+              <Text style={styles.uploadHint}>{t('change.attachNeeded')}</Text>
+            )}
+          </View>
+          {status === 'rejected' ? <StatusPill tone="danger">{documentStatusLabel(status)}</StatusPill> : null}
+        </Pressable>
+      ) : (
+        <View style={styles.docCard}>
+          <View style={styles.docIcon}>
+            <FileText size={18} strokeWidth={1.8} color={colors.black} />
+          </View>
+          <Text style={styles.docName}>{documentTypeLabel(type)}</Text>
+          <StatusPill tone={DOCUMENT_TONES[status]}>{documentStatusLabel(status)}</StatusPill>
         </View>
-      ) : null}
-      {error ? <Text style={[styles.error, styles.docError]}>{error}</Text> : null}
+      )}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <ChoiceSheet
         visible={picking}
@@ -386,7 +467,7 @@ function RequiredDocument({ type }) {
         onSelect={pick}
         onClose={() => setPicking(false)}
       />
-    </Card>
+    </Group>
   )
 }
 
@@ -397,70 +478,170 @@ const styles = StyleSheet.create({
   loading: {
     marginTop: 40,
   },
-  current: {
-    flexDirection: 'row',
+  hero: {
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginTop: 4,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: colors.gray50,
+    gap: 8,
+    paddingTop: 8,
+    paddingBottom: 4,
   },
-  currentLabel: {
-    fontFamily: fonts.medium,
-    fontSize: 14,
-    color: colors.textMuted,
+  heroIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 64,
+    height: 64,
+    marginBottom: 4,
+    borderRadius: 32,
+    backgroundColor: colors.orangeSoft,
   },
-  currentValue: {
-    flexShrink: 1,
-    fontFamily: fonts.semibold,
-    fontSize: 15,
+  heroTitle: {
+    fontFamily: fonts.display,
+    fontSize: 24,
+    letterSpacing: -0.4,
+    textAlign: 'center',
     color: colors.black,
   },
-  fieldLabel: {
-    marginTop: 18,
-    marginBottom: 8,
-    fontFamily: fonts.semibold,
-    fontSize: 14,
-    color: colors.black,
-  },
-  optional: {
+  heroHint: {
+    maxWidth: 360,
     fontFamily: fonts.regular,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
     color: colors.textMuted,
   },
-  input: {
-    minHeight: 52,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 12,
+  focused: {
+    borderColor: FOCUS_BORDER,
+  },
+  compare: {
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: LINE,
+    borderRadius: 18,
+    backgroundColor: colors.surface,
+  },
+  compareHalf: {
+    gap: 4,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+  },
+  compareHalfCurrent: {
+    backgroundColor: '#fafafa',
+  },
+  // Raja puoliskojen välissä ja sen päällä oikeassa reunassa nuolipallo.
+  compareSeam: {
+    height: 1,
+    backgroundColor: LINE,
+  },
+  compareArrow: {
+    position: 'absolute',
+    top: -16,
+    right: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
     borderWidth: 1,
-    borderColor: '#ececec',
-    backgroundColor: colors.gray50,
-    fontFamily: fonts.medium,
-    fontSize: 16,
+    borderColor: LINE,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
+  },
+  compareLabel: {
+    fontFamily: fonts.bold,
+    fontSize: 12,
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+    color: colors.textMuted,
+  },
+  compareCurrent: {
+    fontFamily: fonts.semibold,
+    fontSize: 17,
+    color: colors.textMuted,
+  },
+  compareNew: {
+    fontFamily: fonts.semibold,
+    fontSize: 18,
+    color: colors.black,
+  },
+  compareNewEmpty: {
+    color: colors.gray400,
+  },
+  valueInput: {
+    minHeight: 30,
+    padding: 0,
+    fontFamily: fonts.semibold,
+    fontSize: 18,
     color: colors.black,
     ...Platform.select({ web: { outlineStyle: 'none' }, default: null }),
   },
-  reason: {
-    minHeight: 96,
-    marginBottom: 10,
-    textAlignVertical: 'top',
+  options: {
+    gap: 10,
   },
-  info: {
+  option: {
     flexDirection: 'row',
-    gap: 8,
-    marginHorizontal: 4,
+    alignItems: 'center',
+    gap: 14,
+    minHeight: 68,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderWidth: 1.5,
+    borderColor: LINE,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
   },
-  infoText: {
+  optionSelected: {
+    borderColor: colors.orange,
+    backgroundColor: '#fff8f5',
+  },
+  optionPressed: {
+    transform: [{ scale: 0.985 }],
+  },
+  optionIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: '#f4f4f4',
+  },
+  optionIconSelected: {
+    backgroundColor: colors.orangeSoft,
+  },
+  optionLabel: {
     flex: 1,
+    fontFamily: fonts.semibold,
+    fontSize: 16,
+    color: colors.black,
+  },
+  radio: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: '#d6d8d2',
+    borderRadius: 12,
+  },
+  radioOn: {
+    borderColor: colors.orange,
+    backgroundColor: colors.orange,
+  },
+  reason: {
+    minHeight: 110,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 14,
+    borderWidth: 1.5,
+    borderColor: LINE,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
     fontFamily: fonts.regular,
-    fontSize: 13,
-    lineHeight: 19,
-    color: colors.textMuted,
+    fontSize: 16,
+    lineHeight: 22,
+    color: colors.black,
+    textAlignVertical: 'top',
+    ...Platform.select({ web: { outlineStyle: 'none' }, default: null }),
   },
   error: {
+    marginBottom: 10,
     marginHorizontal: 4,
     fontFamily: fonts.medium,
     fontSize: 14,
@@ -470,7 +651,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 16,
   },
   bannerText: {
     flex: 1,
@@ -486,70 +667,24 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: colors.black,
   },
-  pendingCard: {
+  progress: {
     paddingTop: 18,
-    paddingBottom: 10,
-  },
-  pendingHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-  },
-  pendingTitle: {
-    flexShrink: 1,
-    fontFamily: fonts.display,
-    fontSize: 21,
-    letterSpacing: -0.2,
-    color: colors.black,
-  },
-  compare: {
-    marginTop: 14,
-    marginBottom: 18,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: colors.gray50,
-  },
-  compareRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray200,
-  },
-  compareRowLast: {
-    borderBottomWidth: 0,
-  },
-  compareLabel: {
-    fontFamily: fonts.medium,
-    fontSize: 14,
-    color: colors.textMuted,
-  },
-  compareValue: {
-    flexShrink: 1,
-    fontFamily: fonts.medium,
-    fontSize: 15,
-    color: colors.black,
-  },
-  compareValueNew: {
-    fontFamily: fonts.bold,
+    paddingBottom: 2,
   },
   step: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 14,
   },
   stepRail: {
     alignItems: 'center',
-    width: 22,
+    width: 24,
   },
   stepDot: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
   },
   stepDotDone: {
     backgroundColor: colors.open,
@@ -565,16 +700,17 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
   },
   stepDotInner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: colors.orange,
   },
   stepLine: {
     flex: 1,
     width: 2,
-    minHeight: 18,
-    marginVertical: 3,
+    minHeight: 20,
+    marginVertical: 4,
+    borderRadius: 1,
     backgroundColor: colors.gray200,
   },
   stepLineDone: {
@@ -582,11 +718,11 @@ const styles = StyleSheet.create({
   },
   stepText: {
     flex: 1,
-    paddingBottom: 16,
+    paddingBottom: 18,
   },
   stepTitle: {
     fontFamily: fonts.semibold,
-    fontSize: 15,
+    fontSize: 15.5,
     color: colors.black,
   },
   stepTitleTodo: {
@@ -595,69 +731,104 @@ const styles = StyleSheet.create({
   stepBody: {
     marginTop: 2,
     fontFamily: fonts.regular,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 13.5,
+    lineHeight: 19,
     color: colors.textMuted,
   },
-  docRow: {
+  upload: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
-    paddingVertical: 8,
+    padding: 16,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#d6d8d2',
+    borderRadius: 16,
+    backgroundColor: '#fcfcfb',
+  },
+  uploadPressed: {
+    backgroundColor: '#f2f2f1',
+  },
+  uploadIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.orangeSoft,
+  },
+  uploadText: {
+    flex: 1,
+    gap: 2,
+  },
+  uploadTitle: {
+    fontFamily: fonts.semibold,
+    fontSize: 16,
+    color: colors.black,
+  },
+  uploadHint: {
+    fontFamily: fonts.regular,
+    fontSize: 13.5,
+    lineHeight: 19,
+    color: colors.textMuted,
+  },
+  uploadHintDanger: {
+    color: '#c2334a',
+  },
+  docCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    minHeight: 64,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: LINE,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
   },
   docIcon: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 34,
-    height: 34,
-    borderRadius: 9,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     backgroundColor: '#f4f4f4',
   },
-  docText: {
-    flex: 1,
-    gap: 2,
-  },
   docName: {
-    fontFamily: fonts.medium,
-    fontSize: 16,
+    flex: 1,
+    fontFamily: fonts.semibold,
+    fontSize: 15.5,
     color: colors.black,
-  },
-  docHint: {
-    fontFamily: fonts.regular,
-    fontSize: 13,
-    lineHeight: 18,
-    color: colors.textMuted,
-  },
-  docHintDanger: {
-    color: '#c2334a',
-  },
-  docButton: {
-    marginTop: 6,
-    marginBottom: 10,
-  },
-  docError: {
-    marginBottom: 10,
   },
   done: {
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 28,
+    paddingTop: 48,
+    paddingHorizontal: 12,
+  },
+  doneIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 80,
+    height: 80,
+    marginBottom: 8,
+    borderRadius: 40,
+    backgroundColor: '#e8f6ee',
   },
   doneTitle: {
-    marginTop: 4,
     fontFamily: fonts.display,
-    fontSize: 21,
+    fontSize: 24,
+    letterSpacing: -0.4,
+    textAlign: 'center',
     color: colors.black,
   },
   doneText: {
+    maxWidth: 320,
     textAlign: 'center',
     fontFamily: fonts.regular,
     fontSize: 15,
     lineHeight: 21,
     color: colors.textMuted,
-  },
-  doneButton: {
-    alignSelf: 'stretch',
-    marginTop: 12,
   },
 })

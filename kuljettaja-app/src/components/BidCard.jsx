@@ -1,15 +1,24 @@
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, Animated, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { House, Minus, Plus, Utensils } from 'lucide-react-native'
+import { House, Minus, Pencil, Plus, Utensils } from 'lucide-react-native'
 import CollapsibleCard from './CollapsibleCard'
-import { DELIVERY_BID, clampBidCents, courierShareCents } from '../../../frontend/src/lib/deliveryTime'
+import {
+  DELIVERY_BID,
+  bidInputText,
+  clampBidCents,
+  courierShareCents,
+  isBidInRange,
+  parseBidInput,
+} from '../../../frontend/src/lib/deliveryTime'
 import { formatEuro, formatKm } from '../lib/format'
 import { useT } from '../lib/i18n'
+import { useKeyboardHeight } from '../lib/keyboard'
 import { colors, fonts } from '../theme'
 
 const useNativeDriver = Platform.OS !== 'web'
-// Hinnan säätö 50 sentin askelin.
+// Hinnan pikasäätö 50 sentin askelin. Tarkan summan (esim. 3,76 €) voi
+// kirjoittaa suoraan hintakenttään (käyttäjän pyyntö 28.10.2026).
 const STEP_CENTS = 50
 
 // Ehdotus matkan mukaan: 1,99 € + 0,60 €/km, x,49- tai x,99-hintana haarukassa.
@@ -35,7 +44,13 @@ export default function BidCard({ request, position, total, busy, onBid, onWithd
   // Animaatioarvo tilassa (ei ref-lukua renderöinnissä); kortti nousee alhaalta.
   const [enter] = useState(() => new Animated.Value(1))
   const hasOpenBid = request.myBidStatus === 'offered'
-  const [draft, setDraft] = useState(() => request.myBidCents ?? suggestedPrice(request))
+  // Hinta kirjoitettuna tekstinä ("3,76"); kelvollinen vain haarukassa 1,99–7,99 €.
+  const [text, setText] = useState(() => bidInputText(request.myBidCents ?? suggestedPrice(request)))
+  const parsed = parseBidInput(text)
+  const draft = isBidInRange(parsed) ? parsed : null
+  // Pikasäätö ja kentästä poistuminen lähtevät viimeisimmästä luvusta haarukkaan rajattuna.
+  const base = clampBidCents(parsed ?? request.myBidCents ?? suggestedPrice(request))
+  const keyboardHeight = useKeyboardHeight()
   const [error, setError] = useState(null)
   const [seconds, setSeconds] = useState(() => secondsLeft(request.expiresAt))
 
@@ -52,6 +67,15 @@ export default function BidCard({ request, position, total, busy, onBid, onWithd
   const translateY = enter.interpolate({ inputRange: [0, 1], outputRange: [0, 420] })
   const customerOffer = request.customerOfferCents
   const unchanged = hasOpenBid && draft === request.myBidCents
+
+  const changeText = (value) => {
+    setText(value.replace(/[^\d,.]/g, '').slice(0, 5))
+    setError(null)
+  }
+  const stepBy = (delta) => {
+    setText(bidInputText(clampBidCents(base + delta)))
+    setError(null)
+  }
 
   async function submit(price) {
     setError(null)
@@ -100,25 +124,42 @@ export default function BidCard({ request, position, total, busy, onBid, onWithd
 
       <View style={styles.priceRow}>
         <Pressable
-          onPress={() => setDraft((value) => clampBidCents(value - STEP_CENTS))}
-          disabled={draft <= DELIVERY_BID.minCents}
-          style={({ pressed }) => [styles.stepButton, pressed && styles.pressed, draft <= DELIVERY_BID.minCents && styles.disabled]}
+          onPress={() => stepBy(-STEP_CENTS)}
+          disabled={base <= DELIVERY_BID.minCents}
+          style={({ pressed }) => [styles.stepButton, pressed && styles.pressed, base <= DELIVERY_BID.minCents && styles.disabled]}
           accessibilityRole="button"
           accessibilityLabel={t('bid.lower')}
           hitSlop={6}
         >
           <Minus size={20} strokeWidth={2.4} color={colors.black} />
         </Pressable>
+        {/* Hinta on kenttä: napauttamalla voi kirjoittaa tarkan summan. Kentästä
+            poistuttaessa haarukan ulkopuolinen luku rajataan lähimpään sallittuun. */}
         <View style={styles.priceBox}>
-          <Text style={styles.price}>{formatEuro(draft)}</Text>
-          {DELIVERY_BID.courierSharePercent < 100 ? (
-            <Text style={styles.share}>{t('bid.youGet', { amount: formatEuro(courierShareCents(draft)) })}</Text>
-          ) : null}
+          <View style={styles.priceField}>
+            <TextInput
+              value={text}
+              onChangeText={changeText}
+              onBlur={() => setText(bidInputText(base))}
+              keyboardType="decimal-pad"
+              selectTextOnFocus
+              maxLength={5}
+              style={[styles.price, styles.priceInput, draft == null && styles.priceInvalid]}
+              accessibilityLabel={t('bid.priceLabel')}
+            />
+            <Text style={[styles.price, draft == null && styles.priceInvalid]}> €</Text>
+            <Pencil size={15} strokeWidth={2.2} color={colors.textMuted} style={styles.pencil} />
+          </View>
+          <Text style={[styles.share, draft == null && styles.rangeError]}>
+            {draft != null && DELIVERY_BID.courierSharePercent < 100
+              ? t('bid.youGet', { amount: formatEuro(courierShareCents(draft)) })
+              : t('bid.range', { min: formatEuro(DELIVERY_BID.minCents), max: formatEuro(DELIVERY_BID.maxCents) })}
+          </Text>
         </View>
         <Pressable
-          onPress={() => setDraft((value) => clampBidCents(value + STEP_CENTS))}
-          disabled={draft >= DELIVERY_BID.maxCents}
-          style={({ pressed }) => [styles.stepButton, pressed && styles.pressed, draft >= DELIVERY_BID.maxCents && styles.disabled]}
+          onPress={() => stepBy(STEP_CENTS)}
+          disabled={base >= DELIVERY_BID.maxCents}
+          style={({ pressed }) => [styles.stepButton, pressed && styles.pressed, base >= DELIVERY_BID.maxCents && styles.disabled]}
           accessibilityRole="button"
           accessibilityLabel={t('bid.raise')}
           hitSlop={6}
@@ -129,8 +170,13 @@ export default function BidCard({ request, position, total, busy, onBid, onWithd
 
       <Pressable
         onPress={() => submit(draft)}
-        disabled={busy || unchanged}
-        style={({ pressed }) => [styles.submit, unchanged && styles.submitWaiting, pressed && styles.pressed]}
+        disabled={busy || unchanged || draft == null}
+        style={({ pressed }) => [
+          styles.submit,
+          unchanged && styles.submitWaiting,
+          draft == null && styles.disabled,
+          pressed && styles.pressed,
+        ]}
         accessibilityRole="button"
       >
         {busy ? (
@@ -140,8 +186,8 @@ export default function BidCard({ request, position, total, busy, onBid, onWithd
             {unchanged
               ? t('bid.waitingCustomer')
               : hasOpenBid
-                ? t('bid.update', { amount: formatEuro(draft) })
-                : t('bid.offer', { amount: formatEuro(draft) })}
+                ? t('bid.update', { amount: formatEuro(draft ?? base) })
+                : t('bid.offer', { amount: formatEuro(draft ?? base) })}
           </Text>
         )}
       </Pressable>
@@ -160,8 +206,9 @@ export default function BidCard({ request, position, total, busy, onBid, onWithd
       header={header}
       footer={footer}
       onHeightChange={onHeightChange}
-      paddingBottom={insets.bottom + 16}
-      style={{ transform: [{ translateY }] }}
+      // Hintaa kirjoitettaessa kortti nousee näppäimistön yläpuolelle (kuten ActiveGigCard).
+      paddingBottom={keyboardHeight ? 14 : insets.bottom + 16}
+      style={[{ transform: [{ translateY }] }, keyboardHeight ? { bottom: keyboardHeight } : null]}
     >
       <View style={styles.places}>
         <Place
@@ -288,6 +335,25 @@ const styles = StyleSheet.create({
   priceBox: {
     flex: 1,
     alignItems: 'center',
+  },
+  priceField: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  priceInput: {
+    minWidth: 40,
+    padding: 0,
+    textAlign: 'right',
+    ...Platform.select({ web: { outlineStyle: 'none', width: 90 }, default: null }),
+  },
+  priceInvalid: {
+    color: colors.danger,
+  },
+  pencil: {
+    marginLeft: 6,
+  },
+  rangeError: {
+    color: colors.danger,
   },
   price: {
     fontFamily: fonts.display,

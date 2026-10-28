@@ -218,15 +218,17 @@ const RELATED_FILLER_CATEGORIES = {
 }
 
 // Ruokasanat, joilla kategorian täytteet löytyvät vaikka sana ei esiinny
-// kategorian nimessä ("pasta" -> Italialainen).
+// kategorian nimessä ("pasta" -> Italialainen). "kiinalainen" ja "aamiainen"
+// ovat kategorialaatikoita ilman omia ravintoloita (28.10.2026): ne löytävät
+// aasialaiset ja kahvilat, ettei laatikko vie tyhjään hakuun.
 const CATEGORY_SEARCH_KEYWORDS = {
   Burgerit: ['hampurilainen', 'ranskalaiset'],
   'Kebab & Pizza': ['pita', 'rulla', 'grilli'],
   Italialainen: ['pasta', 'pizza', 'lasagne', 'risotto'],
-  Aasialainen: ['sushi', 'wok', 'nuudeli', 'ramen', 'thai'],
+  Aasialainen: ['sushi', 'wok', 'nuudeli', 'ramen', 'thai', 'kiinalainen'],
   Salaatit: ['bowl', 'kasvis', 'vegaani'],
   Kotiruoka: ['lounas', 'keitto', 'lihapullat'],
-  Kahvila: ['kahvi', 'kakku', 'leivos', 'pulla'],
+  Kahvila: ['kahvi', 'kakku', 'leivos', 'pulla', 'aamiainen', 'brunssi'],
 }
 
 function categoryText(category) {

@@ -226,7 +226,6 @@
    promo-kuva toimivat hyvin. Nämä säännöt ovat tiedoston lopussa, jotta ne
    voittavat yllä olevat yleiset säännöt samalla spesifisyydellä. */
 .home-mobile-top,
-.home-quick-cats,
 .home-promo {
   display: none;
 }
@@ -355,33 +354,6 @@
     height: 12px;
   }
 
-  /* Tarttuu headerin alareunaan vieritettäessä ja pysyy näkyvissä.
-     Kategoriat ikoni + nimi -pillereinä kuten työpöydän palkissa
-     (MobileCategoryRow.jsx, CategoryPill.css). */
-  .home-quick-cats {
-    /* display kumoaa työpöydän display:none:n (tiedoston alussa). */
-    display: block;
-    position: sticky;
-    top: calc(var(--home-header-h) + env(safe-area-inset-top, 0px));
-    z-index: 40;
-    margin: 0 -16px;
-    background: #ffffff;
-    box-shadow: 0 1px 0 var(--border);
-  }
-
-  /* Pillerit: CategoryPill.css. Sama 16px reuna kuin sivun sisällöllä. */
-  .home-quick-cats__row {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 8px 16px;
-  }
-
-  .home-quick-cats__row::-webkit-scrollbar {
-    display: none;
-  }
-
   /* Kategorialaatikot haun aloitusnäkymässä: värikkäät pyöristetyt laatikot,
      nimi laatikon alla. */
   .home-cat-tile {
@@ -437,15 +409,14 @@
     text-align: center;
   }
 
-  /* Ettei pikavalinnan hyppy jätä otsikkoa headerin JA sen alla roikkuvan
-     sticky-kategoriarivin alle. */
+  /* Ettei hyppy ravintolariviin (bannerin "Tilaa nyt") jätä otsikkoa headerin
+     alle. Mobiilin kategoriarivi poistettiin 28.10.2026 (käyttäjän pyyntö). */
   .category-row {
-    scroll-margin-top: calc(var(--home-header-h) + env(safe-area-inset-top, 0px) + 92px);
+    scroll-margin-top: calc(var(--home-header-h) + env(safe-area-inset-top, 0px) + 20px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-quick-cats,
   .home-cat-tile,
   .home-cat-tile__art,
   .home-cat-tile__label,
@@ -616,15 +587,16 @@
     background: var(--surface-muted);
   }
 
+/* Aloitustilassa kategoriat rivittyvät ruudukkoon, eivät vaakavieritykseen.
+   Neljä saraketta koko leveydelle, ettei oikeaan reunaan jää tyhjää. */
 .home-search-cats {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px 10px;
 }
 
-/* Aloitustilassa kategoriat rivittyvät ruudukkoon, eivät vaakavieritykseen. */
 .home-search-cats .home-cat-tile {
-  width: 72px;
+  width: auto;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -692,7 +664,18 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(12, 13, 9, 0.72) 0%, rgba(12, 13, 9, 0.45) 42%, rgba(12, 13, 9, 0) 75%);
+  /* Pehmeä, tasaisesti häipyvä liukuma (käyttäjän pyyntö 28.10.2026: aiempi
+     0,72 -> 0 oli liian räväkkä ja tummensi ruoan). Useampi välipiste, ettei
+     liukuman loppuun jää näkyvää rajaa. */
+  background: linear-gradient(
+    90deg,
+    rgba(12, 13, 9, 0.52) 0%,
+    rgba(12, 13, 9, 0.44) 20%,
+    rgba(12, 13, 9, 0.3) 36%,
+    rgba(12, 13, 9, 0.16) 50%,
+    rgba(12, 13, 9, 0.06) 62%,
+    rgba(12, 13, 9, 0) 72%
+  );
 }
 
 .home-ad__content {
@@ -765,6 +748,13 @@
   color: #fff;
 }
 
+/* Koodidiat (esim. TERVETULOA): koodirivi kertoo jo pääasian, joten otsikko on
+   pienempi ja mahtuu kahdelle riville (käyttäjän pyyntö 28.10.2026). */
+.home-ad__slide--code .home-ad__title {
+  max-width: 66%;
+  font-size: 1.85rem;
+}
+
 /* Pallot bannerin ALLA sivun taustalla, kuten uudessa ilmeessä. */
 .home-ad__dots {
   display: flex;
@@ -821,6 +811,10 @@
 
   .home-ad__title {
     font-size: 1.3rem;
+  }
+
+  .home-ad__slide--code .home-ad__title {
+    font-size: 1.24rem;
   }
 
   .home-ad__cta {
@@ -899,175 +893,6 @@
   }
 }
 
-/* Noutokuponki kategoriarivien välissä (PickupOfferBanner): tumma kortti,
-   vasemmalla iso oranssi prosentti, katkoviiva ja leikatut lovet kuin
-   kupongissa, oikealla koodinappi joka kopioi koodin. */
-.pickup-offer {
-  --offer-deal-width: 132px;
-  position: relative;
-  display: grid;
-  grid-template-columns: var(--offer-deal-width) 1fr auto;
-  align-items: center;
-  overflow: hidden;
-  border-radius: 20px;
-  background:
-    radial-gradient(120% 140% at 100% 0%, rgba(244, 80, 30, 0.28), transparent 55%),
-    var(--delivo-black);
-  color: #fff;
-}
-
-.pickup-offer__deal {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  align-self: stretch;
-  padding: 20px 8px;
-  border-right: 2px dashed rgba(255, 255, 255, 0.22);
-}
-
-/* Lovet katkoviivan päissä: sivun taustan värisiä puoliympyröitä. */
-.pickup-offer__deal::before,
-.pickup-offer__deal::after {
-  content: '';
-  position: absolute;
-  right: -10px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--delivo-bg);
-}
-
-.pickup-offer__deal::before {
-  top: -9px;
-}
-
-.pickup-offer__deal::after {
-  bottom: -9px;
-}
-
-.pickup-offer__percent {
-  font-family: var(--font-display);
-  font-size: 2.6rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.04em;
-  color: var(--delivo-orange);
-}
-
-.pickup-offer__percent small {
-  margin-left: 2px;
-  font-size: 0.55em;
-  letter-spacing: 0;
-}
-
-.pickup-offer__deal-label {
-  margin-top: 4px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.pickup-offer__body {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-  padding: 20px 22px;
-}
-
-.pickup-offer__title {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 700;
-}
-
-.pickup-offer__text {
-  font-size: 0.85rem;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.72);
-}
-
-.pickup-offer__code {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin-right: 22px;
-  padding: 10px 14px;
-  border: 1.5px dashed rgba(255, 255, 255, 0.55);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
-  font: inherit;
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.pickup-offer__code:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.pickup-offer__code:active {
-  transform: scale(0.97);
-}
-
-.pickup-offer__code--copied,
-.pickup-offer__code--copied:hover {
-  border-style: solid;
-  border-color: var(--delivo-orange);
-  background: var(--delivo-orange);
-  letter-spacing: 0.02em;
-}
-
-/* Puhelimella koodinappi tekstin alle, prosentti pienempänä. */
-@media (max-width: 560px) {
-  .pickup-offer {
-    --offer-deal-width: 96px;
-    grid-template-columns: var(--offer-deal-width) 1fr;
-    border-radius: 18px;
-  }
-
-  .pickup-offer__deal {
-    grid-row: span 2;
-    padding: 16px 6px;
-  }
-
-  .pickup-offer__percent {
-    font-size: 2rem;
-  }
-
-  .pickup-offer__deal-label {
-    font-size: 0.66rem;
-  }
-
-  .pickup-offer__body {
-    padding: 16px 16px 10px;
-  }
-
-  .pickup-offer__title {
-    font-size: 1rem;
-  }
-
-  .pickup-offer__text {
-    font-size: 0.78rem;
-  }
-
-  .pickup-offer__code {
-    justify-self: start;
-    margin: 0 16px 16px;
-    padding: 7px 12px;
-    font-size: 0.82rem;
-  }
-}
-
-
-
 /* Bannerissa ei ole "Tilaa nyt" -nappia: koko kortti on nappi (käyttäjän pyyntö
    27.10.2026, ensin puhelimelle ja sitten työpöydälle). Nappi venytetään kortin
    päälle näkymättömänä - sama toiminto ja ruudunlukija kuulee yhä "Tilaa nyt".
@@ -1138,10 +963,7 @@
   }
 }
 
-/* Työpöydällä ruokakuvabannereissa ei tummennusta (käyttäjän pyyntö 27.10.2026) -
-   kuvat kuten ennen. Puhelimella tummennus jää isomman tekstin taustaksi. */
-@media (min-width: 561px) {
-  .home-ad__slide--photo::before {
-    content: none;
-  }
-}
+/* Työpöydällä ruokakuvissa oli 27.10.2026 alkaen tummennus pois (vanha oli liian
+   räväkkä). 28.10.2026 pehmeä tummennus (yllä) otettiin käyttöön myös työpöydällä
+   (käyttäjän pyyntö siistiä työpöydän kuvat): ilman sitä valkoinen teksti katosi
+   vaaleiden ja kirjavien kuvien (kebab, Volkan) päälle. */

@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Constants from 'expo-constants'
 import { ChevronRight, CircleHelp, FileText, History, LogOut, Settings, Wallet, X } from 'lucide-react-native'
 import DelivoLogo from './DelivoLogo'
+import { CourierAvatar } from './ui'
 import { useAuth } from '../lib/auth'
 import { useCourier } from '../lib/courier'
 import { formatEuro, isSameDay } from '../lib/format'
@@ -144,18 +145,23 @@ export default function SideMenu({ open, onClose, onNavigate }) {
             accessibilityRole="button"
             accessibilityLabel={t('menu.profile', { name: profile.name })}
           >
-            <Text style={styles.label}>{t('common.courier')}</Text>
-            <View style={styles.nameRow}>
-              <Text style={styles.name} numberOfLines={1}>
-                {profile.name}
-              </Text>
-              <ChevronRight size={22} strokeWidth={2} color={colors.gray400} />
-            </View>
-            <View style={styles.statusRow}>
-              <View style={[styles.statusDot, { backgroundColor: online ? colors.open : colors.gray400 }]} />
-              <Text style={styles.statusText} numberOfLines={1}>
-                {online ? t('common.online') : t('common.offline')} · {t(`vehicle.${profile.vehicle}`)}
-              </Text>
+            <View style={styles.identityTop}>
+              <CourierAvatar name={profile.name} size={60} />
+              <View style={styles.identityText}>
+                <Text style={styles.label}>{t('common.courier')}</Text>
+                <View style={styles.nameRow}>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {profile.name}
+                  </Text>
+                  <ChevronRight size={22} strokeWidth={2} color={colors.gray400} />
+                </View>
+                <View style={styles.statusRow}>
+                  <View style={[styles.statusDot, { backgroundColor: online ? colors.open : colors.gray400 }]} />
+                  <Text style={styles.statusText} numberOfLines={1}>
+                    {online ? t('common.online') : t('common.offline')} · {t(`vehicle.${profile.vehicle}`)}
+                  </Text>
+                </View>
+              </View>
             </View>
             <Text style={styles.today}>
               {t('menu.today')} <Text style={styles.todayValue}>{formatEuro(today.total)}</Text> · {today.count}{' '}
@@ -242,6 +248,15 @@ const styles = StyleSheet.create({
   identityPressed: {
     opacity: 0.6,
   },
+  // Profiilikuva nimen vasemmalla puolella (sama kuin asetusten profiilikortissa).
+  identityTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  identityText: {
+    flex: 1,
+  },
   label: {
     fontFamily: fonts.medium,
     fontSize: 14,
@@ -256,7 +271,7 @@ const styles = StyleSheet.create({
   name: {
     flex: 1,
     fontFamily: fonts.display,
-    fontSize: 28,
+    fontSize: 26,
     letterSpacing: -0.6,
     color: colors.black,
   },

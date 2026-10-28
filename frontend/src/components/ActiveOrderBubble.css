@@ -1,28 +1,30 @@
-/* "Seuraa tilausta": kelluva kupla käynnissä olevalle tilaukselle. Työpöydällä
-   oikeassa alakulmassa, puhelimella koko levyinen palkki alareunassa. Kääre
-   (raahattava, ActiveOrderBubble.jsx), jonka sisällä seurantanappi ja
-   pienennysnappi - pienennettynä pelkkä aikalaatta. */
+/* "Seuraa tilausta": kelluva pilleri käynnissä olevalle tilaukselle. Työpöydällä
+   oikeassa alakulmassa, puhelimella vasemmassa alakulmassa (etusivun
+   ostoskoripallo on oikeassa). Kääre on raahattava (ActiveOrderBubble.jsx).
+
+   Ilme 28.10.2026 (käyttäjän valinta "pieni pilleri"): matala yksirivinen
+   pilleri samalla kiiltävällä oranssilla kuin etusivun ostoskoripallo -
+   ravintolan logo valkoisen edistymisrenkaan sisällä, aika ja nuoli.
+   Tila, ravintola ja vaiheet näkyvät seurannassa (OrderTrackingModal). */
 .active-order-bubble {
   position: fixed;
   right: 24px;
   bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   z-index: 900;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 280px;
-  padding: 8px 8px 8px 10px;
-  border-radius: 18px;
-  background: var(--delivo-black);
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 55%),
+    linear-gradient(120deg, #ff9b5c 0%, var(--delivo-orange) 48%, #e2380c 100%);
   color: #fff;
-  box-shadow: 0 14px 34px -10px rgba(20, 21, 15, 0.5);
+  box-shadow: 0 12px 24px -10px rgba(226, 56, 12, 0.6);
   /* Pitkä painallus + raahaus (ActiveOrderBubble.jsx): selain ei saa aloittaa
      sivun vieritystä, tekstinvalintaa eikä pitkän painalluksen valikkoa. */
   touch-action: none;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   user-select: none;
-  animation: active-order-bubble-in 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: active-order-bubble-in 0.35s cubic-bezier(0.32, 0.72, 0, 1);
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -30,86 +32,46 @@
   transform: translateY(-2px);
 }
 
+.active-order-bubble:active {
+  transform: scale(0.97);
+}
+
 /* Nostettu raahattavaksi: hieman suurempi ja syvempi varjo. */
 .active-order-bubble.is-dragging {
-  transform: scale(1.03);
-  box-shadow: 0 24px 48px -12px rgba(20, 21, 15, 0.6);
+  transform: scale(1.04);
+  box-shadow: 0 18px 34px -12px rgba(226, 56, 12, 0.7);
   cursor: grabbing;
 }
 
 .active-order-bubble button:focus-visible {
-  outline: 2px solid var(--delivo-orange);
+  outline: 2px solid var(--delivo-black);
   outline-offset: 3px;
 }
 
-/* Seurantanappi: aikalaatta + teksti, vie koko jäljelle jäävän leveyden. */
-.active-order-bubble__main,
-.active-order-bubble__box {
-  padding: 0;
+/* Koko pilleri on seurannan avaava nappi: logo, aika ja nuoli. */
+.active-order-bubble__main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 52px;
+  padding: 0 12px 0 5px;
   border: none;
+  border-radius: inherit;
   background: none;
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
-  animation: active-order-bubble-pop 0.2s ease;
 }
 
-.active-order-bubble__main {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-  border-radius: 12px;
-}
-
-.active-order-bubble__minimize {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.85);
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.active-order-bubble__minimize:hover {
-  background: rgba(255, 255, 255, 0.18);
-}
-
-/* Pienennetty: pelkkä aikalaatta tummassa laatikossa. */
-.active-order-bubble.is-minimized {
-  min-width: 0;
-  padding: 6px;
-  border-radius: 16px;
-}
-
-.active-order-bubble__box {
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-}
-
-@keyframes active-order-bubble-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-}
-
-/* delivon merkki ja edistymisrengas (käyttäjä: oranssi minuuttilaatta pois,
-   tilalle logo). Rengas täyttyy kohti arvioitua aikaa. */
+/* Ravintolan logo ja valkoinen edistymisrengas, joka täyttyy kohti arvioitua aikaa. */
 .active-order-bubble__mark {
+  position: relative;
   display: block;
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   flex-shrink: 0;
+  border-radius: 50%;
 }
 
 .active-order-bubble__mark svg {
@@ -121,11 +83,11 @@
 .active-order-bubble__ring-track,
 .active-order-bubble__ring {
   fill: none;
-  stroke-width: 3;
+  stroke-width: 3.4;
 }
 
 .active-order-bubble__ring-track {
-  stroke: rgba(255, 255, 255, 0.16);
+  stroke: rgba(255, 255, 255, 0.32);
 }
 
 .active-order-bubble__ring {
@@ -150,25 +112,44 @@
   }
 }
 
-.active-order-bubble__text {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
+/* Ravintolan logo renkaan sisällä (logo_url, muuten kansikuva). Sijainti
+   osuuksina, jotta logo pysyy renkaan keskellä merkin koosta riippumatta. */
+.active-order-bubble__logo {
+  position: absolute;
+  top: 17%;
+  left: 17%;
+  width: 66%;
+  height: 66%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+}
+
+/* Kuvaton ravintola: valkoinen pallo ja oranssi ostoskassi renkaan sisällä. */
+.active-order-bubble__fallback {
+  position: absolute;
+  top: 17%;
+  left: 17%;
+  display: grid;
+  place-items: center;
+  width: 66%;
+  height: 66%;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--delivo-orange);
 }
 
 .active-order-bubble__title {
   font-size: 0.95rem;
   font-weight: 700;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(150, 40, 8, 0.25);
 }
 
-.active-order-bubble__status {
-  overflow: hidden;
-  font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.72);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.active-order-bubble__chevron {
+  flex-shrink: 0;
+  margin-left: -2px;
+  opacity: 0.9;
 }
 
 @keyframes active-order-bubble-in {
@@ -178,43 +159,21 @@
   }
 }
 
+/* Puhelimella vasempaan alakulmaan: etusivun ostoskoripallo on oikeassa
+   samalla korkeudella, ja pilleri mahtuu sen viereen. */
 @media (max-width: 560px) {
   .active-order-bubble {
-    left: 14px;
-    right: 14px;
-    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
-    min-width: 0;
-  }
-
-  /* Pienennettynä ei koko levyinen - laatikko oikeaan reunaan. */
-  .active-order-bubble.is-minimized {
-    left: auto;
-  }
-
-  /* Etusivun kelluva ostoskorinappi on samassa kohdassa - nostetaan kupla
-     sen yläpuolelle, kun kori ei ole tyhjä. */
-  body:has(.home-cart-fab) .active-order-bubble {
-    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+    left: 16px;
+    right: auto;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .active-order-bubble,
-  .active-order-bubble__ring.is-waiting,
-  .active-order-bubble__main,
-  .active-order-bubble__box {
-    animation: none;
-  }
-
-  .active-order-bubble:hover {
-    transform: none;
-  }
-}
-
-/* Kuljettajien hintatarjouksia odottaa valintaa: merkki sykkii. */
-.active-order-bubble.has-bids .active-order-bubble__mark {
-  border-radius: 50%;
-  animation: active-order-bubble-attention 1.6s ease-out infinite;
+/* Kuljettajien hintatarjouksia odottaa valintaa: pilleri sykkii. */
+.active-order-bubble.has-bids {
+  animation:
+    active-order-bubble-in 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+    active-order-bubble-attention 1.6s ease-out infinite;
 }
 
 @keyframes active-order-bubble-attention {
@@ -227,23 +186,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .active-order-bubble.has-bids .active-order-bubble__mark {
+  .active-order-bubble,
+  .active-order-bubble.has-bids,
+  .active-order-bubble__ring.is-waiting {
     animation: none;
   }
-}
 
-/* Ravintolan logo renkaan sisällä (logo_url, muuten kansikuva). */
-.active-order-bubble__mark {
-  position: relative;
-}
-
-.active-order-bubble__logo {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #fff;
+  .active-order-bubble:hover,
+  .active-order-bubble:active {
+    transform: none;
+  }
 }

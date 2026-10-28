@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom'
 import AccountMenu from '../components/AccountMenu.jsx'
 import Footer from '../components/Footer.jsx'
 import Header from '../components/Header.jsx'
-import RankingInfo from '../components/RankingInfo.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import Spinner from '../components/Spinner.jsx'
 import { getRestaurants } from '../lib/api.js'
@@ -166,7 +165,6 @@ function CategoryPage() {
             ))}
           </div>
         )}
-        {matching.length > 0 && <RankingInfo />}
       </main>
 
       <Footer />

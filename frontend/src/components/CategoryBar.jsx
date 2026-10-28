@@ -13,8 +13,8 @@ import './CategoryBar.css'
 // on nuolet silloin kun sivuun jää piiloon nimiä.
 //
 // Alas vieritettäessä palkki liukuu headerin alle piiloon ja ylös vieritettäessä
-// takaisin (käyttäjän pyyntö 27.10.2026). Vain työpöydällä: puhelimen
-// kategoriarivi (MobileCategoryRow) pysyy aina kiinni.
+// takaisin (käyttäjän pyyntö 27.10.2026). Vain työpöydällä: puhelimella ei ole
+// kategoriariviä (poistettiin 28.10.2026).
 const HIDE_AFTER_PX = 80
 // Pieni liike (esim. kosketuslevyn värinä) ei vaihda tilaa.
 const SCROLL_SLOP_PX = 6
