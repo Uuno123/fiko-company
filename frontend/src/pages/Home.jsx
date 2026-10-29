@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Bike, ChevronDown, Clock, Percent, ShoppingBag, Smile } from 'lucide-react'
+import { ArrowRight, Bike, ChevronDown, Percent, ShoppingBag, Smile } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import CategoryBar from '../components/CategoryBar.jsx'
 import Footer from '../components/Footer.jsx'
@@ -43,7 +43,8 @@ const SEARCH_CATEGORIES_WITH_FILLERS = CATEGORY_NAMES.filter((name) => searchFil
 const NEARBY_COUNT = 10
 const NEARBY_ROW = 'Lähelläsi'
 // Pikavalintapillerien ikonit (ehdot ja hakusanat: lib/quickFilters.js).
-const QUICK_FILTER_ICONS = { fast: Clock, free: Bike, top: Smile }
+// "Alle 30 min" ilman ikonia (käyttäjän pyyntö 29.10.2026).
+const QUICK_FILTER_ICONS = { free: Bike, top: Smile }
 // Rivien otsikot mainoslauseina kategorian nimen sijaan (CATEGORY_SLOGANS,
 // lib/categories.js). Vain otsikko vaihtuu: suodattimet, osoitteet
 // (/kategoria/...) ja ruudunlukijan nuolinapit käyttävät edelleen kategorian
@@ -568,16 +569,15 @@ function Home() {
         </div>
 
         <div className="home-mobile-top">
-          {/* Kategoriat pieninä laattoina vaakarivissä harmaalla taustalla: samat
-              kuvat kuin haun värikkäissä laatikoissa, mutta pastellitausta harmaana
-              (public/category-*-gray.webp, käyttäjän pyyntö 29.10.2026). */}
+          {/* Kategoriat pieninä kuvalaattoina vaakarivissä: oikeat ruokavalokuvat
+              (CATEGORY_TILE_META, käyttäjän pyyntö 29.10.2026). */}
           <nav className="home-cats" aria-label="Kategoriat">
             {searchCategories.map((category) => {
               const tile = CATEGORY_TILE_META[category] ?? DEFAULT_TILE_META
               return (
                 <Link key={category} to={`/kategoria/${categorySlug(category)}`} className="home-cat-tile">
                   <span className="home-cat-tile__art" aria-hidden="true">
-                    {tile.img ? <img src={tile.img.replace(/\.jpg$/, '-gray.webp')} alt="" /> : tile.emoji}
+                    {tile.img ? <img src={tile.img} alt="" /> : tile.emoji}
                   </span>
                   <span className="home-cat-tile__label">{category}</span>
                 </Link>
@@ -596,7 +596,7 @@ function Home() {
               const Icon = QUICK_FILTER_ICONS[id]
               return (
                 <Link key={id} to={`/haku?q=${encodeURIComponent(query)}`} className="home-quick-pill">
-                  <Icon size={16} strokeWidth={2.2} aria-hidden="true" />
+                  {Icon && <Icon size={16} strokeWidth={2.2} aria-hidden="true" />}
                   {query}
                 </Link>
               )

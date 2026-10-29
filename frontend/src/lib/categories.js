@@ -327,25 +327,37 @@ export const ALL = 'Kaikki'
 // näitä yhdeksää ei ole) - laatikko ja kategoriasivu ovat siis olemassa,
 // mutta niissä ei näytetä yhtään korttia ennen kuin oikea ravintola liittyy.
 //
-// Kuvat ovat 3D-kuvituksia omalla pastellitaustallaan, joten laatikko ei
-// tarvitse omaa taustaväriä - kuva täyttää sen.
+// Kuvat ovat oikeita ruokavalokuvia Unsplashista (käyttäjän pyyntö 29.10.2026,
+// tekoälykuvitusten tilalle), neliöiksi rajattuina 240 px WebP-kuvina. Unsplash
+// License: ilmainen myös kaupalliseen käyttöön, mainintaa ei vaadita, mutta
+// kuvaajat kirjattu tähän (unsplash.com/photos/<id>):
+//   burger: amirali mirhashemian (jh5XyK4Rr3Y), pizza: David Foodphototasty
+//   (xIqVfW8XUt4), salad: Anna Pelzer (IGfIGP5ONV0), sushi: Derek Duran
+//   (Jz4QMhLvGgw), dessert: David Eduardo Lopez Diaz (7Qv51sxpghM), pasta:
+//   Homescreenify (sA3wymYqyaI), chicken (kotiruoka): Parnis Azimi
+//   (qrDM1rmKgOQ), kebab: Anima Visual (jhTzMj5aJQk), ramen: Daniel Stiel
+//   (YFU0AvczmLk), chinese: Orijit Chatterjee (wEBg_pYtynw), bowls: Anto
+//   Meneghini (IrohWzafmmA), vegan: Charlotte Karlsen (yz0yUM6IZ4k), breakfast:
+//   Jaqueline Pelzer (MytHEJlzdcM).
+// Intialainen, Kreikkalainen ja Tacot ovat vielä vanhoja kuvituksia (eivät
+// näy etusivun rivissä ennen kuin niille tulee ravintoloita).
 export const CATEGORY_TILE_META = {
-  Burgerit: { img: '/category-burger.jpg' },
-  'Kebab & Pizza': { img: '/category-pizza.jpg' },
-  Salaatit: { img: '/category-salad.jpg' },
-  Aasialainen: { img: '/category-sushi.jpg' },
-  Kahvila: { img: '/category-dessert.jpg' },
-  Italialainen: { img: '/category-pasta.jpg' },
-  Kotiruoka: { img: '/category-chicken.jpg' },
-  Kebab: { img: '/category-kebab.jpg' },
-  Ramen: { img: '/category-ramen.jpg' },
-  Kiinalainen: { img: '/category-chinese.jpg' },
+  Burgerit: { img: '/category-burger.webp' },
+  'Kebab & Pizza': { img: '/category-pizza.webp' },
+  Salaatit: { img: '/category-salad.webp' },
+  Aasialainen: { img: '/category-sushi.webp' },
+  Kahvila: { img: '/category-dessert.webp' },
+  Italialainen: { img: '/category-pasta.webp' },
+  Kotiruoka: { img: '/category-chicken.webp' },
+  Kebab: { img: '/category-kebab.webp' },
+  Ramen: { img: '/category-ramen.webp' },
+  Kiinalainen: { img: '/category-chinese.webp' },
   Intialainen: { img: '/category-indian.jpg' },
   Kreikkalainen: { img: '/category-greek.jpg' },
-  Bowlit: { img: '/category-bowls.jpg' },
+  Bowlit: { img: '/category-bowls.webp' },
   Tacot: { img: '/category-tacos.jpg' },
-  Vegaani: { img: '/category-vegan.jpg' },
-  Aamiainen: { img: '/category-breakfast.jpg' },
+  Vegaani: { img: '/category-vegan.webp' },
+  Aamiainen: { img: '/category-breakfast.webp' },
 }
 
 // Kategorioiden mainoslauseet (käyttäjän pyyntö 29.10.2026, kuten Uber Eatsin
