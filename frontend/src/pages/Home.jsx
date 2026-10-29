@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, ChevronDown, ShoppingBag } from 'lucide-react'
+import { ArrowRight, ChevronDown, MapPin, ShoppingBag } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import CategoryBar from '../components/CategoryBar.jsx'
 import Footer from '../components/Footer.jsx'
@@ -542,6 +542,9 @@ function Home() {
           >
             <span className="home-address__label">Toimitusosoite</span>
             <span className="home-address__value">
+              {/* Pieni oranssi neula osoitteen edessä, ilman palloa tai laatikkoa
+                  (käyttäjän valinta 29.10.2026). */}
+              <MapPin className="home-address__pin" size={15} strokeWidth={2.4} aria-hidden="true" />
               <span>{deliveryAddress?.label ?? 'Lisää osoite'}</span>
               <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
             </span>
