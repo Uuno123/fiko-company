@@ -384,7 +384,9 @@
     cursor: pointer;
   }
 
+  /* Samassa linjassa osoitetekstin kanssa: neulan leveys (15 px) + väli (5 px). */
   .home-address__label {
+    padding-left: 20px;
     font-size: 0.78rem;
     font-weight: 500;
     color: var(--text-muted);
@@ -407,6 +409,11 @@
 
   .home-address__value svg {
     flex-shrink: 0;
+  }
+
+  .home-address__value .home-address__pin {
+    margin-right: 1px;
+    color: var(--delivo-orange);
   }
 
   /* Kategoriat kuvalaattoina vaakarivissä reunasta reunaan (käyttäjän pyyntö
@@ -449,8 +456,12 @@
     background: none;
   }
 
+  /* Etusivun rivissä kuvakkeen takana himmeä harmaa laatta (käyttäjän pyyntö
+     29.10.2026). */
   .home-cats .home-cat-tile__art.home-cat-tile__art--icon {
-    padding: 8px;
+    padding: 9px;
+    border-radius: 16px;
+    background: #f4f4f2;
   }
 
   .home-cat-tile__art.home-cat-tile__art--icon img {
