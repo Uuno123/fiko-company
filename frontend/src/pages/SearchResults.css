@@ -272,6 +272,36 @@
   background: #f4f4f4;
 }
 
+/* Suodattimet paneelin alaosassa: päälle/pois-sirut, valittu musta. */
+.sort-sheet h2.sort-sheet__subtitle {
+  margin-top: 8px;
+  font-size: 1.1rem;
+}
+
+.sort-sheet__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sort-sheet__chip {
+  height: 38px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: #efefed;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.sort-sheet__chip.is-selected {
+  background: var(--delivo-black);
+  color: #fff;
+}
+
 .sort-sheet__option.is-selected {
   background: #fff4ef;
   font-weight: 700;

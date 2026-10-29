@@ -341,23 +341,26 @@ export const ALL = 'Kaikki'
 //   Jaqueline Pelzer (MytHEJlzdcM).
 // Intialainen, Kreikkalainen ja Tacot ovat vielä vanhoja kuvituksia (eivät
 // näy etusivun rivissä ennen kuin niille tulee ravintoloita).
+// icon: piirretty kuvake läpinäkyvällä taustalla etusivun kategoriariviin
+// (Woltin tapaan, käyttäjän ChatGPT:llä tekemä sarja 29.10.2026; piirretty
+// läpinäkyvyysruudukko poistettu ja kuvat rajattu 256 px WebP:ksi).
 export const CATEGORY_TILE_META = {
-  Burgerit: { img: '/category-burger.webp' },
-  'Kebab & Pizza': { img: '/category-pizza.webp' },
-  Salaatit: { img: '/category-salad.webp' },
-  Aasialainen: { img: '/category-sushi.webp' },
-  Kahvila: { img: '/category-dessert.webp' },
-  Italialainen: { img: '/category-pasta.webp' },
-  Kotiruoka: { img: '/category-chicken.webp' },
-  Kebab: { img: '/category-kebab.webp' },
-  Ramen: { img: '/category-ramen.webp' },
-  Kiinalainen: { img: '/category-chinese.webp' },
-  Intialainen: { img: '/category-indian.jpg' },
-  Kreikkalainen: { img: '/category-greek.jpg' },
-  Bowlit: { img: '/category-bowls.webp' },
-  Tacot: { img: '/category-tacos.jpg' },
-  Vegaani: { img: '/category-vegan.webp' },
-  Aamiainen: { img: '/category-breakfast.webp' },
+  Burgerit: { img: '/category-burger.webp', icon: '/category-burger-icon.webp' },
+  'Kebab & Pizza': { img: '/category-pizza.webp', icon: '/category-pizza-icon.webp' },
+  Salaatit: { img: '/category-salad.webp', icon: '/category-salad-icon.webp' },
+  Aasialainen: { img: '/category-sushi.webp', icon: '/category-sushi-icon.webp' },
+  Kahvila: { img: '/category-dessert.webp', icon: '/category-dessert-icon.webp' },
+  Italialainen: { img: '/category-pasta.webp', icon: '/category-pasta-icon.webp' },
+  Kotiruoka: { img: '/category-chicken.webp', icon: '/category-chicken-icon.webp' },
+  Kebab: { img: '/category-kebab.webp', icon: '/category-kebab-icon.webp' },
+  Ramen: { img: '/category-ramen.webp', icon: '/category-ramen-icon.webp' },
+  Kiinalainen: { img: '/category-chinese.webp', icon: '/category-chinese-icon.webp' },
+  Intialainen: { img: '/category-indian.jpg', icon: '/category-indian-icon.webp' },
+  Kreikkalainen: { img: '/category-greek.jpg', icon: '/category-greek-icon.webp' },
+  Bowlit: { img: '/category-bowls.webp', icon: '/category-bowls-icon.webp' },
+  Tacot: { img: '/category-tacos.jpg', icon: '/category-tacos-icon.webp' },
+  Vegaani: { img: '/category-vegan.webp', icon: '/category-vegan-icon.webp' },
+  Aamiainen: { img: '/category-breakfast.webp', icon: '/category-breakfast-icon.webp' },
 }
 
 // Kategorioiden mainoslauseet (käyttäjän pyyntö 29.10.2026, kuten Uber Eatsin
@@ -379,6 +382,18 @@ export const CATEGORY_SLOGANS = {
   Tacot: 'Tacoja ja tex-mexiä',
   Vegaani: 'Vegaanista ja vihreää',
   Aamiainen: 'Hyvää huomenta',
+}
+
+// Lyhyet nimet etusivun pienille kategorialaatoille, jotta nimi mahtuu yhdelle
+// riville (käyttäjän pyyntö 29.10.2026). Puuttuva = kategorian oma nimi.
+// Kategoriasivut, haku ja otsikot käyttävät edelleen koko nimeä.
+export const CATEGORY_SHORT_LABELS = {
+  'Kebab & Pizza': 'Pizza',
+  Aasialainen: 'Aasia',
+  Italialainen: 'Italia',
+  Kiinalainen: 'Kiina',
+  Intialainen: 'Intia',
+  Kreikkalainen: 'Kreikka',
 }
 
 // Kategorialaatikoiden järjestys rivillä.

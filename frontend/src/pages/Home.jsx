@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, Bike, ChevronDown, Percent, ShoppingBag, Smile } from 'lucide-react'
+import { ArrowRight, ChevronDown, ShoppingBag } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import CategoryBar from '../components/CategoryBar.jsx'
 import Footer from '../components/Footer.jsx'
@@ -12,10 +12,10 @@ import { getRestaurants } from '../lib/api.js'
 import {
   ALL,
   CATEGORY_NAMES,
+  CATEGORY_SHORT_LABELS,
   CATEGORY_SLOGANS,
   CATEGORY_TILE_META,
   DEFAULT_TILE_META,
-  DEALS_QUERY,
   DEALS_RESTAURANTS,
   FILLER_TEMPLATES_BY_CATEGORY,
   categorySlug,
@@ -27,7 +27,6 @@ import { useCart } from '../lib/CartContext.jsx'
 import { openAddressPicker, useDeliveryAddress, withDistance } from '../lib/deliveryAddress.js'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { formatPrice } from '../lib/format.js'
-import { QUICK_FILTERS } from '../lib/quickFilters.js'
 import './Home.css'
 
 // Mobiilin kategoriariveille ei näytetä kahvilaosiota lainkaan (käyttäjän päätös).
@@ -42,17 +41,17 @@ const SEARCH_CATEGORIES_WITH_FILLERS = CATEGORY_NAMES.filter((name) => searchFil
 // "Lähelläsi"-rivi osoitteen antaneille: näin monta lähintä kaikista kategorioista.
 const NEARBY_COUNT = 10
 const NEARBY_ROW = 'Lähelläsi'
-// Pikavalintapillerien ikonit (ehdot ja hakusanat: lib/quickFilters.js).
-// "Alle 30 min" ilman ikonia (käyttäjän pyyntö 29.10.2026).
-const QUICK_FILTER_ICONS = { free: Bike, top: Smile }
 // Rivien otsikot mainoslauseina kategorian nimen sijaan (CATEGORY_SLOGANS,
 // lib/categories.js). Vain otsikko vaihtuu: suodattimet, osoitteet
 // (/kategoria/...) ja ruudunlukijan nuolinapit käyttävät edelleen kategorian
 // nimeä. Puuttuva kategoria näkyy omalla nimellään.
 const ROW_TITLES = { [NEARBY_ROW]: 'Aivan nurkan takana', ...CATEGORY_SLOGANS }
-// Kovimmat tarjoukset -rivi tulee tämän kategoriarivin jälkeen. Ravintolat ja
-// järjestys: DEALS_RESTAURANTS (lib/categories.js, sama lista kuin haussa).
+// Kovimmat tarjoukset -rivi tulee tätä kategoriariviä seuraavan rivin jälkeen
+// (käyttäjän pyyntö 29.10.2026: yksi ravintolarivi lisää ennen tarjouksia).
+// Ravintolat ja järjestys: DEALS_RESTAURANTS (lib/categories.js, sama lista
+// kuin haussa).
 const DEALS_AFTER = 'Kebab & Pizza'
+const DEALS_ROWS_AFTER = 1
 
 // Mainokset kiertävät automaattisesti. Tarjoukset ovat oikeita: TERVETULOA
 // löytyy kassan PROMO_CODES-listalta ja backendin payments-reitiltä, ja
@@ -67,8 +66,9 @@ const DEALS_AFTER = 'Kebab & Pizza'
 // Bidrop-kassilla ensimmäisenä ja kebab + pizza keskellä, nappi hakee kategorian;
 // pyörälähetti kebab-dian jälkeen.
 // BIDROP10- ja McDonald's-diat poistettiin 28.10.2026 (käyttäjän pyyntö).
-// Koko karuselli piilotettu 29.10.2026 käyttäjän pyynnöstä, mutta pidetään
-// valmiina: takaisin vaihtamalla SHOW_HOME_ADS = true.
+// Karuselli piilotettu taas 29.10.2026 (käyttäjän pyyntö). Paikka on sivun
+// alaosassa ravintolarivien jälkeen, suorakulmaiset diat. Takaisin vaihtamalla
+// SHOW_HOME_ADS = true.
 const SHOW_HOME_ADS = false
 const HOME_ADS = [
   {
@@ -263,7 +263,7 @@ function Home() {
       ? [...(nearbyGroup ? [nearbyGroup] : []), ...mobileCategoryGroups]
       : mobileCategoryGroups.filter((group) => group.category === activeCategory)
 
-  // Kovimmat tarjoukset -rivi (DealsRow) Kebab & Pizza -rivin jälkeen:
+  // Kovimmat tarjoukset -rivi (DealsRow) Kebab & Pizzaa seuraavan rivin jälkeen:
   // DEALS_RESTAURANTS-listan ravintolat samoista (täydennetyistä) riveistä,
   // listan järjestyksessä. Korttien sponsorimerkit pois. (Noutokuponki
   // PickupOfferBanner poistettiin 28.10.2026, käyttäjän pyyntö.)
@@ -271,10 +271,12 @@ function Home() {
   const dealsItems = DEALS_RESTAURANTS.map((name) => rowRestaurants.find((r) => r.name === name))
     .filter(Boolean)
     .map(({ sponsored: _sponsored, ...r }) => r)
-  const dealsAfterIndex =
+  const dealsAnchorIndex =
     activeCategory === ALL && dealsItems.length > 0
       ? visibleCategoryGroups.findIndex((group) => group.category === DEALS_AFTER)
       : -1
+  const dealsAfterIndex =
+    dealsAnchorIndex < 0 ? -1 : Math.min(dealsAnchorIndex + DEALS_ROWS_AFTER, visibleCategoryGroups.length - 1)
 
   // adIndex riippuvuutena: ajastin nollautuu myös kun palloa painetaan, jolloin
   // käsin valittu mainos ehtii näkyä täyden ajan.
@@ -475,8 +477,12 @@ function Home() {
                           className="home-cat-tile"
                           onClick={() => setSearchOpen(false)}
                         >
-                          <span className="home-cat-tile__art" aria-hidden="true">
-                            {tile.img ? <img src={tile.img} alt="" loading="lazy" /> : tile.emoji}
+                          {/* Samat piirretyt kuvakkeet kuin etusivun kategoriarivissä. */}
+                          <span
+                            className={`home-cat-tile__art${tile.icon ? ' home-cat-tile__art--icon' : ''}`}
+                            aria-hidden="true"
+                          >
+                            {tile.icon || tile.img ? <img src={tile.icon ?? tile.img} alt="" loading="lazy" /> : tile.emoji}
                           </span>
                           <span className="home-cat-tile__label">{category}</span>
                         </Link>
@@ -569,46 +575,126 @@ function Home() {
         </div>
 
         <div className="home-mobile-top">
-          {/* Kategoriat pieninä kuvalaattoina vaakarivissä: oikeat ruokavalokuvat
-              (CATEGORY_TILE_META, käyttäjän pyyntö 29.10.2026). */}
+          {/* Kategoriat kuvalaattoina vaakarivissä: oikeat ruokavalokuvat
+              (CATEGORY_TILE_META) ja lyhyt nimi yhdellä rivillä
+              (CATEGORY_SHORT_LABELS). Pikavalintapillerit poistettiin
+              29.10.2026 - suodattimet ovat hakusivun paneelissa. */}
           <nav className="home-cats" aria-label="Kategoriat">
             {searchCategories.map((category) => {
               const tile = CATEGORY_TILE_META[category] ?? DEFAULT_TILE_META
               return (
-                <Link key={category} to={`/kategoria/${categorySlug(category)}`} className="home-cat-tile">
-                  <span className="home-cat-tile__art" aria-hidden="true">
-                    {tile.img ? <img src={tile.img} alt="" /> : tile.emoji}
+                <Link
+                  key={category}
+                  to={`/kategoria/${categorySlug(category)}`}
+                  className="home-cat-tile"
+                  aria-label={category}
+                >
+                  <span className={`home-cat-tile__art${tile.icon ? ' home-cat-tile__art--icon' : ''}`} aria-hidden="true">
+                    {tile.icon || tile.img ? <img src={tile.icon ?? tile.img} alt="" /> : tile.emoji}
                   </span>
-                  <span className="home-cat-tile__label">{category}</span>
+                  <span className="home-cat-tile__label" aria-hidden="true">
+                    {CATEGORY_SHORT_LABELS[category] ?? category}
+                  </span>
                 </Link>
               )
             })}
           </nav>
 
-          <div className="home-quick-filters" role="group" aria-label="Pikavalinnat">
-            <Link to={`/haku?q=${encodeURIComponent(DEALS_QUERY)}`} className="home-quick-pill">
-              <Percent size={16} strokeWidth={2.2} aria-hidden="true" />
-              Tarjoukset
-            </Link>
-            {/* Pillerit hakevat (hakutulossivu) eivätkä vain suodata etusivua
-                (käyttäjän pyyntö 29.10.2026). */}
-            {QUICK_FILTERS.map(({ id, query }) => {
-              const Icon = QUICK_FILTER_ICONS[id]
-              return (
-                <Link key={id} to={`/haku?q=${encodeURIComponent(query)}`} className="home-quick-pill">
-                  {Icon && <Icon size={16} strokeWidth={2.2} aria-hidden="true" />}
-                  {query}
-                </Link>
-              )
-            })}
-          </div>
-
         </div>
 
         {/* Työpöydän värikkäät kategorialaatikot korvattiin tekstipalkilla
             headerin alla (CategoryBar, käyttäjän pyyntö 25.10.2026). */}
+        {status === 'loading' && <Spinner label="Haetaan ravintoloita" />}
+
+        {status === 'error' && (
+          <p className="state-message state-message--error">Ravintoloiden haku epäonnistui: {errorMessage}</p>
+        )}
+
+        {status === 'ready' && visibleCategoryGroups.length === 0 && (
+          <p className="state-message">Ei ravintoloita näillä valinnoilla.</p>
+        )}
+
+        {/* Erillinen työpöytäruudukko poistettu: kategoriarivit otsikoineen
+            näkyvät nyt molemmilla, joten ruudukko olisi sama sisältö toiseen
+            kertaan ilman kategoriaotsikoita. Rivit näytetään myös ilman yhtään
+            oikeaa ravintolaa (0042 poisti ne) - silloin niissä on pelkät mallit. */}
+        {status === 'ready' && visibleCategoryGroups.length > 0 && (
+          <div className="category-rows">
+            {visibleCategoryGroups.map(
+              ({ category, items }, groupIndex) =>
+                items.length > 0 && (
+                  <Fragment key={category}>
+                    <section className="category-row" id={`cat-${categorySlug(category)}`}>
+                      <div className="category-row__header">
+                        <h2 className="category-row__title">{ROW_TITLES[category] ?? category}</h2>
+                        <div className="category-row__actions">
+                          {/* Lähelläsi-rivi ei ole kategoria, joten sillä ei ole omaa sivua. */}
+                          {category !== NEARBY_ROW && (
+                            <Link
+                              className="category-row__see-all"
+                              to={`/kategoria/${categorySlug(category)}`}
+                              aria-label={`Kaikki: ${category}`}
+                            >
+                              {/* Puhelimella pelkkä nuoli harmaalla pallolla (Home.css). */}
+                              <span className="category-row__see-all-text">Kaikki</span>
+                              <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
+                            </Link>
+                          )}
+                          {/* Nuolet vain työpöydällä - puhelimella rivi pyyhkäistään. */}
+                          <button
+                            type="button"
+                            className="category-row__nav"
+                            aria-label={`${category}: edelliset`}
+                            onClick={(e) => scrollRow(e, -1)}
+                          >
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                              <path d="M12 4 6 10l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            className="category-row__nav"
+                            aria-label={`${category}: seuraavat`}
+                            onClick={(e) => scrollRow(e, 1)}
+                          >
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                              <path d="m8 4 6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="category-row__scroll">
+                        {items.map((restaurant) => (
+                          <RestaurantCard
+                            key={restaurant.id}
+                            restaurant={restaurant}
+                            disabled={restaurant.isPlaceholder}
+                            isFavorite={favoriteIds.has(restaurant.id)}
+                            onToggleFavorite={restaurant.isPlaceholder ? undefined : toggleFavorite}
+                          />
+                        ))}
+                      </div>
+                    </section>
+
+                    {/* Kebab & Pizzaa seuraavan rivin jälkeen Kovimmat tarjoukset. */}
+                    {groupIndex === dealsAfterIndex && (
+                      <DealsRow
+                        items={dealsItems}
+                        favoriteIds={favoriteIds}
+                        onToggleFavorite={toggleFavorite}
+                        onScrollRow={scrollRow}
+                      />
+                    )}
+                  </Fragment>
+                ),
+            )}
+          </div>
+        )}
+
+        {/* Kuvakaruselli sivun alaosassa: suorakulmaiset diat ilman varjoa
+            (käyttäjän pyyntö 29.10.2026). */}
         {SHOW_HOME_ADS && (
-          <div className="home-promo">
+          <div className="home-promo home-promo--bottom">
             <div className="home-ad">
               {/* Vierivä rata, jossa banneri kerrallaan näkyy useampi - sama idea
                   kuin Woltin nostokarusellissa. Mukana sekä kampanjabannerit että
@@ -683,94 +769,6 @@ function Home() {
             </div>
           </div>
         )}
-
-        {status === 'loading' && <Spinner label="Haetaan ravintoloita" />}
-
-        {status === 'error' && (
-          <p className="state-message state-message--error">Ravintoloiden haku epäonnistui: {errorMessage}</p>
-        )}
-
-        {status === 'ready' && visibleCategoryGroups.length === 0 && (
-          <p className="state-message">Ei ravintoloita näillä valinnoilla.</p>
-        )}
-
-        {/* Erillinen työpöytäruudukko poistettu: kategoriarivit otsikoineen
-            näkyvät nyt molemmilla, joten ruudukko olisi sama sisältö toiseen
-            kertaan ilman kategoriaotsikoita. Rivit näytetään myös ilman yhtään
-            oikeaa ravintolaa (0042 poisti ne) - silloin niissä on pelkät mallit. */}
-        {status === 'ready' && visibleCategoryGroups.length > 0 && (
-          <div className="category-rows">
-            {visibleCategoryGroups.map(
-              ({ category, items }, groupIndex) =>
-                items.length > 0 && (
-                  <Fragment key={category}>
-                    <section className="category-row" id={`cat-${categorySlug(category)}`}>
-                      <div className="category-row__header">
-                        <h2 className="category-row__title">{ROW_TITLES[category] ?? category}</h2>
-                        <div className="category-row__actions">
-                          {/* Lähelläsi-rivi ei ole kategoria, joten sillä ei ole omaa sivua. */}
-                          {category !== NEARBY_ROW && (
-                            <Link
-                              className="category-row__see-all"
-                              to={`/kategoria/${categorySlug(category)}`}
-                              aria-label={`Kaikki: ${category}`}
-                            >
-                              {/* Puhelimella pelkkä nuoli harmaalla pallolla (Home.css). */}
-                              <span className="category-row__see-all-text">Kaikki</span>
-                              <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
-                            </Link>
-                          )}
-                          {/* Nuolet vain työpöydällä - puhelimella rivi pyyhkäistään. */}
-                          <button
-                            type="button"
-                            className="category-row__nav"
-                            aria-label={`${category}: edelliset`}
-                            onClick={(e) => scrollRow(e, -1)}
-                          >
-                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                              <path d="M12 4 6 10l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            className="category-row__nav"
-                            aria-label={`${category}: seuraavat`}
-                            onClick={(e) => scrollRow(e, 1)}
-                          >
-                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                              <path d="m8 4 6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                      <div className="category-row__scroll">
-                        {items.map((restaurant) => (
-                          <RestaurantCard
-                            key={restaurant.id}
-                            restaurant={restaurant}
-                            disabled={restaurant.isPlaceholder}
-                            isFavorite={favoriteIds.has(restaurant.id)}
-                            onToggleFavorite={restaurant.isPlaceholder ? undefined : toggleFavorite}
-                          />
-                        ))}
-                      </div>
-                    </section>
-
-                    {/* Kebab & Pizza -rivin jälkeen Kovimmat tarjoukset. */}
-                    {groupIndex === dealsAfterIndex && (
-                      <DealsRow
-                        items={dealsItems}
-                        favoriteIds={favoriteIds}
-                        onToggleFavorite={toggleFavorite}
-                        onScrollRow={scrollRow}
-                      />
-                    )}
-                  </Fragment>
-                ),
-            )}
-          </div>
-        )}
-
       </main>
 
       {/* Kelluva ostoskori oikeassa alakulmassa headerin korikuvakkeen sijaan:

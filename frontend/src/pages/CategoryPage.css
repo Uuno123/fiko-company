@@ -222,3 +222,28 @@
     color: var(--delivo-black);
   }
 }
+
+/* Puhelimella ravintolat litteinä kuten etusivulla (käyttäjän pyyntö
+   29.10.2026): ei korttilaatikkoa, reunaa eikä varjoa - kuva vähän
+   pyöristettynä ja teksti sen alla. */
+@media (max-width: 560px) {
+  .category-page__list {
+    gap: 22px;
+  }
+
+  .category-page__list .restaurant-card {
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .category-page__list .restaurant-card__media {
+    border-radius: 8px;
+  }
+
+  .category-page__list .restaurant-card__body {
+    padding: 10px 2px 0;
+  }
+}
