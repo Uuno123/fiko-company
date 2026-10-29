@@ -50,19 +50,15 @@
 
 .deals-row__heading {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
   min-width: 0;
 }
 
-.deals-row__tag {
-  flex-shrink: 0;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  background: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--delivo-orange-dark);
+.deals-row__logo {
+  height: 15px;
+  color: var(--delivo-black);
 }
 
 @media (min-width: 561px) {
@@ -96,5 +92,44 @@
 
   .category-row--deals .restaurant-card__heading h3 {
     font-size: 1.06rem;
+  }
+}
+
+/* Puhelimella hienompi osio (käyttäjän pyyntö 29.10.2026): pehmeä oranssi
+   liukuväri, kortit litteinä kuten muillakin riveillä (kuva pyöristettynä ja
+   teksti suoraan paneelilla) ja seuraava kortti pilkistää reunasta. */
+@media (max-width: 560px) {
+  .category-row--deals {
+    padding-top: 22px;
+    padding-bottom: 4px;
+  }
+
+  .category-row--deals::before {
+    border-radius: 20px;
+    background: linear-gradient(160deg, #fff4ef 0%, #ffe2d5 100%);
+  }
+
+  .page--home .category-row--deals .restaurant-card {
+    width: 78vw;
+    max-width: 320px;
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .page--home .category-row--deals .restaurant-card__media {
+    aspect-ratio: 1.75 / 1;
+    border-radius: 10px;
+  }
+
+  .page--home .category-row--deals .restaurant-card__body {
+    padding: 10px 2px 0;
+  }
+
+  .page--home .category-row--deals .category-row__scroll {
+    gap: 10px;
+    padding-bottom: 18px;
   }
 }

@@ -238,7 +238,6 @@
     flex: 0 0 auto;
     width: 74vw;
     max-width: 280px;
-    scroll-snap-align: start;
   }
 
   /* 16:9 on tasapaino: ruoasta näkyy selvästi enemmän kuin alkuperäisessä
@@ -273,5 +272,13 @@
   .restaurant-card__promo svg {
     width: 13px;
     height: 13px;
+  }
+}
+
+/* Puhelimella ei sydäntä kuvan yläkulmassa (käyttäjän pyyntö 29.10.2026).
+   Suosikiksi voi edelleen lisätä ravintolan sivulta. */
+@media (max-width: 560px) {
+  .restaurant-card__fav {
+    display: none;
   }
 }

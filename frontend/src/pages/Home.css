@@ -111,7 +111,8 @@
   display: flex;
   overflow-x: auto;
   gap: 16px;
-  scroll-snap-type: x mandatory;
+  /* Ei scroll-snapia (käyttäjän pyyntö 29.10.2026): sivuttain pyyhkäisy jää
+     siihen mihin sormi sen jättää, eikä rivi hyppää seuraavan kortin kohdalle. */
   scrollbar-width: none;
   /* Alareunan väljyys, ettei korttien varjo leikkaudu vieritettävän
      säiliön reunaan (overflow-x:auto leikkaa myös pystysuunnassa). */
@@ -128,7 +129,6 @@
 @media (min-width: 561px) {
   .category-row__scroll .restaurant-card {
     flex: 0 0 336px;
-    scroll-snap-align: start;
   }
 
   /* Leveä ja matala kuva, kuten Woltin nostokorteissa. Mobiilin 16:9 tekisi
@@ -409,64 +409,61 @@
     flex-shrink: 0;
   }
 
-  /* Kategoriat ja pikavalinnat vaakariveinä reunasta reunaan (käyttäjän pyyntö
-     29.10.2026): pienet kuvalaatat harmaalla taustalla, pillereissä ikoni ja teksti. */
-  .home-cats,
-  .home-quick-filters {
+  /* Kategoriat kuvalaattoina vaakarivissä reunasta reunaan (käyttäjän pyyntö
+     29.10.2026): yhtenäinen rajaus (kuvaa zoomattu, jotta ruoka täyttää laatan
+     ja erilaiset taustat jäävät reunoille) ja lyhyt nimi yhdellä rivillä. */
+  .home-cats {
     display: flex;
+    gap: 10px;
     margin: 0 -16px;
-    padding: 0 16px;
+    padding: 2px 16px 0;
     overflow-x: auto;
     scrollbar-width: none;
     scroll-padding-left: 16px;
   }
 
-  .home-cats::-webkit-scrollbar,
-  .home-quick-filters::-webkit-scrollbar {
+  .home-cats::-webkit-scrollbar {
     display: none;
   }
 
-  .home-cats {
-    gap: 8px;
-    padding-top: 2px;
-  }
-
   .home-cats .home-cat-tile {
-    width: 56px;
-    gap: 5px;
+    width: 64px;
+    gap: 6px;
   }
 
   .home-cats .home-cat-tile__art {
-    border-radius: 14px;
+    border-radius: 16px;
     background: #efefef;
   }
 
+  .home-cats .home-cat-tile__art img {
+    transform: scale(1.18);
+  }
+
+  /* Piirretty kuvake (CATEGORY_TILE_META icon): ei laattaa eikä rajausta,
+     kuvake sellaisenaan Woltin tapaan - etusivun rivissä ja hakunäkymässä. */
+  .home-cat-tile__art.home-cat-tile__art--icon {
+    box-sizing: border-box;
+    padding: 12px;
+    border-radius: 0;
+    background: none;
+  }
+
+  .home-cats .home-cat-tile__art.home-cat-tile__art--icon {
+    padding: 8px;
+  }
+
+  .home-cat-tile__art.home-cat-tile__art--icon img {
+    object-fit: contain;
+    transform: none;
+  }
+
   .home-cats .home-cat-tile__label {
-    font-size: 0.66rem;
-  }
-
-  .home-quick-filters {
-    gap: 8px;
-  }
-
-  .home-quick-pill {
-    display: inline-flex;
-    flex-shrink: 0;
-    align-items: center;
-    gap: 6px;
-    height: 36px;
-    padding: 0 14px;
-    border: none;
-    border-radius: var(--radius-pill);
-    background: #efefed;
-    font-family: inherit;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--delivo-black);
-    text-decoration: none;
+    display: block;
+    overflow: hidden;
+    font-size: 0.74rem;
+    text-overflow: ellipsis;
     white-space: nowrap;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
   }
 
   /* Harmaa täyttö, ei ääriviivaa (käyttäjä: tummempi hakupalkki 29.10.2026):
@@ -1154,3 +1151,53 @@
    räväkkä). 28.10.2026 pehmeä tummennus (yllä) otettiin käyttöön myös työpöydällä
    (käyttäjän pyyntö siistiä työpöydän kuvat): ilman sitä valkoinen teksti katosi
    vaaleiden ja kirjavien kuvien (kebab, Volkan) päälle. */
+
+/* KOKEILU 29.10.2026 (käyttäjän pyyntö): puhelimen etusivun ravintolat litteinä
+   ilman korttilaatikkoa - pyöristetty kuva ja teksti sen alla, tiiviisti
+   vierekkäin. Kovimpien tarjousten rivi pysyy kortteina oranssin paneelin
+   päällä. */
+@media (max-width: 560px) {
+  .page--home .category-row:not(.category-row--deals) .restaurant-card {
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  /* Vähemmän pyöreät kulmat (käyttäjän pyyntö 29.10.2026). */
+  .page--home .category-row:not(.category-row--deals) .restaurant-card__media {
+    border-radius: 8px;
+  }
+
+  .page--home .category-row:not(.category-row--deals) .restaurant-card__body {
+    padding: 9px 2px 0;
+  }
+
+  /* Hieman enemmän tilaa tekstin alle ennen jakoviivaa. */
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll {
+    gap: 8px;
+    padding-bottom: 18px;
+  }
+}
+
+/* Kuvakaruselli sivun alaosassa (käyttäjän pyyntö 29.10.2026): suorakulmaiset
+   diat ilman varjoa. Puhelimella reunasta reunaan, yksi dia kerrallaan. */
+.home-promo--bottom {
+  margin-top: 8px;
+}
+
+.home-promo--bottom .home-ad__slide {
+  border-radius: 0;
+  box-shadow: none;
+}
+
+@media (max-width: 560px) {
+  .home-promo--bottom {
+    margin: 4px -16px 0;
+  }
+
+  .home-promo--bottom .home-ad__track {
+    gap: 0;
+  }
+}

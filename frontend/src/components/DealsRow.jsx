@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import DelivoLogo from './DelivoLogo.jsx'
 import RestaurantCard from './RestaurantCard.jsx'
 import './DealsRow.css'
 
@@ -45,11 +46,13 @@ function DealsRow({ items, favoriteIds, onToggleFavorite, onScrollRow }) {
   return (
     <section className="category-row category-row--deals" aria-labelledby="deals-row-title">
       <div className="category-row__header">
+        {/* Pieni Bidrop-logo otsikon yläpuolella (käyttäjän pyyntö 29.10.2026):
+            Bidropin omat valinnat. */}
         <div className="deals-row__heading">
+          <DelivoLogo className="deals-row__logo" />
           <h2 className="category-row__title" id="deals-row-title">
             Kovimmat tarjoukset
           </h2>
-          <span className="deals-row__tag">Tarjous</span>
         </div>
         <div className="category-row__actions">
           <button

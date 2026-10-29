@@ -10,7 +10,7 @@ import { useCart } from '../lib/CartContext.jsx'
 import { formatPrice } from '../lib/format.js'
 import { allFillerRestaurants, dealsFillerRestaurants, isDealsQuery, searchFillerRestaurants } from '../lib/categories.js'
 import { getRestaurants } from '../lib/api.js'
-import { quickFilterForQuery } from '../lib/quickFilters.js'
+import { QUICK_FILTERS, quickFilterForQuery } from '../lib/quickFilters.js'
 import { restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { supabase } from '../lib/supabaseClient.js'
@@ -41,6 +41,12 @@ function SearchResults() {
   const [status, setStatus] = useState('idle')
   const [restaurantSort, setRestaurantSort] = useState('relevance')
   const [sortSheetOpen, setSortSheetOpen] = useState(false)
+  // Suodattimet paneelista (Alle 30 min, Ilmainen kuljetus, Arvio 9+), useampi
+  // kerrallaan - siirretty etusivun pillereistä 29.10.2026.
+  const [activeFilters, setActiveFilters] = useState([])
+  function toggleFilter(id) {
+    setActiveFilters((current) => (current.includes(id) ? current.filter((x) => x !== id) : [...current, id]))
+  }
   // Mobiilin yläpalkki madaltuu heti kun sivua vieritetään.
   const [topbarCompact, setTopbarCompact] = useState(() => window.scrollY > 8)
 
@@ -165,15 +171,17 @@ function SearchResults() {
   // Haku päättää mitkä ravintolat näytetään, järjestys tulee delivon säännöstä
   // (lib/ranking.js): "Suositellut" = sponsorit paikoille 1 ja 4 ja muut pisteiden
   // mukaan, asiakkaan oma valinta tarkasti valinnan mukaan (enintään 1 sponsori).
-  const sortedRestaurants = useMemo(
-    () =>
-      rankRestaurants(allRestaurants, {
+  const sortedRestaurants = useMemo(() => {
+    const tests = QUICK_FILTERS.filter((filter) => activeFilters.includes(filter.id)).map((filter) => filter.test)
+    return rankRestaurants(
+      allRestaurants.filter((r) => tests.every((test) => test(r))),
+      {
         address: deliveryAddress,
         popularity,
         compare: SORT_COMPARATORS[restaurantSort] ?? null,
-      }),
-    [allRestaurants, restaurantSort, deliveryAddress, popularity],
-  )
+      },
+    )
+  }, [allRestaurants, activeFilters, restaurantSort, deliveryAddress, popularity])
 
   return (
     <div className="page page--search">
@@ -243,7 +251,7 @@ function SearchResults() {
             {status === 'ready' && allRestaurants.length > 1 && (
               <button
                 type="button"
-                className={`search-filter-btn${restaurantSort !== 'relevance' ? ' is-active' : ''}`}
+                className={`search-filter-btn${restaurantSort !== 'relevance' || activeFilters.length > 0 ? ' is-active' : ''}`}
                 aria-label="Lajittele hakutulokset"
                 aria-haspopup="dialog"
                 onClick={() => setSortSheetOpen(true)}
@@ -275,6 +283,20 @@ function SearchResults() {
                     >
                       {option.label}
                       {restaurantSort === option.value && <Check size={18} strokeWidth={2.6} aria-hidden="true" />}
+                    </button>
+                  ))}
+                </div>
+                <h2 className="sort-sheet__subtitle">Suodata</h2>
+                <div className="sort-sheet__chips">
+                  {QUICK_FILTERS.map(({ id, query }) => (
+                    <button
+                      key={id}
+                      type="button"
+                      aria-pressed={activeFilters.includes(id)}
+                      className={`sort-sheet__chip${activeFilters.includes(id) ? ' is-selected' : ''}`}
+                      onClick={() => toggleFilter(id)}
+                    >
+                      {query}
                     </button>
                   ))}
                 </div>
