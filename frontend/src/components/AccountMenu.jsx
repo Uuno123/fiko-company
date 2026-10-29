@@ -73,17 +73,14 @@ function AccountMenu({ currentPath, variant }) {
           </Link>
         </div>
 
-        {/* Mobiili: harmaa pyöreä käyttäjäikoni ja musta Kirjaudu-nappi
-            (käyttäjän pyyntö 29.10.2026). Yksi linkki, joten molemmat vievät
-            kirjautumiseen. Rekisteröityminen löytyy kirjautumissivulta. */}
+        {/* Mobiili: pelkkä musta Kirjaudu-nappi - käyttäjäikoni näkyy vasta
+            kirjautuneena (käyttäjän pyyntö 29.10.2026). Rekisteröityminen
+            löytyy kirjautumissivulta. */}
         <Link
           to="/login"
           state={{ from: currentPath }}
           className={`auth-login-btn${variant === 'overlay' ? ' auth-login-btn--overlay' : ''}`}
         >
-          <span className="auth-login-btn__avatar" aria-hidden="true">
-            <PersonIcon />
-          </span>
           <span className="auth-login-btn__label">Kirjaudu</span>
         </Link>
       </>
@@ -106,6 +103,11 @@ function AccountMenu({ currentPath, variant }) {
         aria-expanded={open}
         aria-label={`Tili: ${firstName}`}
       >
+        {/* Puhelimella harmaa pyöreä käyttäjäikoni, työpöydällä nimikirjaimet
+            ja nuoli (käyttäjän pyyntö 29.10.2026, AccountMenu.css). */}
+        <span className="account-menu__icon-avatar" aria-hidden="true">
+          <PersonIcon />
+        </span>
         <span className="account-menu__avatar">{initial}</span>
         <ChevronIcon className={`account-menu__trigger-chevron${open ? ' account-menu__trigger-chevron--open' : ''}`} />
       </button>

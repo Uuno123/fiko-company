@@ -177,7 +177,8 @@
      dataa, ei brändielementti - sama neutraali fontti kuin muu kortin teksti. */
   font-family: var(--font-body);
   font-size: 1rem;
-  font-weight: 400;
+  /* Paksumpi nimi (käyttäjän pyyntö 29.10.2026). */
+  font-weight: 600;
   line-height: 1.25;
   color: var(--delivo-black);
 }
