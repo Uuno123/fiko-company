@@ -259,13 +259,18 @@
     font-size: 0.78rem;
   }
 
+  /* Pienempi merkki (käyttäjän pyyntö 29.10.2026). */
   .restaurant-card__promo {
-    padding: 4px 8px;
-    font-size: 0.72rem;
+    left: 8px;
+    bottom: 8px;
+    gap: 4px;
+    padding: 3px 7px;
+    border-radius: 7px;
+    font-size: 0.66rem;
   }
 
   .restaurant-card__promo svg {
-    width: 15px;
-    height: 15px;
+    width: 13px;
+    height: 13px;
   }
 }

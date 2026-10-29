@@ -14,6 +14,11 @@ export const SERVICE_FEE_CENTS = 49
 // alaraja on aina ravintolan oma arvio.
 const ETA_WINDOW_MINUTES = 10
 
+// Arvioidun toimitusajan yläraja minuutteina (sama ikkuna kuin formatEtaRange).
+export function etaUpperMinutes(minutes) {
+  return minutes ? minutes + ETA_WINDOW_MINUTES : null
+}
+
 export function formatEtaRange(minutes) {
   if (!minutes) return null
   return `${minutes}-${minutes + ETA_WINDOW_MINUTES} min`

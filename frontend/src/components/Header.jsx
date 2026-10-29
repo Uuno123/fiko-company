@@ -170,27 +170,21 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
                 aria-label={deliveryAddress ? `Toimitusosoite: ${deliveryAddress.full}. Vaihda osoite` : 'Lisää toimitusosoite'}
                 onClick={openAddressPicker}
               >
-                <span className="city-select__badge">
-                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                {/* Kuten puhelimen etusivulla (käyttäjän pyyntö 29.10.2026): ei
+                    ikonia, pieni harmaa otsikko ja osoite nuolen kanssa. */}
+                <span className="city-select__label">Toimitusosoite</span>
+                <span className="city-select__row">
+                  <span className="city-select__value">{deliveryAddress?.label ?? 'Lisää osoite'}</span>
+                  <svg className="city-select__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                     <path
-                      d="M10 18s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10Z"
+                      d="m6 8 4 4 4-4"
                       stroke="currentColor"
-                      strokeWidth="1.5"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
                       strokeLinejoin="round"
                     />
-                    <circle cx="10" cy="8" r="2.25" stroke="currentColor" strokeWidth="1.5" />
                   </svg>
                 </span>
-                <span className="city-select__value">{deliveryAddress?.label ?? 'Lisää osoite'}</span>
-                <svg className="city-select__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path
-                    d="m6 8 4 4 4-4"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
               </button>
             </div>
           )}

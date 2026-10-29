@@ -293,15 +293,22 @@ export function isDealsQuery(query) {
   return term === 'tarjoukset' || term === 'kovimmat tarjoukset'
 }
 
-// Haun tulokset Tarjoukset-sanalle: listan ravintolat täytepohjista tässä
-// järjestyksessä (esittelyravintola McDonald's on klikattava, muut eivät).
-export function dealsFillerRestaurants() {
+// Kaikki täyteravintolat kerran (sama nimi voi olla useassa kategoriassa).
+// Etusivun pikavalintahaku (lib/quickFilters.js) suodattaa näistä.
+export function allFillerRestaurants() {
   const byName = new Map()
   for (const [category, templates] of Object.entries(FILLER_TEMPLATES_BY_CATEGORY)) {
     templates.forEach((template, index) => {
       if (!byName.has(template.name)) byName.set(template.name, buildFillerRestaurant(category, index, template))
     })
   }
+  return [...byName.values()]
+}
+
+// Haun tulokset Tarjoukset-sanalle: listan ravintolat täytepohjista tässä
+// järjestyksessä (esittelyravintola McDonald's on klikattava, muut eivät).
+export function dealsFillerRestaurants() {
+  const byName = new Map(allFillerRestaurants().map((r) => [r.name, r]))
   return DEALS_RESTAURANTS.map((name) => byName.get(name)).filter(Boolean)
 }
 
@@ -339,6 +346,27 @@ export const CATEGORY_TILE_META = {
   Tacot: { img: '/category-tacos.jpg' },
   Vegaani: { img: '/category-vegan.jpg' },
   Aamiainen: { img: '/category-breakfast.jpg' },
+}
+
+// Kategorioiden mainoslauseet (käyttäjän pyyntö 29.10.2026, kuten Uber Eatsin
+// "Popular near you"): etusivun rivien otsikot ja kategoriasivun alaotsikko.
+export const CATEGORY_SLOGANS = {
+  Burgerit: 'Kun tekee mieli burgeria',
+  'Kebab & Pizza': 'Klassikot: pizza ja kebab',
+  Salaatit: 'Raikasta ja kevyttä',
+  Aasialainen: 'Aasian makumatka',
+  Kahvila: 'Kahvia ja jotain makeaa',
+  Italialainen: 'Italian makuja',
+  Kotiruoka: 'Kuin kotona tehtyä',
+  Kebab: 'Kebabin ystäville',
+  Ramen: 'Lämmin kulho ramenia',
+  Kiinalainen: 'Kiinalaisia klassikoita',
+  Intialainen: 'Mausteista Intiasta',
+  Kreikkalainen: 'Kreikan auringon alta',
+  Bowlit: 'Täyteläiset bowlit',
+  Tacot: 'Tacoja ja tex-mexiä',
+  Vegaani: 'Vegaanista ja vihreää',
+  Aamiainen: 'Hyvää huomenta',
 }
 
 // Kategorialaatikoiden järjestys rivillä.

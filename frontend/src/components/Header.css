@@ -86,7 +86,6 @@
   border-color: var(--round-button-bg);
 }
 
-.site-header--overlay.site-header--transparent .auth-login-btn--overlay,
 .site-header--overlay.site-header--transparent .account-menu__trigger {
   padding: 0 12px;
   border-radius: var(--radius-pill);
@@ -167,15 +166,6 @@
   background: #000;
 }
 
-.site-header--overlay:not(.site-header--transparent) .city-select__badge {
-  background: var(--delivo-orange-soft);
-  border-color: transparent;
-}
-
-.site-header--overlay:not(.site-header--transparent) .city-select__badge svg {
-  color: var(--delivo-orange);
-}
-
 .site-header--overlay:not(.site-header--transparent) .city-select__value,
 .site-header--overlay:not(.site-header--transparent) .city-select__chevron {
   color: var(--delivo-black);
@@ -196,6 +186,10 @@
   color: #fff;
 }
 
+.site-header--transparent .city-select__label {
+  color: rgba(255, 255, 255, 0.78);
+}
+
 /* Musta headeri ostoskori-/kassavirrassa - kokeilu "ammattimaisemmasta" ilmeestä lime-vihreän
    sijaan sivuilla, joilla asiakas on jo tunnistautunut eikä brändin huomioarvo ole enää kärjessä. */
 .site-header--dark {
@@ -212,6 +206,10 @@
 .site-header--overlay .city-select__value,
 .site-header--overlay .city-select__chevron {
   color: #fff;
+}
+
+.site-header--dark .city-select__label {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .site-header--dark .cart-menu__trigger,
@@ -955,7 +953,9 @@
   }
 }
 
-/* Sijaintivalinta: pyöreä ikonimerkki + teksti + chevron, ilman erillistä pillerikehystä. */
+/* Sijaintivalinta kuten puhelimen etusivulla (käyttäjän pyyntö 29.10.2026):
+   pieni harmaa "Toimitusosoite" ja sen alla osoite nuolen kanssa, ei ikonia
+   eikä pillerikehystä. */
 .city-select {
   position: relative;
   display: flex;
@@ -963,38 +963,38 @@
   gap: 8px;
 }
 
-.city-select__badge {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1.5px solid rgba(255, 255, 255, 0.16);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.city-select__badge svg {
-  width: 18px;
-  height: 18px;
-  color: #fff;
-}
-
 .city-select__trigger {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  min-width: 0;
   border: none;
   background: none;
-  padding: 0 18px 0 0;
+  padding: 0;
   font-family: inherit;
+  text-align: left;
   cursor: pointer;
 }
 
+.city-select__label {
+  font-size: 0.74rem;
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--text-muted);
+}
+
+.city-select__row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
 .city-select__value {
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 700;
+  line-height: 1.2;
   color: #fff;
   max-width: 200px;
   overflow: hidden;
@@ -1009,10 +1009,9 @@
 }
 
 .city-select__chevron {
-  position: absolute;
-  right: 0;
-  width: 14px;
-  height: 14px;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
   color: #fff;
   pointer-events: none;
 }
@@ -1180,16 +1179,7 @@
   color: var(--delivo-black);
 }
 
-/* Sijainti: pehmeä oranssi ympyrä oranssilla nuppineulalla, teksti mustana. */
-.site-header:not(.site-header--dark):not(.site-header--overlay) .city-select__badge {
-  background: var(--delivo-orange-soft);
-  border-color: transparent;
-}
-
-.site-header:not(.site-header--dark):not(.site-header--overlay) .city-select__badge svg {
-  color: var(--delivo-orange);
-}
-
+/* Sijainti: osoite ja nuoli mustana, otsikko harmaana (oletus). */
 .site-header:not(.site-header--dark):not(.site-header--overlay) .city-select__value,
 .site-header:not(.site-header--dark):not(.site-header--overlay) .city-select__chevron {
   color: var(--delivo-black);
@@ -1201,15 +1191,18 @@
   border-left-color: var(--border);
 }
 
-/* Hakukenttä: valkoinen kenttä vaalealla taustalla tarvitsee reunuksen, muuten
-   se sulautuu headeriin. Ikoni mustana kuten mobiilin hakukentässä. */
+/* Hakukenttä harmaalla täytöllä ilman reunusta (käyttäjä: tummempi hakupalkki
+   29.10.2026), sama kuin etusivun mobiilihaussa. Kirjoittaessa valkoinen ja
+   reunus. Ikoni mustana. */
 .site-header:not(.site-header--dark):not(.site-header--overlay) .search-field-bar {
-  border-color: #ececec;
+  border-color: transparent;
+  background: #ececea;
   box-shadow: none;
 }
 
 .site-header:not(.site-header--dark):not(.site-header--overlay) .search-field-bar:focus-within {
   border-color: var(--field-focus-border);
+  background: #fff;
   box-shadow: none;
 }
 

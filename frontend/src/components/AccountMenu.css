@@ -73,17 +73,14 @@
 }
 
 /* Kirjautumattomalle leveällä näytöllä erilliset Kirjaudu/Rekisteröidy-napit,
-   puhelimella pelkkä "Kirjaudu"-teksti (.auth-login-btn) - henkilöikoni näytti
-   sovelluksen käyttöliittymältä eikä kertonut mitä se tekee. Rekisteröityminen
-   löytyy kirjautumissivulta. Sama breakpoint kuin muualla headerissa. */
+   puhelimella harmaa pyöreä käyttäjäikoni ja musta Kirjaudu-nappi
+   (.auth-login-btn, käyttäjän pyyntö 29.10.2026). Rekisteröityminen löytyy
+   kirjautumissivulta. Sama breakpoint kuin muualla headerissa. */
 .auth-login-btn {
   display: none;
   align-items: center;
-  /* Kosketusalue on korkeampi kuin teksti, vaikka taustaa ei näy. */
-  min-height: 34px;
-  padding: 0 4px;
+  gap: 8px;
   flex-shrink: 0;
-  color: var(--delivo-black);
   font-family: inherit;
   font-size: 0.82rem;
   font-weight: 600;
@@ -92,11 +89,32 @@
 }
 
 .auth-login-btn:active {
-  opacity: 0.6;
+  opacity: 0.7;
 }
 
-/* Tumman tai läpinäkyvän headerin päällä valkoinen. */
-.auth-login-btn--overlay {
+.auth-login-btn__avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--round-button-bg);
+  color: var(--delivo-black);
+}
+
+.auth-login-btn__avatar svg {
+  width: 18px;
+  height: 18px;
+}
+
+.auth-login-btn__label {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--delivo-black);
+  font-size: 0.78rem;
   color: #fff;
 }
 

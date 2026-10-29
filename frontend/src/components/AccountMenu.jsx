@@ -73,14 +73,18 @@ function AccountMenu({ currentPath, variant }) {
           </Link>
         </div>
 
-        {/* Mobiili: yksi Kirjaudu-nappi - pelkkä henkilöikoni näytti sovelluksen
-            käyttöliittymältä. Rekisteröityminen löytyy kirjautumissivulta. */}
+        {/* Mobiili: harmaa pyöreä käyttäjäikoni ja musta Kirjaudu-nappi
+            (käyttäjän pyyntö 29.10.2026). Yksi linkki, joten molemmat vievät
+            kirjautumiseen. Rekisteröityminen löytyy kirjautumissivulta. */}
         <Link
           to="/login"
           state={{ from: currentPath }}
           className={`auth-login-btn${variant === 'overlay' ? ' auth-login-btn--overlay' : ''}`}
         >
-          Kirjaudu
+          <span className="auth-login-btn__avatar" aria-hidden="true">
+            <PersonIcon />
+          </span>
+          <span className="auth-login-btn__label">Kirjaudu</span>
         </Link>
       </>
     )

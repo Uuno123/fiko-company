@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, ShoppingBag } from 'lucide-react'
+import { ArrowRight, Bike, ChevronDown, Clock, Percent, ShoppingBag, Smile } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import CategoryBar from '../components/CategoryBar.jsx'
 import Footer from '../components/Footer.jsx'
@@ -12,8 +12,10 @@ import { getRestaurants } from '../lib/api.js'
 import {
   ALL,
   CATEGORY_NAMES,
+  CATEGORY_SLOGANS,
   CATEGORY_TILE_META,
   DEFAULT_TILE_META,
+  DEALS_QUERY,
   DEALS_RESTAURANTS,
   FILLER_TEMPLATES_BY_CATEGORY,
   categorySlug,
@@ -22,9 +24,10 @@ import {
 } from '../lib/categories.js'
 import { useFavorites } from '../lib/useFavorites.js'
 import { useCart } from '../lib/CartContext.jsx'
-import { useDeliveryAddress, withDistance } from '../lib/deliveryAddress.js'
+import { openAddressPicker, useDeliveryAddress, withDistance } from '../lib/deliveryAddress.js'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { formatPrice } from '../lib/format.js'
+import { QUICK_FILTERS } from '../lib/quickFilters.js'
 import './Home.css'
 
 // Mobiilin kategoriariveille ei näytetä kahvilaosiota lainkaan (käyttäjän päätös).
@@ -39,6 +42,13 @@ const SEARCH_CATEGORIES_WITH_FILLERS = CATEGORY_NAMES.filter((name) => searchFil
 // "Lähelläsi"-rivi osoitteen antaneille: näin monta lähintä kaikista kategorioista.
 const NEARBY_COUNT = 10
 const NEARBY_ROW = 'Lähelläsi'
+// Pikavalintapillerien ikonit (ehdot ja hakusanat: lib/quickFilters.js).
+const QUICK_FILTER_ICONS = { fast: Clock, free: Bike, top: Smile }
+// Rivien otsikot mainoslauseina kategorian nimen sijaan (CATEGORY_SLOGANS,
+// lib/categories.js). Vain otsikko vaihtuu: suodattimet, osoitteet
+// (/kategoria/...) ja ruudunlukijan nuolinapit käyttävät edelleen kategorian
+// nimeä. Puuttuva kategoria näkyy omalla nimellään.
+const ROW_TITLES = { [NEARBY_ROW]: 'Aivan nurkan takana', ...CATEGORY_SLOGANS }
 // Kovimmat tarjoukset -rivi tulee tämän kategoriarivin jälkeen. Ravintolat ja
 // järjestys: DEALS_RESTAURANTS (lib/categories.js, sama lista kuin haussa).
 const DEALS_AFTER = 'Kebab & Pizza'
@@ -56,6 +66,9 @@ const DEALS_AFTER = 'Kebab & Pizza'
 // Bidrop-kassilla ensimmäisenä ja kebab + pizza keskellä, nappi hakee kategorian;
 // pyörälähetti kebab-dian jälkeen.
 // BIDROP10- ja McDonald's-diat poistettiin 28.10.2026 (käyttäjän pyyntö).
+// Koko karuselli piilotettu 29.10.2026 käyttäjän pyynnöstä, mutta pidetään
+// valmiina: takaisin vaihtamalla SHOW_HOME_ADS = true.
+const SHOW_HOME_ADS = false
 const HOME_ADS = [
   {
     id: 'kuva-burgerit',
@@ -134,6 +147,21 @@ function Home() {
   const [adIndex, setAdIndex] = useState(0)
   const { favoriteIds, toggleFavorite } = useFavorites()
   const [searchOpen, setSearchOpen] = useState(false)
+  // Puhelimella kiinnittyvä hakukenttä saa varjon vasta, kun se on ylälaidassa.
+  const searchStickyRef = useRef(null)
+  const [searchStuck, setSearchStuck] = useState(false)
+  useEffect(() => {
+    function update() {
+      const el = searchStickyRef.current
+      setSearchStuck(Boolean(el) && window.scrollY > 0 && el.getBoundingClientRect().top <= 0.5)
+    }
+    const frame = requestAnimationFrame(update)
+    window.addEventListener('scroll', update, { passive: true })
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', update)
+    }
+  }, [])
   const navigate = useNavigate()
   const adTrackRef = useRef(null)
   // Ohjelmallinen scrollTo laukaisee itse scroll-tapahtumia koko animaation ajan
@@ -250,6 +278,7 @@ function Home() {
   // adIndex riippuvuutena: ajastin nollautuu myös kun palloa painetaan, jolloin
   // käsin valittu mainos ehtii näkyä täyden ajan.
   useEffect(() => {
+    if (!SHOW_HOME_ADS) return undefined
     const timer = setInterval(() => setAdIndex((i) => (i + 1) % HOME_ADS.length), AD_ROTATE_MS)
     return () => clearInterval(timer)
   }, [adIndex])
@@ -493,9 +522,29 @@ function Home() {
       <CategoryBar />
 
       <main className="home-content">
-        {/* Mobiilin yläosa: haku. Toimitusosoite kysytään vasta ravintolaa
-            avattaessa (AddressGate), ei etusivulla. */}
+        {/* Mobiilin yläosa: toimitusosoite logon alla (käyttäjän pyyntö 29.10.2026:
+            ei ikonia, pieni harmaa "Toimitusosoite" päällä). Napautus avaa saman
+            osoiteikkunan kuin työpöydän headerissa. */}
         <div className="home-mobile-top">
+          <button
+            type="button"
+            className="home-address"
+            aria-haspopup="dialog"
+            aria-label={deliveryAddress ? `Toimitusosoite: ${deliveryAddress.full}. Vaihda osoite` : 'Lisää toimitusosoite'}
+            onClick={openAddressPicker}
+          >
+            <span className="home-address__label">Toimitusosoite</span>
+            <span className="home-address__value">
+              <span>{deliveryAddress?.label ?? 'Lisää osoite'}</span>
+              <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
+            </span>
+          </button>
+        </div>
+
+        {/* Puhelimella header vierii pois ja vain haku jää ylälaitaan (käyttäjän
+            pyyntö 29.10.2026). Oma lohkonsa suoraan mainin alla, jotta kiinnitys
+            kestää koko sivun. */}
+        <div className={`home-search-sticky${searchStuck ? ' is-stuck' : ''}`} ref={searchStickyRef}>
           <div className="home-search" onClick={() => setSearchOpen(true)}>
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="2.2" />
@@ -516,85 +565,124 @@ function Home() {
               </button>
             )}
           </div>
+        </div>
+
+        <div className="home-mobile-top">
+          {/* Kategoriat pieninä laattoina vaakarivissä harmaalla taustalla: samat
+              kuvat kuin haun värikkäissä laatikoissa, mutta pastellitausta harmaana
+              (public/category-*-gray.webp, käyttäjän pyyntö 29.10.2026). */}
+          <nav className="home-cats" aria-label="Kategoriat">
+            {searchCategories.map((category) => {
+              const tile = CATEGORY_TILE_META[category] ?? DEFAULT_TILE_META
+              return (
+                <Link key={category} to={`/kategoria/${categorySlug(category)}`} className="home-cat-tile">
+                  <span className="home-cat-tile__art" aria-hidden="true">
+                    {tile.img ? <img src={tile.img.replace(/\.jpg$/, '-gray.webp')} alt="" /> : tile.emoji}
+                  </span>
+                  <span className="home-cat-tile__label">{category}</span>
+                </Link>
+              )
+            })}
+          </nav>
+
+          <div className="home-quick-filters" role="group" aria-label="Pikavalinnat">
+            <Link to={`/haku?q=${encodeURIComponent(DEALS_QUERY)}`} className="home-quick-pill">
+              <Percent size={16} strokeWidth={2.2} aria-hidden="true" />
+              Tarjoukset
+            </Link>
+            {/* Pillerit hakevat (hakutulossivu) eivätkä vain suodata etusivua
+                (käyttäjän pyyntö 29.10.2026). */}
+            {QUICK_FILTERS.map(({ id, query }) => {
+              const Icon = QUICK_FILTER_ICONS[id]
+              return (
+                <Link key={id} to={`/haku?q=${encodeURIComponent(query)}`} className="home-quick-pill">
+                  <Icon size={16} strokeWidth={2.2} aria-hidden="true" />
+                  {query}
+                </Link>
+              )
+            })}
+          </div>
 
         </div>
 
         {/* Työpöydän värikkäät kategorialaatikot korvattiin tekstipalkilla
             headerin alla (CategoryBar, käyttäjän pyyntö 25.10.2026). */}
-        <div className="home-promo">
-          <div className="home-ad">
-            {/* Vierivä rata, jossa banneri kerrallaan näkyy useampi - sama idea
-                kuin Woltin nostokarusellissa. Mukana sekä kampanjabannerit että
-                ruokakuvanostot kategorioihin. */}
-            <div className="home-ad__track" ref={adTrackRef}>
-              {HOME_ADS.map((ad) => (
-                <article
-                  key={ad.id}
-                  className={`home-ad__slide home-ad__slide--${ad.kind ?? 'promo'}${ad.cta.search ? ' home-ad__slide--photo' : ''}${ad.code ? ' home-ad__slide--code' : ''}`}
-                  style={{ backgroundImage: `url(${ad.img})` }}
-                >
-                  <div className="home-ad__content">
-                    <span className="home-ad__lead">
-                      {ad.lead}
-                      {ad.code && <span className="home-ad__code">{ad.code}</span>}
-                      {ad.code && ' kassalla'}
-                    </span>
-                    <strong className="home-ad__title">{ad.title}</strong>
-                    {ad.cta.search ? (
-                      <Link to={`/haku?q=${encodeURIComponent(ad.cta.search)}`} className="home-ad__cta">
-                        Tilaa nyt <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
-                      </Link>
-                    ) : (
-                      <button
-                        type="button"
-                        className={`home-ad__cta${ad.cta.light ? ' home-ad__cta--light' : ''}`}
-                        onClick={scrollToRestaurants}
-                      >
-                        Tilaa nyt <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
-                      </button>
-                    )}
-                  </div>
-                </article>
-              ))}
+        {SHOW_HOME_ADS && (
+          <div className="home-promo">
+            <div className="home-ad">
+              {/* Vierivä rata, jossa banneri kerrallaan näkyy useampi - sama idea
+                  kuin Woltin nostokarusellissa. Mukana sekä kampanjabannerit että
+                  ruokakuvanostot kategorioihin. */}
+              <div className="home-ad__track" ref={adTrackRef}>
+                {HOME_ADS.map((ad) => (
+                  <article
+                    key={ad.id}
+                    className={`home-ad__slide home-ad__slide--${ad.kind ?? 'promo'}${ad.cta.search ? ' home-ad__slide--photo' : ''}${ad.code ? ' home-ad__slide--code' : ''}`}
+                    style={{ backgroundImage: `url(${ad.img})` }}
+                  >
+                    <div className="home-ad__content">
+                      <span className="home-ad__lead">
+                        {ad.lead}
+                        {ad.code && <span className="home-ad__code">{ad.code}</span>}
+                        {ad.code && ' kassalla'}
+                      </span>
+                      <strong className="home-ad__title">{ad.title}</strong>
+                      {ad.cta.search ? (
+                        <Link to={`/haku?q=${encodeURIComponent(ad.cta.search)}`} className="home-ad__cta">
+                          Tilaa nyt <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
+                        </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          className={`home-ad__cta${ad.cta.light ? ' home-ad__cta--light' : ''}`}
+                          onClick={scrollToRestaurants}
+                        >
+                          Tilaa nyt <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              {/* Nuolet vain työpöydällä (piilotettu CSS:llä kapealla) - puhelimella
+                  pyyhkäisy ja pallot riittävät. */}
+              <button
+                type="button"
+                className="home-ad__arrow home-ad__arrow--prev"
+                aria-label="Edellinen mainos"
+                onClick={() => setAdIndex((i) => (i - 1 + HOME_ADS.length) % HOME_ADS.length)}
+              >
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M12 4 6 10l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="home-ad__arrow home-ad__arrow--next"
+                aria-label="Seuraava mainos"
+                onClick={() => setAdIndex((i) => (i + 1) % HOME_ADS.length)}
+              >
+                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="m8 4 6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
             </div>
 
-            {/* Nuolet vain työpöydällä (piilotettu CSS:llä kapealla) - puhelimella
-                pyyhkäisy ja pallot riittävät. */}
-            <button
-              type="button"
-              className="home-ad__arrow home-ad__arrow--prev"
-              aria-label="Edellinen mainos"
-              onClick={() => setAdIndex((i) => (i - 1 + HOME_ADS.length) % HOME_ADS.length)}
-            >
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M12 4 6 10l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className="home-ad__arrow home-ad__arrow--next"
-              aria-label="Seuraava mainos"
-              onClick={() => setAdIndex((i) => (i + 1) % HOME_ADS.length)}
-            >
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="m8 4 6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
+            <div className="home-ad__dots">
+              {HOME_ADS.map((ad, i) => (
+                <button
+                  key={ad.id}
+                  type="button"
+                  className={`home-ad__dot${i === adIndex ? ' home-ad__dot--active' : ''}`}
+                  aria-label={`Mainos ${i + 1}/${HOME_ADS.length}`}
+                  aria-current={i === adIndex}
+                  onClick={() => setAdIndex(i)}
+                />
+              ))}
+            </div>
           </div>
-
-          <div className="home-ad__dots">
-            {HOME_ADS.map((ad, i) => (
-              <button
-                key={ad.id}
-                type="button"
-                className={`home-ad__dot${i === adIndex ? ' home-ad__dot--active' : ''}`}
-                aria-label={`Mainos ${i + 1}/${HOME_ADS.length}`}
-                aria-current={i === adIndex}
-                onClick={() => setAdIndex(i)}
-              />
-            ))}
-          </div>
-        </div>
+        )}
 
         {status === 'loading' && <Spinner label="Haetaan ravintoloita" />}
 
@@ -618,12 +706,18 @@ function Home() {
                   <Fragment key={category}>
                     <section className="category-row" id={`cat-${categorySlug(category)}`}>
                       <div className="category-row__header">
-                        <h2 className="category-row__title">{category}</h2>
+                        <h2 className="category-row__title">{ROW_TITLES[category] ?? category}</h2>
                         <div className="category-row__actions">
                           {/* Lähelläsi-rivi ei ole kategoria, joten sillä ei ole omaa sivua. */}
                           {category !== NEARBY_ROW && (
-                            <Link className="category-row__see-all" to={`/kategoria/${categorySlug(category)}`}>
-                              Kaikki <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
+                            <Link
+                              className="category-row__see-all"
+                              to={`/kategoria/${categorySlug(category)}`}
+                              aria-label={`Kaikki: ${category}`}
+                            >
+                              {/* Puhelimella pelkkä nuoli harmaalla pallolla (Home.css). */}
+                              <span className="category-row__see-all-text">Kaikki</span>
+                              <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
                             </Link>
                           )}
                           {/* Nuolet vain työpöydällä - puhelimella rivi pyyhkäistään. */}

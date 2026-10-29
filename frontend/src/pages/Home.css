@@ -158,26 +158,58 @@
     padding: 40px 16px 48px;
   }
 
+  /* Ohut jakoviiva kategoriarivien välissä ja vähemmän tyhjää tilaa rivistä
+     toiseen (käyttäjän pyyntö 29.10.2026). Kovimpien tarjousten rivi erottuu
+     omalla paneelillaan, joten sen ympärillä ei ole viivaa. */
   .category-rows {
-    gap: 24px;
+    gap: 0;
+  }
+
+  /* Viiva koko ruudun levyinen: rivi ulottuu sivun reunuksen yli ja sisältö
+     pysyy paikallaan saman verran pehmusteella. */
+  .category-row + .category-row:not(.category-row--deals) {
+    margin: 0 -16px;
+    padding: 16px 16px 0;
+    /* Selkeämpi viiva (käyttäjän pyyntö 29.10.2026). */
+    border-top: 1.5px solid #dcdcd8;
+  }
+
+  .category-row--deals {
+    margin: 6px 0 14px;
+  }
+
+  .category-row--deals + .category-row {
+    border-top: none;
   }
 
   .category-row__header {
     margin-bottom: 12px;
   }
 
+  /* Pienempi, koska otsikot ovat nyt mainoslauseita (29.10.2026). */
   .category-row__title {
-    font-size: 1.28rem;
+    font-size: 1.2rem;
   }
 
-  /* Pelkkä teksti, ei mustaa pilleriä (käyttäjän toive: ei isoja mustia nappeja). */
-  /* "Kaikki" oranssina kuten työpöydällä, jotta sen tunnistaa painettavaksi. */
+  /* Pelkkä nuoli harmaalla pyöreällä taustalla (käyttäjän pyyntö 29.10.2026);
+     "Kaikki"-teksti jää ruudunlukijalle (aria-label). */
   .category-row__see-all {
-    padding: 4px 0;
-    background: none;
-    color: var(--delivo-orange);
-    font-size: 0.85rem;
-    font-weight: 700;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--round-button-bg);
+    color: var(--delivo-black);
+  }
+
+  .category-row__see-all-text {
+    display: none;
+  }
+
+  .category-row__see-all svg {
+    width: 17px;
+    height: 17px;
   }
 
   .category-row__see-all:hover {
@@ -189,7 +221,7 @@
     scroll-padding-left: 16px;
     /* Rivi ulottuu ruudun reunoihin, mutta kortit alkavat sisällön reunasta. */
     margin: 0 -16px;
-    padding: 8px 16px 22px;
+    padding: 8px 16px 16px;
   }
 }
 
@@ -226,6 +258,7 @@
    promo-kuva toimivat hyvin. Nämä säännöt ovat tiedoston lopussa, jotta ne
    voittavat yllä olevat yleiset säännöt samalla spesifisyydellä. */
 .home-mobile-top,
+.home-search-sticky,
 .home-promo {
   display: none;
 }
@@ -257,10 +290,7 @@
     gap: 12px;
   }
 
-  /* Sijaintia ei näytetä etusivulla lainkaan. */
-  .page--home .site-header__left .city-select {
-    display: none;
-  }
+  /* Sijainti ei headerissa: osoite on logon alla sivun yläosassa (.home-address). */
 
   /* Ostoskorinappi on oletuksena läpikuultava valkoinen tummaa headeria varten -
      valkoisella taustalla se katoaisi kokonaan. Musta täyttö erottaa sen
@@ -294,17 +324,164 @@
     gap: 12px;
   }
 
-  /* Harmaa täyttö, ei ääriviivaa: valkoinen kenttä valkoisella taustalla katoaisi.
-     Neutraali harmaa eikä --surface-muted, joka on kellertävän murrettu sävy. */
+  /* Header vierii pois ja hakukenttä kiinnittyy ylälaitaan (käyttäjän pyyntö
+     29.10.2026). Negatiivinen marginaali kumoaa osan .home-contentin välistä
+     ja vie valkoisen taustan reunasta reunaan. Varjo vasta kiinnittyneenä. */
+  .page--home .site-header {
+    position: relative;
+  }
+
+  .home-search-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: block;
+    margin: -12px -16px;
+    padding: 8px 16px;
+    background: var(--delivo-bg);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .home-search-sticky.is-stuck {
+    box-shadow: 0 8px 16px -12px rgba(20, 21, 15, 0.4);
+  }
+
+  /* Vieritettäessä kenttä pienenee hieman (käyttäjän pyyntö 29.10.2026).
+     Marginaali pitää lohkon korkeuden samana, ettei sisältö alla hyppää. */
+  .home-search-sticky .home-search {
+    transition: height 0.2s ease, margin 0.2s ease;
+  }
+
+  .home-search-sticky.is-stuck .home-search {
+    height: 40px;
+    margin: 3px 0;
+  }
+
+  .home-search-sticky .home-search svg {
+    transition: width 0.2s ease, height 0.2s ease;
+  }
+
+  .home-search-sticky.is-stuck .home-search svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Toimitusosoite logon alla: pieni harmaa otsikko ja osoite nuolen kanssa,
+     ei ikonia (käyttäjän pyyntö 29.10.2026). Pitkä osoite lyhenee "…":lla. */
+  .home-address {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    align-self: flex-start;
+    max-width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: inherit;
+    text-align: left;
+    color: var(--delivo-black);
+    cursor: pointer;
+  }
+
+  .home-address__label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .home-address__value {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  .home-address__value > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .home-address__value svg {
+    flex-shrink: 0;
+  }
+
+  /* Kategoriat ja pikavalinnat vaakariveinä reunasta reunaan (käyttäjän pyyntö
+     29.10.2026): pienet kuvalaatat harmaalla taustalla, pillereissä ikoni ja teksti. */
+  .home-cats,
+  .home-quick-filters {
+    display: flex;
+    margin: 0 -16px;
+    padding: 0 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-padding-left: 16px;
+  }
+
+  .home-cats::-webkit-scrollbar,
+  .home-quick-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-cats {
+    gap: 8px;
+    padding-top: 2px;
+  }
+
+  .home-cats .home-cat-tile {
+    width: 56px;
+    gap: 5px;
+  }
+
+  .home-cats .home-cat-tile__art {
+    border-radius: 14px;
+    background: #efefef;
+  }
+
+  .home-cats .home-cat-tile__label {
+    font-size: 0.66rem;
+  }
+
+  .home-quick-filters {
+    gap: 8px;
+  }
+
+  .home-quick-pill {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 14px;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: #efefed;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--delivo-black);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Harmaa täyttö, ei ääriviivaa (käyttäjä: tummempi hakupalkki 29.10.2026):
+     valkoinen kenttä valkoisella taustalla katoaisi. Neutraali harmaa eikä
+     --surface-muted, joka on kellertävän murrettu sävy. */
   .home-search {
     display: flex;
     align-items: center;
     gap: 10px;
     height: 46px;
     padding: 0 18px;
-    border: 1px solid #ececec;
-    border-radius: var(--radius-pill);
-    background: var(--surface);
+    border: 1px solid transparent;
+    /* Hieman vähemmän pyöreä kuin pilleri (käyttäjän pyyntö 29.10.2026). */
+    border-radius: 20px;
+    background: #ececea;
   }
 
   .home-search svg {
@@ -328,6 +505,9 @@
     font-family: inherit;
     /* 16px estää iOS:n automaattisen zoomauksen kenttään koskettaessa. */
     font-size: 16px;
+    /* Hieman paksumpi kuin leipäteksti (käyttäjän pyyntö 29.10.2026), sama
+       kuin työpöydän headerin haussa. */
+    font-weight: 500;
     color: var(--delivo-black);
   }
 
@@ -409,10 +589,10 @@
     text-align: center;
   }
 
-  /* Ettei hyppy ravintolariviin (bannerin "Tilaa nyt") jätä otsikkoa headerin
-     alle. Mobiilin kategoriarivi poistettiin 28.10.2026 (käyttäjän pyyntö). */
+  /* Ettei hyppy ravintolariviin jätä otsikkoa kiinnittyneen hakukentän
+     (46 px + 2 x 8 px) alle. Header ei enää pysy ylhäällä (29.10.2026). */
   .category-row {
-    scroll-margin-top: calc(var(--home-header-h) + env(safe-area-inset-top, 0px) + 20px);
+    scroll-margin-top: 76px;
   }
 }
 
@@ -431,9 +611,16 @@
    värejä ja kokoja oli aiemmin täällä, mikä sai kortin näyttämään eri sivuilla
    kahdelta eri kortilta. */
 @media (max-width: 560px) {
+  /* Kokeilu 29.10.2026: kapeampi kortti (74vw / 290 px -> 64vw / 250 px). */
   .page--home .restaurant-card {
-    width: 74vw;
-    max-width: 290px;
+    width: 64vw;
+    max-width: 250px;
+  }
+
+  /* Ja hieman matalampi kuva (2.1:1 -> 2.25:1, käyttäjän pyyntö 29.10.2026).
+     Kovimpien tarjousten rivillä oma kuvasuhde (DealsRow.css). */
+  .page--home .category-row:not(.category-row--deals) .restaurant-card__media {
+    aspect-ratio: 2.25 / 1;
   }
 }
 
