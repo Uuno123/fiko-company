@@ -977,7 +977,9 @@
   cursor: pointer;
 }
 
+/* Otsikko samassa linjassa osoitetekstin kanssa: neula (14 px) + väli (4 px). */
 .city-select__label {
+  padding-left: 18px;
   font-size: 0.74rem;
   font-weight: 500;
   line-height: 1.15;
@@ -989,6 +991,13 @@
   align-items: center;
   gap: 4px;
   min-width: 0;
+}
+
+.city-select__pin {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  color: var(--delivo-orange);
 }
 
 .city-select__value {

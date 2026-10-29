@@ -1212,3 +1212,309 @@
     gap: 0;
   }
 }
+
+/* Työpöytä samaan ilmeeseen kuin puhelin (käyttäjän pyyntö 29.10.2026):
+   piirretyt kategoriakuvakkeet himmeillä harmailla laatoilla sisällön
+   yläosassa (headerin alla ollut kategoriapalkki pois), litteät ravintolat
+   ilman korttilaatikkoa, ohuet jakoviivat rivien välissä ja harmaat napit. */
+@media (min-width: 561px) {
+  .home-content {
+    padding-top: 28px;
+  }
+
+  .home-cats {
+    display: flex;
+    gap: 14px;
+    padding: 2px 0 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .home-cats::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Pienemmät kuvakkeet ilman taustalaattaa (käyttäjän pyyntö 29.10.2026). */
+  .home-cats .home-cat-tile {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 76px;
+    color: var(--delivo-black);
+    text-decoration: none;
+  }
+
+  .home-cats .home-cat-tile__art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    box-sizing: border-box;
+    padding: 8px;
+    overflow: hidden;
+    border-radius: 0;
+    background: none;
+  }
+
+  .home-cats .home-cat-tile__art img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.2s ease;
+  }
+
+  .home-cats .home-cat-tile:hover .home-cat-tile__art img {
+    transform: scale(1.06);
+  }
+
+  .home-cats .home-cat-tile__label {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Litteät ravintolat: kuva pyöristettynä ja teksti sen alla. */
+  .page--home .category-rows .restaurant-card {
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .page--home .category-rows .restaurant-card:hover,
+  .page--home .category-rows .restaurant-card:focus-visible {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .page--home .category-rows .restaurant-card__media {
+    border-radius: 12px;
+  }
+
+  .page--home .category-rows .restaurant-card__body {
+    padding: 12px 2px 0;
+  }
+
+  /* Ohut jakoviiva rivien välissä, kuten puhelimella. */
+  .category-rows {
+    gap: 0;
+  }
+
+  .page--home .category-rows .category-row__scroll {
+    padding: 6px 0 28px;
+  }
+
+  .page--home .category-row + .category-row:not(.category-row--deals) {
+    padding-top: 28px;
+    border-top: 1px solid #e8e8e5;
+  }
+
+  .page--home .category-row--deals {
+    margin: 4px 0 36px;
+  }
+
+  .page--home .category-row--deals + .category-row {
+    border-top: none;
+  }
+
+  /* Harmaat pyöreät napit ja "Kaikki" harmaana pillerinä. */
+  .category-row__nav {
+    border: none;
+    background: var(--round-button-bg);
+  }
+
+  .category-row__nav:hover {
+    border: none;
+    background: var(--round-button-bg-pressed);
+    color: var(--delivo-black);
+  }
+
+  .category-row__see-all {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: var(--radius-pill);
+    background: var(--round-button-bg);
+    color: var(--delivo-black);
+    font-size: 0.88rem;
+  }
+
+  .category-row__see-all:hover {
+    background: var(--round-button-bg-pressed);
+    text-decoration: none;
+  }
+}
+
+/* Työpöytä Uber Eatsin rakenteella (käyttäjän pyyntö 29.10.2026). Puhelimella
+   ja kapealla näytöllä nämä ovat piilossa ja .home-main on display:contents,
+   jolloin sisältö käyttäytyy kuten ennen. */
+.home-sidebar,
+.home-filters,
+.home-intro,
+.home-cats__next {
+  display: none;
+}
+
+.home-main {
+  display: contents;
+}
+
+@media (min-width: 900px) {
+  .home-cats-wrap {
+    position: relative;
+  }
+
+  /* Nuoli rivin oikeassa reunassa valkoisessa pallossa. */
+  .home-cats__next {
+    position: absolute;
+    top: 26px;
+    right: 0;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(20, 21, 15, 0.18);
+    color: var(--delivo-black);
+    cursor: pointer;
+  }
+
+  .home-cats__next:hover {
+    background: #f6f6f4;
+  }
+
+  .home-cats {
+    padding-right: 56px;
+  }
+
+  .home-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .home-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 42px;
+    padding: 0 18px;
+    border-radius: var(--radius-pill);
+    background: #f3f3f2;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--delivo-black);
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+
+  .home-filter:hover {
+    background: #e9e9e7;
+  }
+
+  /* Otsikkorivi (tarjouskortti poistettu 29.10.2026, käyttäjän pyyntö). */
+  .home-intro {
+    display: block;
+    margin: 10px 0 4px;
+  }
+
+  .home-intro__text h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 3.4vw, 3.3rem);
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+    color: var(--delivo-black);
+  }
+
+  .home-intro__text p {
+    margin: 14px 0 0;
+    font-size: 1.08rem;
+    color: #45473f;
+  }
+
+  /* "Näytä kaikki" pelkkänä tekstinä nuolten vieressä. */
+  .category-row__see-all {
+    height: auto;
+    padding: 0 6px;
+    background: none;
+    color: var(--delivo-black);
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .category-row__see-all:hover {
+    background: none;
+    text-decoration: underline;
+  }
+}
+
+/* Vasen sivupalkki leveillä näytöillä. */
+@media (min-width: 1200px) {
+  .home-content {
+    display: grid;
+    /* Kapeampi sivupalkki (220 -> 184 px, käyttäjän pyyntö 29.10.2026). */
+    grid-template-columns: 184px minmax(0, 1fr);
+    align-items: start;
+    column-gap: 32px;
+    padding-left: 20px;
+  }
+
+  .home-main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 0;
+  }
+
+  .home-sidebar {
+    position: sticky;
+    top: 86px;
+    display: block;
+  }
+
+  .home-sidebar__nav {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .home-sidebar__link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 46px;
+    padding: 0 14px;
+    font-size: 0.96rem;
+    font-weight: 500;
+    color: var(--delivo-black);
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+
+  .home-sidebar__link:hover {
+    background: #f6f6f4;
+  }
+
+  .home-sidebar__link.is-active {
+    background: #f1f1ef;
+    box-shadow: inset 4px 0 0 var(--delivo-black);
+    font-weight: 600;
+  }
+
+  .home-sidebar__divider {
+    display: block;
+    height: 1px;
+    margin: 12px 0;
+    background: #e8e8e5;
+  }
+}

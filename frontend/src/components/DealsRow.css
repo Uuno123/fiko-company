@@ -24,7 +24,8 @@
   left: -20px;
   z-index: -1;
   border-radius: 28px;
-  background: var(--delivo-orange-soft);
+  /* Pehmeä oranssi liukuväri kaikilla leveyksillä (29.10.2026). */
+  background: linear-gradient(160deg, #fff4ef 0%, #ffe2d5 100%);
 }
 
 @media (max-width: 560px) {

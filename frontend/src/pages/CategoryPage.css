@@ -247,3 +247,32 @@
     padding: 10px 2px 0;
   }
 }
+
+/* Työpöydällä ravintolat litteinä kuten puhelimella ja etusivulla
+   (käyttäjän pyyntö 29.10.2026). */
+@media (min-width: 561px) {
+  .category-page__list {
+    gap: 28px 20px;
+  }
+
+  .category-page__list .restaurant-card {
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .category-page__list .restaurant-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .category-page__list .restaurant-card__media {
+    border-radius: 12px;
+  }
+
+  .category-page__list .restaurant-card__body {
+    padding: 12px 2px 0;
+  }
+}
