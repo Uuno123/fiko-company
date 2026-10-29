@@ -121,73 +121,28 @@
   }
 }
 
-.category-topbar__left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-/* AccountMenun oletus .auth-ghost-btn (Kirjaudu) on suunniteltu tumman headerin
-   päälle - valkoinen teksti ja himmeä valkoinen reunus. Tämän sivun topbar on
-   vaalea (var(--delivo-bg)), joten nappi olisi ilman tätä käytännössä näkymätön. */
-.category-topbar .auth-ghost-btn {
-  color: var(--delivo-black);
-  border-color: var(--border);
-}
-
-.category-topbar .auth-ghost-btn:hover {
-  background: rgba(20, 21, 15, 0.06);
-  border-color: var(--delivo-black);
-}
-
-/* Rekisteröidy mustana pilerinä (sama väri kuin takaisin-nuolessa) oletuksen
-   valkoisen pillerin sijaan. */
-.category-topbar .auth-pill-btn {
-  background: var(--delivo-black);
-  color: #fff;
-  border-color: var(--delivo-black);
-}
-
-.category-topbar .auth-pill-btn:hover {
-  background: #000;
-}
-
-/* Lajittelu näkyy kategoriasivulla myös puhelimella (käyttäjän pyyntö), vaikka
-   SearchResults.css piilottaa .search-sort-valitsimen alle 560px leveydellä
-   hakusivulla. Kaksi luokkaa voittaa sen yhden luokan säännön järjestyksestä
-   riippumatta. Pitkillä kategorianimillä ("Kebab & Pizza") valitsin rivittyy
-   otsikon alle, ja "Lajittelu"-teksti piilotetaan vain näkyvistä - valitsin
-   kertoo jo itse valinnan, ja ruudunlukija kuulee yhä nimen. */
+/* Puhelimella lajittelu yläpalkin napista paneeliin (käyttäjän pyyntö
+   29.10.2026). Reunus 16 px kuten etusivulla. */
 @media (max-width: 560px) {
-  .category-page__heading {
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .category-page__heading h1 {
-    font-size: 1.25rem;
-  }
-
-  /* Kapeampi sivureunus puhelimella - kortit levenevät, ja reuna osuu samaan
-     linjaan topbarin takaisin-napin kanssa (20 px). */
+  /* Hieman tyhjää yläpalkin ja ensimmäisen kortin väliin (29.10.2026). */
   .category-page {
-    padding-top: 32px;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding: 24px 16px 48px;
+    gap: 16px;
   }
 
-  .category-page__heading .search-sort {
-    display: flex;
-  }
-
-  .category-page__heading .search-sort__label {
+  /* Kategorian nimi on yläpalkin keskellä (käyttäjän pyyntö 29.10.2026), joten
+     otsikkorivi vain ruudunlukijalle (lajittelu on yläpalkin napissa). */
+  .category-page__heading {
     position: absolute;
     width: 1px;
     height: 1px;
     overflow: hidden;
     clip: rect(0 0 0 0);
     white-space: nowrap;
+  }
+
+  .category-page__heading .search-sort {
+    display: none;
   }
 }
 
@@ -206,18 +161,64 @@
   }
 }
 
-/* Puhelimella takaisin-nuoli harmaassa pallossa: ei isoja mustia
-   nappeja (käyttäjän toive), mutta erottuu valkoisesta. Sama hakusivulla ja
-   ostoskorissa. */
+/* Puhelimen yläpalkki: takaisin ja lajittelu harmaissa palloissa (ei isoja
+   mustia nappeja, käyttäjän toive), kategorian nimi niiden välissä keskellä.
+   Varjo vasta vieritettäessä. */
 @media (max-width: 560px) {
-  .category-topbar__back {
-    width: 36px;
-    height: 36px;
-    background: var(--round-button-bg);
-    color: var(--delivo-black);
+  .category-topbar {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+    align-items: center;
+    gap: 12px;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px;
+    transition: box-shadow 0.2s ease;
   }
 
-  .category-topbar__back:active {
+  .category-topbar.is-scrolled {
+    box-shadow: 0 8px 16px -12px rgba(20, 21, 15, 0.4);
+  }
+
+  .category-topbar__back,
+  .category-topbar__filter {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--round-button-bg);
+    color: var(--delivo-black);
+    cursor: pointer;
+  }
+
+  .category-topbar__back:active,
+  .category-topbar__filter:active {
     background: var(--round-button-bg-pressed);
+  }
+
+  /* Oranssi piste: muu kuin oletuslajittelu valittuna (sama kuin hakusivulla). */
+  .category-topbar__filter.is-active::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 9px;
+    height: 9px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--delivo-orange);
+  }
+
+  .category-topbar__title {
+    overflow: hidden;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--delivo-black);
   }
 }

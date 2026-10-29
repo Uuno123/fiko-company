@@ -150,6 +150,10 @@ export function rankRestaurants(list, { address = null, popularity = null, compa
   })
 
   closed.sort((a, b) => minutesUntilOpen(a, now) - minutesUntilOpen(b, now))
+  // Asiakkaan oma lajittelu järjestää myös täytepohjat keskenään (ne pysyvät
+  // silti oikeiden ravintoloiden perässä) - muuten "Paras arvio" näytti
+  // sekalaiselta, kun suurin osa riveistä on täytepohjia.
+  if (compare) fillers.sort(compare)
   return [...ranked, ...closed, ...fillers]
 }
 

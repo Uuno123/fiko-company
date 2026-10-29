@@ -8,7 +8,9 @@ import RestaurantCard from '../components/RestaurantCard.jsx'
 import Spinner from '../components/Spinner.jsx'
 import { useCart } from '../lib/CartContext.jsx'
 import { formatPrice } from '../lib/format.js'
-import { dealsFillerRestaurants, isDealsQuery, searchFillerRestaurants } from '../lib/categories.js'
+import { allFillerRestaurants, dealsFillerRestaurants, isDealsQuery, searchFillerRestaurants } from '../lib/categories.js'
+import { getRestaurants } from '../lib/api.js'
+import { quickFilterForQuery } from '../lib/quickFilters.js'
 import { restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { supabase } from '../lib/supabaseClient.js'
@@ -31,6 +33,8 @@ const RESTAURANT_RESULT_LIMIT = 100
 function SearchResults() {
   const [searchParams, setSearchParams] = useSearchParams()
   const query = searchParams.get('q') ?? ''
+  // Etusivun pikavalinta ("Alle 30 min" ym.): kaikki ehdon täyttävät ravintolat.
+  const quickFilter = quickFilterForQuery(query)
   const [inputValue, setInputValue] = useState(query)
   const [restaurants, setRestaurants] = useState([])
   const [items, setItems] = useState([])
@@ -77,6 +81,22 @@ function SearchResults() {
     let cancelled = false
     setStatus('loading')
     setRestaurantSort('relevance')
+
+    // Pikavalinta ei ole tekstihaku: kaikki ravintolat, joista ehto suodattaa.
+    const filter = quickFilterForQuery(query)
+    if (filter) {
+      getRestaurants()
+        .catch(() => [])
+        .then((all) => {
+          if (cancelled) return
+          setRestaurants((all ?? []).filter(filter.test))
+          setItems([])
+          setStatus('ready')
+        })
+      return () => {
+        cancelled = true
+      }
+    }
 
     Promise.all([
       supabase.rpc('search_restaurants', { search_term: query, result_limit: RESTAURANT_RESULT_LIMIT }),
@@ -132,11 +152,15 @@ function SearchResults() {
     const realNames = new Set(real.map((r) => r.name?.toLowerCase()))
     // Tarjoukset-laatikko (kategoriarivi) hakee sanalla "Tarjoukset": tulokset
     // ovat etusivun Kovimmat tarjoukset -rivin ravintolat.
-    const fillers = (isDealsQuery(query) ? dealsFillerRestaurants() : searchFillerRestaurants(query)).filter(
-      (f) => !realNames.has(f.name.toLowerCase()),
-    )
+    const fillers = (
+      quickFilter
+        ? allFillerRestaurants().filter(quickFilter.test)
+        : isDealsQuery(query)
+          ? dealsFillerRestaurants()
+          : searchFillerRestaurants(query)
+    ).filter((f) => !realNames.has(f.name.toLowerCase()))
     return [...real, ...fillers].map((r) => ({ ...r, distance_km: restaurantDistanceKm(r, deliveryAddress) }))
-  }, [restaurants, items, query, deliveryAddress, rankingDetails])
+  }, [restaurants, items, query, quickFilter, deliveryAddress, rankingDetails])
 
   // Haku päättää mitkä ravintolat näytetään, järjestys tulee delivon säännöstä
   // (lib/ranking.js): "Suositellut" = sponsorit paikoille 1 ja 4 ja muut pisteiden
