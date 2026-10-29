@@ -210,7 +210,7 @@ function CategoryPage() {
         {status === 'loading' && <Spinner label="Haetaan ravintoloita" />}
         {status === 'error' && <p className="state-message state-message--error">Ravintoloiden haku epäonnistui.</p>}
         {status === 'ready' && matching.length === 0 && (
-          <p className="state-message">Ei ravintoloita tässä kategoriassa.</p>
+          <p className="state-message">Tähän kategoriaan ei ole vielä liittynyt ravintoloita – tulossa pian!</p>
         )}
 
         {matching.length > 0 && (

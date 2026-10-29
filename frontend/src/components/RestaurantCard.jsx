@@ -95,23 +95,6 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
           <badge.Icon size={12} aria-hidden="true" />
           {badge.text}
         </span>
-
-        {onToggleFavorite && (
-          <button
-            type="button"
-            className={`restaurant-card__fav${isFavorite ? ' restaurant-card__fav--active' : ''}`}
-            aria-label={isFavorite ? `Poista ${name} suosikeista` : `Lisää ${name} suosikkeihin`}
-            aria-pressed={isFavorite}
-            onClick={(e) => {
-              // Kortti on linkki, joten estetään navigointi sydäntä painettaessa.
-              e.preventDefault()
-              e.stopPropagation()
-              onToggleFavorite(id)
-            }}
-          >
-            <Heart size={15} fill={isFavorite ? 'currentColor' : 'none'} aria-hidden="true" />
-          </button>
-        )}
       </div>
 
       <div className="restaurant-card__body">
@@ -119,6 +102,24 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
           <h3>{name}</h3>
           {/* Maksettu näkyvyys merkitään aina (lib/ranking.js). */}
           {sponsored && <span className="restaurant-card__sponsored">Sponsoroitu</span>}
+          {/* Sydän nimen vieressä Uber Eatsin tapaan (29.10.2026, aiemmin kuvan
+              kulmassa). Puhelimella piilossa (RestaurantCard.css). */}
+            {onToggleFavorite && (
+              <button
+                type="button"
+                className={`restaurant-card__fav${isFavorite ? ' restaurant-card__fav--active' : ''}`}
+                aria-label={isFavorite ? `Poista ${name} suosikeista` : `Lisää ${name} suosikkeihin`}
+                aria-pressed={isFavorite}
+                onClick={(e) => {
+                  // Kortti on linkki, joten estetään navigointi sydäntä painettaessa.
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onToggleFavorite(id)
+                }}
+              >
+                <Heart size={15} fill={isFavorite ? 'currentColor' : 'none'} aria-hidden="true" />
+              </button>
+            )}
         </div>
 
         <div className="restaurant-card__meta">

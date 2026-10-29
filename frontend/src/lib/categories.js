@@ -355,6 +355,10 @@ export const CATEGORY_TILE_META = {
   Kebab: { img: '/category-kebab.webp', icon: '/category-kebab-icon.webp' },
   Ramen: { img: '/category-ramen.webp', icon: '/category-ramen-icon.webp' },
   Kiinalainen: { img: '/category-chinese.webp', icon: '/category-chinese-icon.webp' },
+  // Uudet kategoriat 29.10.2026: vain piirretty kuvake (ei valokuvaa), ei vielä ravintoloita.
+  Thai: { img: '/category-thai-icon.webp', icon: '/category-thai-icon.webp' },
+  Korealainen: { img: '/category-korean-icon.webp', icon: '/category-korean-icon.webp' },
+  Wingsit: { img: '/category-wings-icon.webp', icon: '/category-wings-icon.webp' },
   Intialainen: { img: '/category-indian.jpg', icon: '/category-indian-icon.webp' },
   Kreikkalainen: { img: '/category-greek.jpg', icon: '/category-greek-icon.webp' },
   Bowlit: { img: '/category-bowls.webp', icon: '/category-bowls-icon.webp' },
@@ -394,6 +398,7 @@ export const CATEGORY_SHORT_LABELS = {
   Kiinalainen: 'Kiina',
   Intialainen: 'Intia',
   Kreikkalainen: 'Kreikka',
+  Korealainen: 'Korea',
 }
 
 // Kategorialaatikoiden järjestys rivillä.
