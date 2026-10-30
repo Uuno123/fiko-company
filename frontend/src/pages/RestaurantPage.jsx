@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Bike, ChevronRight, Clock, Heart, Minus, Plus, Search, X } from 'lucide-react'
 import { ScoreSmiley } from '../components/Smiley.jsx'
@@ -48,6 +48,11 @@ const TEMP_EXTRA_MENU_ITEMS = MCDONALDS_DEMO_MENU
 
 // Lisukkeet viimeiseksi aina, muut kategoriat säilyttävät datan oman järjestyksen -
 // sivulliset kuuluvat pääruokien jälkeen, ei niiden sekaan.
+// TILAPÄINEN, vain designia varten (käyttäjän pyyntö 30.10.2026): kategoriarivin
+// lopussa malli-kategorioita, joilla ei ole tuotteita eikä toimintoa. Poista kun
+// ruokalistalla on oikeasti näin monta osiota.
+const TEMP_DESIGN_TABS = ['Kana', 'Lisukkeet', 'Juomat', 'Jälkiruoat', 'Aamiainen', 'Lasten ateriat']
+
 function groupByCategory(items) {
   const groups = new Map()
   for (const item of items) {
@@ -312,6 +317,18 @@ function RestaurantPage() {
     setTabsOverflow((current) => (current.left === left && current.right === right ? current : { left, right }))
   }, [])
   const menuCategoryCount = groupedMenu.length
+  // Valitun kategorian alle liukuva musta viiva (käyttäjän valinta 30.10.2026):
+  // sijainti mitataan aktiivisesta napista, viiva vierii rivin mukana.
+  const [tabIndicator, setTabIndicator] = useState(null)
+  useLayoutEffect(() => {
+    function measure() {
+      const active = tabsRef.current?.querySelector('[aria-current="true"]')
+      setTabIndicator(active ? { left: active.offsetLeft, width: active.offsetWidth } : null)
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [shownCategory, menuCategoryCount, status])
 
   useEffect(() => {
     if (status !== 'ready') return undefined
@@ -679,6 +696,19 @@ function RestaurantPage() {
                         {category}
                       </button>
                     ))}
+                    {!menuQuery.trim() &&
+                      TEMP_DESIGN_TABS.filter((name) => !groupedMenu.some(([category]) => category === name)).map((name) => (
+                        <button type="button" key={name} className="restaurant-menu-tabs__btn" tabIndex={-1}>
+                          {name}
+                        </button>
+                      ))}
+                    {tabIndicator && (
+                      <span
+                        className="restaurant-menu-tabs__indicator"
+                        style={{ transform: `translateX(${tabIndicator.left}px)`, width: tabIndicator.width }}
+                        aria-hidden="true"
+                      />
+                    )}
                   </nav>
                   {tabsOverflow.right && (
                     <button

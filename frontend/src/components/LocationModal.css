@@ -371,9 +371,13 @@ button.location-modal__option:hover {
     align-items: flex-end;
   }
 
+  /* Puhelimella paneeli liukuu lähes ylös asti (käyttäjän pyyntö 31.10.2026):
+     näppäimistö peittää alaosan, joten hakukenttä, tulokset ja nappi ovat
+     ylhäällä näkyvissä. */
   .location-modal {
     max-width: none;
-    max-height: 92dvh;
+    height: calc(100dvh - 12px - env(safe-area-inset-top, 0px));
+    max-height: none;
     padding: 24px 20px calc(20px + env(safe-area-inset-bottom, 0px));
     border-radius: 24px 24px 0 0;
     animation-name: location-modal-up;
