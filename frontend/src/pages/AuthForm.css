@@ -248,8 +248,7 @@
   color: var(--text-muted);
 }
 
-/* Oranssi ensisijainen nappi kuten referenssikuvassa - auth-sivuilla se on sivun
-   ainoa toimintopainike, joten brändin korostusväri ei kilpaile minkään kanssa. */
+/* Oranssi ensisijainen nappi (käyttäjä palautti oranssiksi 30.10.2026). */
 .auth-submit {
   margin-top: 2px;
   border: none;
@@ -266,8 +265,6 @@
 
 .auth-submit:hover:not(:disabled) {
   background: var(--delivo-orange-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px -10px rgba(244, 80, 30, 0.6);
 }
 
 .auth-submit:disabled {

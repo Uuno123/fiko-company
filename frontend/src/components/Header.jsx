@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import CartIcon from './CartIcon.jsx'
 import DelivoLogo from './DelivoLogo.jsx'
 import AccountMenu from './AccountMenu.jsx'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
@@ -7,6 +8,7 @@ import SearchSuggest from './SearchSuggest.jsx'
 import { openAddressPicker, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { supabase } from '../lib/supabaseClient.js'
 import './Header.css'
+import { restaurantThumb } from '../lib/brandLogos.js'
 
 // showAddress: toimitusosoite logon vieressä (selaussivut). Osoiteikkuna itse
 // on AddressGatessa, jotta sama ikkuna aukeaa myös ensikäynnillä.
@@ -267,15 +269,8 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
                 aria-expanded={isCartOpen}
                 onClick={() => setIsCartOpen((open) => !open)}
               >
-                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path
-                    d="M4 6h12l-1 9.5a1 1 0 0 1-1 .9H6a1 1 0 0 1-1-.9L4 6Z"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                  />
-                  <path d="M7 6V5a3 3 0 0 1 6 0v1" stroke="currentColor" strokeWidth="1.5" />
-                </svg>
+                {/* Bidropin oma kori-ikoni (CartIcon, 30.10.2026). */}
+                <CartIcon />
                 <span className="cart-menu__badge">{cart.count}</span>
               </button>
 
@@ -300,6 +295,7 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
                     <div className="cart-drawer__body">
                       {cart.groups.map((group) => {
                         const itemCount = group.lines.reduce((sum, line) => sum + line.quantity, 0)
+                        const groupThumb = restaurantThumb(group.restaurantName, cartRestaurantImages[group.restaurantId])
                         const groupTotalCents = group.lines.reduce(
                           (sum, line) => sum + line.quantity * (line.unitPriceCents ?? line.item.price_cents),
                           0,
@@ -310,8 +306,13 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
                             <div className="cart-drawer-card__header">
                               <div className="cart-drawer-card__identity">
                                 <span className="cart-drawer-card__avatar" aria-hidden="true">
-                                  {cartRestaurantImages[group.restaurantId] ? (
-                                    <img src={cartRestaurantImages[group.restaurantId]} alt="" />
+                                  {groupThumb ? (
+                                    <img
+                                      src={groupThumb.src}
+                                      alt=""
+                                      className={groupThumb.logo ? 'brand-thumb-logo' : undefined}
+                                      style={groupThumb.style}
+                                    />
                                   ) : (
                                     group.restaurantName?.trim().charAt(0).toUpperCase() || '?'
                                   )}

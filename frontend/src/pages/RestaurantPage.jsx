@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Bike, ChevronRight, Clock, Heart, Minus, Plus, Search, ShoppingBag, X } from 'lucide-react'
+import { Bike, ChevronRight, Clock, Heart, Minus, Plus, Search, X } from 'lucide-react'
 import { ScoreSmiley } from '../components/Smiley.jsx'
 import { formatScore } from '../lib/score.js'
 import { brandLogoFor } from '../lib/brandLogos.js'
+import CartIcon from '../components/CartIcon.jsx'
 import { categorySlug } from '../lib/categories.js'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
@@ -126,7 +127,7 @@ function RestaurantCartPanel({ restaurant, cart }) {
       </h2>
       {lines.length === 0 ? (
         <p className="restaurant-cart__empty">
-          <ShoppingBag size={22} strokeWidth={1.8} aria-hidden="true" />
+          <CartIcon size={24} strokeWidth={1.7} />
           Lisää tuotteita, niin ne näkyvät tässä.
         </p>
       ) : (

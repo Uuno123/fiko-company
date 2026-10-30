@@ -7,6 +7,7 @@ import { searchFillerRestaurants } from '../lib/categories.js'
 import { DELIVERY_PRICE_RANGE } from '../lib/delivery.js'
 import { supabase } from '../lib/supabaseClient.js'
 import './SearchSuggest.css'
+import { restaurantThumb } from '../lib/brandLogos.js'
 
 // Hakuehdotukset: pelkät ravintolat (ei yksittäisiä annoksia). Sama toteutus
 // sekä headerin hakunäkymässä että mobiilin koko ruudun haussa, jotta
@@ -19,6 +20,7 @@ export function RestaurantResultCard({ restaurant: r, onNavigate }) {
   // Täyteravintolalla ei ole omaa sivua - kortti näkyy mutta ei ole linkki,
   // kuten etusivullakin (RestaurantCard disabled).
   const Wrapper = r.isPlaceholder ? 'div' : Link
+  const thumb = restaurantThumb(r.name, r.image_url)
   const wrapperProps = r.isPlaceholder
     ? { 'aria-disabled': true }
     : { to: `/ravintola/${r.id}`, onMouseDown: (e) => e.preventDefault(), onClick: onNavigate }
@@ -29,8 +31,14 @@ export function RestaurantResultCard({ restaurant: r, onNavigate }) {
       className={`search-suggest-restaurant-card${r.isPlaceholder ? ' search-suggest-restaurant-card--disabled' : ''}`}
     >
       <div className="search-suggest-restaurant-card__media">
-        {r.image_url ? (
-          <img src={r.image_url} alt={r.name} loading="lazy" />
+        {thumb ? (
+          <img
+            src={thumb.src}
+            alt={r.name}
+            loading="lazy"
+            className={thumb.logo ? 'brand-thumb-logo' : undefined}
+            style={thumb.style}
+          />
         ) : (
           <RestaurantAvatarPlaceholder name={r.name} />
         )}

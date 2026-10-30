@@ -33,3 +33,19 @@ export function brandLogoFor(restaurantName) {
     }) ?? null
   )
 }
+
+// Pienet ravintolakuvat (haun ehdotukset, ostoskori, suosikit, tilaukset):
+// ketjun logo kuvan sijaan (käyttäjän pyyntö 30.10.2026). Ravintolakorteissa
+// ja ravintolasivun kuvassa käytetään edelleen ruokakuvaa.
+// Palauttaa { src, logo: true, style } tai kuvan { src, logo: false } tai null.
+export function restaurantThumb(name, imageUrl) {
+  const brand = brandLogoFor(name)
+  if (brand) {
+    return {
+      src: brand.logo,
+      logo: true,
+      style: brand.bg ? { background: brand.bg } : undefined,
+    }
+  }
+  return imageUrl ? { src: imageUrl, logo: false } : null
+}

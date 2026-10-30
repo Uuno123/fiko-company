@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, ChevronDown, MapPin, ShoppingBag } from 'lucide-react'
+import { ArrowRight, ChevronDown, MapPin } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
@@ -822,22 +822,6 @@ function Home() {
           )}
         </div>
       </main>
-
-      {/* Kelluva ostoskori oikeassa alakulmassa headerin korikuvakkeen sijaan:
-          pieni oranssi pallo, jossa vain ikoni ja tuotemäärä (käyttäjän pyyntö
-          27.10.2026). Vie suoraan ostoskoriin; kori tyhjennetään siellä. */}
-      {cart.count > 0 && (
-        <Link
-          to="/ostoskori"
-          className="home-cart-fab"
-          aria-label={`Ostoskori: ${cart.count} ${cart.count === 1 ? 'tuote' : 'tuotetta'}, ${formatPrice(cart.totalCents)}`}
-        >
-          <ShoppingBag size={22} strokeWidth={2} aria-hidden="true" />
-          <span className="home-cart-fab__count" aria-hidden="true">
-            {cart.count}
-          </span>
-        </Link>
-      )}
 
       <Footer />
     </div>

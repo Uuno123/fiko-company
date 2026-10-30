@@ -12,6 +12,7 @@ import { courierHasFood } from '../lib/courierTracking.js'
 import { customerStatusLabel, estimatedArrivalAt, trackingMessage } from '../lib/orderStatus.js'
 import './AuthForm.css'
 import './Settings.css'
+import { restaurantThumb } from '../lib/brandLogos.js'
 
 function formatEta(value) {
   return new Date(value).toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })
@@ -58,13 +59,20 @@ function itemCountLabel(order) {
 
 function PastOrderRow({ order, isOpen, onToggle }) {
   const restaurantName = order.restaurants?.name ?? 'Ravintola'
+  const thumb = restaurantThumb(order.restaurants?.name, order.restaurants?.image_url)
 
   return (
     <li className="past-order">
       <button type="button" className="past-order__summary" onClick={onToggle} aria-expanded={isOpen}>
         <span className="past-order__thumb">
-          {order.restaurants?.image_url ? (
-            <img src={order.restaurants.image_url} alt="" loading="lazy" />
+          {thumb ? (
+            <img
+              src={thumb.src}
+              alt=""
+              loading="lazy"
+              className={thumb.logo ? 'brand-thumb-logo' : undefined}
+              style={thumb.style}
+            />
           ) : (
             <RestaurantAvatarPlaceholder name={restaurantName} size="thumb" />
           )}

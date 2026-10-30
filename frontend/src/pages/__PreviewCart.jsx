@@ -5,12 +5,16 @@
 import { AuthContext } from '../lib/AuthContext.jsx'
 import Cart from './Cart.jsx'
 
+// ?ei-osoitetta näyttää kassan osoitelomakkeen (asiakkaalla ei tallennettua osoitetta).
+const MOCK_ADDRESS_TYPE = new URLSearchParams(window.location.search).has('ei-osoitetta') ? '' : 'apartment'
+
 const MOCK_CUSTOMER = {
   id: 'mock-customer-1',
   name: 'Uuno Testaaja',
   email: 'uuno.tilaukset@gmail.com',
   phone: '0401234567',
   address: 'Kauppakatu 25, 70100 Kuopio',
+  address_type: MOCK_ADDRESS_TYPE,
 }
 
 const MOCK_AUTH_VALUE = {

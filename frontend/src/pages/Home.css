@@ -292,32 +292,6 @@
 
   /* Sijainti ei headerissa: osoite on logon alla sivun yläosassa (.home-address). */
 
-  /* Ostoskorinappi on oletuksena läpikuultava valkoinen tummaa headeria varten -
-     valkoisella taustalla se katoaisi kokonaan. Musta täyttö erottaa sen
-     selvästi, samaan tapaan kuin tumma tili-avatar sen vieressä. */
-  .page--home .cart-menu__trigger {
-    background: var(--delivo-black);
-    border-color: var(--delivo-black);
-  }
-
-  .page--home .cart-menu__trigger:hover {
-    background: var(--delivo-black);
-    border-color: var(--delivo-black);
-  }
-
-  .page--home .cart-menu__trigger svg {
-    color: #fff;
-  }
-
-  /* Valkoinen luku mustalla reunuksella erottuu sekä mustasta napista että
-     valkoisesta sivun taustasta, jonka päälle merkki osittain menee. */
-  .page--home .cart-menu__badge {
-    background: #fff;
-    color: var(--delivo-black);
-    border: 2px solid var(--delivo-black);
-    box-shadow: none;
-  }
-
   .home-mobile-top {
     display: flex;
     flex-direction: column;
@@ -632,72 +606,6 @@
 
 /* Kelluva ostoskori. Piilossa työpöydällä, jossa headerin oma korivalikko
    toimii hyvin. */
-.home-cart-fab {
-  display: none;
-}
-
-@media (max-width: 560px) {
-  /* Kori ei ole enää headerissa vaan alareunan kelluvassa napissa. */
-  .page--home .cart-menu {
-    display: none;
-  }
-
-  /* Pieni oranssi pallo oikeassa alakulmassa (käyttäjän pyyntö 27.10.2026):
-     vain kassi-ikoni ja tuotemäärä. Kiiltävä liukuväri kuten Tarjoukset-pillerissä. */
-  .home-cart-fab {
-    position: fixed;
-    right: 16px;
-    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-    z-index: 45;
-    display: grid;
-    place-items: center;
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0) 55%),
-      linear-gradient(120deg, #ff9b5c 0%, var(--delivo-orange) 48%, #e2380c 100%);
-    color: #fff;
-    text-decoration: none;
-    /* Tämä on aidosti leijuva elementti, joten varjo on perusteltu. */
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.35),
-      0 10px 22px -8px rgba(217, 63, 16, 0.75);
-    transition: transform 0.15s ease;
-  }
-
-  .home-cart-fab:active {
-    transform: scale(0.94);
-  }
-
-  .home-cart-fab:focus-visible {
-    outline: 2px solid var(--delivo-orange);
-    outline-offset: 3px;
-  }
-
-  .home-cart-fab__count {
-    position: absolute;
-    top: -3px;
-    right: -3px;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 5px;
-    box-sizing: border-box;
-    border: 2px solid var(--delivo-orange);
-    border-radius: var(--radius-pill);
-    background: #fff;
-    font-size: 0.7rem;
-    font-weight: 800;
-    line-height: 16px;
-    text-align: center;
-    color: var(--delivo-orange-dark);
-  }
-
-  /* Tilaa napille, ettei se peitä viimeistä korttiriviä. */
-  .page--home .home-content {
-    padding-bottom: 96px;
-  }
-}
 
 /* Mobiilin koko ruudun hakunäkymä. */
 .home-search-overlay {
