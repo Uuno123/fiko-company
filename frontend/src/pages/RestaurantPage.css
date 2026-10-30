@@ -46,95 +46,6 @@
   padding: 24px 0 8px;
 }
 
-/* Ravintolan nimi ja tiedot (käyttäjän mallikuva 28.10.2026): työpöydällä
-   tiedot ikoneineen yhdellä rivillä nimen alla, puhelimella allekkain
-   (780px-lohko tiedoston lopussa). Arvio on nappi arvosteluikkunaan. */
-.restaurant-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 26px;
-  min-width: 0;
-}
-
-.restaurant-head__name {
-  flex-basis: 100%;
-  margin: 0 0 2px;
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 2.6vw, 2.6rem);
-  font-weight: 700;
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  color: var(--delivo-black);
-}
-
-.restaurant-head__facts {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px 26px;
-  font-size: 0.98rem;
-  font-weight: 500;
-  color: var(--delivo-black);
-}
-
-.restaurant-head__facts > span,
-.restaurant-head__rating {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.restaurant-head__rating {
-  padding: 0;
-  border: none;
-  background: none;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-}
-
-.restaurant-head__rating strong {
-  font-weight: 700;
-}
-
-.restaurant-head__rating span {
-  color: var(--text-muted);
-  transition: color 0.15s ease;
-}
-
-.restaurant-head__rating:hover span {
-  color: var(--delivo-black);
-}
-
-.restaurant-head__rating:focus-visible {
-  outline: 2px solid var(--delivo-orange);
-  outline-offset: 3px;
-  border-radius: 6px;
-}
-
-.restaurant-head__facts .is-free {
-  font-weight: 600;
-  color: var(--delivo-orange-dark);
-}
-
-/* Pitkä osoite rivittyy, ikoni pysyy ensimmäisen rivin kohdalla. */
-.restaurant-head__address {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  margin: 0;
-  font-size: 0.98rem;
-  font-weight: 500;
-  line-height: 1.35;
-  color: var(--delivo-black);
-}
-
-.restaurant-head__address svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
 @media (max-width: 780px) {
   .restaurant-info {
     flex-direction: column;
@@ -208,9 +119,10 @@
   transition: box-shadow 0.15s ease, background 0.15s ease;
 }
 
+/* Ei mustaa reunaa eikä valkoista taustaa aktiivisena (käyttäjän pyyntö
+   30.10.2026) - vain hieman tummempi harmaa. */
 .restaurant-menu-search:focus-within {
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1.5px var(--delivo-black);
+  background: #eeeeec;
 }
 
 .restaurant-menu-search input {
@@ -290,25 +202,6 @@
     background: linear-gradient(180deg, rgba(20, 21, 15, 0.4) 0%, rgba(20, 21, 15, 0) 45%);
   }
 
-}
-
-/* Tarjoukset omana lyhyenä osionaan kategoriavälilehtien ja tuotteiden välissä.
-   Väli ylös ja ohut viiva alle, jottei osio näytä kuuluvan ensimmäiseen
-   välilehteen (Burgerit) vaan koko ravintolaan. */
-.restaurant-offers {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 32px 0 28px;
-  border-bottom: 1px solid var(--border);
-}
-
-.restaurant-offers__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--delivo-black);
 }
 
 .restaurant-closed-notice {
@@ -430,95 +323,6 @@
   height: 3px;
   border-radius: 2px;
   background: var(--delivo-orange);
-}
-
-/* Tarjouskortti - oikea SUURTILAUS-koodi, ei keksitty raja tai prosentti
-   (katso kommentti JSX:ssä). Omassa Tarjoukset-osiossaan kuvan alla.
-   Malli Woltin tarjouskortista (käyttäjän referenssi), delivon väreissä:
-   vaalea lippu, jonka molemmissa reunoissa on keskellä pyöreä lovi.
-   Kiinteä enimmäisleveys: osio venyttäisi sen muuten koko sivun levyiseksi. */
-/* Tarjoukset vaakarivinä (Wolt-tyyli 28.10.2026): kortit vierekkäin, rivi
-   vierii sivuttain eikä kortti veny. */
-.restaurant-offers__row {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-}
-
-.restaurant-offers__row::-webkit-scrollbar {
-  display: none;
-}
-
-.menu-offer-card {
-  position: relative;
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 14px;
-  width: 270px;
-  box-sizing: border-box;
-  min-height: 76px;
-  padding: 14px 24px;
-  border: none;
-  border-radius: 14px;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-  scroll-snap-align: start;
-  background: var(--delivo-orange-soft);
-  /* Lovet ovat oikeita reikiä (maski), eivät taustan värisiä ympyröitä, joten
-     ne toimivat minkä tahansa taustan päällä. Vasen ja oikea puolisko
-     maskataan erikseen, kumpikin omalla lovellaan. */
-  -webkit-mask:
-    radial-gradient(circle 8px at 0 50%, #0000 98%, #000) left / 51% 100% no-repeat,
-    radial-gradient(circle 8px at 100% 50%, #0000 98%, #000) right / 51% 100% no-repeat;
-  mask:
-    radial-gradient(circle 8px at 0 50%, #0000 98%, #000) left / 51% 100% no-repeat,
-    radial-gradient(circle 8px at 100% 50%, #0000 98%, #000) right / 51% 100% no-repeat;
-}
-
-.menu-offer-card__icon {
-  flex-shrink: 0;
-  color: var(--delivo-orange);
-}
-
-.menu-offer-card__body {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  min-width: 0;
-}
-
-.menu-offer-card__title {
-  margin: 0;
-  font-size: 0.92rem;
-  font-weight: 500;
-  line-height: 1.35;
-  color: var(--delivo-black);
-}
-
-/* Koodi kortin alla (napautus kopioi, sitten "Kopioitu"). */
-.menu-offer-card__code {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--delivo-orange-dark);
-}
-
-.menu-offer-card:focus-visible {
-  outline: 2px solid var(--delivo-orange);
-  outline-offset: 2px;
-}
-
-.menu-offer-card:active {
-  transform: scale(0.98);
 }
 
 /* Osioon vieritettäessä otsikko jää headerin ja välilehtien alle näkyviin -
@@ -1140,23 +944,20 @@
     font-size: 1.05rem;
   }
 
-  .restaurant-offers__title {
-    font-size: 1.15rem;
-  }
-
   /* Käyttäjä: tarjousten fontit pienemmiksi (28.10.2026). */
-  .menu-offer-card__title {
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
 
-  .menu-offer-card__code {
-    font-size: 0.76rem;
-  }
-
-
+  /* Pienempi osio-otsikko (Burgerit, Ateriat; käyttäjän pyyntö 30.10.2026). */
   .menu-section__title {
-    font-size: 1.6rem;
+    font-size: 1.3rem;
+  }
+
+  /* Otsikko lähemmäs tuotteita (käyttäjän pyyntö 30.10.2026). */
+  .menu-section .menu-grid {
+    padding-top: 0;
+  }
+
+  .menu-section .menu-grid > li:first-child .menu-card {
+    padding-top: 8px;
   }
 
   .menu-card__name {
@@ -1190,22 +991,6 @@
    alareuna häivytetty sivun taustaan, nimi häivytyksen kohdalla, tiedot kahdella
    rivillä ja välilehdet pillereinä. Tuotekortit ennallaan. */
 @media (max-width: 780px) {
-  .restaurant-head {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .restaurant-head__name {
-    flex-basis: auto;
-    margin: 0 0 4px;
-    font-size: 2.1rem;
-  }
-
-  .restaurant-head__facts {
-    gap: 6px 18px;
-  }
-
   /* Kuvan alareuna häivyy sivun taustaan ja nimi alkaa häivytyksen kohdalta.
      Kuvan päällä ei tekstiä, joten tummaa varjostusta ei tarvita. */
   .restaurant-info--banner {
@@ -1257,20 +1042,691 @@
     content: none;
   }
 
-  .restaurant-offers__row {
-    margin: 0 calc(-1 * var(--rp-gutter));
-    padding: 0 var(--rp-gutter) 4px;
-    scroll-padding-left: var(--rp-gutter);
+}
+
+/* Puhelimella matalampi kuva ilman häivytystä (Uber Eatsin mallikuva, 30.10.2026). */
+@media (max-width: 780px) {
+  .restaurant-info--banner {
+    --rp-hero-h: clamp(170px, 46vw, 230px);
+    padding-top: var(--rp-hero-h);
   }
 
-  .menu-offer-card {
+  .restaurant-info--banner::before {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+/* Yläosa Uber Eatsin mallikuvan mukaan, puhelimella ja työpöydällä (käyttäjän
+   pyyntö 30.10.2026): pyöreä logo kuvan alareunan päällä vasemmalla, nimi ja
+   tiedot sen alla ja suosituimmat tuotteet vaakarivinä. */
+.restaurant-mhead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.restaurant-mhead__logo {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--delivo-black);
+  box-shadow: 0 4px 14px -4px rgba(20, 21, 15, 0.35);
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.restaurant-mhead__logo.has-image {
+  background: #fff;
+}
+
+.restaurant-mhead__logo img {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  object-fit: contain;
+}
+
+/* Kuvallisella ravintolalla logo nousee kuvan alareunan päälle. */
+.restaurant-info--banner .restaurant-mhead__logo {
+  margin-top: -38px;
+}
+
+.restaurant-mhead__name {
+  margin: 12px 0 0;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--delivo-black);
+}
+
+.restaurant-mhead__meta {
+  margin: 6px 0 0;
+}
+
+.restaurant-mhead__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.restaurant-mhead__rating span {
+  color: var(--text-muted);
+}
+
+.restaurant-mhead__address {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.restaurant-mhead__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(20, 21, 15, 0.3);
+}
+
+.restaurant-mhead__delivery {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 16px;
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.restaurant-mhead__delivery span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.restaurant-mhead__delivery svg {
+  color: var(--text-muted);
+}
+
+.restaurant-mhead__delivery .is-free {
+  font-weight: 600;
+  color: var(--delivo-orange-dark);
+}
+
+/* Suosituimmat tuotteet vaakarivinä reunasta reunaan. */
+.featured-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 26px;
+}
+
+.featured-items__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+.featured-items__row {
+  display: flex;
+  gap: 12px;
+  margin: 0 calc(-1 * var(--rp-gutter));
+  padding: 0 var(--rp-gutter) 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.featured-items__row::-webkit-scrollbar {
+  display: none;
+}
+
+.featured-item {
+  display: flex;
+  flex: 0 0 132px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.featured-item__media {
+  position: relative;
+  display: block;
+  width: 132px;
+  height: 132px;
+  margin-bottom: 4px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f4f4f4;
+}
+
+.featured-item__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.featured-item__add {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(20, 21, 15, 0.2);
+}
+
+.featured-item__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.featured-item__price {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+/* Yläosa vasempaan reunaan keskityksen sijaan (käyttäjän pyyntö 30.10.2026). */
+.restaurant-mhead {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.restaurant-mhead__delivery {
+  justify-content: flex-start;
+}
+
+/* Työpöydällä logo kuvan alareunan päällä vasemmalla, kuvan pyöristetyn kulman
+   sisäpuolella, ja isompi nimi. Haku ja sydän tietojen tasolla oikealla. */
+@media (min-width: 781px) {
+  .restaurant-info--banner {
+    padding-top: calc(var(--rp-hero-top) + var(--rp-hero-h));
+  }
+
+  .restaurant-mhead__logo {
+    width: 92px;
+    height: 92px;
+  }
+
+  .restaurant-info--banner .restaurant-mhead__logo {
+    margin-top: -46px;
+    margin-left: 24px;
+  }
+
+  .restaurant-mhead__name {
+    font-size: 2.2rem;
+  }
+
+  .restaurant-mhead__rating {
+    font-size: 1rem;
+  }
+
+  .restaurant-mhead__address,
+  .restaurant-mhead__more,
+  .restaurant-mhead__delivery {
+    font-size: 0.95rem;
+  }
+
+  .featured-items__title {
+    font-size: 1.45rem;
+  }
+
+  .restaurant-info__tools {
+    align-self: flex-end;
+  }
+
+  .featured-items {
+    padding-top: 32px;
+  }
+
+  .featured-item {
+    flex-basis: 168px;
+  }
+
+  .featured-item__media {
+    width: 168px;
+    height: 168px;
+  }
+}
+
+/* KOKEILU 30.10.2026 (käyttäjän pyyntö): työpöydällä sivu ei käytä koko
+   leveyttä vaan on kapeampi palsta keskellä. */
+@media (min-width: 781px) {
+  .restaurant-page {
+    max-width: 1120px;
+  }
+
+  /* Suosituimmat-rivi palstan sisällä (ei reunasta reunaan). */
+  .featured-items__row {
+    margin: 0;
+    padding: 0 0 4px;
+  }
+}
+
+/* Työpöydän ravintolasivu (käyttäjän valinta 30.10.2026, "Ostoskori sivussa"):
+   kuva koko leveydeltä, logo ja tiedot sen alla vierekkäin, vasemmalla
+   suosituimmat, kiinnittyvät välilehdet ja ruokalista listana, oikealla aina
+   näkyvä oma tilaus. .restaurant-info ja .restaurant-menu-layout ovat
+   display:contents, jolloin niiden lapset (myös kuvan ::before) asettuvat
+   suoraan ruudukkoon. */
+.restaurant-cart {
+  display: none;
+}
+
+@media (min-width: 1000px) {
+  .restaurant-page,
+  .restaurant-page:has(.restaurant-info--banner) {
+    max-width: 1240px;
+    padding-top: 24px;
+  }
+
+  .restaurant-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-rows: auto auto auto auto 1fr;
+    grid-template-areas:
+      'banner banner'
+      'head tools'
+      'featured cart'
+      'tabs cart'
+      'menu cart';
+    align-items: start;
+    column-gap: 48px;
+  }
+
+  .restaurant-info,
+  .restaurant-menu-layout {
+    display: contents;
+  }
+
+  .restaurant-info--banner::before {
+    position: static;
+    display: block;
+    grid-area: banner;
+    height: 260px;
+    border-radius: 16px;
+  }
+
+  .restaurant-info--banner::after {
+    display: none;
+  }
+
+  /* Logo vasemmalla, nimi ja tiedot sen oikealla. */
+  .restaurant-mhead {
+    display: grid;
+    grid-area: head;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    column-gap: 16px;
+    margin-top: 22px;
+    text-align: left;
+  }
+
+  .restaurant-mhead > :not(.restaurant-mhead__logo) {
+    grid-column: 2;
+  }
+
+  .restaurant-mhead__logo,
+  .restaurant-info--banner .restaurant-mhead__logo {
+    grid-row: 1 / span 5;
+    width: 64px;
+    height: 64px;
+    margin: 0;
+    border: 1px solid #ececea;
+    box-shadow: none;
+    font-size: 1.5rem;
+  }
+
+  .restaurant-mhead__name {
+    margin: 0;
+    font-size: 1.7rem;
+  }
+
+  .restaurant-mhead__meta {
+    margin-top: 4px;
+  }
+
+  .restaurant-mhead__rating {
+    font-size: 0.9rem;
+  }
+
+  .restaurant-mhead__address,
+  .restaurant-mhead__more,
+  .restaurant-mhead__delivery {
+    font-size: 0.86rem;
+  }
+
+  .restaurant-mhead__more {
+    font-weight: 500;
+  }
+
+  .restaurant-mhead__delivery {
+    justify-content: flex-start;
+  }
+
+  /* Haku ja sydän oikealla; rivi saa ulottua palstavälin yli, jotta hakukenttä
+     on leveämpi (käyttäjän pyyntö 30.10.2026). */
+  .restaurant-info__tools {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    align-self: start;
+    justify-self: end;
+    margin-top: 26px;
+  }
+
+  .restaurant-menu-search {
+    width: 320px;
+    height: 40px;
+    font-size: 0.88rem;
+  }
+
+  .restaurant-info__tools .site-header__round-btn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .restaurant-closed-notice,
+  .coming-soon {
+    grid-column: 1;
+  }
+
+  .featured-items {
+    grid-area: featured;
+    gap: 14px;
+    padding-top: 30px;
+  }
+
+  .featured-items__title,
+  .menu-section__title {
+    font-size: 1.2rem;
+    letter-spacing: -0.01em;
+  }
+
+  .featured-item {
+    flex-basis: 136px;
+  }
+
+  .featured-item__media {
+    width: 136px;
+    height: 136px;
+    border-radius: 10px;
+  }
+
+  .featured-item__name {
+    font-size: 0.86rem;
+    font-weight: 500;
+  }
+
+  .featured-item__price {
+    font-size: 0.82rem;
+  }
+
+  .featured-item__add {
+    width: 28px;
+    height: 28px;
+  }
+
+  .restaurant-menu-tabs-wrap {
+    grid-area: tabs;
+    margin-top: 28px;
+  }
+
+  .menu,
+  .restaurant-menu-layout .menu {
+    grid-area: menu;
+    gap: 28px;
+    padding-top: 24px;
+  }
+
+  /* Ruokalista listana ilman kortteja, kaksi tuotetta rinnakkain (käyttäjän
+     pyyntö 30.10.2026), ohut viiva jokaisen tuotteen alla. */
+  .menu-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 36px;
+    padding: 4px 0 0;
+  }
+
+  .menu-grid > li {
+    border-bottom: 1px solid #ececea;
+  }
+
+  .menu-card {
+    gap: 20px;
+    padding: 18px 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .menu-card:hover {
+    box-shadow: none;
+    transform: none;
+  }
+
+  .menu-card:hover .menu-card__name {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .menu-card__media-wrap {
+    align-self: center;
+  }
+
+  .menu-card__media {
+    width: 96px;
+    height: 96px;
+    border-radius: 10px;
+  }
+
+  .menu-card__name {
+    font-size: 0.98rem;
+    font-weight: 600;
+  }
+
+  .menu-card__rating,
+  .menu-card__description {
+    font-size: 0.82rem;
+  }
+
+  .menu-card__price {
+    font-size: 0.92rem;
+  }
+
+  .menu-card__add {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* Oma tilaus oikealla, kiinnittyy headerin alle. */
+  .restaurant-cart {
+    position: sticky;
+    top: calc(var(--site-header-height) + 20px);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    grid-area: cart;
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px solid #ececea;
+    border-radius: 16px;
+    background: #fff;
+  }
+
+  .restaurant-cart__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--delivo-black);
+  }
+
+  .restaurant-cart__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 22px 8px;
+    border-radius: 12px;
+    background: #f7f7f5;
+    font-size: 0.86rem;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .restaurant-cart__lines {
+    display: flex;
+    flex-direction: column;
     gap: 12px;
-    width: 280px;
-    padding: 14px 20px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .menu-offer-card__icon {
+  .restaurant-cart__line {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 12px;
+  }
+
+  .restaurant-cart__thumb {
+    display: block;
+    grid-row: 1 / span 2;
+    width: 52px;
+    height: 52px;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #f4f4f4;
+  }
+
+  .restaurant-cart__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .restaurant-cart__name {
+    grid-column: 2 / span 2;
+  }
+
+  .restaurant-cart__name {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--delivo-black);
+  }
+
+  .restaurant-cart__name small {
+    font-size: 0.76rem;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .restaurant-cart__price {
+    font-size: 0.88rem;
+    color: var(--delivo-black);
+  }
+
+  .restaurant-cart__qty {
+    display: inline-flex;
+    grid-column: 2;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .restaurant-cart__qty button {
+    display: grid;
+    place-items: center;
     width: 26px;
     height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #f1f1ef;
+    color: var(--delivo-black);
+    cursor: pointer;
+  }
+
+  .restaurant-cart__qty button:hover {
+    background: #e6e6e3;
+  }
+
+  .restaurant-cart__total {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    padding-top: 12px;
+    border-top: 1px solid #ececea;
+    font-size: 0.92rem;
+    color: var(--delivo-black);
+  }
+
+  .restaurant-cart__note {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+  }
+
+  .restaurant-cart__checkout {
+    height: 46px;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: var(--delivo-black);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .restaurant-cart__checkout:hover {
+    background: #000;
   }
 }
