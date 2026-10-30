@@ -1174,13 +1174,12 @@
    joten järjestys tiedostossa ei ole ansa kuten Cart.css:ssä aikoinaan.
    ══════════════════════════════════════════════════════════════════════ */
 
+/* Vaalea header samalla tasolla kuin sivu: ei varjoa, vain hento viiva
+   (käyttäjän pyyntö 30.10.2026, aiemmin kevyt varjo). */
 .site-header:not(.site-header--dark):not(.site-header--overlay) {
   background: var(--delivo-bg);
-  border-bottom: 1px solid #ece6e2;
-  /* Vaalea header valkoisella sivulla tarvitsee varjon, muuten sen alareunaa ei
-     erota sisällöstä. Kevyt ja matala: tarkoitus on erottaa reuna, ei nostaa
-     headeria irti sivusta. */
-  box-shadow: 0 2px 6px -2px rgba(20, 21, 15, 0.12);
+  border-bottom: 1px solid #f0efed;
+  box-shadow: none;
 }
 
 /* Logo valkoisella headerilla: mustat kirjaimet ja oranssi ruksi. */
@@ -1282,8 +1281,9 @@
    tarkkuudella kuin yllä oleva perussääntö - Home.css:n .page--home-rajaus
    ei enää riitä voittamaan sitä. */
 @media (max-width: 560px) {
+  /* Suurennettu 19 -> 23 px (käyttäjän pyyntö 29.10.2026). */
   .site-header:not(.site-header--dark):not(.site-header--overlay) .site-header__logo .delivo-logo {
-    height: 19px;
+    height: 23px;
   }
 }
 

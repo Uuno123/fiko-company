@@ -277,10 +277,10 @@
 
   /* Headerin korkeus muuttujana, koska sticky kategoriarivi kiinnittyy tasan
      sen alareunaan - jos toinen muuttuu ilman toista, väliin jää rako.
-     Madallettu 58 -> 52px (käyttäjän pyyntö 25.10.2026); korkein sisältö
-     (Kirjaudu-nappi) on 34px. */
+     Madallettu 58 -> 52px (25.10.2026), suurennettu 52 -> 62px isomman logon
+     kanssa (käyttäjän pyyntö 29.10.2026). */
   .page--home {
-    --home-header-h: 52px;
+    --home-header-h: 62px;
   }
 
   .page--home .site-header__inner {
@@ -456,12 +456,10 @@
     background: none;
   }
 
-  /* Etusivun rivissä kuvakkeen takana himmeä harmaa laatta (käyttäjän pyyntö
-     29.10.2026). */
+  /* Etusivun rivissä kuvake ilman taustalaattaa (harmaa laatta poistettu
+     29.10.2026, käyttäjän pyyntö). */
   .home-cats .home-cat-tile__art.home-cat-tile__art--icon {
-    padding: 9px;
-    border-radius: 16px;
-    background: #f4f4f2;
+    padding: 6px;
   }
 
   .home-cat-tile__art.home-cat-tile__art--icon img {
@@ -1351,13 +1349,11 @@
   }
 }
 
-/* Työpöytä Uber Eatsin rakenteella (käyttäjän pyyntö 29.10.2026). Puhelimella
-   ja kapealla näytöllä nämä ovat piilossa ja .home-main on display:contents,
-   jolloin sisältö käyttäytyy kuten ennen. */
-.home-sidebar,
-.home-filters,
+/* Työpöydän etusivu: kategoriarivin nuoli. .home-main on display:contents,
+   joten sisältö on yhtä palstaa kaikilla leveyksillä. */
+.home-cats__next,
 .home-intro,
-.home-cats__next {
+.home-brands {
   display: none;
 }
 
@@ -1370,11 +1366,27 @@
     position: relative;
   }
 
+  /* Valkoinen häivytys rivin oikeaan reunaan nuolen alle, jottei nuoli istu
+     kuvakkeen päällä (käyttäjän pyyntö 30.10.2026). */
+  .home-cats-wrap::after,
+  .home-brands::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    width: 130px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, #fff 55%);
+    pointer-events: none;
+  }
+
   /* Nuoli rivin oikeassa reunassa valkoisessa pallossa. */
   .home-cats__next {
     position: absolute;
     top: 26px;
-    right: 0;
+    right: 14px;
+    z-index: 2;
     display: grid;
     place-items: center;
     width: 42px;
@@ -1393,54 +1405,96 @@
   }
 
   .home-cats {
-    padding-right: 56px;
+    padding-right: 110px;
   }
 
-  .home-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .home-filter {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    height: 42px;
-    padding: 0 18px;
-    border-radius: var(--radius-pill);
-    background: #f3f3f2;
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--delivo-black);
-    text-decoration: none;
-    transition: background 0.15s ease;
-  }
-
-  .home-filter:hover {
-    background: #e9e9e7;
-  }
-
-  /* Otsikkorivi (tarjouskortti poistettu 29.10.2026, käyttäjän pyyntö). */
+  /* Teksti kategorioiden jälkeen. */
   .home-intro {
     display: block;
-    margin: 10px 0 4px;
+    margin: 4px 0 2px;
   }
 
-  .home-intro__text h1 {
+  .home-intro h1 {
     margin: 0;
     font-family: var(--font-display);
-    font-size: clamp(2.4rem, 3.4vw, 3.3rem);
+    font-size: 2rem;
     font-weight: 700;
-    line-height: 1.05;
-    letter-spacing: -0.03em;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
     color: var(--delivo-black);
   }
 
-  .home-intro__text p {
-    margin: 14px 0 0;
-    font-size: 1.08rem;
-    color: #45473f;
+  .home-intro p {
+    margin: 6px 0 0;
+    font-size: 1rem;
+    color: var(--text-muted);
+  }
+
+  /* Ravintolaketjujen logorivi: logot valkoisissa pyöreissä kehyksissä, nimi alla. */
+  .home-brands {
+    position: relative;
+    display: block;
+  }
+
+  .home-brands .home-brands__next {
+    top: 23px;
+  }
+
+  /* Yksi sivuttain vieritettävä rivi kuten kategoriat (29.10.2026). */
+  .home-brands__row {
+    display: flex;
+    gap: 22px;
+    padding-right: 110px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .home-brands__row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 8px;
+    width: 112px;
+    color: var(--delivo-black);
+    text-decoration: none;
+  }
+
+  .home-brand__logo {
+    display: grid;
+    place-items: center;
+    width: 88px;
+    height: 88px;
+    box-sizing: border-box;
+    padding: 8px;
+    border: 1px solid #ececea;
+    border-radius: 50%;
+    background: #fff;
+    transition: border-color 0.15s ease;
+  }
+
+  .home-brand:hover .home-brand__logo {
+    border-color: #cfcfcb;
+  }
+
+  .home-brand__logo img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .home-brand__name {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* "Näytä kaikki" pelkkänä tekstinä nuolten vieressä. */
@@ -1459,62 +1513,10 @@
   }
 }
 
-/* Vasen sivupalkki leveillä näytöillä. */
-@media (min-width: 1200px) {
-  .home-content {
-    display: grid;
-    /* Kapeampi sivupalkki (220 -> 184 px, käyttäjän pyyntö 29.10.2026). */
-    grid-template-columns: 184px minmax(0, 1fr);
-    align-items: start;
-    column-gap: 32px;
-    padding-left: 20px;
-  }
-
-  .home-main {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    min-width: 0;
-  }
-
-  .home-sidebar {
-    position: sticky;
-    top: 86px;
-    display: block;
-  }
-
-  .home-sidebar__nav {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .home-sidebar__link {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    height: 46px;
-    padding: 0 14px;
-    font-size: 0.96rem;
-    font-weight: 500;
-    color: var(--delivo-black);
-    text-decoration: none;
-    transition: background 0.15s ease;
-  }
-
-  .home-sidebar__link:hover {
-    background: #f6f6f4;
-  }
-
-  .home-sidebar__link.is-active {
-    background: #f1f1ef;
-    box-shadow: inset 4px 0 0 var(--delivo-black);
-    font-weight: 600;
-  }
-
-  .home-sidebar__divider {
-    display: block;
-    height: 1px;
-    margin: 12px 0;
-    background: #e8e8e5;
+/* KOKEILU 30.10.2026 (käyttäjän pyyntö): työpöydällä ei kategoriariviä -
+   sivu alkaa tekstistä ja ravintolaketjujen logoista. */
+@media (min-width: 561px) {
+  .home-cats-wrap {
+    display: none;
   }
 }

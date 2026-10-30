@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { BadgePercent, Bike, ChevronRight, Clock, Gift, Heart, MapPin, Percent, Plus, Search, ShoppingBag, X } from 'lucide-react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Bike, ChevronRight, Clock, Heart, Minus, Plus, Search, ShoppingBag, X } from 'lucide-react'
 import { ScoreSmiley } from '../components/Smiley.jsx'
 import { formatScore } from '../lib/score.js'
+import { brandLogoFor } from '../lib/brandLogos.js'
+import { categorySlug } from '../lib/categories.js'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import Spinner from '../components/Spinner.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
 import MenuSearch, { matchesMenuQuery } from '../components/MenuSearch.jsx'
 import ReviewsModal from '../components/ReviewsModal.jsx'
-import OfferSheet from '../components/OfferSheet.jsx'
 import { getRestaurantById } from '../lib/api.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { addFavorite, isRestaurantFavorited, removeFavorite } from '../lib/favorites.js'
@@ -29,31 +30,6 @@ import {
   buildSelectedOptionsPayload,
 } from '../lib/menuOptions.js'
 import './RestaurantPage.css'
-
-// Tarjoukset vaakarivinä (Wolt-tyyli, käyttäjän valinta 28.10.2026). Jokainen on
-// oikea kassalla toimiva koodi (Cart.jsx PROMO_CODES ja backendin payments.js,
-// sama katto ja ehdot molemmissa). Napautus avaa tarjouksen tiedot (OfferSheet).   = sitova väli,
-// ettei luku ja yksikkö (50 €) rivity eri riveille.
-const RESTAURANT_OFFERS = [
-  { code: 'SUURTILAUS', Icon: BadgePercent, title: '−30 % vähintään 50 € tilauksista', note: 'enintään 7 €' },
-  { code: 'NOUTO15', Icon: ShoppingBag, title: '−15 % noudosta', note: 'enintään 5 €' },
-  { code: 'BIDROP10', Icon: Percent, title: '−10 % tilauksesta' },
-  { code: 'TERVETULOA', Icon: Gift, title: '−3 € tilauksesta' },
-]
-
-// Tarjouspaneelin ehdot - samat kuin kassan PROMO_CODES (Cart.jsx): alennus
-// lasketaan tuotteiden hinnasta, katot ja noutoehto kuten siellä.
-const BOTH_METHODS = 'Käy sekä kotiinkuljetukseen että noutoon.'
-const OFFER_TERMS = {
-  SUURTILAUS: [
-    '30 % alennus tuotteiden hinnasta, enintään 7 €.',
-    'Tilauksen on oltava vähintään 50 € ennen alennusta.',
-    BOTH_METHODS,
-  ],
-  NOUTO15: ['15 % alennus tuotteiden hinnasta, enintään 5 €.', 'Vain noutotilauksiin: haet ruoan itse ravintolasta.'],
-  BIDROP10: ['10 % alennus tuotteiden hinnasta.', BOTH_METHODS],
-  TERVETULOA: ['3 € alennus tuotteiden hinnasta.', BOTH_METHODS],
-}
 
 // TILAPÄINEN: sama id:t kuin supabase/migrations/0039_remove_burger_talli_placeholder_items.sql -
 // piilotetaan täältä heti esikatselua varten kunnes käyttäjä ajaa migraation Supabasessa.
@@ -133,6 +109,89 @@ function useCompactLayout() {
   return compact
 }
 
+// Työpöydän oikean reunan oma tilaus (käyttäjän valinta 30.10.2026): tämän
+// ravintolan rivit ostoskorista, määrän muutos ja siirtyminen kassalle.
+// Näkyy vain leveällä näytöllä (RestaurantPage.css).
+function RestaurantCartPanel({ restaurant, cart }) {
+  const navigate = useNavigate()
+  const group = cart.groups.find((g) => g.restaurantId === restaurant.id)
+  const lines = group?.lines ?? []
+  const subtotal = lines.reduce((sum, line) => sum + line.quantity * (line.unitPriceCents ?? line.item.price_cents), 0)
+  const otherRestaurants = cart.groups.filter((g) => g.restaurantId !== restaurant.id).length
+
+  return (
+    <aside className="restaurant-cart" aria-labelledby="restaurant-cart-title">
+      <h2 id="restaurant-cart-title" className="restaurant-cart__title">
+        Tilauksesi
+      </h2>
+      {lines.length === 0 ? (
+        <p className="restaurant-cart__empty">
+          <ShoppingBag size={22} strokeWidth={1.8} aria-hidden="true" />
+          Lisää tuotteita, niin ne näkyvät tässä.
+        </p>
+      ) : (
+        <>
+          <ul className="restaurant-cart__lines">
+            {lines.map((line) => {
+              const key = `${line.item.id}|${line.optionsKey ?? ''}`
+              const unit = line.unitPriceCents ?? line.item.price_cents
+              return (
+                <li key={key} className="restaurant-cart__line">
+                  {/* Tuotekuva rivillä (käyttäjän pyyntö 30.10.2026). */}
+                  <span className="restaurant-cart__thumb" aria-hidden="true">
+                    {line.item.image_url ? (
+                      <img src={line.item.image_url} alt="" />
+                    ) : (
+                      <RestaurantAvatarPlaceholder name={line.item.name} size="thumb" />
+                    )}
+                  </span>
+                  <span className="restaurant-cart__name">
+                    {line.item.name}
+                    {line.selectedOptions?.length > 0 && (
+                      <small>{line.selectedOptions.map((o) => o.name).join(', ')}</small>
+                    )}
+                  </span>
+                  <span className="restaurant-cart__qty">
+                    <button
+                      type="button"
+                      aria-label={`Vähennä: ${line.item.name}`}
+                      onClick={() => cart.setQuantity(restaurant.id, line.item.id, line.quantity - 1, line.optionsKey ?? null)}
+                    >
+                      <Minus size={14} strokeWidth={2.4} aria-hidden="true" />
+                    </button>
+                    <span>{line.quantity}</span>
+                    <button
+                      type="button"
+                      aria-label={`Lisää: ${line.item.name}`}
+                      onClick={() => cart.setQuantity(restaurant.id, line.item.id, line.quantity + 1, line.optionsKey ?? null)}
+                    >
+                      <Plus size={14} strokeWidth={2.4} aria-hidden="true" />
+                    </button>
+                  </span>
+                  <span className="restaurant-cart__price">{formatPrice(unit * line.quantity)}</span>
+                </li>
+              )
+            })}
+          </ul>
+          <p className="restaurant-cart__total">
+            <span>Välisumma</span>
+            <strong>{formatPrice(subtotal)}</strong>
+          </p>
+          <p className="restaurant-cart__note">Kuljetuksen hinta {DELIVERY_PRICE_RANGE} sovitaan tilauksen jälkeen.</p>
+          <button type="button" className="restaurant-cart__checkout" onClick={() => navigate('/ostoskori')}>
+            Siirry kassalle
+          </button>
+        </>
+      )}
+      {otherRestaurants > 0 && (
+        <p className="restaurant-cart__note">
+          Ostoskorissa myös {otherRestaurants} {otherRestaurants === 1 ? 'muu ravintola' : 'muuta ravintolaa'}.
+        </p>
+      )}
+    </aside>
+  )
+}
+
 function RestaurantPage() {
   const { id } = useParams()
   const cart = useCart()
@@ -149,9 +208,6 @@ function RestaurantPage() {
   const [quantity, setQuantity] = useState(1)
   const [optionSelections, setOptionSelections] = useState({})
   const [justAdded, setJustAdded] = useState(false)
-  // Tarjous (koodi), jonka tiedot ovat auki alhaalta liukuvassa paneelissa.
-  const [openOfferCode, setOpenOfferCode] = useState(null)
-  const shownOffer = RESTAURANT_OFFERS.find((offer) => offer.code === openOfferCode)
   const { customer } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -239,6 +295,11 @@ function RestaurantPage() {
   const reviewCountShort = demoReviews.length > 0 ? `${pseudoReviewCount(restaurant.id)}+` : String(reviewTotal)
   // Ennen ensimmäistä vieritystä korostetaan ensimmäinen osio.
   const shownCategory = activeCategory ?? groupedMenu[0]?.[0] ?? null
+  // Ketjun logo puhelimen yläosan pyöreään logoon (lib/brandLogos.js).
+  const brand = restaurant ? brandLogoFor(restaurant.name) : null
+  // Suosituimmat tuotteet puhelimen vaakarivinä: ruokalistan ensimmäiset
+  // saatavilla olevat kuvalliset tuotteet (ei keksittyjä myyntisijoja).
+  const featuredItems = allMenuItems.filter((item) => item.is_available !== false && item.image_url).slice(0, 8)
   const tabsRef = useRef(null)
   // Onko osiorivillä vieritettävää vasemmalle/oikealle (häivytys ja nuoli).
   const [tabsOverflow, setTabsOverflow] = useState({ left: false, right: false })
@@ -456,12 +517,24 @@ function RestaurantPage() {
               {/* Käyttäjän mallikuvan mukaan (28.10.2026): nimi ja tiedot ikoneineen.
                   Työpöydällä tiedot yhdellä rivillä nimen alla, puhelimella allekkain
                   (kuva reunasta reunaan, alareuna häivytetty). Arvio avaa arvostelut. */}
-              <div className="restaurant-head">
-                <h1 className="restaurant-head__name">{restaurant.name}</h1>
-                <div className="restaurant-head__facts">
+              {/* Uber Eatsin mallikuvan mukaan (käyttäjän pyyntö 30.10.2026), sama
+                  puhelimella ja työpöydällä: pyöreä logo kuvan alareunan päällä
+                  vasemmalla, nimi ja tiedot sen alla. Arvio avaa arvostelut. */}
+              <div className="restaurant-mhead">
+                <span className={`restaurant-mhead__logo${brand ? ' has-image' : ''}`} aria-hidden="true">
+                  {brand ? (
+                    <img src={brand.logo} alt="" style={brand.pad ? { padding: Math.round(brand.pad * 0.7) } : undefined} />
+                  ) : restaurant.logo_url ? (
+                    <img src={restaurant.logo_url} alt="" />
+                  ) : (
+                    restaurant.name?.[0]
+                  )}
+                </span>
+                <h1 className="restaurant-mhead__name">{restaurant.name}</h1>
+                <p className="restaurant-mhead__meta">
                   <button
                     type="button"
-                    className="restaurant-head__rating"
+                    className="restaurant-mhead__rating"
                     onClick={() => setReviewsOpen(true)}
                     aria-label={
                       shownRating != null
@@ -469,7 +542,7 @@ function RestaurantPage() {
                         : 'Arvostelut: ei vielä arvosteluja'
                     }
                   >
-                    <ScoreSmiley rating={shownRating} size={18} />
+                    <ScoreSmiley rating={shownRating} size={15} />
                     {shownRating != null ? (
                       <>
                         <strong>{formatScore(shownRating)}</strong>
@@ -478,31 +551,43 @@ function RestaurantPage() {
                     ) : (
                       <span>Ei vielä arvioita</span>
                     )}
+                    <ChevronRight size={14} strokeWidth={2.4} aria-hidden="true" />
                   </button>
+                </p>
+                {(restaurant.address || distance) && (
+                  <p className="restaurant-mhead__address">
+                    {[restaurant.address && formatDisplayAddress(restaurant.address), distance]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                )}
+                {/* Linkki saman ketjun muihin ravintoloihin tai saman kategorian
+                    ravintoloihin (käyttäjän pyyntö 30.10.2026). */}
+                {brand ? (
+                  <Link className="restaurant-mhead__more" to={`/haku?q=${encodeURIComponent(brand.search ?? brand.name)}`}>
+                    Katso muut {brand.name}-ravintolat
+                    <ChevronRight size={14} strokeWidth={2.4} aria-hidden="true" />
+                  </Link>
+                ) : restaurant.category ? (
+                  <Link className="restaurant-mhead__more" to={`/kategoria/${categorySlug(restaurant.category)}`}>
+                    Katso vastaavat ravintolat
+                    <ChevronRight size={14} strokeWidth={2.4} aria-hidden="true" />
+                  </Link>
+                ) : null}
+                {/* Toimitusaika ja kuljetus yhtenä hillittynä rivinä (käyttäjän pyyntö
+                    30.10.2026: ei Uber-laatikkoa eikä reittiviivaa). */}
+                <p className="restaurant-mhead__delivery">
                   {etaRange && (
                     <span>
-                      <Clock size={17} strokeWidth={2.1} aria-hidden="true" />
+                      <Clock size={15} strokeWidth={2.2} aria-hidden="true" />
                       {etaRange}
                     </span>
                   )}
-                </div>
-                <div className="restaurant-head__facts">
                   <span className={restaurant.free_delivery ? 'is-free' : undefined}>
-                    <Bike size={17} strokeWidth={2.1} aria-hidden="true" />
-                    {restaurant.free_delivery ? 'Ilmainen toimitus' : `Toimitus ${DELIVERY_PRICE_RANGE}`}
+                    <Bike size={15} strokeWidth={2.2} aria-hidden="true" />
+                    {restaurant.free_delivery ? 'Ilmainen kuljetus' : `Kuljetus ${DELIVERY_PRICE_RANGE}`}
                   </span>
-                </div>
-                {/* Osoite ja etäisyys omalla rivillään (käyttäjän pyyntö 28.10.2026). */}
-                {(restaurant.address || distance) && (
-                  <p className="restaurant-head__address">
-                    <MapPin size={17} strokeWidth={2.1} aria-hidden="true" />
-                    <span>
-                      {[restaurant.address && formatDisplayAddress(restaurant.address), distance]
-                        .filter(Boolean)
-                        .join(' · ')}
-                    </span>
-                  </p>
-                )}
+                </p>
               </div>
 
               {/* Työpöytä: hakukenttä ja sydän tietojen tasolla oikealla
@@ -543,36 +628,33 @@ function RestaurantPage() {
 
             {allMenuItems.length > 0 ? (
               <>
-                {/* Järjestys käyttäjän pyynnöstä (28.10.2026): ensin tarjoukset, sitten
-                    kategoriat (välilehdet) ja sitten tuotteet. */}
-                <section className="restaurant-offers" aria-label="Tarjoukset">
-                  <h2 className="restaurant-offers__title">Tarjoukset</h2>
-                  {/* Woltin tarjouskortin mallin mukaan (käyttäjän referenssi): lippumainen
-                      kortti lovineen. Kortit vaakarivinä (RESTAURANT_OFFERS), koodi näkyy
-                      kortissa ja napautus avaa tarjouksen tiedot alhaalta. */}
-                  <div className="restaurant-offers__row">
-                    {RESTAURANT_OFFERS.map(({ code, Icon, title, note }) => (
-                      <button
-                        type="button"
-                        key={code}
-                        className="menu-offer-card"
-                        aria-label={`${title}. Näytä tarjouksen tiedot`}
-                        onClick={() => setOpenOfferCode(code)}
-                      >
-                        <Icon className="menu-offer-card__icon" size={30} strokeWidth={1.9} aria-hidden="true" />
-                        <span className="menu-offer-card__body">
-                          <span className="menu-offer-card__title">{title}</span>
-                          <span className="menu-offer-card__code">
-                            {code}
-                            {note ? ` · ${note}` : ''}
-                            <ChevronRight size={14} strokeWidth={2.4} aria-hidden="true" />
+                {/* Suosituimmat tuotteet vaakarivinä ennen välilehtiä (Uber
+                    Eatsin mallikuva, 30.10.2026). Napautus avaa tuotteen. */}
+                {featuredItems.length > 0 && (
+                  <section className="featured-items" aria-labelledby="featured-items-title">
+                    <h2 id="featured-items-title" className="featured-items__title">
+                      Suosituimmat
+                    </h2>
+                    <div className="featured-items__row">
+                      {featuredItems.map((item) => (
+                        <button type="button" key={item.id} className="featured-item" onClick={() => openItem(item)}>
+                          <span className="featured-item__media">
+                            <img src={item.image_url} alt="" loading="lazy" />
+                            <span className="featured-item__add" aria-hidden="true">
+                              <Plus size={17} strokeWidth={2.5} />
+                            </span>
                           </span>
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </section>
+                          <span className="featured-item__name">{item.name}</span>
+                          <span className="featured-item__price">{formatPrice(item.price_cents)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                )}
 
+                {/* Kääre: leveällä näytöllä välilehdet ja ruokalista asettuvat sivun
+                    ruudukkoon (display: contents); puhelimella kääre ei vaikuta. */}
+                <div className="restaurant-menu-layout">
                 {/* Ruokalistan oikeat osiot sivuttain vieritettävänä rivinä - klikkaus
                     vierittää osioon, ja vieritys korostaa osion jossa ollaan.
                     Kiinnittyy headerin alle. */}
@@ -684,6 +766,9 @@ function RestaurantPage() {
                     </section>
                   ))}
                 </div>
+                </div>
+
+                {!compactLayout && <RestaurantCartPanel restaurant={restaurant} cart={cart} />}
               </>
             ) : (
               <div className="coming-soon">
@@ -695,10 +780,6 @@ function RestaurantPage() {
       </main>
 
       <Footer />
-
-      {shownOffer && (
-        <OfferSheet offer={shownOffer} terms={OFFER_TERMS[shownOffer.code]} onClose={() => setOpenOfferCode(null)} />
-      )}
 
       {reviewsOpen && restaurant && (
         <ReviewsModal

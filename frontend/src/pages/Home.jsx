@@ -1,19 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import {
-  ArrowRight,
-  Bike,
-  ChevronDown,
-  House,
-  MapPin,
-  Receipt,
-  ShoppingBag,
-  Smile,
-  Store,
-  Tag,
-  User,
-  UserPlus,
-} from 'lucide-react'
+import { ArrowRight, ChevronDown, MapPin, ShoppingBag } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
@@ -27,7 +14,6 @@ import {
   CATEGORY_SHORT_LABELS,
   CATEGORY_SLOGANS,
   CATEGORY_TILE_META,
-  DEALS_QUERY,
   DEFAULT_TILE_META,
   DEALS_RESTAURANTS,
   FILLER_TEMPLATES_BY_CATEGORY,
@@ -40,8 +26,7 @@ import { useCart } from '../lib/CartContext.jsx'
 import { openAddressPicker, useDeliveryAddress, withDistance } from '../lib/deliveryAddress.js'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { formatPrice } from '../lib/format.js'
-import { QUICK_FILTERS } from '../lib/quickFilters.js'
-import { useAuth } from '../lib/AuthContext.jsx'
+import { BRAND_LOGOS } from '../lib/brandLogos.js'
 import './Home.css'
 
 // Mobiilin kategoriariveille ei näytetä kahvilaosiota lainkaan (käyttäjän päätös).
@@ -56,9 +41,6 @@ const SEARCH_CATEGORIES_WITH_FILLERS = CATEGORY_NAMES.filter((name) => searchFil
 // "Lähelläsi"-rivi osoitteen antaneille: näin monta lähintä kaikista kategorioista.
 const NEARBY_COUNT = 10
 const NEARBY_ROW = 'Lähelläsi'
-// Työpöydän suodatinpillerien ikonit (ehdot ja hakusanat: lib/quickFilters.js).
-const FILTER_ICONS = { free: Bike, top: Smile }
-
 // Rivien otsikot mainoslauseina kategorian nimen sijaan (CATEGORY_SLOGANS,
 // lib/categories.js). Vain otsikko vaihtuu: suodattimet, osoitteet
 // (/kategoria/...) ja ruudunlukijan nuolinapit käyttävät edelleen kategorian
@@ -166,9 +148,10 @@ function Home() {
   const [adIndex, setAdIndex] = useState(0)
   const { favoriteIds, toggleFavorite } = useFavorites()
   const [searchOpen, setSearchOpen] = useState(false)
-  const { isAuthenticated } = useAuth()
   // Työpöydän kategoriarivin vierityspainike.
   const catsRef = useRef(null)
+  // Työpöydän logorivin vierityspainike.
+  const brandsRef = useRef(null)
   // Puhelimella kiinnittyvä hakukenttä saa varjon vasta, kun se on ylälaidassa.
   const searchStickyRef = useRef(null)
   const [searchStuck, setSearchStuck] = useState(false)
@@ -555,53 +538,6 @@ function Home() {
           sivun suora lapsi eikä .home-contentin sisällä, jotta sticky pysyy koko sivun. */}
 
       <main className="home-content">
-        {/* Työpöydän vasen sivupalkki Uber Eatsin tapaan (käyttäjän pyyntö
-            29.10.2026). Vain leveillä näytöillä (Home.css). */}
-        <aside className="home-sidebar" aria-label="Valikko">
-          <nav className="home-sidebar__nav">
-            <Link to="/" className="home-sidebar__link is-active" aria-current="page">
-              <House size={20} strokeWidth={2} aria-hidden="true" />
-              Koti
-            </Link>
-            <Link to={`/haku?q=${encodeURIComponent(DEALS_QUERY)}`} className="home-sidebar__link">
-              <Tag size={20} strokeWidth={2} aria-hidden="true" />
-              Tarjoukset
-            </Link>
-            {isAuthenticated ? (
-              <>
-                <Link to="/omat-tilaukset" className="home-sidebar__link">
-                  <Receipt size={20} strokeWidth={2} aria-hidden="true" />
-                  Tilaukset
-                </Link>
-                <Link to="/asetukset" className="home-sidebar__link">
-                  <User size={20} strokeWidth={2} aria-hidden="true" />
-                  Profiili
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link to="/register" className="home-sidebar__link">
-                  <UserPlus size={20} strokeWidth={2} aria-hidden="true" />
-                  Rekisteröidy
-                </Link>
-                <Link to="/login" className="home-sidebar__link">
-                  <User size={20} strokeWidth={2} aria-hidden="true" />
-                  Kirjaudu sisään
-                </Link>
-              </>
-            )}
-            <span className="home-sidebar__divider" aria-hidden="true" />
-            <Link to="/kumppanina" className="home-sidebar__link">
-              <Store size={20} strokeWidth={2} aria-hidden="true" />
-              Ravintoloille
-            </Link>
-            <Link to="/kumppanina/kuljettajat" className="home-sidebar__link">
-              <Bike size={20} strokeWidth={2} aria-hidden="true" />
-              Kuljettajaksi
-            </Link>
-          </nav>
-        </aside>
-
         <div className="home-main">
           {/* Mobiilin yläosa: toimitusosoite logon alla (käyttäjän pyyntö 29.10.2026:
               ei ikonia, pieni harmaa "Toimitusosoite" päällä). Napautus avaa saman
@@ -687,30 +623,36 @@ function Home() {
             </button>
           </div>
 
-          {/* Työpöydän suodatinpillerit (hakevat, kuten mobiilin hakusivun
-              suodattimet) ja otsikkorivi - Uber Eatsin
-              rakenne (käyttäjän pyyntö 29.10.2026). Vain leveillä näytöillä. */}
-          <div className="home-filters" role="group" aria-label="Pikavalinnat">
-            <Link to={`/haku?q=${encodeURIComponent(DEALS_QUERY)}`} className="home-filter">
-              <Tag size={17} strokeWidth={2.2} aria-hidden="true" />
-              Tarjoukset
-            </Link>
-            {QUICK_FILTERS.map(({ id, query }) => {
-              const Icon = FILTER_ICONS[id]
-              return (
-                <Link key={id} to={`/haku?q=${encodeURIComponent(query)}`} className="home-filter">
-                  {Icon && <Icon size={17} strokeWidth={2.2} aria-hidden="true" />}
-                  {query}
-                </Link>
-              )
-            })}
+          {/* Työpöydällä teksti kategorioiden jälkeen (käyttäjän pyyntö 29.10.2026). */}
+          <div className="home-intro">
+            <h1>Mitä tänään syötäisiin?</h1>
+            <p>Selaa lähiravintoloita tai hae ravintolaa, ruokalajia tai annosta.</p>
           </div>
 
-          <section className="home-intro" aria-labelledby="home-intro-title">
-            <div className="home-intro__text">
-              <h1 id="home-intro-title">Mitä tänään syötäisiin?</h1>
-              <p>Selaa lähiravintoloita tai hae ravintolaa, ruokalajia tai annosta.</p>
+          {/* Ravintolaketjujen logot ilman otsikkoa (käyttäjän pyyntö 29.10.2026). */}
+          <section className="home-brands" aria-label="Ravintolaketjut">
+            <div className="home-brands__row" ref={brandsRef}>
+              {BRAND_LOGOS.map(({ name, search, logo, pad, bg }) => (
+                <Link key={name} to={`/haku?q=${encodeURIComponent(search ?? name)}`} className="home-brand">
+                  <span
+                    className="home-brand__logo"
+                    style={pad || bg ? { padding: pad, background: bg, borderColor: bg } : undefined}
+                  >
+                    <img src={logo} alt="" />
+                  </span>
+                  <span className="home-brand__name">{name}</span>
+                </Link>
+              ))}
             </div>
+            {/* Sivuttain vieritettävä rivi, nuoli oikeassa reunassa (29.10.2026). */}
+            <button
+              type="button"
+              className="home-cats__next home-brands__next"
+              aria-label="Lisää ravintolaketjuja"
+              onClick={() => brandsRef.current?.scrollBy({ left: brandsRef.current.clientWidth * 0.7, behavior: 'smooth' })}
+            >
+              <ArrowRight size={20} strokeWidth={2.2} aria-hidden="true" />
+            </button>
           </section>
 
           {status === 'loading' && <Spinner label="Haetaan ravintoloita" />}
