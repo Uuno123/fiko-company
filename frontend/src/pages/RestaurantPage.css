@@ -1730,3 +1730,216 @@
     background: #000;
   }
 }
+
+/* Matalammat tuotekortit (käyttäjän pyyntö 30.10.2026): kuvaus yhdelle
+   riville, pienempi kuva ja tiiviimmät välit. Tiedoston lopussa, jotta voittaa
+   yllä olevat leveyskohtaiset säännöt. */
+.menu-card__info {
+  gap: 3px;
+}
+
+.menu-card__description {
+  -webkit-line-clamp: 1;
+}
+
+.menu-card__price {
+  margin-top: 2px;
+}
+
+@media (max-width: 780px) {
+  .menu-card {
+    padding: 12px 0;
+  }
+
+  .menu-card__media {
+    width: 92px;
+    height: 92px;
+  }
+
+  .menu-card__name {
+    font-size: 1.05rem;
+  }
+
+  .menu-card__description {
+    font-size: 0.88rem;
+  }
+
+  .menu-card__price {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 1000px) {
+  .menu-card {
+    padding: 14px 0;
+  }
+
+  .menu-card__media {
+    width: 84px;
+    height: 84px;
+  }
+}
+
+/* Kategoriarivi: valitun alla musta alaviiva, joka liukuu valinnan mukana,
+   ja koko rivin alla hento harmaa viiva (käyttäjän valinta 30.10.2026).
+   Napin oma oranssi viiva korvautuu liukuvalla viivalla. */
+.restaurant-menu-tabs {
+  border-bottom: 1px solid #ececea;
+}
+
+.restaurant-menu-tabs__btn--active::after {
+  content: none;
+}
+
+.restaurant-menu-tabs__indicator {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--delivo-black);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 780px) {
+  .restaurant-menu-tabs {
+    border-bottom: 1px solid #ececea;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .restaurant-menu-tabs__indicator {
+    transition: none;
+  }
+}
+
+/* Puhelimella ei nuolta kategoriarivin reunassa (käyttäjän pyyntö 30.10.2026) -
+   riviä vieritetään sormella, reunan häivytys riittää vihjeeksi. */
+@media (max-width: 780px) {
+  .restaurant-menu-tabs__more {
+    display: none;
+  }
+}
+
+/* Kapeampi reunan häivytys puhelimella (käyttäjä: ei niin paljon ennen reunaa). */
+@media (max-width: 780px) {
+  .restaurant-menu-tabs-wrap::before,
+  .restaurant-menu-tabs-wrap::after {
+    width: 28px;
+  }
+
+  .restaurant-menu-tabs-wrap::after {
+    background: linear-gradient(270deg, var(--delivo-bg), rgba(255, 255, 255, 0));
+  }
+}
+
+/* Tasaisempi välistys koko sivulle (käyttäjän pyyntö 30.10.2026): tiedoille
+   ilmaa rivien väliin, osioiden väli sama joka kohdassa (otsikko lähellä omia
+   tuotteitaan, isompi väli edelliseen osioon) ja kategoriat hieman pienemmällä
+   fontilla. */
+.restaurant-menu-tabs__btn {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 780px) {
+  .restaurant-mhead__name {
+    margin-top: 14px;
+  }
+
+  .restaurant-mhead__meta {
+    margin-top: 8px;
+  }
+
+  .restaurant-mhead__address {
+    margin-top: 6px;
+  }
+
+  .restaurant-mhead__more {
+    margin-top: 8px;
+  }
+
+  .restaurant-mhead__delivery {
+    margin-top: 12px;
+  }
+
+  .featured-items {
+    gap: 10px;
+    padding-top: 36px;
+  }
+
+  .restaurant-menu-tabs-wrap {
+    margin-top: 24px;
+  }
+
+  .restaurant-menu-tabs {
+    gap: 22px;
+  }
+
+  .restaurant-menu-tabs__btn {
+    padding: 13px 0;
+    font-size: 0.98rem;
+  }
+
+  .menu {
+    gap: 36px;
+    padding-top: 28px;
+  }
+
+  .menu-section .menu-grid {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .menu-section .menu-grid > li:last-child .menu-card {
+    padding-bottom: 4px;
+  }
+}
+
+/* Tuotekortit vielä hitusen pienemmiksi (käyttäjän pyyntö 31.10.2026). */
+@media (max-width: 780px) {
+  .menu-card {
+    gap: 12px;
+    padding: 10px 0;
+  }
+
+  .menu-card__media {
+    width: 84px;
+    height: 84px;
+  }
+
+  .menu-card__name {
+    font-size: 1rem;
+  }
+
+  .menu-card__rating {
+    font-size: 0.82rem;
+  }
+
+  .menu-card__description {
+    font-size: 0.85rem;
+  }
+
+  .menu-card__price {
+    font-size: 0.95rem;
+  }
+
+  .menu-card__add {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (min-width: 1000px) {
+  .menu-card {
+    padding: 12px 0;
+  }
+
+  .menu-card__media {
+    width: 76px;
+    height: 76px;
+  }
+
+  .menu-card__name {
+    font-size: 0.95rem;
+  }
+}

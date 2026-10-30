@@ -1428,3 +1428,154 @@
     display: none;
   }
 }
+
+/* Työpöydän logorivi (käyttäjän pyyntö 30.10.2026): logojen koko näytön
+   leveyden mukaan (rivillä aina --brand-n logoa kokonaan näkyvissä), pienet
+   harmaat nuolet ja vasen nuoli takaisin päin. Häivytys vain sille reunalle,
+   jolle on vieritettävää. */
+@media (min-width: 900px) {
+  .home-brands {
+    --brand-n: 8;
+    --brand-gap: 18px;
+    container-type: inline-size;
+  }
+
+  .home-brands::after {
+    width: 56px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0), #fff);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .home-brands::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1;
+    width: 56px;
+    background: linear-gradient(270deg, rgba(255, 255, 255, 0), #fff);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .home-brands.can-scroll-right::after,
+  .home-brands.can-scroll-left::before {
+    opacity: 1;
+  }
+
+  .home-brands__row {
+    gap: var(--brand-gap);
+    padding-right: 0;
+  }
+
+  .home-brand {
+    flex: 0 0 calc((100% - var(--brand-gap) * (var(--brand-n) - 1)) / var(--brand-n));
+    width: auto;
+    min-width: 0;
+  }
+
+  .home-brand__logo {
+    width: min(100%, 86px);
+    padding: 7px;
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .home-brands__arrow {
+    position: absolute;
+    /* Logon keskikohdalle: logon koko = min(kohteen leveys, 86px). */
+    top: calc(min((100cqw - var(--brand-gap) * (var(--brand-n) - 1)) / var(--brand-n), 86px) / 2 - 16px);
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--round-button-bg);
+    color: var(--delivo-black);
+    cursor: pointer;
+  }
+
+  .home-brands__arrow:hover {
+    background: var(--round-button-bg-pressed);
+  }
+
+  .home-brands__arrow--prev {
+    left: 4px;
+  }
+
+  .home-brands__arrow--next {
+    right: 4px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .home-brands {
+    --brand-n: 10;
+  }
+}
+
+@media (min-width: 1500px) {
+  .home-brands {
+    --brand-n: 12;
+  }
+}
+
+/* Työpöydän ravintolakortit näytön leveyden mukaan (käyttäjän pyyntö
+   30.10.2026): rivillä aina --card-n korttia kokonaan näkyvissä, tarjousrivillä
+   yksi vähemmän isompina kortteina. Kiinteä 336/456 px leveys pois. */
+@media (min-width: 900px) {
+  .page--home .category-row {
+    --card-n: 3;
+    --card-gap: 16px;
+  }
+
+  .page--home .category-row__scroll {
+    gap: var(--card-gap);
+  }
+
+  .page--home .category-row .category-row__scroll .restaurant-card {
+    flex: 0 0 calc((100% - var(--card-gap) * (var(--card-n) - 1)) / var(--card-n));
+    min-width: 0;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 2;
+  }
+}
+
+@media (min-width: 1200px) {
+  .page--home .category-row {
+    --card-n: 4;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 3;
+  }
+}
+
+@media (min-width: 1600px) {
+  .page--home .category-row {
+    --card-n: 5;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 4;
+  }
+}
+
+/* Hieman pienemmät logot (käyttäjän pyyntö 30.10.2026: ei liian reilusti). */
+@media (min-width: 900px) {
+  .home-brand {
+    gap: 6px;
+  }
+
+  .home-brand__name {
+    font-size: 0.78rem;
+  }
+}

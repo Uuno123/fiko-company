@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight, ChevronDown, MapPin } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ChevronDown, MapPin } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
@@ -152,6 +152,21 @@ function Home() {
   const catsRef = useRef(null)
   // Työpöydän logorivin vierityspainike.
   const brandsRef = useRef(null)
+  // Logorivin nuolet vain sille suunnalle, jolle on vieritettävää: vasen nuoli
+  // palauttaa alkuun (käyttäjä: sivulle vierittäessä ei päässyt takaisin).
+  const [brandsScroll, setBrandsScroll] = useState({ left: false, right: true })
+  function updateBrandsScroll() {
+    const row = brandsRef.current
+    if (!row) return
+    const left = row.scrollLeft > 4
+    const right = row.scrollLeft + row.clientWidth < row.scrollWidth - 4
+    setBrandsScroll((current) => (current.left === left && current.right === right ? current : { left, right }))
+  }
+  useEffect(() => {
+    updateBrandsScroll()
+    window.addEventListener('resize', updateBrandsScroll)
+    return () => window.removeEventListener('resize', updateBrandsScroll)
+  }, [])
   // Puhelimella kiinnittyvä hakukenttä saa varjon vasta, kun se on ylälaidassa.
   const searchStickyRef = useRef(null)
   const [searchStuck, setSearchStuck] = useState(false)
@@ -630,13 +645,17 @@ function Home() {
           </div>
 
           {/* Ravintolaketjujen logot ilman otsikkoa (käyttäjän pyyntö 29.10.2026). */}
-          <section className="home-brands" aria-label="Ravintolaketjut">
-            <div className="home-brands__row" ref={brandsRef}>
+          <section
+            className={`home-brands${brandsScroll.left ? ' can-scroll-left' : ''}${brandsScroll.right ? ' can-scroll-right' : ''}`}
+            aria-label="Ravintolaketjut"
+          >
+            <div className="home-brands__row" ref={brandsRef} onScroll={updateBrandsScroll}>
               {BRAND_LOGOS.map(({ name, search, logo, pad, bg }) => (
                 <Link key={name} to={`/haku?q=${encodeURIComponent(search ?? name)}`} className="home-brand">
+                  {/* Logojen lisätila pienennetty samassa suhteessa kuin logot (88 -> 86 px). */}
                   <span
                     className="home-brand__logo"
-                    style={pad || bg ? { padding: pad, background: bg, borderColor: bg } : undefined}
+                    style={pad || bg ? { padding: pad ? Math.round(pad * 0.97) : undefined, background: bg, borderColor: bg } : undefined}
                   >
                     <img src={logo} alt="" />
                   </span>
@@ -644,15 +663,27 @@ function Home() {
                 </Link>
               ))}
             </div>
-            {/* Sivuttain vieritettävä rivi, nuoli oikeassa reunassa (29.10.2026). */}
-            <button
-              type="button"
-              className="home-cats__next home-brands__next"
-              aria-label="Lisää ravintolaketjuja"
-              onClick={() => brandsRef.current?.scrollBy({ left: brandsRef.current.clientWidth * 0.7, behavior: 'smooth' })}
-            >
-              <ArrowRight size={20} strokeWidth={2.2} aria-hidden="true" />
-            </button>
+            {/* Pienet nuolet reunoissa, vain kun sille suunnalle on vieritettävää. */}
+            {brandsScroll.left && (
+              <button
+                type="button"
+                className="home-brands__arrow home-brands__arrow--prev"
+                aria-label="Edelliset ravintolaketjut"
+                onClick={() => brandsRef.current?.scrollBy({ left: -brandsRef.current.clientWidth * 0.7, behavior: 'smooth' })}
+              >
+                <ArrowLeft size={16} strokeWidth={2.2} aria-hidden="true" />
+              </button>
+            )}
+            {brandsScroll.right && (
+              <button
+                type="button"
+                className="home-brands__arrow home-brands__arrow--next"
+                aria-label="Lisää ravintolaketjuja"
+                onClick={() => brandsRef.current?.scrollBy({ left: brandsRef.current.clientWidth * 0.7, behavior: 'smooth' })}
+              >
+                <ArrowRight size={16} strokeWidth={2.2} aria-hidden="true" />
+              </button>
+            )}
           </section>
 
           {status === 'loading' && <Spinner label="Haetaan ravintoloita" />}
