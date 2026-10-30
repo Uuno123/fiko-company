@@ -8,6 +8,7 @@ import { getRestaurants } from '../lib/api.js'
 import { formatEtaRange } from '../lib/delivery.js'
 import { getDemoRestaurant } from '../lib/demoRestaurants.js'
 import { getFavoriteRestaurantIds, removeFavorite } from '../lib/favorites.js'
+import { restaurantThumb } from '../lib/brandLogos.js'
 
 // Lempipaikat Omat tiedot -sivulla (customer_favorites). Sydän lisätään
 // ravintolakortista tai ravintolan sivulta; täällä suosikit näkyvät tiiviinä
@@ -26,13 +27,20 @@ async function loadFavorites(customerId) {
 }
 
 function FavoriteRow({ restaurant, onRemove }) {
+  const thumb = restaurantThumb(restaurant.name, restaurant.image_url)
   const meta = [restaurant.category, formatEtaRange(restaurant.pickup_estimate_minutes)].filter(Boolean).join(' · ')
   return (
     <li className="favorite-row">
       <Link to={`/ravintola/${restaurant.id}`} className="favorite-row__link">
         <span className="favorite-row__thumb">
-          {restaurant.image_url ? (
-            <img src={restaurant.image_url} alt="" loading="lazy" />
+          {thumb ? (
+            <img
+              src={thumb.src}
+              alt=""
+              loading="lazy"
+              className={thumb.logo ? 'brand-thumb-logo' : undefined}
+              style={thumb.style}
+            />
           ) : (
             <RestaurantAvatarPlaceholder name={restaurant.name} />
           )}

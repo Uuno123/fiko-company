@@ -175,3 +175,31 @@ button {
 .smiley--muted {
   color: #c9ccc4;
 }
+
+/* Ketjun logo pienessä ravintolakuvassa (lib/brandLogos.js restaurantThumb):
+   koko logo näkyviin valkoisella pohjalla. */
+.brand-thumb-logo {
+  box-sizing: border-box;
+  padding: 14%;
+  background: #fff;
+  object-fit: contain !important;
+}
+
+/* Bidrop-logo kirjautumisen ja rekisteröinnin ponnahdusikkunassa (vain
+   työpöydällä; puhelimella paneeli ilman logoa). */
+.auth-sheet-logo {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .auth-sheet-logo {
+    display: flex;
+    justify-content: center;
+    margin: -8px 0 18px;
+    color: var(--delivo-black);
+  }
+
+  .auth-sheet-logo .delivo-logo {
+    height: 26px;
+  }
+}

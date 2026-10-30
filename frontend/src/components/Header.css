@@ -1249,32 +1249,41 @@
   border-color: #26281d;
 }
 
-/* Ostoskorinappi: musta täyttö, kuten mobiilin etusivulla. Läpikuultava
-   valkoinen katoaisi vaalealta taustalta kokonaan. */
-.site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger,
+/* Ostoskorinappi vaaleanharmaana pallona mustalla korilla ja oranssilla
+   määrämerkillä (käyttäjän pyyntö 30.10.2026: ammattimaisempi). */
+.site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger {
+  border-color: transparent;
+  background: var(--round-button-bg);
+  color: var(--delivo-black);
+}
+
+.site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger:hover {
+  background: var(--round-button-bg-pressed);
+  border-color: transparent;
+}
+
+.site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger svg {
+  width: 21px;
+  height: 21px;
+  color: var(--delivo-black);
+}
+
+.site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__badge {
+  border: 2px solid #fff;
+  background: var(--delivo-orange);
+  color: #fff;
+  box-shadow: none;
+}
+
 .site-header:not(.site-header--dark):not(.site-header--overlay) .site-header__back {
   background: var(--delivo-black);
   border-color: var(--delivo-black);
   color: #fff;
 }
 
-.site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger:hover,
 .site-header:not(.site-header--dark):not(.site-header--overlay) .site-header__back:hover {
   background: #000;
   border-color: #000;
-}
-
-.site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger svg {
-  color: #fff;
-}
-
-/* Valkoinen luku mustalla reunuksella erottuu sekä mustasta napista että
-   vaaleasta headerista, jonka päälle merkki osittain menee. */
-.site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__badge {
-  background: #fff;
-  color: var(--delivo-black);
-  border: 2px solid var(--delivo-black);
-  box-shadow: none;
 }
 
 /* Mobiilissa logo on pienempi. Tämä on oltava tässä lohkossa samalla

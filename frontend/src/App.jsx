@@ -9,7 +9,7 @@ import ReviewPrompt from './components/ReviewPrompt.jsx'
 import CookieConsent from './components/CookieConsent.jsx'
 import AddressGate from './components/AddressGate.jsx'
 import BottomSheet from './components/BottomSheet.jsx'
-import { useIsMobile } from './lib/useIsMobile.js'
+import DelivoLogo from './components/DelivoLogo.jsx'
 import Home from './pages/Home.jsx'
 import SearchResults from './pages/SearchResults.jsx'
 import RestaurantPage from './pages/RestaurantPage.jsx'
@@ -53,7 +53,6 @@ function ScrollToTop({ pathname }) {
 const HOME_LOCATION = { pathname: '/', search: '', hash: '', state: null, key: 'auth-home' }
 const AUTH_PATHS = ['/login', '/register']
 // Sama raja kuin BottomSheet.css:ssä.
-const PHONE_QUERY = '(max-width: 639px)'
 
 // Työpöydällä kirjautuminen ja rekisteröinti ovat omia sivujaan.
 function AuthPage({ children }) {
@@ -64,9 +63,9 @@ function AuthPage({ children }) {
   )
 }
 
-// Puhelimella /login ja /register ovat alhaalta liukuva paneeli sen sivun
-// päällä, jolta kirjautumaan lähdettiin (käyttäjän pyyntö 23.10.2026;
-// työpöydällä koko sivu on hyvä). Taustalla pysyy viimeisin muu sivu; jos
+// /login ja /register ovat paneeli sen sivun päällä, jolta kirjautumaan
+// lähdettiin: puhelimella alhaalta liukuva (käyttäjän pyyntö 23.10.2026),
+// työpöydällä keskitetty ponnahdusikkuna Bidrop-logon kanssa (30.10.2026). Taustalla pysyy viimeisin muu sivu; jos
 // paneeli avattiin suoraan osoitteesta (esim. sähköpostin vahvistuslinkki) tai
 // sivu vaatii kirjautumisen (state.overHome, muuten se ohjaisi taas tänne),
 // taustalla on etusivu. Puhelimen takaisin-ele sulkee paneelin, koska se on oma
@@ -75,9 +74,8 @@ function AuthPage({ children }) {
 function AppRoutes() {
   const location = useLocation()
   const navigate = useNavigate()
-  const phone = useIsMobile(PHONE_QUERY)
   const isAuth = AUTH_PATHS.includes(location.pathname)
-  const isSheet = isAuth && phone
+  const isSheet = isAuth
   const [lastPage, setLastPage] = useState(isAuth ? null : location)
   if (!isAuth && lastPage !== location) setLastPage(location)
   const overPage = isSheet && lastPage != null && !location.state?.overHome && window.history.state?.idx > 0
@@ -154,6 +152,10 @@ function AppRoutes() {
       </Routes>
       {isSheet && (
         <BottomSheet onClose={closeSheet} labelledBy="auth-title">
+          {/* Logo vain työpöydän ponnahdusikkunassa (index.css). */}
+          <div className="auth-sheet-logo">
+            <DelivoLogo />
+          </div>
           {authContent}
         </BottomSheet>
       )}
