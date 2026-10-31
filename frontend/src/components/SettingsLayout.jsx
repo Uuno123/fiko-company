@@ -41,7 +41,7 @@ function SettingsLayout({ title, description, children, variant }) {
     navigate('/')
   }
 
-  const initial = (customer?.name?.trim()?.[0] || customer?.email?.[0] || '?').toUpperCase()
+  const firstName = customer?.name?.trim().split(/\s+/)[0]
 
   return (
     <div className="page">
@@ -64,14 +64,11 @@ function SettingsLayout({ title, description, children, variant }) {
       <div className={`account${isMobile ? ' account--mobile' : ''}${isMobile && isHub ? ' account--hub' : ''}`}>
         {!isMobile && (
           <aside className="account-side">
+            {/* Tervehdys ilman profiilikuvaa, kuten puhelimen tilisivulla
+                (käyttäjän pyyntö 31.10.2026: ei oranssia). */}
             <div className="account-side__identity">
-              <span className="account-side__avatar" aria-hidden="true">
-                {initial}
-              </span>
-              <div className="account-side__who">
-                <span className="account-side__name">{customer?.name || 'Tili'}</span>
-                <span className="account-side__email">{customer?.email}</span>
-              </div>
+              <span className="account-side__name">{firstName ? `Hei, ${firstName}!` : 'Hei!'}</span>
+              <span className="account-side__email">{customer?.email}</span>
             </div>
 
             <nav className="account-nav" aria-label="Tilin osiot">

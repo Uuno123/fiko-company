@@ -1,26 +1,13 @@
-/* Mobiilin tilisivu (AccountHub.jsx, 31.10.2026). Ainoa korostus on harmaat
-   pikalaatat; muu on hiljaista: ei kortteja, varjoja eikä liukuvärejä.
-   Ryhmät erotetaan välillä ja yhdellä viivalla, rivit ohuella viivalla. */
+/* Mobiilin tilisivu (AccountHub.jsx, 31.10.2026): tervehdys etunimellä
+   ylhäällä, kaikki kohdat kevyinä listariveinä ilman kortteja. Ryhmät
+   erotetaan ohuella viivalla. */
 .hub-profile {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 14px;
-  padding: 10px 0 24px;
+  padding: 10px 0 20px;
   color: var(--delivo-black);
   text-decoration: none;
-}
-
-.hub-profile__avatar {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--delivo-black);
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: #fff;
 }
 
 .hub-profile__who {
@@ -35,7 +22,7 @@
   overflow: hidden;
   margin-bottom: 2px;
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
@@ -51,48 +38,20 @@
   white-space: nowrap;
 }
 
-.hub-tiles {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.hub-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 22px;
-  padding: 14px 14px 12px;
-  border-radius: 14px;
-  background: #f3f3f1;
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--delivo-black);
-  text-decoration: none;
-}
-
-
-
 .hub-group {
-  margin-top: 24px;
-}
-
-.hub-group + .hub-group {
-  padding-top: 8px;
+  padding: 8px 0;
   border-top: 1px solid #ecebe8;
 }
 
 .hub-row {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 0;
+  gap: 18px;
+  min-height: 52px;
+  padding: 10px 0;
   color: var(--delivo-black);
   text-decoration: none;
-}
-
-.hub-row + .hub-row {
-  border-top: 1px solid #f3f2f0;
+  transition: opacity 150ms ease;
 }
 
 .hub-row__icon {
@@ -108,26 +67,21 @@
 }
 
 .hub-row__label {
-  font-size: 0.98rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
 .hub-row__hint {
   overflow: hidden;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.hub-row__chevron {
-  flex-shrink: 0;
-  color: #a3a3a0;
-}
-
 .hub-signout {
   display: block;
-  margin: 28px auto 8px;
+  margin: 24px auto 8px;
   padding: 8px 12px;
   border: none;
   background: none;
@@ -136,10 +90,31 @@
   font-weight: 500;
   color: var(--text-muted);
   cursor: pointer;
+  transition: color 150ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
+/* Painalluspalaute (emil-design-eng) ja hover vain hiirellä. */
+.hub-row:active,
+.hub-profile:active {
+  opacity: 0.6;
+}
 
-.hub-tile:focus-visible,
+.hub-signout:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .hub-row:hover,
+  .hub-signout:hover {
+    color: var(--delivo-black);
+  }
+
+  .hub-row:hover .hub-row__label {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
 .hub-row:focus-visible,
 .hub-profile:focus-visible,
 .hub-signout:focus-visible {
@@ -148,124 +123,8 @@
   border-radius: 10px;
 }
 
-/* Hienosäätö emil-design-eng-skillin mukaan (31.10.2026): painallus tuntuu
-   (scale 0.97, 160 ms ease-out), siirtymät vain niille ominaisuuksille joita
-   muutetaan, ja hover-tilat vain hiirellä - kosketusnäytöllä hover jäisi
-   napautuksen jälkeen päälle. */
-.hub-tile {
-  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease;
-}
-
-.hub-row,
-.hub-profile {
-  transition: opacity 150ms ease;
-}
-
-.hub-signout {
-  transition: color 150ms ease, transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.hub-tile:active,
-.hub-signout:active {
-  transform: scale(0.97);
-}
-
-.hub-tile:active {
-  background: #eaeae7;
-}
-
-.hub-row:active,
-.hub-profile:active {
-  opacity: 0.6;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .hub-tile:hover {
-    background: #eaeae7;
-  }
-
-  .hub-row:hover .hub-row__chevron {
-    color: var(--delivo-black);
-  }
-
-  .hub-signout:hover {
-    color: var(--delivo-black);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .hub-tile:active,
   .hub-signout:active {
     transform: none;
   }
-}
-
-/* Uber Eatsin tilisivun mallikuvan mukaan (käyttäjän pyyntö 31.10.2026):
-   matalat laatat, ikoni ja teksti keskellä; lista ilman viivoja, pienet
-   ikonit ja tiivis rivikorkeus. Ryhmien välissä yksi ohut viiva. */
-.hub-tiles {
-  margin-top: 4px;
-}
-
-.hub-tile {
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 14px 8px 12px;
-  border-radius: 12px;
-  font-size: 0.86rem;
-  text-align: center;
-}
-
-.hub-group {
-  margin-top: 20px;
-  padding-top: 8px;
-  border-top: 1px solid #ecebe8;
-}
-
-.hub-group + .hub-group {
-  margin-top: 8px;
-}
-
-.hub-row {
-  gap: 18px;
-  min-height: 52px;
-  padding: 10px 0;
-}
-
-.hub-row + .hub-row {
-  border-top: none;
-}
-
-.hub-row__icon {
-  width: 18px;
-  height: 18px;
-}
-
-.hub-row__label {
-  font-size: 0.95rem;
-}
-
-.hub-row__hint {
-  font-size: 0.8rem;
-}
-
-.hub-row__chevron {
-  display: none;
-}
-
-/* Avatar oikealle ja nimi vasempaan reunaan kuten mallikuvassa; rivien
-   otsikot kevyemmällä painolla. */
-.hub-profile {
-  flex-direction: row-reverse;
-  align-items: center;
-}
-
-.hub-profile__avatar {
-  width: 56px;
-  height: 56px;
-}
-
-.hub-row__label {
-  font-weight: 500;
 }

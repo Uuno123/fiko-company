@@ -28,6 +28,36 @@ function formatOrderDate(value) {
   })
 }
 
+// Aiemmat tilaukset päivittäin väliotsikoiden alle (käyttäjän pyyntö 31.10.2026):
+// "Tänään", "Eilen" tai viikonpäivä ja päivämäärä (vuosi vain edellisiltä vuosilta).
+function dayKey(value) {
+  const d = new Date(value)
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+}
+
+function dayHeading(value) {
+  const d = new Date(value)
+  const today = new Date()
+  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1)
+  if (dayKey(d) === dayKey(today)) return 'Tänään'
+  if (dayKey(d) === dayKey(yesterday)) return 'Eilen'
+  // Viikonpäivä erikseen: yhdessä päivämäärän kanssa fi-FI antaa muodon 'keskiviikkona'.
+  const weekday = d.toLocaleDateString('fi-FI', { weekday: 'long' })
+  const year = d.getFullYear() === today.getFullYear() ? '' : d.getFullYear()
+  return `${weekday.charAt(0).toUpperCase()}${weekday.slice(1)} ${d.getDate()}.${d.getMonth() + 1}.${year}`
+}
+
+function groupByDay(orders) {
+  const groups = []
+  for (const order of orders) {
+    const key = dayKey(order.created_at)
+    const last = groups[groups.length - 1]
+    if (last?.key === key) last.orders.push(order)
+    else groups.push({ key, heading: dayHeading(order.created_at), orders: [order] })
+  }
+  return groups
+}
+
 const ACTIVE_STATUSES = ['pending', 'confirmed', 'preparing', 'ready']
 
 function OrderLines({ order }) {
@@ -80,7 +110,7 @@ function PastOrderRow({ order, isOpen, onToggle }) {
         <span className="past-order__main">
           <span className="past-order__name">{restaurantName}</span>
           <span className="past-order__meta">
-            {formatOrderDate(order.created_at)} · {itemCountLabel(order)}
+            klo {formatEta(order.created_at)} · {itemCountLabel(order)}
           </span>
         </span>
         <span className="past-order__side">
@@ -244,16 +274,21 @@ function OrderHistory() {
             <h2>Aiemmat tilaukset</h2>
             <span className="settings-section__count">{pastOrders.length}</span>
           </div>
-          <ul className="settings-panel past-orders">
-            {pastOrders.map((order) => (
-              <PastOrderRow
-                key={order.id}
-                order={order}
-                isOpen={openOrderId === order.id}
-                onToggle={() => setOpenOrderId(openOrderId === order.id ? null : order.id)}
-              />
-            ))}
-          </ul>
+          {groupByDay(pastOrders).map((group) => (
+            <div key={group.key} className="past-orders__day">
+              <h3 className="past-orders__date">{group.heading}</h3>
+              <ul className="settings-panel past-orders">
+                {group.orders.map((order) => (
+                  <PastOrderRow
+                    key={order.id}
+                    order={order}
+                    isOpen={openOrderId === order.id}
+                    onToggle={() => setOpenOrderId(openOrderId === order.id ? null : order.id)}
+                  />
+                ))}
+              </ul>
+            </div>
+          ))}
         </section>
       )}
     </SettingsLayout>

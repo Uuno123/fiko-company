@@ -23,7 +23,14 @@ import {
 } from '../lib/categories.js'
 import { useFavorites } from '../lib/useFavorites.js'
 import { useCart } from '../lib/CartContext.jsx'
-import { openAddressPicker, useDeliveryAddress, withDistance } from '../lib/deliveryAddress.js'
+import {
+  openAddressPicker,
+  skipWelcome,
+  useDeliveryAddress,
+  welcomeSkipped,
+  withDistance,
+} from '../lib/deliveryAddress.js'
+import WelcomeAddress from '../components/WelcomeAddress.jsx'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { formatPrice } from '../lib/format.js'
 import { BRAND_LOGOS } from '../lib/brandLogos.js'
@@ -144,6 +151,7 @@ function Home() {
   const [activeCategory, setActiveCategory] = useState(() => searchParams.get('category') ?? ALL)
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '')
   const deliveryAddress = useDeliveryAddress()
+  const [welcomeDismissed, setWelcomeDismissed] = useState(welcomeSkipped)
   const { popularity } = useRankingSignals()
   const [adIndex, setAdIndex] = useState(0)
   const { favoriteIds, toggleFavorite } = useFavorites()
@@ -421,6 +429,20 @@ function Home() {
     const card = scroller.querySelector('.restaurant-card')
     const step = card ? card.getBoundingClientRect().width + 16 : scroller.clientWidth * 0.8
     scroller.scrollBy({ left: direction * step * 2, behavior: 'smooth' })
+  }
+
+  // Ensikäynnillä ilman osoitetta etusivun sijaan osoitenäkymä (käyttäjän
+  // pyyntö 31.10.2026). Osoitteen tallennus päivittää deliveryAddressin ja
+  // etusivu aukeaa; "Selaa silti" ohittaa näkymän pysyvästi.
+  if (!deliveryAddress && !welcomeDismissed) {
+    return (
+      <WelcomeAddress
+        onSkip={() => {
+          skipWelcome()
+          setWelcomeDismissed(true)
+        }}
+      />
+    )
   }
 
   return (
