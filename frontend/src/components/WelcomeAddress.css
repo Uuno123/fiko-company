@@ -1,0 +1,305 @@
+/* Ensikäynnin osoitenäkymä (WelcomeAddress.jsx): mustavalkoinen, ilman kuvaa.
+   Kapea keskitetty palsta: logo, otsikko, kenttä ja sijaintinappi. */
+.welcome {
+  display: flex;
+  justify-content: center;
+  min-height: 100dvh;
+  background: var(--surface);
+}
+
+.welcome__panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 480px;
+  padding: 40px 24px 32px;
+}
+
+.welcome__logo {
+  align-self: center;
+  width: auto;
+  height: 28px;
+  color: var(--delivo-black);
+}
+
+.welcome__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  padding: 48px 0;
+}
+
+.welcome__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 4vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--delivo-black);
+}
+
+.welcome__lead {
+  margin: 10px 0 26px;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.welcome__field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: 0 16px;
+  border: 1.5px solid var(--delivo-black);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.welcome__field svg {
+  flex-shrink: 0;
+  color: var(--delivo-black);
+}
+
+.welcome__field input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--delivo-black);
+  outline: none;
+}
+
+.welcome__field input::placeholder {
+  color: #9a9a96;
+}
+
+.welcome__searching {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.welcome__results {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.welcome__results button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 12px 4px;
+  border: none;
+  border-bottom: 1px solid #efeeec;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.welcome__results strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.welcome__results span {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.welcome__attribution {
+  padding: 8px 4px 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.welcome__error {
+  margin: 10px 0 0;
+  font-size: 0.86rem;
+  color: #9a2828;
+}
+
+.welcome__geo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 14px;
+  background: var(--delivo-black);
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.welcome__geo:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.welcome__primary {
+  height: 52px;
+  border: none;
+  border-radius: 14px;
+  background: var(--delivo-black);
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.welcome__secondary {
+  align-self: center;
+  margin-top: 14px;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.welcome__primary:active,
+.welcome__geo:active {
+  transform: scale(0.97);
+}
+
+.welcome__login {
+  margin: 0;
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.welcome__login a {
+  font-weight: 600;
+  color: var(--delivo-black);
+}
+
+.welcome__results button:focus-visible,
+.welcome__geo:focus-visible,
+.welcome__primary:focus-visible,
+.welcome__secondary:focus-visible {
+  outline: 2px solid var(--delivo-black);
+  outline-offset: 2px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .welcome__results button:hover strong,
+  .welcome__secondary:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome__primary:active,
+  .welcome__geo:active {
+    transform: none;
+  }
+}
+
+@media (max-width: 780px) {
+  .welcome__panel {
+    padding: 28px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .welcome__body {
+    justify-content: flex-start;
+    padding: 40px 0 32px;
+  }
+}
+
+/* Taustan leijuvat 3D-ruokakuvakkeet (31.10.2026). Vain transform ja
+   opacity animoidaan; perspektiivi ja hidas kääntyily antavat syvyyden.
+   Lomake on kuvakkeiden päällä, ja ne eivät ota painalluksia vastaan. */
+.welcome {
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome__panel {
+  position: relative;
+  z-index: 1;
+}
+
+.welcome__scene {
+  position: absolute;
+  inset: 0;
+  perspective: 900px;
+  pointer-events: none;
+}
+
+.welcome__floater {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--size);
+  height: auto;
+  opacity: 0;
+  filter: drop-shadow(0 18px 22px rgba(20, 21, 15, 0.16));
+  transform-style: preserve-3d;
+  animation:
+    welcome-float-in 900ms cubic-bezier(0.23, 1, 0.32, 1) forwards,
+    welcome-float var(--dur) ease-in-out var(--delay) infinite;
+  will-change: transform;
+}
+
+.welcome__floater--mid {
+  --floater-opacity: 0.85;
+}
+
+.welcome__floater--far {
+  --floater-opacity: 0.55;
+  filter: blur(1.5px) drop-shadow(0 10px 14px rgba(20, 21, 15, 0.1));
+}
+
+@keyframes welcome-float-in {
+  to {
+    opacity: var(--floater-opacity, 1);
+  }
+}
+
+@keyframes welcome-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotateX(8deg) rotateY(var(--tilt)) rotateZ(-4deg);
+  }
+
+  50% {
+    transform: translate3d(0, -22px, 40px) rotateX(-8deg) rotateY(calc(var(--tilt) * -1)) rotateZ(4deg);
+  }
+}
+
+@media (max-width: 780px) {
+  .welcome__floater {
+    left: var(--xm);
+    top: var(--ym);
+    width: calc(var(--size) * 0.7);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome__floater {
+    opacity: var(--floater-opacity, 1);
+    animation: none;
+  }
+}

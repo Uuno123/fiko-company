@@ -1929,17 +1929,26 @@
   }
 }
 
+/* Työpöydällä taas hieman isommat (käyttäjän pyyntö 31.10.2026). */
 @media (min-width: 1000px) {
   .menu-card {
-    padding: 12px 0;
+    padding: 15px 0;
   }
 
   .menu-card__media {
-    width: 76px;
-    height: 76px;
+    width: 90px;
+    height: 90px;
   }
 
   .menu-card__name {
-    font-size: 0.95rem;
+    font-size: 1.02rem;
+  }
+
+  .menu-card__description {
+    font-size: 0.86rem;
+  }
+
+  .menu-card__price {
+    font-size: 0.96rem;
   }
 }

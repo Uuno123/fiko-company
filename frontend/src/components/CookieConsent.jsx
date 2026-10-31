@@ -58,101 +58,106 @@ function CookieConsent() {
   }
 
   return (
-    <section className="cookie-consent" role="dialog" aria-labelledby="cookie-consent-title" aria-live="polite">
-      {view === 'main' ? (
-        <>
-          <div className="cookie-consent__head">
-            <span className="cookie-consent__icon" aria-hidden="true">
-              <Cookie size={20} strokeWidth={1.9} />
-            </span>
-            <h2 id="cookie-consent-title">Evästeet ja yksityisyys</h2>
-          </div>
-          <p className="cookie-consent__text">
-            Käytämme välttämättömiä evästeitä, jotta kirjautuminen, ostoskori ja maksaminen toimivat. Analytiikka- ja
-            markkinointievästeitä käytämme vain, jos hyväksyt ne. Voit muuttaa valintaasi milloin tahansa sivun alareunan
-            Evästeasetuksista.
-          </p>
-          <div className="cookie-consent__actions">
-            <button
-              type="button"
-              className="cookie-consent__btn cookie-consent__btn--primary"
-              onClick={() => decide({ analytics: true, marketing: true })}
-            >
-              Hyväksy kaikki
+    <>
+      {/* Näytön tummennus bannerin taustalla (käyttäjän pyyntö 31.10.2026).
+          Valinta tehdään bannerista, joten tausta ei sulje sitä. */}
+      <div className="cookie-consent-backdrop" aria-hidden="true" />
+      <section className="cookie-consent" role="dialog" aria-labelledby="cookie-consent-title" aria-live="polite">
+        {view === 'main' ? (
+          <>
+            <div className="cookie-consent__head">
+              <span className="cookie-consent__icon" aria-hidden="true">
+                <Cookie size={20} strokeWidth={1.9} />
+              </span>
+              <h2 id="cookie-consent-title">Evästeet ja yksityisyys</h2>
+            </div>
+            <p className="cookie-consent__text">
+              Käytämme välttämättömiä evästeitä, jotta kirjautuminen, ostoskori ja maksaminen toimivat. Analytiikka- ja
+              markkinointievästeitä käytämme vain, jos hyväksyt ne. Voit muuttaa valintaasi milloin tahansa sivun alareunan
+              Evästeasetuksista.
+            </p>
+            <div className="cookie-consent__actions">
+              <button
+                type="button"
+                className="cookie-consent__btn cookie-consent__btn--primary"
+                onClick={() => decide({ analytics: true, marketing: true })}
+              >
+                Hyväksy kaikki
+              </button>
+              <button
+                type="button"
+                className="cookie-consent__btn cookie-consent__btn--secondary"
+                onClick={() => decide({ analytics: false, marketing: false })}
+              >
+                Vain välttämättömät
+              </button>
+            </div>
+            <button type="button" className="cookie-consent__link" onClick={() => setView('settings')}>
+              Muokkaa asetuksia
             </button>
-            <button
-              type="button"
-              className="cookie-consent__btn cookie-consent__btn--secondary"
-              onClick={() => decide({ analytics: false, marketing: false })}
-            >
-              Vain välttämättömät
-            </button>
-          </div>
-          <button type="button" className="cookie-consent__link" onClick={() => setView('settings')}>
-            Muokkaa asetuksia
-          </button>
-        </>
-      ) : (
-        <>
-          <div className="cookie-consent__head">
-            <button
-              type="button"
-              className="cookie-consent__back"
-              aria-label="Takaisin"
-              onClick={() => setView('main')}
-            >
-              <ChevronLeft size={20} aria-hidden="true" />
-            </button>
-            <h2 id="cookie-consent-title">Evästeasetukset</h2>
-          </div>
+          </>
+        ) : (
+          <>
+            <div className="cookie-consent__head">
+              <button
+                type="button"
+                className="cookie-consent__back"
+                aria-label="Takaisin"
+                onClick={() => setView('main')}
+              >
+                <ChevronLeft size={20} aria-hidden="true" />
+              </button>
+              <h2 id="cookie-consent-title">Evästeasetukset</h2>
+            </div>
 
-          <ul className="cookie-consent__list">
-            {CATEGORIES.map((category) => {
-              const checked = category.locked || choices[category.key]
-              return (
-                <li key={category.key} className="cookie-consent__row">
-                  <span className="cookie-consent__row-text">
-                    <strong>{category.title}</strong>
-                    <span>{category.text}</span>
-                  </span>
-                  {category.locked ? (
-                    <span className="cookie-consent__always">Aina päällä</span>
-                  ) : (
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={checked}
-                      aria-label={category.title}
-                      className={`cookie-consent__switch${checked ? ' is-on' : ''}`}
-                      onClick={() => setChoices((prev) => ({ ...prev, [category.key]: !prev[category.key] }))}
-                    >
-                      <span />
-                    </button>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
+            <ul className="cookie-consent__list">
+              {CATEGORIES.map((category) => {
+                const checked = category.locked || choices[category.key]
+                return (
+                  <li key={category.key} className="cookie-consent__row">
+                    <span className="cookie-consent__row-text">
+                      <strong>{category.title}</strong>
+                      <span>{category.text}</span>
+                    </span>
+                    {category.locked ? (
+                      <span className="cookie-consent__always">Aina päällä</span>
+                    ) : (
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={checked}
+                        aria-label={category.title}
+                        className={`cookie-consent__switch${checked ? ' is-on' : ''}`}
+                        onClick={() => setChoices((prev) => ({ ...prev, [category.key]: !prev[category.key] }))}
+                      >
+                        <span />
+                      </button>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
 
-          <div className="cookie-consent__actions">
-            <button
-              type="button"
-              className="cookie-consent__btn cookie-consent__btn--primary"
-              onClick={() => decide(choices)}
-            >
-              Tallenna valinnat
-            </button>
-            <button
-              type="button"
-              className="cookie-consent__btn cookie-consent__btn--secondary"
-              onClick={() => decide({ analytics: true, marketing: true })}
-            >
-              Hyväksy kaikki
-            </button>
-          </div>
-        </>
-      )}
-    </section>
+            <div className="cookie-consent__actions">
+              <button
+                type="button"
+                className="cookie-consent__btn cookie-consent__btn--primary"
+                onClick={() => decide(choices)}
+              >
+                Tallenna valinnat
+              </button>
+              <button
+                type="button"
+                className="cookie-consent__btn cookie-consent__btn--secondary"
+                onClick={() => decide({ analytics: true, marketing: true })}
+              >
+                Hyväksy kaikki
+              </button>
+            </div>
+          </>
+        )}
+      </section>
+    </>
   )
 }
 

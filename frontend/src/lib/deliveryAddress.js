@@ -8,6 +8,34 @@ import { haversineKm } from './geocode.js'
 const STORAGE_KEY = 'delivo-delivery-address'
 
 export const ADDRESS_CHANGED_EVENT = 'delivo:delivery-address-changed'
+
+// Bidrop toimii toistaiseksi Kuopiossa: osoitteen pitää olla tämän säteellä
+// Kuopion keskustasta (ensikäynnin osoitenäkymä, WelcomeAddress.jsx).
+export const SERVICE_AREA = { name: 'Kuopio', lat: 62.8924, lng: 27.677, radiusKm: 25 }
+
+export function isInServiceArea(address) {
+  if (!Number.isFinite(address?.lat) || !Number.isFinite(address?.lng)) return false
+  return haversineKm(SERVICE_AREA, { lat: address.lat, lng: address.lng }) <= SERVICE_AREA.radiusKm
+}
+
+// "Selaa silti" ensikäynnin näkymässä: näkymää ei näytetä uudelleen tällä selaimella.
+const WELCOME_SKIPPED_KEY = 'delivo-welcome-skipped'
+
+export function welcomeSkipped() {
+  try {
+    return localStorage.getItem(WELCOME_SKIPPED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+export function skipWelcome() {
+  try {
+    localStorage.setItem(WELCOME_SKIPPED_KEY, '1')
+  } catch {
+    // Yksityinen selaustila tms. - ohitus pätee vain tämän sivulatauksen ajan.
+  }
+}
 export const OPEN_ADDRESS_PICKER_EVENT = 'delivo:open-address-picker'
 
 export function getDeliveryAddress() {

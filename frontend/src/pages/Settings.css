@@ -1208,3 +1208,157 @@
     padding: 18px 16px;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Kaikki asetussivut flätteinä samaan tyyliin kuin tilisivu (AccountHub,
+   käyttäjän pyyntö 31.10.2026): ei kortteja, ei ikonien harmaita pohjia,
+   ryhmäotsikot tavallisella kirjoitusasulla ja ryhmät erotetaan ohuella
+   viivalla. Tiedoston lopussa, jotta voittaa yllä olevat säännöt.
+   ══════════════════════════════════════════════════════════════════════ */
+.settings-section {
+  gap: 2px;
+}
+
+.settings-section + .settings-section {
+  padding-top: 14px;
+  border-top: 1px solid #ecebe8;
+}
+
+.settings-section__head {
+  min-height: 24px;
+  padding: 0;
+}
+
+.settings-section__head h2 {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.settings-panel {
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: none;
+}
+
+.settings-panel--padded {
+  padding: 8px 0;
+}
+
+.settings-panel__body {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.srow {
+  gap: 18px;
+  min-height: 52px;
+  padding: 10px 0;
+  transition: opacity 150ms ease;
+}
+
+.srow + .srow::before {
+  content: none;
+}
+
+.srow__icon,
+.srow--danger .srow__icon {
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: none;
+}
+
+.srow__title,
+.srow__value {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.srow__chevron {
+  display: none;
+}
+
+.srow--action:hover,
+.srow--action:active {
+  background: none;
+}
+
+.srow--action:active {
+  opacity: 0.6;
+}
+
+.srow--action:focus-visible {
+  outline: 2px solid var(--delivo-black);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .srow--action:hover .srow__title,
+  .srow--action:hover .srow__value {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.favorite-rows {
+  padding: 0;
+}
+
+.favorite-row {
+  border-radius: 0;
+}
+
+.favorite-row:hover {
+  background: none;
+}
+
+@media (max-width: 560px) {
+  .settings-panel--padded,
+  .settings-panel__body {
+    padding-right: 0;
+    padding-left: 0;
+  }
+}
+
+/* Tyhjien suosikkien sydän ilman harmaata palloa, muiden ikonien linjassa. */
+.favorites-empty {
+  gap: 18px;
+}
+
+.favorites-empty__icon {
+  width: 18px;
+  height: auto;
+  border-radius: 0;
+  background: none;
+}
+
+.favorites-empty__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Aiemmat tilaukset päivittäin väliotsikoiden alla (31.10.2026). */
+.past-orders__day + .past-orders__day {
+  margin-top: 10px;
+}
+
+.past-orders__date {
+  margin: 12px 0 2px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+/* Ei oranssia asetussivuilla (käyttäjän pyyntö 31.10.2026): suosikin sydän
+   mustana. */
+.favorite-row__remove {
+  color: var(--delivo-black);
+}
+
+.favorites-empty__icon {
+  color: var(--delivo-black);
+}
