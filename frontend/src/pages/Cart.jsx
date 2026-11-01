@@ -1614,7 +1614,7 @@ function Cart() {
         {/* Tilauksen jälkeen pelkkä vahvistus (käyttäjän toive) - seuranta
             löytyy etusivun "Seuraa tilausta" -kuplasta. */}
         {step === 'success' && order && (
-          <div className="cart-empty order-done">
+          <div className={`cart-empty order-done${order.status === 'awaiting_courier' ? ' order-done--bids' : ''}`}>
             <div className="cart-empty__icon order-done__icon">
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path
@@ -1629,18 +1629,27 @@ function Cart() {
             <h1>{order.status === 'awaiting_courier' ? 'Valitse kuljettaja' : 'Tilaus tehty!'}</h1>
             <p>
               {order.status === 'awaiting_courier'
-                ? 'Lähellä olevat kuljettajat tarjoavat nyt hintaa kuljetukselle. Hyväksy sopiva tarjous tai tarjoa omaa hintaa – ravintola saa tilauksen, kun hinnasta on sovittu.'
+                ? 'Lähellä olevat kuljettajat tarjoavat hintaa kuljetukselle. Hyväksy tarjous tai tarjoa omaa hintaa.'
                 : 'Kiitos tilauksestasi. Voit seurata sitä etusivun Seuraa tilausta -painikkeesta.'}
             </p>
-            <p className="order-done__meta">
-              Tilausnumero {order.order_number} · {formatPrice(order.total_cents)}
+            {/* Tilauksen tiedot riveinä (käyttäjän pyyntö 1.11.2026: selkeä
+                sovellusnäkymä). */}
+            <dl className="order-done__facts">
+              <div>
+                <dt>Tilausnumero</dt>
+                <dd>{order.order_number}</dd>
+              </div>
+              <div>
+                <dt>Summa</dt>
+                <dd>{formatPrice(order.total_cents)}</dd>
+              </div>
               {orderArrival && (
-                <>
-                  {' · '}
-                  {order.delivery_method === 'delivery' ? 'perillä' : 'noudettavissa'} noin klo {orderArrival}
-                </>
+                <div>
+                  <dt>{order.delivery_method === 'delivery' ? 'Perillä' : 'Noudettavissa'}</dt>
+                  <dd>noin klo {orderArrival}</dd>
+                </div>
               )}
-            </p>
+            </dl>
 
             {order.status === 'awaiting_courier' && order.id && (
               <div className="order-done__bids">

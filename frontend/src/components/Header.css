@@ -1326,3 +1326,73 @@
 .site-header--scroll-shadow:not(.site-header--flat):not(.site-header--dark):not(.site-header--overlay) {
   box-shadow: 0 4px 14px -6px rgba(20, 21, 15, 0.22);
 }
+
+/* Käynnissä olevan tilauksen kellonappi headerissa (ActiveOrderBubble,
+   käyttäjän pyyntö 1.11.2026): harmaa pyöreä nappi kuten ostoskori ja
+   soittokello, jossa pieni merkki. Avaa tilauksen seurannan. */
+.header-order-slot {
+  display: contents;
+}
+
+.header-order-clock {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--round-button-bg);
+  color: var(--delivo-black);
+  cursor: pointer;
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms ease;
+}
+
+.header-order-clock:active {
+  transform: scale(0.95);
+  background: var(--round-button-bg-pressed);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .header-order-clock:hover {
+    background: var(--round-button-bg-pressed);
+  }
+}
+
+.header-order-clock__dot {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--round-button-bg);
+  border-radius: 50%;
+  background: var(--delivo-black);
+  box-sizing: content-box;
+}
+
+.header-order-clock__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: var(--delivo-black);
+  box-sizing: border-box;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.header-order-clock:focus-visible {
+  outline: 2px solid var(--delivo-black);
+  outline-offset: 2px;
+}
+

@@ -8,7 +8,8 @@ import './DealsRow.css'
 // erottuu muista isommilla nostokorteilla, vaalealla oranssilla kaistalla ja
 // otsikon Tarjous-merkillä. Ravintolat: DEALS_RESTAURANTS (lib/categories.js).
 // Samat luokat kuin kategoriariveillä, joten nuolet (onScrollRow) toimivat
-// samalla tavalla.
+// samalla tavalla. Sama rivi myös "Ilmaiset kuljetukset" -nostona (title,
+// rowId; käyttäjän pyyntö 1.11.2026).
 //
 // Kortit vaihtuvat itsestään kuten etusivun mainoskaruselli (käyttäjän pyyntö
 // 28.10.2026): rivi siirtyy kortin verran DEALS_ROTATE_MS välein ja palaa
@@ -16,7 +17,15 @@ import './DealsRow.css'
 // taustalla tai käyttäjä on pyytänyt vähemmän liikettä.
 const DEALS_ROTATE_MS = 4000
 
-function DealsRow({ items, favoriteIds, onToggleFavorite, onScrollRow }) {
+function DealsRow({
+  items,
+  favoriteIds,
+  onToggleFavorite,
+  onScrollRow,
+  title = 'Kovimmat tarjoukset',
+  rowId = 'deals-row',
+  preferFreeDelivery = false,
+}) {
   const scrollRef = useRef(null)
   const pausedRef = useRef(false)
 
@@ -44,21 +53,21 @@ function DealsRow({ items, favoriteIds, onToggleFavorite, onScrollRow }) {
   }
 
   return (
-    <section className="category-row category-row--deals" aria-labelledby="deals-row-title">
+    <section className="category-row category-row--deals" aria-labelledby={`${rowId}-title`}>
       <div className="category-row__header">
         {/* Pieni Bidrop-logo otsikon yläpuolella (käyttäjän pyyntö 29.10.2026):
             Bidropin omat valinnat. */}
         <div className="deals-row__heading">
           <DelivoLogo className="deals-row__logo" />
-          <h2 className="category-row__title" id="deals-row-title">
-            Kovimmat tarjoukset
+          <h2 className="category-row__title" id={`${rowId}-title`}>
+            {title}
           </h2>
         </div>
         <div className="category-row__actions">
           <button
             type="button"
             className="category-row__nav"
-            aria-label="Kovimmat tarjoukset: edelliset"
+            aria-label={`${title}: edelliset`}
             onClick={(e) => onScrollRow(e, -1)}
           >
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -74,7 +83,7 @@ function DealsRow({ items, favoriteIds, onToggleFavorite, onScrollRow }) {
           <button
             type="button"
             className="category-row__nav"
-            aria-label="Kovimmat tarjoukset: seuraavat"
+            aria-label={`${title}: seuraavat`}
             onClick={(e) => onScrollRow(e, 1)}
           >
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -106,6 +115,7 @@ function DealsRow({ items, favoriteIds, onToggleFavorite, onScrollRow }) {
             disabled={restaurant.isPlaceholder}
             isFavorite={favoriteIds.has(restaurant.id)}
             onToggleFavorite={restaurant.isPlaceholder ? undefined : onToggleFavorite}
+            preferFreeDelivery={preferFreeDelivery}
           />
         ))}
       </div>

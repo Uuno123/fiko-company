@@ -520,3 +520,85 @@
     animation: none;
   }
 }
+
+/* Ei oranssia (käyttäjän pyyntö 1.11.2026, tumma teema): sykkivä piste,
+   Hyväksy- ja Tarjoa-napit, kentän korostus ja valitun tarjouksen reunus mustina. */
+.bid-panel__pulse,
+.bid-panel__pulse::after {
+  background: var(--delivo-black);
+}
+
+.bid-card__accept,
+.bid-panel__offer-btn {
+  background: var(--delivo-black);
+}
+
+.bid-card__accept:hover:not(:disabled),
+.bid-panel__offer-btn:hover:not(:disabled) {
+  background: #2f302a;
+}
+
+.bid-stepper__value input:focus {
+  border-bottom-color: var(--delivo-black);
+}
+
+.bid-card__courier:focus-visible {
+  outline-color: var(--delivo-black);
+}
+
+/* Oman hinnan syöttö selkeämmäksi (käyttäjän pyyntö 1.11.2026: pitää näkyä,
+   että summa kirjoitetaan): harmaa summakenttä ilman reunaa, miinus ja plus
+   kentän reunoilla ja leveä Tarjoa-nappi kentän alla. */
+.bid-panel__offer {
+  gap: 12px;
+  border-top-style: solid;
+  border-top-color: #ecebe8;
+}
+
+.bid-panel__offer-text strong {
+  font-size: 1.05rem;
+}
+
+.bid-panel__offer-controls {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.bid-stepper {
+  flex: none;
+  height: 54px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 14px;
+  background: #f3f3f1;
+}
+
+.bid-stepper button {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.bid-stepper button:hover:not(:disabled) {
+  background: var(--surface);
+  opacity: 0.8;
+}
+
+.bid-stepper__value {
+  gap: 3px;
+  font-size: 1.3rem;
+}
+
+.bid-stepper__value input {
+  width: 4.2ch;
+  border-bottom: none;
+  text-align: right;
+}
+
+.bid-panel__offer-controls .bid-panel__offer-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 14px;
+  font-size: 1rem;
+}
