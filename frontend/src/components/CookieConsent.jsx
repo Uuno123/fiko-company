@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Cookie, ChevronLeft } from 'lucide-react'
+import { ChevronLeft } from 'lucide-react'
 import { OPEN_COOKIE_SETTINGS_EVENT, getCookieConsent, saveCookieConsent } from '../lib/cookieConsent.js'
 import './CookieConsent.css'
 
@@ -65,16 +65,13 @@ function CookieConsent() {
       <section className="cookie-consent" role="dialog" aria-labelledby="cookie-consent-title" aria-live="polite">
         {view === 'main' ? (
           <>
+            {/* Siistimpi ilme (käyttäjän pyyntö 1.11.2026): ei ikonia, lyhyt teksti. */}
             <div className="cookie-consent__head">
-              <span className="cookie-consent__icon" aria-hidden="true">
-                <Cookie size={20} strokeWidth={1.9} />
-              </span>
-              <h2 id="cookie-consent-title">Evästeet ja yksityisyys</h2>
+              <h2 id="cookie-consent-title">Evästeet</h2>
             </div>
             <p className="cookie-consent__text">
-              Käytämme välttämättömiä evästeitä, jotta kirjautuminen, ostoskori ja maksaminen toimivat. Analytiikka- ja
-              markkinointievästeitä käytämme vain, jos hyväksyt ne. Voit muuttaa valintaasi milloin tahansa sivun alareunan
-              Evästeasetuksista.
+              Välttämättömät evästeet pitävät kirjautumisen, ostoskorin ja maksamisen toiminnassa. Analytiikka- ja
+              markkinointievästeitä käytämme vain luvallasi. Voit muuttaa valintaa sivun alareunasta.
             </p>
             <div className="cookie-consent__actions">
               <button
