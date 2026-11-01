@@ -43,17 +43,6 @@
   letter-spacing: -0.01em;
 }
 
-.cookie-consent__icon {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--delivo-orange-soft);
-  color: var(--delivo-orange);
-}
-
 .cookie-consent__back {
   display: grid;
   place-items: center;
@@ -266,5 +255,73 @@
 @media (prefers-reduced-motion: reduce) {
   .cookie-consent-backdrop {
     animation: none;
+  }
+}
+
+/* Siistimpi banneri (käyttäjän pyyntö 1.11.2026): ei ikonia eikä oranssia,
+   lyhyempi teksti, toissijainen nappi harmaana ilman reunaa ja Muokkaa
+   asetuksia hillittynä harmaana tekstinä. */
+.cookie-consent {
+  gap: 12px;
+  padding: 24px;
+  border-color: #ecebe8;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px -12px rgba(20, 21, 15, 0.25);
+}
+
+.cookie-consent__head h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.cookie-consent__text {
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.cookie-consent__actions {
+  margin-top: 4px;
+}
+
+.cookie-consent__btn {
+  min-height: 48px;
+  border: none;
+}
+
+.cookie-consent__btn--secondary {
+  background: var(--round-button-bg);
+}
+
+.cookie-consent__btn--secondary:hover {
+  background: var(--round-button-bg-pressed);
+}
+
+.cookie-consent__link {
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.cookie-consent__link:hover {
+  color: var(--delivo-black);
+}
+
+.cookie-consent__btn:focus-visible,
+.cookie-consent__link:focus-visible,
+.cookie-consent__back:focus-visible,
+.cookie-consent__switch:focus-visible {
+  outline-color: var(--delivo-black);
+}
+
+@media (max-width: 639px) {
+  .cookie-consent {
+    padding: 24px 20px calc(18px + env(safe-area-inset-bottom));
+    border-radius: 24px 24px 0 0;
+  }
+
+  /* Napit päällekkäin, ettei "Vain välttämättömät" rivity kahdelle riville. */
+  .cookie-consent__actions {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 }
