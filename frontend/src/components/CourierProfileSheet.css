@@ -196,7 +196,8 @@
   height: 48px;
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--delivo-orange);
+  /* Musta kuten muut päänapit (käyttäjän pyyntö 1.11.2026). */
+  background: var(--delivo-black);
   font: inherit;
   font-size: 1rem;
   font-weight: 700;
@@ -206,7 +207,7 @@
 }
 
 .courier-profile__accept:hover:not(:disabled) {
-  background: var(--delivo-orange-dark);
+  background: #2f302a;
 }
 
 .courier-profile__accept:disabled {

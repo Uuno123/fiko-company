@@ -34,7 +34,9 @@ function offerBadge(restaurant) {
   return OFFER_BADGES[hash % OFFER_BADGES.length]
 }
 
-function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) {
+// preferFreeDelivery: Ilmaiset kuljetukset -rivillä merkki on aina "Ilmainen
+// kuljetus" eikä ravintolan tarjous (käyttäjän pyyntö 1.11.2026).
+function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite, preferFreeDelivery = false }) {
   const {
     id,
     name,
@@ -47,7 +49,7 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite }) 
   } = restaurant
 
   const etaRange = formatEtaRange(pickupEstimateMinutes)
-  const badge = offerBadge(restaurant)
+  const badge = preferFreeDelivery && freeDelivery ? FREE_DELIVERY_BADGE : offerBadge(restaurant)
 
   // Yksi tietorivi: arvosana · aika · kuljetusmaksu (käyttäjä: etäisyys pois
   // korteista; etäisyys vaikuttaa edelleen järjestykseen, lib/ranking.js).

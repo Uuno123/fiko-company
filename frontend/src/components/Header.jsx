@@ -260,6 +260,8 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
         )}
 
         <div className="site-header__right">
+          {/* Käynnissä olevan tilauksen kellonappi tulee tähän (ActiveOrderBubble). */}
+          <div id="header-order-slot" className="header-order-slot" />
           {cart && cart.count > 0 && (
             <div className="cart-menu" ref={cartRef}>
               <button

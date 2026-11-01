@@ -1148,12 +1148,6 @@
   color: var(--delivo-orange);
 }
 
-.cart-empty .order-done__meta {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--delivo-black);
-}
-
 /* Maksunappi valitun maksutavan mukaan: Google Pay ja Apple Pay omilla
    tunnuksillaan puhtaan mustalla, kuten niiden omat napit. */
 .payment-submit--google,
@@ -1844,4 +1838,107 @@ label.checkout-group__row:focus-within {
   margin: -6px 0 18px;
   font-size: 0.9rem;
   color: var(--text-muted);
+}
+
+/* Tilauksen jälkeinen näkymä selkeänä sovellusnäkymänä (käyttäjän pyyntö
+   1.11.2026): ei kehystä eikä keskitystä, iso otsikko vasemmalla, tiedot
+   riveinä ohuin viivoin, ei oranssia. Kuljettajan valinnassa ei
+   tarkistusmerkkiä, koska tilaus odottaa vielä hintaa. */
+.page--cart .cart-empty.order-done {
+  align-items: stretch;
+  gap: 10px;
+  max-width: 520px;
+  margin-top: 8px;
+  padding: 8px 0 32px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  text-align: left;
+}
+
+.cart-empty.order-done .order-done__icon {
+  align-self: flex-start;
+  background: var(--delivo-black);
+}
+
+.cart-empty.order-done .order-done__icon svg {
+  color: #fff;
+}
+
+.order-done--bids .order-done__icon {
+  display: none;
+}
+
+.cart-empty.order-done h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 5vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.cart-empty.order-done > p {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.order-done__facts {
+  margin: 10px 0 0;
+  padding: 0;
+  border-top: 1px solid #ecebe8;
+}
+
+.order-done__facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #ecebe8;
+  font-size: 0.92rem;
+}
+
+.order-done__facts dt {
+  color: var(--text-muted);
+}
+
+.order-done__facts dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--delivo-black);
+}
+
+.order-done .order-done__bids {
+  max-width: none;
+  margin: 6px 0 0;
+}
+
+.order-done .bid-panel {
+  margin-top: 12px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.page--cart .order-done .cart-empty__cta,
+.page--cart .order-done .cart-empty__cta:hover {
+  display: grid;
+  place-items: center;
+  height: 52px;
+  margin-top: 20px;
+  padding: 0;
+  border-radius: 14px;
+  background: var(--round-button-bg);
+  color: var(--delivo-black);
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.page--cart .order-done .cart-empty__cta:active {
+  background: var(--round-button-bg-pressed);
 }

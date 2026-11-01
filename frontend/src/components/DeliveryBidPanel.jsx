@@ -208,7 +208,7 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
 
       <div className="bid-panel__offer">
         <div className="bid-panel__offer-text">
-          <strong>{activeOffer ? 'Oma tarjouksesi' : 'Tarjoa omaa hintaa'}</strong>
+          <strong>{activeOffer ? 'Oma tarjouksesi' : 'Kirjoita oma hintasi'}</strong>
           <span>
             {activeOffer
               ? `${formatPrice(activeOffer)} näkyy kuljettajille. Ensimmäinen sen hyväksyvä valitaan heti.`

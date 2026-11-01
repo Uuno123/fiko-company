@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
-import { ChevronRight, ShoppingBag } from 'lucide-react'
+import { Bell, ChevronRight, ShoppingBag } from 'lucide-react'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import { useDeliveryNegotiation } from '../lib/deliveryBids.js'
@@ -277,6 +278,13 @@ function ActiveOrderBubble() {
   // Ei näytetä kumppanipuolella (myös dashboardin esikatselu /__preview-dashboard -
   // asiakkaan tilauskupla näkyi siellä ravintolan näkymän päällä), tilausnäkymässä
   // (jo siellä) eikä ostoskorissa/kassalla (siellä on oma seurantanäkymä).
+  // Sivuilla, joilla on header, kelluvan pillerin sijaan pelkkä kellonappi
+  // (soittokello) headerissa (käyttäjän pyyntö 1.11.2026, Header.jsx #header-order-slot).
+  const [headerSlot, setHeaderSlot] = useState(null)
+  useEffect(() => {
+    setHeaderSlot(document.getElementById('header-order-slot'))
+  }, [location.pathname, hasOrder])
+
   const onPartnerSide =
     location.pathname.startsWith('/kumppani') || location.pathname.startsWith('/__preview-dashboard')
   const noticeElement = notice && !onPartnerSide ? <OrderChangeNotice notice={notice} onClose={dismissNotice} /> : null
@@ -396,6 +404,33 @@ function ActiveOrderBubble() {
       }
       action()
     }
+  }
+
+  if (headerSlot) {
+    return (
+      <>
+        {createPortal(
+          <button
+            type="button"
+            className={`header-order-clock${awaitingCourier && bidCount > 0 ? ' has-bids' : ''}`}
+            onClick={() => setShowModal(true)}
+            aria-haspopup="dialog"
+            aria-label={`${title}. ${order.restaurants?.name ?? 'Tilaus'} · ${customerStatusLabel(order)}. Avaa tilauksen seuranta`}
+          >
+            <Bell size={18} strokeWidth={2} aria-hidden="true" />
+            {/* Kuljetustarjousten määrä, muuten pieni merkki käynnissä olevasta tilauksesta. */}
+            {awaitingCourier && bidCount > 0 ? (
+              <span className="header-order-clock__badge">{bidCount}</span>
+            ) : (
+              <span className="header-order-clock__dot" />
+            )}
+          </button>,
+          headerSlot,
+        )}
+        {showModal && <OrderTrackingModal order={order} onClose={() => setShowModal(false)} />}
+        {noticeElement}
+      </>
+    )
   }
 
   return (

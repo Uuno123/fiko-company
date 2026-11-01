@@ -23,8 +23,10 @@ import {
 } from '../lib/categories.js'
 import { useFavorites } from '../lib/useFavorites.js'
 import { useCart } from '../lib/CartContext.jsx'
+import { useAuth } from '../lib/AuthContext.jsx'
 import {
   openAddressPicker,
+  saveDeliveryAddress,
   skipWelcome,
   useDeliveryAddress,
   welcomeSkipped,
@@ -59,6 +61,7 @@ const ROW_TITLES = { [NEARBY_ROW]: 'Aivan nurkan takana', ...CATEGORY_SLOGANS }
 // kuin haussa).
 const DEALS_AFTER = 'Kebab & Pizza'
 const DEALS_ROWS_AFTER = 1
+const FREE_DELIVERY_ROWS_AFTER = 2
 
 // Mainokset kiertävät automaattisesti. Tarjoukset ovat oikeita: TERVETULOA
 // löytyy kassan PROMO_CODES-listalta ja backendin payments-reitiltä, ja
@@ -152,6 +155,18 @@ function Home() {
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '')
   const deliveryAddress = useDeliveryAddress()
   const [welcomeDismissed, setWelcomeDismissed] = useState(welcomeSkipped)
+  const { customer, isAuthenticated, status: authStatus } = useAuth()
+  // Kirjautuneen tiliin tallennettu osoite toimitusosoitteeksi, jos selaimessa
+  // ei vielä ole osoitetta (esim. kirjautuminen ensikäynnin näkymästä).
+  useEffect(() => {
+    if (deliveryAddress || customer?.address_lat == null || customer?.address_lng == null) return
+    saveDeliveryAddress({
+      label: customer.address.split(',')[0].trim(),
+      full: customer.address,
+      lat: customer.address_lat,
+      lng: customer.address_lng,
+    })
+  }, [customer, deliveryAddress])
   const { popularity } = useRankingSignals()
   const [adIndex, setAdIndex] = useState(0)
   const { favoriteIds, toggleFavorite } = useFavorites()
@@ -311,6 +326,19 @@ function Home() {
   const dealsAfterIndex =
     dealsAnchorIndex < 0 ? -1 : Math.min(dealsAnchorIndex + DEALS_ROWS_AFTER, visibleCategoryGroups.length - 1)
 
+  // Ilmaiset kuljetukset -rivi (käyttäjän pyyntö 1.11.2026): samannäköinen
+  // nosto kuin Kovimmat tarjoukset, ravintolat joilla on ilmainen kuljetus.
+  // Kaksi riviä tarjousrivin jälkeen (tai ensimmäisen rivin jälkeen).
+  const freeDeliveryItems = rowRestaurants
+    .filter((r) => r.free_delivery)
+    .filter((r, index, all) => all.findIndex((other) => other.name === r.name) === index)
+    .slice(0, 10)
+    .map(({ sponsored: _sponsored, ...r }) => r)
+  const freeDeliveryAfterIndex =
+    activeCategory === ALL && freeDeliveryItems.length > 0
+      ? Math.min((dealsAfterIndex < 0 ? 0 : dealsAfterIndex) + FREE_DELIVERY_ROWS_AFTER, visibleCategoryGroups.length - 1)
+      : -1
+
   // adIndex riippuvuutena: ajastin nollautuu myös kun palloa painetaan, jolloin
   // käsin valittu mainos ehtii näkyä täyden ajan.
   useEffect(() => {
@@ -433,8 +461,11 @@ function Home() {
 
   // Ensikäynnillä ilman osoitetta etusivun sijaan osoitenäkymä (käyttäjän
   // pyyntö 31.10.2026). Osoitteen tallennus päivittää deliveryAddressin ja
-  // etusivu aukeaa; "Selaa silti" ohittaa näkymän pysyvästi.
-  if (!deliveryAddress && !welcomeDismissed) {
+  // etusivu aukeaa; "Selaa silti" ohittaa näkymän pysyvästi. Kirjautuneelle
+  // näkymää ei näytetä (kirjautuminen näkymästä vie suoraan etusivulle), ja
+  // kirjautumistilan latautuessa odotetaan, ettei näkymä välähdä turhaan.
+  if (!deliveryAddress && !welcomeDismissed && !isAuthenticated) {
+    if (authStatus === 'loading') return null
     return (
       <WelcomeAddress
         onSkip={() => {
@@ -784,6 +815,18 @@ function Home() {
                       {groupIndex === dealsAfterIndex && (
                         <DealsRow
                           items={dealsItems}
+                          favoriteIds={favoriteIds}
+                          onToggleFavorite={toggleFavorite}
+                          onScrollRow={scrollRow}
+                        />
+                      )}
+
+                      {groupIndex === freeDeliveryAfterIndex && (
+                        <DealsRow
+                          title="Ilmaiset kuljetukset"
+                          rowId="free-delivery-row"
+                          preferFreeDelivery
+                          items={freeDeliveryItems}
                           favoriteIds={favoriteIds}
                           onToggleFavorite={toggleFavorite}
                           onScrollRow={scrollRow}
