@@ -120,35 +120,6 @@
   color: var(--delivo-orange);
 }
 
-/* Tarjousmerkki kuvan vasemmassa alakulmassa - täysi väri (ei pastellitausta),
-   koska sen pitää erottua valokuvasta eikä valkoisesta kortin pohjasta. */
-.restaurant-card__promo {
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border-radius: 8px;
-  background: var(--delivo-orange);
-  color: #fff;
-  font-size: 0.76rem;
-  font-weight: 500;
-  line-height: 1.2;
-  white-space: nowrap;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-}
-
-/* Tarjouskuvake isompana (käyttäjän pyyntö 28.10.2026). */
-.restaurant-card__promo svg {
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  stroke-width: 2.2;
-}
-
 .restaurant-card__body {
   flex: 1;
   padding: 15px 16px 19px;
@@ -265,20 +236,6 @@
     font-size: 0.78rem;
   }
 
-  /* Pienempi merkki (käyttäjän pyyntö 29.10.2026). */
-  .restaurant-card__promo {
-    left: 8px;
-    bottom: 8px;
-    gap: 4px;
-    padding: 3px 7px;
-    border-radius: 7px;
-    font-size: 0.66rem;
-  }
-
-  .restaurant-card__promo svg {
-    width: 13px;
-    height: 13px;
-  }
 }
 
 /* Puhelimella ei sydäntä kuvan yläkulmassa (käyttäjän pyyntö 29.10.2026).
@@ -286,5 +243,142 @@
 @media (max-width: 560px) {
   .restaurant-card__fav {
     display: none;
+  }
+}
+
+
+/* Tarjousmerkit käyttäjän mallikuvan mukaan (2.11.2026): iso arvo ja pieni
+   selite alla. Kaikki mustia (2.11.2026). */
+.offer-badge {
+  position: absolute;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+  color: #fff;
+  pointer-events: none;
+}
+
+/* Kaikki tarjousmerkit mustina (käyttäjän pyyntö 2.11.2026). */
+.offer-badge--orange {
+  background: var(--delivo-black);
+}
+
+.offer-badge--black {
+  background: var(--delivo-black);
+}
+
+.offer-badge strong {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.offer-badge span {
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+/* Kulmalappu: kuvan vasempaan yläkulmaan, oikea alakulma pyöristetty. */
+.offer-badge--corner {
+  top: 0;
+  left: 0;
+  gap: 3px;
+  padding: 8px 12px 9px;
+  border-radius: 0 0 12px 0;
+}
+
+.offer-badge--corner strong {
+  font-size: 1.35rem;
+}
+
+/* Pyöreä tarra: oikeaan reunaan, hieman kallellaan. */
+.offer-badge--sticker {
+  top: 50%;
+  right: 12px;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  text-align: center;
+  transform: translateY(-50%) rotate(-10deg);
+  box-shadow: 0 6px 14px -6px rgba(20, 21, 15, 0.45);
+}
+
+.offer-badge--sticker strong {
+  font-size: 1.15rem;
+}
+
+.offer-badge--sticker span {
+  font-size: 0.62rem;
+}
+
+@media (max-width: 560px) {
+  .offer-badge--corner {
+    padding: 6px 10px 7px;
+  }
+
+  .offer-badge--corner strong {
+    font-size: 1.15rem;
+  }
+
+  .offer-badge--sticker {
+    width: 60px;
+    height: 60px;
+  }
+
+  .offer-badge--sticker strong {
+    font-size: 1rem;
+  }
+}
+
+/* Pienemmät tarjousmerkit (käyttäjän pyyntö 2.11.2026: ei noin isoja). */
+.offer-badge span {
+  font-size: 0.58rem;
+}
+
+.offer-badge--corner {
+  gap: 2px;
+  padding: 5px 8px 6px;
+  border-radius: 0 0 9px 0;
+}
+
+.offer-badge--corner strong {
+  font-size: 0.95rem;
+}
+
+.offer-badge--sticker {
+  right: 10px;
+  gap: 1px;
+  width: 50px;
+  height: 50px;
+}
+
+.offer-badge--sticker strong {
+  font-size: 0.85rem;
+}
+
+.offer-badge--sticker span {
+  font-size: 0.5rem;
+}
+
+@media (max-width: 560px) {
+  .offer-badge--corner {
+    padding: 5px 8px 6px;
+  }
+
+  .offer-badge--corner strong {
+    font-size: 0.9rem;
+  }
+
+  .offer-badge--sticker {
+    width: 48px;
+    height: 48px;
+  }
+
+  .offer-badge--sticker strong {
+    font-size: 0.82rem;
   }
 }

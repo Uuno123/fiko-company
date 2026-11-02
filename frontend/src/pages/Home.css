@@ -1527,11 +1527,12 @@
 }
 
 /* Työpöydän ravintolakortit näytön leveyden mukaan (käyttäjän pyyntö
-   30.10.2026): rivillä aina --card-n korttia kokonaan näkyvissä, tarjousrivillä
-   yksi vähemmän isompina kortteina. Kiinteä 336/456 px leveys pois. */
+   30.10.2026): rivillä --card-n korttia, tarjousrivillä yksi vähemmän isompina
+   kortteina. Desimaaliosa (.2) jättää seuraavasta kortista palan näkyviin
+   oikeaan reunaan vieritysvihjeeksi (käyttäjän pyyntö 2.11.2026). */
 @media (min-width: 900px) {
   .page--home .category-row {
-    --card-n: 3;
+    --card-n: 3.2;
     --card-gap: 16px;
   }
 
@@ -1545,27 +1546,27 @@
   }
 
   .page--home .category-row--deals {
-    --card-n: 2;
+    --card-n: 2.2;
   }
 }
 
 @media (min-width: 1200px) {
   .page--home .category-row {
-    --card-n: 4;
+    --card-n: 4.2;
   }
 
   .page--home .category-row--deals {
-    --card-n: 3;
+    --card-n: 3.2;
   }
 }
 
 @media (min-width: 1600px) {
   .page--home .category-row {
-    --card-n: 5;
+    --card-n: 5.2;
   }
 
   .page--home .category-row--deals {
-    --card-n: 4;
+    --card-n: 4.2;
   }
 }
 
@@ -1577,5 +1578,34 @@
 
   .home-brand__name {
     font-size: 0.78rem;
+  }
+}
+
+/* Reunasta reunaan ulottuvat nostorivit (DealsRow.css) eivät saa aiheuttaa
+   sivulle vaakavieritystä. */
+.page--home {
+  overflow-x: clip;
+}
+
+/* Rivien nuolet ja "Näytä kaikki" hieman pienemmiksi työpöydällä
+   (käyttäjän pyyntö 2.11.2026). */
+@media (min-width: 900px) {
+  .page--home .category-row__nav {
+    width: 32px;
+    height: 32px;
+  }
+
+  .page--home .category-row__nav svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .page--home .category-row__see-all {
+    font-size: 0.85rem;
+  }
+
+  .page--home .category-row__see-all svg {
+    width: 14px;
+    height: 14px;
   }
 }

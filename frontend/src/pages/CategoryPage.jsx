@@ -5,7 +5,7 @@ import BottomSheet from '../components/BottomSheet.jsx'
 import Footer from '../components/Footer.jsx'
 import Header from '../components/Header.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
-import Spinner from '../components/Spinner.jsx'
+import Skeleton from '../components/Skeleton.jsx'
 import { getRestaurants } from '../lib/api.js'
 import { CATEGORY_NAMES, categorySlug, padWithFillers } from '../lib/categories.js'
 import { restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
@@ -207,7 +207,7 @@ function CategoryPage() {
           </div>
         )}
 
-        {status === 'loading' && <Spinner label="Haetaan ravintoloita" />}
+        {status === 'loading' && <Skeleton variant="grid" label="Haetaan ravintoloita" />}
         {status === 'error' && <p className="state-message state-message--error">Ravintoloiden haku epäonnistui.</p>}
         {status === 'ready' && matching.length === 0 && (
           <p className="state-message">Tähän kategoriaan ei ole vielä liittynyt ravintoloita – tulossa pian!</p>

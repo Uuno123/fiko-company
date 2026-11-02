@@ -13,6 +13,10 @@ export const ADDRESS_CHANGED_EVENT = 'delivo:delivery-address-changed'
 // Kuopion keskustasta (ensikäynnin osoitenäkymä, WelcomeAddress.jsx).
 export const SERVICE_AREA = { name: 'Kuopio', lat: 62.8924, lng: 27.677, radiusKm: 25 }
 
+// Virheviesti, kun osoite on alueen ulkopuolella (osoitteen valinnat).
+export const OUTSIDE_SERVICE_AREA_MESSAGE =
+  'Bidrop toimii toistaiseksi vain Kuopiossa. Valitse osoite Kuopion alueelta.'
+
 export function isInServiceArea(address) {
   if (!Number.isFinite(address?.lat) || !Number.isFinite(address?.lng)) return false
   return haversineKm(SERVICE_AREA, { lat: address.lat, lng: address.lng }) <= SERVICE_AREA.radiusKm

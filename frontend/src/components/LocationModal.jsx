@@ -8,7 +8,12 @@ import {
   reverseGeocode,
   searchAddresses,
 } from '../lib/geocode.js'
-import { getDeliveryAddress, saveDeliveryAddress } from '../lib/deliveryAddress.js'
+import {
+  OUTSIDE_SERVICE_AREA_MESSAGE,
+  getDeliveryAddress,
+  isInServiceArea,
+  saveDeliveryAddress,
+} from '../lib/deliveryAddress.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import './LocationModal.css'
 
@@ -84,7 +89,14 @@ function LocationModal({ mode = 'change', onClose }) {
     }, SEARCH_DEBOUNCE_MS)
   }
 
+  // Vain Kuopion alueen osoitteet (käyttäjän pyyntö 2.11.2026).
   function choose(address) {
+    if (!isInServiceArea(address)) {
+      setChosen(null)
+      setResults([])
+      setError(OUTSIDE_SERVICE_AREA_MESSAGE)
+      return
+    }
     setChosen(address)
     setQuery(address.full)
     setResults([])

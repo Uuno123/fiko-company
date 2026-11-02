@@ -203,6 +203,11 @@ function WelcomeAddress({ onSkip }) {
                 <Navigation size={16} strokeWidth={2} aria-hidden="true" />
                 {locating ? 'Haetaan sijaintia…' : 'Käytä nykyistä sijaintia'}
               </button>
+
+              {/* Ohitus pysyvästi tällä selaimella (käyttäjän pyyntö 2.11.2026). */}
+              <button type="button" className="welcome__secondary" onClick={onSkip}>
+                Selaa ilman osoitetta
+              </button>
             </>
           )}
         </div>

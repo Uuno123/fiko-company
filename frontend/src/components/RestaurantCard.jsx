@@ -1,42 +1,47 @@
 import { Link } from 'react-router-dom'
-import { BadgePercent, Bike, Gift, Heart, ShoppingBag, Tag } from 'lucide-react'
+import { Bike, Heart } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { ScoreSmiley } from './Smiley.jsx'
 import { DELIVERY_PRICE_RANGE, formatEtaRange } from '../lib/delivery.js'
-import { formatPrice } from '../lib/format.js'
 import { formatScore } from '../lib/score.js'
 import './RestaurantCard.css'
 
-// Tarjousmerkki vaihtelee ravintolan mukaan (käyttäjän pyyntö 28.10.2026), lyhyt
-// mutta kertoo mistä alennus tulee (koodi näkyy kassalla). Jokainen merkki on totta: koodit toimivat kassalla (Cart.jsx PROMO_CODES ja
-// backendin payments.js - sama katto ja ehdot molemmissa). Ilmainen kuljetus vain
-// ravintoloille, joilla se on (free_delivery, näkyy myös tietorivillä 0,00 €).
+// Tarjousmerkit käyttäjän mallikuvan mukaan (2.11.2026): iso arvo ja pieni
+// selite. Kokeilussa kaksi tyyliä: badgeStyle="corner" (kulmalappu kuvan
+// vasemmassa yläkulmassa) tavallisilla riveillä ja "sticker" (pyöreä tarra
+// oikeassa reunassa) nostoriveillä (DealsRow). Vain oikeita tarjouksia: koodit
+// toimivat kassalla (Cart.jsx PROMO_CODES, backendin payments.js). Ilmaisesta
+// kuljetuksesta ei merkkiä - se näkyy tietorivillä tekstinä.
 const OFFER_BADGES = [
-  // SUURTILAUS: 30 %, enintään 7 €, tilaus vähintään 50 €.
-  { Icon: Tag, text: '−30 % (enintään 7 €)' },
+  // SUURTILAUS: 30 %, enintään 7 €.
+  { value: '−30%', note: 'max 7 €', tone: 'orange' },
   // BIDROP10
-  { Icon: BadgePercent, text: '−10 % tilauksesta' },
+  { value: '−10%', note: 'tilauksesta', tone: 'orange' },
   // TERVETULOA
-  { Icon: Gift, text: '−3 € tilauksesta' },
-  // NOUTO15: 15 % noutotilauksista, enintään 5 €.
-  { Icon: ShoppingBag, text: '−15 % noudosta' },
+  { value: '−3 €', note: 'tilauksesta', tone: 'black' },
+  // NOUTO15: 15 % noutotilauksista.
+  { value: '−15%', note: 'noudosta', tone: 'black' },
 ]
-const FREE_DELIVERY_BADGE = { Icon: Bike, text: 'Ilmainen kuljetus' }
 
-// Sama ravintola saa aina saman merkin (ei vaihdu sivun päivittyessä). Burgereilla
-// aina −30 % (enintään 7 €) (käyttäjän pyyntö 28.10.2026).
-function offerBadge(restaurant) {
-  if (restaurant.category === 'Burgerit') return OFFER_BADGES[0]
-  if (restaurant.free_delivery) return FREE_DELIVERY_BADGE
+// Sama ravintola saa aina saman merkin. Noin 2/5 korteista ilman merkkiä;
+// alwaysBadge: nostoriveillä aina merkki. Burgereilla −30 %.
+function offerBadge(restaurant, alwaysBadge) {
   const key = String(restaurant.id ?? restaurant.name ?? '')
   let hash = 0
   for (const char of key) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
+  if (!alwaysBadge && hash % 5 < 2) return null
+  if (restaurant.category === 'Burgerit') return OFFER_BADGES[0]
   return OFFER_BADGES[hash % OFFER_BADGES.length]
 }
 
-// preferFreeDelivery: Ilmaiset kuljetukset -rivillä merkki on aina "Ilmainen
-// kuljetus" eikä ravintolan tarjous (käyttäjän pyyntö 1.11.2026).
-function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite, preferFreeDelivery = false }) {
+function RestaurantCard({
+  restaurant,
+  disabled,
+  isFavorite,
+  onToggleFavorite,
+  alwaysBadge = false,
+  badgeStyle = 'corner',
+}) {
   const {
     id,
     name,
@@ -49,7 +54,7 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite, pr
   } = restaurant
 
   const etaRange = formatEtaRange(pickupEstimateMinutes)
-  const badge = preferFreeDelivery && freeDelivery ? FREE_DELIVERY_BADGE : offerBadge(restaurant)
+  const badge = offerBadge(restaurant, alwaysBadge)
 
   // Yksi tietorivi: arvosana · aika · kuljetusmaksu (käyttäjä: etäisyys pois
   // korteista; etäisyys vaikuttaa edelleen järjestykseen, lib/ranking.js).
@@ -72,8 +77,14 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite, pr
       key="fee"
       className={`restaurant-card__stat${freeDelivery ? ' restaurant-card__stat--accent' : ''}`}
     >
-      <Bike size={14} aria-hidden="true" />
-      {freeDelivery ? formatPrice(0) : DELIVERY_PRICE_RANGE}
+      {freeDelivery ? (
+        'Ilmainen kuljetus'
+      ) : (
+        <>
+          <Bike size={14} aria-hidden="true" />
+          {DELIVERY_PRICE_RANGE}
+        </>
+      )}
     </span>,
   ].filter(Boolean)
 
@@ -92,11 +103,12 @@ function RestaurantCard({ restaurant, disabled, isFavorite, onToggleFavorite, pr
           <RestaurantAvatarPlaceholder name={name} />
         )}
 
-        {/* Merkki on totta, ks. OFFER_BADGES yllä. */}
-        <span className="restaurant-card__promo">
-          <badge.Icon size={12} aria-hidden="true" />
-          {badge.text}
-        </span>
+        {badge && (
+          <span className={`offer-badge offer-badge--${badgeStyle} offer-badge--${badge.tone}`}>
+            <strong>{badge.value}</strong>
+            <span>{badge.note}</span>
+          </span>
+        )}
       </div>
 
       <div className="restaurant-card__body">

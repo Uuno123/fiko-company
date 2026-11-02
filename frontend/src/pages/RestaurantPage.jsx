@@ -8,7 +8,7 @@ import CartIcon from '../components/CartIcon.jsx'
 import { categorySlug } from '../lib/categories.js'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
-import Spinner from '../components/Spinner.jsx'
+import Skeleton from '../components/Skeleton.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
 import MenuSearch, { matchesMenuQuery } from '../components/MenuSearch.jsx'
 import ReviewsModal from '../components/ReviewsModal.jsx'
@@ -517,7 +517,7 @@ function RestaurantPage() {
       />
 
       <main className="restaurant-page">
-        {status === 'loading' && <Spinner label="Ladataan ravintolaa" />}
+        {status === 'loading' && <Skeleton variant="restaurant" label="Ladataan ravintolaa" />}
         {status === 'error' && (
           <p className="state-message state-message--error">Ravintolaa ei löytynyt: {errorMessage}</p>
         )}

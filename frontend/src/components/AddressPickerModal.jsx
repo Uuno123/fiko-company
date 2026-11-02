@@ -11,6 +11,7 @@ import {
   searchAddresses,
 } from '../lib/geocode.js'
 import { formatDisplayAddress } from '../lib/format.js'
+import { OUTSIDE_SERVICE_AREA_MESSAGE, isInServiceArea } from '../lib/deliveryAddress.js'
 import { useMapView } from '../lib/mapView.js'
 import './AddressPickerModal.css'
 
@@ -213,6 +214,11 @@ function AddressPickerModal({ initial, title = 'Toimitusosoite', confirmLabel = 
 
   async function confirm() {
     setError('')
+    // Vain Kuopion alueen osoitteet (käyttäjän pyyntö 2.11.2026).
+    if (!isInServiceArea(center)) {
+      setError(OUTSIDE_SERVICE_AREA_MESSAGE)
+      return
+    }
     setSaving(true)
     try {
       await onConfirm({ address, lat: center.lat, lng: center.lng })

@@ -7,7 +7,6 @@ import { searchFillerRestaurants } from '../lib/categories.js'
 import { DELIVERY_PRICE_RANGE } from '../lib/delivery.js'
 import { supabase } from '../lib/supabaseClient.js'
 import './SearchSuggest.css'
-import { restaurantThumb } from '../lib/brandLogos.js'
 
 // Hakuehdotukset: pelkät ravintolat (ei yksittäisiä annoksia). Sama toteutus
 // sekä headerin hakunäkymässä että mobiilin koko ruudun haussa, jotta
@@ -20,7 +19,6 @@ export function RestaurantResultCard({ restaurant: r, onNavigate }) {
   // Täyteravintolalla ei ole omaa sivua - kortti näkyy mutta ei ole linkki,
   // kuten etusivullakin (RestaurantCard disabled).
   const Wrapper = r.isPlaceholder ? 'div' : Link
-  const thumb = restaurantThumb(r.name, r.image_url)
   const wrapperProps = r.isPlaceholder
     ? { 'aria-disabled': true }
     : { to: `/ravintola/${r.id}`, onMouseDown: (e) => e.preventDefault(), onClick: onNavigate }
@@ -31,14 +29,9 @@ export function RestaurantResultCard({ restaurant: r, onNavigate }) {
       className={`search-suggest-restaurant-card${r.isPlaceholder ? ' search-suggest-restaurant-card--disabled' : ''}`}
     >
       <div className="search-suggest-restaurant-card__media">
-        {thumb ? (
-          <img
-            src={thumb.src}
-            alt={r.name}
-            loading="lazy"
-            className={thumb.logo ? 'brand-thumb-logo' : undefined}
-            style={thumb.style}
-          />
+        {/* Isossa kortissa ravintolan oma kuva eikä ketjun logo (käyttäjän pyyntö 2.11.2026). */}
+        {r.image_url ? (
+          <img src={r.image_url} alt={r.name} loading="lazy" />
         ) : (
           <RestaurantAvatarPlaceholder name={r.name} />
         )}
@@ -48,10 +41,15 @@ export function RestaurantResultCard({ restaurant: r, onNavigate }) {
         {r.category && <span className="search-suggest-restaurant-card__category">{r.category}</span>}
       </div>
       <span className="search-suggest-restaurant-card__meta">
-        <Truck size={14} aria-hidden="true" />
-        <span className={r.free_delivery ? 'search-suggest-restaurant-card__fee--free' : undefined}>
-          {r.free_delivery ? '0,00 €' : DELIVERY_PRICE_RANGE}
-        </span>
+        {/* Ilmainen kuljetus tekstinä ilman ikonia ja hintaa (2.11.2026). */}
+        {r.free_delivery ? (
+          <span className="search-suggest-restaurant-card__fee--free">Ilmainen kuljetus</span>
+        ) : (
+          <>
+            <Truck size={14} aria-hidden="true" />
+            <span>{DELIVERY_PRICE_RANGE}</span>
+          </>
+        )}
         {r.pickup_estimate_minutes && <span>· {r.pickup_estimate_minutes} min</span>}
       </span>
     </Wrapper>

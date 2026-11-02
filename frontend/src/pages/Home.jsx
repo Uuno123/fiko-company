@@ -5,7 +5,8 @@ import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import DealsRow from '../components/DealsRow.jsx'
-import Spinner from '../components/Spinner.jsx'
+import DealsCountdown from '../components/DealsCountdown.jsx'
+import Skeleton from '../components/Skeleton.jsx'
 import SearchSuggest, { RestaurantResultCard } from '../components/SearchSuggest.jsx'
 import { getRestaurants } from '../lib/api.js'
 import {
@@ -25,6 +26,7 @@ import { useFavorites } from '../lib/useFavorites.js'
 import { useCart } from '../lib/CartContext.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import {
+  isInServiceArea,
   openAddressPicker,
   saveDeliveryAddress,
   skipWelcome,
@@ -62,6 +64,23 @@ const ROW_TITLES = { [NEARBY_ROW]: 'Aivan nurkan takana', ...CATEGORY_SLOGANS }
 const DEALS_AFTER = 'Kebab & Pizza'
 const DEALS_ROWS_AFTER = 1
 const FREE_DELIVERY_ROWS_AFTER = 2
+
+// Sama ravintola ei saa näkyä allekkaisten rivien alussa yhtä aikaa (käyttäjän
+// pyyntö 2.11.2026). Kunkin rivin ensimmäisiksi nostetaan ravintolat, jotka
+// eivät olleet edellisen rivin ensimmäisten STARTS_SHOWN joukossa; muut
+// siirtyvät rivin loppuun samassa järjestyksessä. Rivin sisältö ei muutu.
+const STARTS_SHOWN = 5
+
+function avoidRepeatedStarts(groups) {
+  let previousStarts = new Set()
+  return groups.map((group) => {
+    const fresh = group.items.filter((r) => !previousStarts.has(r.name))
+    const repeated = group.items.filter((r) => previousStarts.has(r.name))
+    const items = [...fresh, ...repeated]
+    previousStarts = new Set(items.slice(0, STARTS_SHOWN).map((r) => r.name))
+    return { ...group, items }
+  })
+}
 
 // Mainokset kiertävät automaattisesti. Tarjoukset ovat oikeita: TERVETULOA
 // löytyy kassan PROMO_CODES-listalta ja backendin payments-reitiltä, ja
@@ -160,6 +179,8 @@ function Home() {
   // ei vielä ole osoitetta (esim. kirjautuminen ensikäynnin näkymästä).
   useEffect(() => {
     if (deliveryAddress || customer?.address_lat == null || customer?.address_lng == null) return
+    // Vain Kuopion alueen osoite kelpaa toimitusosoitteeksi.
+    if (!isInServiceArea({ lat: customer.address_lat, lng: customer.address_lng })) return
     saveDeliveryAddress({
       label: customer.address.split(',')[0].trim(),
       full: customer.address,
@@ -306,10 +327,11 @@ function Home() {
   // Kategoriarivit näkyvät nyt myös työpöydällä (otsikko + vaakarivi, kuten
   // Woltissa). activeCategory tulee vain ?category=-parametrista - työpöydän
   // kategorialaatikot vievät nykyään hakutuloksiin eivätkä suodata tätä sivua.
-  const visibleCategoryGroups =
+  const visibleCategoryGroups = avoidRepeatedStarts(
     activeCategory === ALL
       ? [...(nearbyGroup ? [nearbyGroup] : []), ...mobileCategoryGroups]
-      : mobileCategoryGroups.filter((group) => group.category === activeCategory)
+      : mobileCategoryGroups.filter((group) => group.category === activeCategory),
+  )
 
   // Kovimmat tarjoukset -rivi (DealsRow) Kebab & Pizzaa seuraavan rivin jälkeen:
   // DEALS_RESTAURANTS-listan ravintolat samoista (täydennetyistä) riveistä,
@@ -602,6 +624,9 @@ function Home() {
         }
       />
 
+      {/* Tarjousten ajastin headerin alla (käyttäjän pyyntö 2.11.2026). */}
+      <DealsCountdown />
+
       {/* Työpöydän kategoriat teksteinä headerin alla, kiinni vieritettäessä. Tämä on
           sivun suora lapsi eikä .home-contentin sisällä, jotta sticky pysyy koko sivun. */}
 
@@ -739,7 +764,7 @@ function Home() {
             )}
           </section>
 
-          {status === 'loading' && <Spinner label="Haetaan ravintoloita" />}
+          {status === 'loading' && <Skeleton variant="rows" label="Haetaan ravintoloita" />}
 
           {status === 'error' && (
             <p className="state-message state-message--error">Ravintoloiden haku epäonnistui: {errorMessage}</p>
@@ -825,7 +850,6 @@ function Home() {
                         <DealsRow
                           title="Ilmaiset kuljetukset"
                           rowId="free-delivery-row"
-                          preferFreeDelivery
                           items={freeDeliveryItems}
                           favoriteIds={favoriteIds}
                           onToggleFavorite={toggleFavorite}
