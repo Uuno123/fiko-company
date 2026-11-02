@@ -248,7 +248,7 @@
 
 
 /* Tarjousmerkit käyttäjän mallikuvan mukaan (2.11.2026): iso arvo ja pieni
-   selite alla. Kaikki mustia (2.11.2026). */
+   selite alla. Kaikki oransseja (3.11.2026). */
 .offer-badge {
   position: absolute;
   z-index: 2;
@@ -259,13 +259,10 @@
   pointer-events: none;
 }
 
-/* Kaikki tarjousmerkit mustina (käyttäjän pyyntö 2.11.2026). */
-.offer-badge--orange {
-  background: var(--delivo-black);
-}
-
+/* Kaikki tarjousmerkit oranssina (käyttäjän pyyntö 3.11.2026, aiemmin mustia). */
+.offer-badge--orange,
 .offer-badge--black {
-  background: var(--delivo-black);
+  background: var(--delivo-orange);
 }
 
 .offer-badge strong {
