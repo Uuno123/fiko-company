@@ -99,6 +99,13 @@ function avoidRepeatedStarts(groups) {
 // alaosassa ravintolarivien jälkeen, suorakulmaiset diat. Takaisin vaihtamalla
 // SHOW_HOME_ADS = true.
 const SHOW_HOME_ADS = false
+
+// KOKEILU 3.11.2026 (käyttäjän pyyntö): kategoriakuvakkeet pois etusivulta.
+// Takaisin: SHOW_HOME_CATEGORIES = true.
+const SHOW_HOME_CATEGORIES = false
+
+// Tarjousajastin headerin alla (DealsCountdown), pois 3.11.2026 käyttäjän pyynnöstä.
+const SHOW_DEALS_COUNTDOWN = false
 const HOME_ADS = [
   {
     id: 'kuva-burgerit',
@@ -624,8 +631,9 @@ function Home() {
         }
       />
 
-      {/* Tarjousten ajastin headerin alla (käyttäjän pyyntö 2.11.2026). */}
-      <DealsCountdown />
+      {/* Tarjousten ajastin headerin alla (käyttäjän pyyntö 2.11.2026), pois
+          käytöstä 3.11.2026 - takaisin: SHOW_DEALS_COUNTDOWN = true. */}
+      {SHOW_DEALS_COUNTDOWN && <DealsCountdown />}
 
       {/* Työpöydän kategoriat teksteinä headerin alla, kiinni vieritettäessä. Tämä on
           sivun suora lapsi eikä .home-contentin sisällä, jotta sticky pysyy koko sivun. */}
@@ -680,7 +688,7 @@ function Home() {
             </div>
           </div>
 
-          <div className="home-cats-wrap">
+          <div className="home-cats-wrap" hidden={!SHOW_HOME_CATEGORIES}>
             {/* Kategoriat piirrettyinä kuvakkeina vaakarivissä (CATEGORY_TILE_META)
                 ja lyhyt nimi yhdellä rivillä (CATEGORY_SHORT_LABELS). Näkyy myös
                 työpöydällä 29.10.2026 alkaen headerin alla olleen kategoriapalkin
@@ -788,18 +796,20 @@ function Home() {
                         <div className="category-row__header">
                           <h2 className="category-row__title">{ROW_TITLES[category] ?? category}</h2>
                           <div className="category-row__actions">
-                            {/* Lähelläsi-rivi ei ole kategoria, joten sillä ei ole omaa sivua. */}
-                            {category !== NEARBY_ROW && (
-                              <Link
-                                className="category-row__see-all"
-                                to={`/kategoria/${categorySlug(category)}`}
-                                aria-label={`Kaikki: ${category}`}
-                              >
-                                {/* Puhelimella pelkkä nuoli harmaalla pallolla (Home.css). */}
-                                <span className="category-row__see-all-text">Näytä kaikki</span>
-                                <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
-                              </Link>
-                            )}
+                            {/* Lähelläsi-rivi vie hakuun lähimmästä alkaen (3.11.2026). */}
+                            <Link
+                              className="category-row__see-all"
+                              to={
+                                category === NEARBY_ROW
+                                  ? `/haku?q=${encodeURIComponent('Lähelläsi')}`
+                                  : `/kategoria/${categorySlug(category)}`
+                              }
+                              aria-label={`Kaikki: ${category}`}
+                            >
+                              {/* Puhelimella pelkkä nuoli harmaalla pallolla (Home.css). */}
+                              <span className="category-row__see-all-text">Näytä kaikki</span>
+                              <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
+                            </Link>
                             {/* Nuolet vain työpöydällä - puhelimella rivi pyyhkäistään. */}
                             <button
                               type="button"
@@ -839,6 +849,7 @@ function Home() {
                       {/* Kebab & Pizzaa seuraavan rivin jälkeen Kovimmat tarjoukset. */}
                       {groupIndex === dealsAfterIndex && (
                         <DealsRow
+                          seeAllTo="/haku?q=Tarjoukset"
                           items={dealsItems}
                           favoriteIds={favoriteIds}
                           onToggleFavorite={toggleFavorite}
@@ -850,6 +861,7 @@ function Home() {
                         <DealsRow
                           title="Ilmaiset kuljetukset"
                           rowId="free-delivery-row"
+                          seeAllTo={`/haku?q=${encodeURIComponent('Ilmainen kuljetus')}`}
                           items={freeDeliveryItems}
                           favoriteIds={favoriteIds}
                           onToggleFavorite={toggleFavorite}

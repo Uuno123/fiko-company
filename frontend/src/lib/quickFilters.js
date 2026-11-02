@@ -16,7 +16,12 @@ export const QUICK_FILTERS = [
   { id: 'top', query: 'Arvio 9+', test: (r) => Number(r.rating) >= 4.5 },
 ]
 
+// Etusivun "Aivan nurkan takana" -rivin "Näytä kaikki" (käyttäjän pyyntö
+// 3.11.2026): kaikki ravintolat lähimmästä alkaen. Ei suodatinpaneelissa.
+export const NEARBY_FILTER = { id: 'near', query: 'Lähelläsi', test: () => true, sort: 'distance' }
+
 export function quickFilterForQuery(query) {
   const term = (query ?? '').trim().toLowerCase()
+  if (term === NEARBY_FILTER.query.toLowerCase()) return NEARBY_FILTER
   return QUICK_FILTERS.find((filter) => filter.query.toLowerCase() === term) ?? null
 }
