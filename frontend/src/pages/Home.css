@@ -1609,3 +1609,8 @@
     height: 14px;
   }
 }
+
+/* Kategoriarivin piilotus (SHOW_HOME_CATEGORIES, Home.jsx) ohittaa display-säännöt. */
+.home-cats-wrap[hidden] {
+  display: none !important;
+}

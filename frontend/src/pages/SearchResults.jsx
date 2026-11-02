@@ -86,7 +86,8 @@ function SearchResults() {
     }
     let cancelled = false
     setStatus('loading')
-    setRestaurantSort('relevance')
+    // "Lähelläsi" järjestää lähimmästä alkaen, muut haut suositellut ensin.
+    setRestaurantSort(quickFilterForQuery(query)?.sort ?? 'relevance')
 
     // Pikavalinta ei ole tekstihaku: kaikki ravintolat, joista ehto suodattaa.
     const filter = quickFilterForQuery(query)

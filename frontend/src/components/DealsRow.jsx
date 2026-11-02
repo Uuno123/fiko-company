@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react'
+import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import DelivoLogo from './DelivoLogo.jsx'
 import RestaurantCard from './RestaurantCard.jsx'
 import './DealsRow.css'
@@ -24,6 +26,8 @@ function DealsRow({
   onScrollRow,
   title = 'Kovimmat tarjoukset',
   rowId = 'deals-row',
+  // "Näytä kaikki" vie hakuun, jossa ovat kaikki rivin ravintolat.
+  seeAllTo,
 }) {
   const scrollRef = useRef(null)
   const pausedRef = useRef(false)
@@ -63,6 +67,12 @@ function DealsRow({
           </h2>
         </div>
         <div className="category-row__actions">
+          {seeAllTo && (
+            <Link className="category-row__see-all" to={seeAllTo} aria-label={`Kaikki: ${title}`}>
+              <span className="category-row__see-all-text">Näytä kaikki</span>
+              <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
+            </Link>
+          )}
           <button
             type="button"
             className="category-row__nav"
