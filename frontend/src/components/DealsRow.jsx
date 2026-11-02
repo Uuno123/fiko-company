@@ -24,7 +24,6 @@ function DealsRow({
   onScrollRow,
   title = 'Kovimmat tarjoukset',
   rowId = 'deals-row',
-  preferFreeDelivery = false,
 }) {
   const scrollRef = useRef(null)
   const pausedRef = useRef(false)
@@ -115,7 +114,8 @@ function DealsRow({
             disabled={restaurant.isPlaceholder}
             isFavorite={favoriteIds.has(restaurant.id)}
             onToggleFavorite={restaurant.isPlaceholder ? undefined : onToggleFavorite}
-            preferFreeDelivery={preferFreeDelivery}
+            alwaysBadge
+            badgeStyle="sticker"
           />
         ))}
       </div>

@@ -504,3 +504,38 @@
     background: var(--round-button-bg-pressed);
   }
 }
+
+/* Hakutulosten ravintolat flätteinä kuten etusivulla ja kategoriasivulla
+   (käyttäjän pyyntö 2.11.2026): ei korttilaatikkoa, reunaa eikä varjoa -
+   kuva pyöristettynä ja teksti suoraan sen alla. */
+.search-results__restaurant-grid {
+  gap: 24px;
+}
+
+.search-results__restaurant-grid .restaurant-card {
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.search-results__restaurant-grid .restaurant-card:hover,
+.search-results__restaurant-grid .restaurant-card:focus-visible {
+  transform: none;
+  box-shadow: none;
+}
+
+.search-results__restaurant-grid .restaurant-card__media {
+  border-radius: 12px;
+}
+
+.search-results__restaurant-grid .restaurant-card__body {
+  padding: 10px 2px 0;
+}
+
+@media (min-width: 561px) {
+  .search-results__restaurant-grid {
+    gap: 28px 20px;
+  }
+}

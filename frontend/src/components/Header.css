@@ -1396,3 +1396,22 @@
   outline-offset: 2px;
 }
 
+
+/* Pienempi ostoskorinappi ja ostoskärryikoni (käyttäjän pyyntö 2.11.2026). */
+.site-header .cart-menu__trigger {
+  width: 36px;
+  height: 36px;
+}
+
+.site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger svg {
+  width: 18px;
+  height: 18px;
+}
+
+.site-header .cart-menu__badge {
+  top: -5px;
+  right: -5px;
+  min-width: 17px;
+  height: 17px;
+  font-size: 0.64rem;
+}

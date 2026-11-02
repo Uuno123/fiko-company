@@ -134,3 +134,28 @@
     padding-bottom: 18px;
   }
 }
+
+/* Nostorivit (Kovimmat tarjoukset, Ilmaiset kuljetukset) reunasta reunaan
+   ilman pyöreitä kulmia (käyttäjän pyyntö 2.11.2026): tausta ulottuu näytön
+   reunoihin, sisältö pysyy samassa linjassa muiden rivien kanssa. Sivun
+   vaakavieritys estetään (.page--home overflow-x: clip, Home.css). */
+.page--home .category-row--deals::before {
+  right: calc(50% - 50vw);
+  left: calc(50% - 50vw);
+  border-radius: 0;
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row--deals {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  /* Kortit vierivät näytön reunasta reunaan. */
+  .page--home .category-row--deals .category-row__scroll {
+    margin: 0 -16px;
+    padding-right: 16px;
+    padding-left: 16px;
+    scroll-padding-left: 16px;
+  }
+}

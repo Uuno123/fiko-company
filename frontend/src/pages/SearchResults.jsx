@@ -5,7 +5,7 @@ import BottomSheet from '../components/BottomSheet.jsx'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
-import Spinner from '../components/Spinner.jsx'
+import Skeleton from '../components/Skeleton.jsx'
 import { useCart } from '../lib/CartContext.jsx'
 import { formatPrice } from '../lib/format.js'
 import { allFillerRestaurants, dealsFillerRestaurants, isDealsQuery, searchFillerRestaurants } from '../lib/categories.js'
@@ -305,7 +305,7 @@ function SearchResults() {
           </BottomSheet>
         )}
 
-        {status === 'loading' && <Spinner label="Haetaan" />}
+        {status === 'loading' && <Skeleton variant="grid" label="Haetaan" />}
 
         {status === 'ready' && !query.trim() && <p className="state-message">Kirjoita jotain hakeaksesi.</p>}
 
