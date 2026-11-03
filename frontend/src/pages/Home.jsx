@@ -295,11 +295,13 @@ function Home() {
   // joissa ei vielä ole ravintoloita (käyttäjän pyyntö 29.10.2026; kategoriasivu
   // kertoo silloin "tulossa pian"). Muut vain kun niissä on sisältöä.
   // Vain 8 kategoriaa (käyttäjän pyyntö 3.11.2026), kaikilla flätti kuvake.
+  // Kahvila pois etusivun kategoriariviltä (käyttäjän pyyntö 3.11.2026).
   const searchCategories = CATEGORY_NAMES.filter(
     (name) =>
-      Boolean(CATEGORY_TILE_META[name]?.icon) ||
+      name !== 'Kahvila' &&
+      (Boolean(CATEGORY_TILE_META[name]?.icon) ||
       SEARCH_CATEGORIES_WITH_FILLERS.includes(name) ||
-      restaurants.some((r) => r.category === name),
+      restaurants.some((r) => r.category === name)),
   ).slice(0, HOME_CATEGORY_COUNT)
   const mobileCategoryGroups = categoriesWithContent
     .filter((category) => !HIDDEN_MOBILE_CATEGORIES.includes(category))
@@ -643,9 +645,9 @@ function Home() {
 
       <main className="home-content">
         <div className="home-main">
-          {/* Mobiilin yläosa: toimitusosoite logon alla (käyttäjän pyyntö 29.10.2026:
-              ei ikonia, pieni harmaa "Toimitusosoite" päällä). Napautus avaa saman
-              osoiteikkunan kuin työpöydän headerissa. */}
+          {/* Mobiilin yläosa: osoite headerin osana yhtenä rivinä logon alla
+              (käyttäjän valinta 3.11.2026). Napautus avaa saman osoiteikkunan
+              kuin työpöydän headerissa. */}
           <div className="home-mobile-top">
             <button
               type="button"
@@ -654,7 +656,8 @@ function Home() {
               aria-label={deliveryAddress ? `Toimitusosoite: ${deliveryAddress.full}. Vaihda osoite` : 'Lisää toimitusosoite'}
               onClick={openAddressPicker}
             >
-              <span className="home-address__label">Toimitusosoite</span>
+              {/* Woltin tapaan pieni "Toimita nyt" ja lihava osoite (käyttäjän mallikuva 3.11.2026). */}
+              <span className="home-address__label">Toimita nyt</span>
               <span className="home-address__value">
                 <span>{deliveryAddress?.label ?? 'Lisää osoite'}</span>
                 <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
