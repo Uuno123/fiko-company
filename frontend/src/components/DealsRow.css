@@ -159,3 +159,122 @@
     scroll-padding-left: 16px;
   }
 }
+
+/* Räikeämpi Kovimmat tarjoukset -osio (käyttäjän pyyntö 3.11.2026): kirkas
+   oranssi kaista, valkoinen otsikko ja logo. Puhelimella kortit ovat flättejä
+   suoraan kaistalla, joten niiden tekstit valkoisina. */
+.page--home .category-row--hot::before {
+  background: linear-gradient(135deg, #ff9265 0%, #fb7a47 100%);
+}
+
+.category-row--hot .category-row__title,
+.category-row--hot .deals-row__logo {
+  color: #fff;
+}
+
+.category-row--hot .deals-row__logo path:last-child {
+  fill: #fff;
+}
+
+.category-row--hot .category-row__see-all,
+.category-row--hot .category-row__nav {
+  background: #fff;
+  color: var(--delivo-black);
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row--hot::before {
+    background: linear-gradient(135deg, #ff9265 0%, #fb7a47 100%);
+  }
+
+  .page--home .category-row--hot .restaurant-card__heading h3,
+  .page--home .category-row--hot .restaurant-card__meta,
+  .page--home .category-row--hot .restaurant-card__stat,
+  .page--home .category-row--hot .restaurant-card__sep {
+    color: #fff;
+  }
+
+  .page--home .category-row--hot .restaurant-card__free-badge {
+    background: #fff;
+    color: var(--delivo-orange-dark);
+  }
+
+  /* Tarra kuvan päällä mustana, ettei oranssi sulaudu kaistaan. */
+  .page--home .category-row--hot .offer-badge {
+    background: var(--delivo-black);
+    color: #fff;
+  }
+}
+
+/* Sama valkoinen teksti ja musta tarra myös työpöydällä. */
+.page--home .category-row--hot .restaurant-card__heading h3,
+.page--home .category-row--hot .restaurant-card__meta,
+.page--home .category-row--hot .restaurant-card__stat,
+.page--home .category-row--hot .restaurant-card__sep {
+  color: #fff;
+}
+
+.page--home .category-row--hot .restaurant-card__free-badge {
+  background: #fff;
+  color: var(--delivo-orange-dark);
+}
+
+.page--home .category-row--hot .offer-badge {
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+.category-row--hot .category-row__see-all {
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+/* Tarjousosion ravintolat valkoisina kortteina oranssilla kaistalla
+   (käyttäjän pyyntö 3.11.2026): kuva ylhäällä, tekstit kortin sisällä
+   tummina. Ohittaa yllä olevat flätti- ja valkoinen teksti -säännöt. */
+.page--home .category-row--hot .category-row__scroll .restaurant-card {
+  overflow: hidden;
+  border: none;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 16px -10px rgba(120, 40, 10, 0.45);
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__media {
+  border-radius: 0;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__body {
+  padding: 10px 12px 12px;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__heading h3 {
+  color: var(--delivo-black);
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__meta,
+.page--home .category-row--hot .category-row__scroll .restaurant-card__stat,
+.page--home .category-row--hot .category-row__scroll .restaurant-card__sep {
+  color: var(--text-muted);
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__stat--rating {
+  color: var(--delivo-black);
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__free-badge {
+  background: var(--delivo-orange-soft);
+  color: var(--delivo-orange-dark);
+}
+
+/* Ilmaiset kuljetukset hieman räikeämpänä (käyttäjän pyyntö 3.11.2026):
+   voimakkaampi persikka, tekstit tummina. */
+.page--home .category-row--warm::before {
+  background: linear-gradient(160deg, #ffe1d2 0%, #ffbf9f 100%);
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row--warm::before {
+    background: linear-gradient(160deg, #ffe1d2 0%, #ffbf9f 100%);
+  }
+}

@@ -55,8 +55,13 @@ function DealsRow({
     pausedRef.current = false
   }
 
+  // --hot: räikeä oranssi Kovimmat tarjoukset -osio, --warm: hieman räikeämpi
+  // Ilmaiset kuljetukset -osio (käyttäjän pyynnöt 3.11.2026).
   return (
-    <section className="category-row category-row--deals" aria-labelledby={`${rowId}-title`}>
+    <section
+      className={`category-row category-row--deals${rowId === 'deals-row' ? ' category-row--hot' : ''}${rowId === 'free-delivery-row' ? ' category-row--warm' : ''}`}
+      aria-labelledby={`${rowId}-title`}
+    >
       <div className="category-row__header">
         {/* Pieni Bidrop-logo otsikon yläpuolella (käyttäjän pyyntö 29.10.2026):
             Bidropin omat valinnat. */}
@@ -124,7 +129,6 @@ function DealsRow({
             disabled={restaurant.isPlaceholder}
             isFavorite={favoriteIds.has(restaurant.id)}
             onToggleFavorite={restaurant.isPlaceholder ? undefined : onToggleFavorite}
-            alwaysBadge
             badgeStyle="sticker"
           />
         ))}
