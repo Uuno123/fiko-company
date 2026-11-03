@@ -2189,3 +2189,60 @@
   padding-top: 6px;
   padding-bottom: 14px;
 }
+
+/* Puhelimella ei hakupalkkia eikä erillistä osoiteriviä (käyttäjän pyyntö
+   3.11.2026): osoite on headerissa, haku hakusivulla. */
+@media (max-width: 560px) {
+  .home-search-sticky,
+  .home-mobile-top {
+    display: none;
+  }
+}
+
+/* Osoite takaisin logon alle ja haku headerin suurennuslasista (käyttäjän
+   pyyntö 3.11.2026). Headerin oma osoite piiloon puhelimella. */
+.home-header-search {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .page--home .city-select {
+    display: none;
+  }
+
+  .home-mobile-top {
+    display: flex;
+  }
+
+  .home-header-search {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--round-button-bg);
+    color: var(--delivo-black);
+    cursor: pointer;
+  }
+
+  .home-header-search:active {
+    background: var(--round-button-bg-pressed);
+  }
+
+  .home-mobile-top {
+    margin-bottom: 4px;
+  }
+}
+
+/* Pienempi osoiteteksti logon alla (käyttäjän pyyntö 3.11.2026). */
+@media (max-width: 560px) {
+  .home-address__value {
+    font-size: 0.88rem;
+  }
+
+  .home-address__label {
+    font-size: 0.72rem;
+  }
+}

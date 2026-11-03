@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, ChevronDown } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ChevronDown, Search } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
@@ -622,6 +622,18 @@ function Home() {
       <Header
         search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Hae ravintoloita...' }}
         showAddress
+        // Puhelimella haku avautuu headerin suurennuslasista (käyttäjän pyyntö
+        // 3.11.2026, hakupalkki poistettu). Työpöydällä piilossa (Home.css).
+        actions={
+          <button
+            type="button"
+            className="home-header-search"
+            aria-label="Hae ravintoloita ja ruokia"
+            onClick={() => setSearchOpen(true)}
+          >
+            <Search size={20} strokeWidth={2.2} aria-hidden="true" />
+          </button>
+        }
         cart={
           cart.count > 0
             ? {

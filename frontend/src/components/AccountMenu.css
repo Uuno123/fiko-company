@@ -313,3 +313,28 @@
     padding: 0 12px;
   }
 }
+
+/* Puhelimella Kirjaudu pelkkänä tekstinä eikä mustana nappina (käyttäjän
+   pyyntö 3.11.2026). */
+@media (max-width: 640px) {
+  .auth-login-btn__label {
+    height: auto;
+    padding: 6px 0;
+    border-radius: 0;
+    background: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--delivo-black);
+  }
+
+  .auth-login-btn--overlay .auth-login-btn__label {
+    color: #fff;
+  }
+}
+
+/* Pienempi Kirjaudu-teksti puhelimella (käyttäjän pyyntö 3.11.2026). */
+@media (max-width: 640px) {
+  .auth-login-btn__label {
+    font-size: 0.8rem;
+  }
+}
