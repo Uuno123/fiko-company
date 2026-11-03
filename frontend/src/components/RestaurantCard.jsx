@@ -14,13 +14,13 @@ import './RestaurantCard.css'
 // kuljetuksesta ei merkkiä - se näkyy tietorivillä tekstinä.
 const OFFER_BADGES = [
   // SUURTILAUS: 30 %, enintään 7 €.
-  { value: '−30%', note: 'max 7 €', tone: 'orange' },
+  { value: '−30%', note: 'max 7 €', text: '−30 % tilauksesta (max 7 €)', tone: 'orange' },
   // BIDROP10
-  { value: '−10%', note: 'tilauksesta', tone: 'orange' },
+  { value: '−10%', note: 'tilauksesta', text: '−10 % tilauksesta', tone: 'orange' },
   // TERVETULOA
-  { value: '−3 €', note: 'tilauksesta', tone: 'black' },
+  { value: '−3 €', note: 'tilauksesta', text: '−3 € tilauksesta', tone: 'black' },
   // NOUTO15: 15 % noutotilauksista.
-  { value: '−15%', note: 'noudosta', tone: 'black' },
+  { value: '−15%', note: 'noudosta', text: '−15 % noudosta (max 5 €)', tone: 'black' },
 ]
 
 // Sama ravintola saa aina saman merkin. Noin 2/5 korteista ilman merkkiä;
@@ -73,8 +73,11 @@ function RestaurantCard({
         {etaRange}
       </span>
     ),
-    // Kuljetuksen hinta tietorivillä; ilmainen kuljetus on oma badge alla.
-    !freeDelivery && (
+    // Kuljetus tietorivillä: hinta, tai ilmainen kuljetus pienenä badgena
+    // (käyttäjän pyyntö 3.11.2026: ei omalle riville).
+    freeDelivery ? (
+      <span key="fee" className="restaurant-card__free-badge">Ilmainen kuljetus</span>
+    ) : (
       <span key="fee" className="restaurant-card__stat">
         <Bike size={14} aria-hidden="true" />
         {DELIVERY_PRICE_RANGE}
@@ -97,7 +100,9 @@ function RestaurantCard({
           <RestaurantAvatarPlaceholder name={name} />
         )}
 
-        {badge && (
+        {/* Pyöreä tarra nostoriveillä kuvan päällä; tavallisilla riveillä tarjous
+            on kortin alaosassa tietorivin alla (käyttäjän pyyntö 3.11.2026). */}
+        {badge && badgeStyle === 'sticker' && (
           <span className={`offer-badge offer-badge--${badgeStyle} offer-badge--${badge.tone}`}>
             <strong>{badge.value}</strong>
             <span>{badge.note}</span>
@@ -133,7 +138,7 @@ function RestaurantCard({
         <div className="restaurant-card__meta">
           {stats.map((stat, i) => (
             <span key={stat.key} className="restaurant-card__meta-item">
-              {i > 0 && (
+              {i > 0 && !(stat.key === 'fee' && freeDelivery) && (
                 <span className="restaurant-card__sep" aria-hidden="true">
                   ·
                 </span>
@@ -143,8 +148,12 @@ function RestaurantCard({
           ))}
         </div>
 
-        {/* Ilmainen kuljetus aina omalla rivillään badgena (käyttäjän pyyntö 3.11.2026). */}
-        {freeDelivery && <span className="restaurant-card__free-badge">Ilmainen kuljetus</span>}
+        {badge && badgeStyle !== 'sticker' && (
+          <span className="restaurant-card__offer">
+            {/* Pidempi kuvaus kortin alaosan pillerissä (käyttäjän pyyntö 3.11.2026). */}
+            {badge.text}
+          </span>
+        )}
       </div>
     </Wrapper>
   )

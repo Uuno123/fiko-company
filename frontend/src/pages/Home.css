@@ -1726,13 +1726,12 @@
 }
 
 /* KAIKKI kortit yhtä korkeiksi myös eri riveillä (käyttäjän pyyntö
-   3.11.2026): tekstiosalle aina kahden nimirivin, tietorivin ja
-   ilmaisen kuljetuksen badgen korkeus. Nimi ja tietorivi
+   3.11.2026): tekstiosalle aina kahden nimirivin ja tietorivin korkeus. Nimi ja tietorivi
    pysyvät yhdessä ylhäällä, mahdollinen tyhjä jää kortin pohjalle. */
 .page--home .category-row:not(.category-row--deals) .restaurant-card__body,
 .search-results__restaurant-grid .restaurant-card__body,
 .category-page__list .restaurant-card__body {
-  min-height: 124px;
+  min-height: 94px;
   box-sizing: border-box;
 }
 
@@ -1740,6 +1739,364 @@
   .page--home .category-row:not(.category-row--deals) .restaurant-card__body,
   .search-results__restaurant-grid .restaurant-card__body,
   .category-page__list .restaurant-card__body {
-    min-height: 120px;
+    min-height: 91px;
+  }
+}
+
+/* Pienempi ravintolan nimi myös etusivun riveillä (ohittaa yllä olevan 1.08rem). */
+.page--home .category-row .category-row__scroll .restaurant-card__heading h3 {
+  font-size: 0.98rem;
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row .category-row__scroll .restaurant-card__heading h3 {
+    font-size: 0.95rem;
+  }
+
+  .page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+  .search-results__restaurant-grid .restaurant-card__body,
+  .category-page__list .restaurant-card__body {
+    min-height: 90px;
+  }
+}
+
+@media (min-width: 561px) {
+  .page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+  .search-results__restaurant-grid .restaurant-card__body,
+  .category-page__list .restaurant-card__body {
+    min-height: 88px;
+  }
+}
+
+/* Pienempi nimi etusivun riveillä (3.11.2026) ja tekstiosan korkeus sen mukaan. */
+.page--home .category-row .category-row__scroll .restaurant-card__heading h3 {
+  font-size: 0.92rem;
+}
+
+.page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  min-height: 84px;
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row .category-row__scroll .restaurant-card__heading h3 {
+    font-size: 0.9rem;
+  }
+
+  .page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+  .search-results__restaurant-grid .restaurant-card__body,
+  .category-page__list .restaurant-card__body {
+    min-height: 85px;
+  }
+}
+
+/* Pienempi nimi ja kevyempi korttivarjo (käyttäjän pyyntö 3.11.2026). */
+.page--home .category-row .category-row__scroll .restaurant-card__heading h3 {
+  font-size: 0.88rem;
+}
+
+.page--home .category-row:not(.category-row--deals) .restaurant-card,
+.search-results__restaurant-grid .restaurant-card,
+.category-page__list .restaurant-card {
+  /* Hieman enemmän varjoa alaosaan (käyttäjän pyyntö 3.11.2026). */
+  box-shadow:
+    0 0 10px -3px rgba(20, 21, 15, 0.1),
+    0 9px 18px -8px rgba(20, 21, 15, 0.26);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page--home .category-row:not(.category-row--deals) .restaurant-card:hover,
+  .search-results__restaurant-grid .restaurant-card:hover,
+  .category-page__list .restaurant-card:hover {
+    box-shadow:
+      0 0 14px -3px rgba(20, 21, 15, 0.14),
+      0 10px 22px -10px rgba(20, 21, 15, 0.26);
+  }
+}
+
+.page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  min-height: 98px;
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row .category-row__scroll .restaurant-card__heading h3 {
+    font-size: 0.86rem;
+  }
+
+  .page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+  .search-results__restaurant-grid .restaurant-card__body,
+  .category-page__list .restaurant-card__body {
+    min-height: 97px;
+  }
+}
+
+
+/* KOKEILU 3.11.2026 (käyttäjän pyyntö): kategoriakuvakkeille pehmeä harmaa
+   laatta taustaksi. Poista tämä lohko palauttaaksesi kuvakkeet ilman laattaa. */
+@media (max-width: 560px) {
+  .home-cats .home-cat-tile__art {
+    display: grid;
+    place-items: center;
+    width: 60px;
+    height: 60px;
+    padding: 9px;
+    border-radius: 16px;
+    background: #f3f3f1;
+    box-sizing: border-box;
+  }
+
+  .home-cats .home-cat-tile__art img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .home-cats .home-cat-tile {
+    gap: 6px;
+  }
+}
+
+/* Laatta selvemmäksi (käyttäjän pyyntö 3.11.2026: lisää taustaa). */
+@media (max-width: 560px) {
+  .home-cats .home-cat-tile__art {
+    background: #e9e9e6;
+  }
+}
+
+/* Kokeilu 3.11.2026: kategoriakuvakkeet ilman harmaata laattaa. */
+@media (max-width: 560px) {
+  .home-cats .home-cat-tile__art {
+    background: none;
+  }
+}
+
+/* Kategoriarivin viimeistely (käyttäjän pyyntö 3.11.2026): kaikki kuvat
+   valokuvia läpinäkyvällä taustalla. Ei laattaa eikä sisätilaa, ja kunkin
+   kuvan mittakaava tasattu niin, että ruoka näyttää yhtä isolta - leveät
+   ja matalat (sushi, kulhot) hieman isommiksi kuin korkeat (burgeri). */
+@media (max-width: 560px) {
+  .home-cats {
+    gap: 4px;
+  }
+
+  .home-cats .home-cat-tile {
+    width: 68px;
+    gap: 4px;
+  }
+
+  .home-cats .home-cat-tile__art {
+    width: 64px;
+    height: 64px;
+    padding: 0;
+  }
+
+  .home-cats .home-cat-tile__label {
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+}
+
+.home-cat-tile__art img[src*='-photo.webp'] {
+  object-fit: contain;
+  object-position: center;
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.home-cat-tile__art img[src*='category-burger-photo'] { transform: scale(0.92); }
+.home-cat-tile__art img[src*='category-pizza-photo'] { transform: scale(1); }
+.home-cat-tile__art img[src*='category-salad-photo'] { transform: scale(1.04); }
+.home-cat-tile__art img[src*='category-sushi-photo'] { transform: scale(1.12); }
+.home-cat-tile__art img[src*='category-pasta-photo'] { transform: scale(1.06); }
+.home-cat-tile__art img[src*='category-kotiruoka-photo'] { transform: scale(1.06); }
+.home-cat-tile__art img[src*='category-kebab-photo'] { transform: scale(0.98); }
+.home-cat-tile__art img[src*='category-ramen-photo'] { transform: scale(1.02); }
+
+/* Painalluspalaute: kuva painuu hieman. */
+.home-cat-tile:active .home-cat-tile__art img[src*='-photo.webp'] {
+  transform: scale(0.94);
+}
+
+/* Yläosa korttien tyyliin (käyttäjän valinta 3.11.2026): hakukenttä valkoisena
+   pyöristettynä kenttänä samalla pehmeällä varjolla kuin ravintolakortit, ja
+   osoitteessa pieni musta neula. */
+@media (max-width: 560px) {
+  .home-search-sticky .home-search,
+  .home-search {
+    border: 1px solid #ecebe8;
+    border-radius: 16px;
+    background: var(--surface);
+    box-shadow:
+      0 0 10px -3px rgba(20, 21, 15, 0.1),
+      0 6px 14px -8px rgba(20, 21, 15, 0.22);
+  }
+
+  .home-search-sticky.is-stuck {
+    box-shadow: none;
+  }
+
+  .home-address__label {
+    padding-left: 19px;
+  }
+
+  .home-address__value {
+    gap: 4px;
+    font-weight: 700;
+  }
+
+  .home-address__value .home-address__pin {
+    color: var(--delivo-black);
+  }
+}
+
+/* Osoite headeriin (käyttäjän valinta 3.11.2026): yksi rivi heti logon alla
+   samalla valkoisella pohjalla, headerin alaviiva siirtyy osoiterivin alle.
+   Sivu alkaa suoraan hakukentästä. */
+@media (max-width: 560px) {
+  .page--home .site-header {
+    border-bottom-color: transparent;
+  }
+
+  .home-mobile-top {
+    margin: -14px -16px 16px;
+    padding: 0 16px 12px;
+    border-bottom: 1px solid #f3f2f0;
+    background: var(--surface);
+  }
+
+  .home-address__value {
+    gap: 5px;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  .home-address__value .home-address__pin {
+    color: var(--delivo-black);
+  }
+}
+
+/* Osoiterivi yhtenäiseksi headerin kanssa: ei viivaa välissä, hakukenttä
+   lähemmäs. */
+@media (max-width: 560px) {
+  .page--home .site-header,
+  .page--home .site-header:not(.site-header--dark):not(.site-header--overlay) {
+    border-bottom: none;
+  }
+
+  .home-mobile-top {
+    margin-top: -14px;
+    margin-bottom: 4px;
+    padding-top: 0;
+    padding-bottom: 12px;
+  }
+}
+
+/* "Toimita nyt" -malli (käyttäjän mallikuva 3.11.2026): pieni harmaa otsikko
+   ja sen alla lihava osoite nuolen kanssa, ei neulaa. */
+@media (max-width: 560px) {
+  .home-address {
+    gap: 0;
+  }
+
+  .home-address__label {
+    padding-left: 0;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .home-address__value {
+    gap: 6px;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+}
+
+/* Hakukenttä ilman varjoa (käyttäjän pyyntö 3.11.2026): vaalea harmaa täyttö
+   ilman reunaa, pilleri, pienempi ikoni ja matalampi kenttä. */
+@media (max-width: 560px) {
+  .home-search-sticky .home-search,
+  .home-search {
+    height: 44px;
+    padding: 0 16px;
+    border: none;
+    border-radius: 999px;
+    background: #f1f1ef;
+    box-shadow: none;
+  }
+
+  .home-search svg,
+  .home-search-sticky .home-search svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .home-search input {
+    font-size: 0.95rem;
+  }
+
+  .home-search input::placeholder {
+    color: #8a8d86;
+  }
+}
+
+/* Hakupalkki lämpimän kellertäväksi (käyttäjän pyyntö 3.11.2026). */
+@media (max-width: 560px) {
+  .home-search-sticky .home-search,
+  .home-search {
+    background: #f6f2e8;
+  }
+
+  .home-search input::placeholder {
+    color: #8c8576;
+  }
+}
+
+/* Vähemmän väliä osoitteen ja hakupalkin välissä (käyttäjän pyyntö 3.11.2026). */
+@media (max-width: 560px) {
+  .home-mobile-top {
+    margin-bottom: -8px;
+    padding-bottom: 10px;
+  }
+}
+
+/* Hakupalkki takaisin harmaaksi ja osoitteen väli vielä pienemmäksi
+   (käyttäjän pyyntö 3.11.2026). */
+@media (max-width: 560px) {
+  .home-search-sticky .home-search,
+  .home-search {
+    background: #f1f1ef;
+  }
+
+  .home-search input::placeholder {
+    color: #8a8d86;
+  }
+
+  .home-mobile-top {
+    margin-bottom: -14px;
+    padding-bottom: 8px;
+  }
+}
+
+/* Hakupalkki vielä harmaammaksi (käyttäjän pyyntö 3.11.2026). */
+@media (max-width: 560px) {
+  .home-search-sticky .home-search,
+  .home-search {
+    background: #e8e8e5;
+  }
+
+  .home-search input::placeholder {
+    color: #767a72;
+  }
+}
+
+/* Hakukenttä hieman leveämmäksi (käyttäjän pyyntö 3.11.2026): ulottuu 6 px
+   sivun reunusten yli kummallakin puolella. */
+@media (max-width: 560px) {
+  .home-search-sticky .home-search {
+    margin-left: -6px;
+    margin-right: -6px;
   }
 }

@@ -528,3 +528,111 @@
     font-size: 0.72rem;
   }
 }
+
+/* Ilmaisen kuljetuksen badge tietorivillä, ei omalla rivillä (käyttäjän pyyntö
+   3.11.2026): pieni pilleri pisteen sijaan erotettuna välillä, ja tietorivi
+   pysyy yhdellä rivillä. */
+.restaurant-card .restaurant-card__meta {
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+.restaurant-card .restaurant-card__meta .restaurant-card__free-badge {
+  margin: 0 0 0 8px;
+  padding: 1px 7px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 560px) {
+  .restaurant-card .restaurant-card__meta .restaurant-card__free-badge {
+    margin-left: 6px;
+    padding: 1px 6px;
+    font-size: 0.68rem;
+  }
+}
+
+/* Pienempi ravintolan nimi korteissa (käyttäjän pyyntö 3.11.2026). */
+.restaurant-card .restaurant-card__heading h3 {
+  font-size: 0.98rem;
+}
+
+@media (max-width: 560px) {
+  .restaurant-card .restaurant-card__heading h3 {
+    font-size: 0.95rem;
+  }
+}
+
+/* Korttien kaikki fontit hieman pienemmiksi (käyttäjän pyyntö 3.11.2026). */
+.restaurant-card .restaurant-card__heading h3 {
+  font-size: 0.92rem;
+}
+
+.restaurant-card .restaurant-card__meta {
+  font-size: 0.8rem;
+}
+
+.restaurant-card .restaurant-card__stat svg {
+  width: 13px;
+  height: 13px;
+}
+
+.restaurant-card .restaurant-card__meta .restaurant-card__free-badge {
+  font-size: 0.68rem;
+}
+
+@media (max-width: 560px) {
+  .restaurant-card .restaurant-card__heading h3 {
+    font-size: 0.9rem;
+  }
+
+  .restaurant-card .restaurant-card__meta {
+    font-size: 0.76rem;
+  }
+
+  .restaurant-card .restaurant-card__meta .restaurant-card__free-badge {
+    font-size: 0.65rem;
+  }
+}
+
+/* Vielä hieman pienemmät fontit (käyttäjän pyyntö 3.11.2026). */
+.restaurant-card .restaurant-card__heading h3 {
+  font-size: 0.88rem;
+}
+
+.restaurant-card .restaurant-card__meta {
+  font-size: 0.76rem;
+}
+
+@media (max-width: 560px) {
+  .restaurant-card .restaurant-card__heading h3 {
+    font-size: 0.86rem;
+  }
+
+  .restaurant-card .restaurant-card__meta {
+    font-size: 0.72rem;
+  }
+}
+
+/* Tarjous kortin alaosassa tietorivin alla pienenä oranssina pillerinä
+   (käyttäjän pyyntö 3.11.2026). Kuva jää puhtaaksi. */
+.restaurant-card__offer {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--delivo-orange);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: #fff;
+}
+
+/* Pidempi tarjousteksti mahtuu korttiin: tarvittaessa katkaistaan. */
+.restaurant-card__offer {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}

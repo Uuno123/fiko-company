@@ -240,15 +240,23 @@ export const ALL = 'Kaikki'
 export const CATEGORY_TILE_META = {
   // Flätit kuvakkeet: Microsoft Fluent Emoji Flat (MIT-lisenssi,
   // public/flat-icons/LICENSE-fluent-emoji.txt), käyttäjän pyyntö 3.11.2026.
-  Burgerit: { img: '/category-burger.webp', icon: '/flat-icons/hamburger.svg' },
-  'Kebab & Pizza': { img: '/category-pizza.webp', icon: '/flat-icons/pizza.svg' },
-  Salaatit: { img: '/category-salad.webp', icon: '/flat-icons/green_salad.svg' },
-  Aasialainen: { img: '/category-sushi.webp', icon: '/flat-icons/sushi.svg' },
+  // Burgeri: käyttäjän antama kuva, ruudukkotausta poistettu (3.11.2026).
+  Burgerit: { img: '/category-burger.webp', icon: '/category-burger-photo.webp' },
+  // Pizza: käyttäjän antama kuva (pizza_category_hd.png, 3.11.2026).
+  'Kebab & Pizza': { img: '/category-pizza.webp', icon: '/category-pizza-photo.webp' },
+  // Salaatti: käyttäjän antama kuva (3.11.2026).
+  Salaatit: { img: '/category-salad.webp', icon: '/category-salad-photo.webp' },
+  // Sushi: käyttäjän antama kuva (3.11.2026).
+  Aasialainen: { img: '/category-sushi.webp', icon: '/category-sushi-photo.webp' },
   Kahvila: { img: '/category-dessert.webp', icon: '/flat-icons/hot_beverage.svg' },
-  Italialainen: { img: '/category-pasta.webp', icon: '/flat-icons/spaghetti.svg' },
-  Kotiruoka: { img: '/category-chicken.webp', icon: '/flat-icons/pot_of_food.svg' },
-  Kebab: { img: '/category-kebab.webp', icon: '/flat-icons/stuffed_flatbread.svg' },
-  Ramen: { img: '/category-ramen.webp', icon: '/category-ramen-icon.webp' },
+  // Pasta: käyttäjän antama kuva (3.11.2026).
+  Italialainen: { img: '/category-pasta.webp', icon: '/category-pasta-photo.webp' },
+  // Kotiruoka: käyttäjän antama kuva (3.11.2026).
+  Kotiruoka: { img: '/category-chicken.webp', icon: '/category-kotiruoka-photo.webp' },
+  // Kebab: käyttäjän antama kuva, ruudukkotausta poistettu (3.11.2026).
+  Kebab: { img: '/category-kebab.webp', icon: '/category-kebab-photo.webp' },
+  // Ramen: käyttäjän antama kuva, ruudukkotausta poistettu (3.11.2026).
+  Ramen: { img: '/category-ramen.webp', icon: '/category-ramen-photo.webp' },
   Kiinalainen: { img: '/category-chinese.webp', icon: '/category-chinese-icon.webp' },
   // Uudet kategoriat 29.10.2026: vain piirretty kuvake (ei valokuvaa), ei vielä ravintoloita.
   Thai: { img: '/category-thai-icon.webp', icon: '/category-thai-icon.webp' },
