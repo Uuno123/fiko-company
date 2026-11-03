@@ -43,6 +43,7 @@ import {
 } from '../lib/format.js'
 import { addressTypeLabel, hasSavedAddress, savedApartmentLine, savedCourierNotes } from '../lib/customerAddress.js'
 import './RegisterAddress.css'
+import { getOrderMode, saveOrderMode } from '../lib/orderMode.js'
 import './Cart.css'
 
 const STRIPE_APPEARANCE = {
@@ -372,7 +373,7 @@ function Cart() {
   // jolloin reittikartta näkyy heti eikä osoitetta tarvitse hakea uudelleen.
   const [savedAddress] = useState(getDeliveryAddress)
   const [delivery, setDelivery] = useState({
-    method: 'delivery',
+    method: getOrderMode(),
     name: '',
     phone: '',
     // address on kartalta valittu osoite, street/postalCode/city sen muokattavat osat
@@ -387,6 +388,10 @@ function Cart() {
     leaveAtDoor: true,
     notes: '',
   })
+  // Kassan valinta muistetaan myös etusivun Toimitus/Nouto-napille (lib/orderMode.js).
+  useEffect(() => {
+    saveOrderMode(delivery.method)
+  }, [delivery.method])
   const [addressModalOpen, setAddressModalOpen] = useState(false)
   const closeAddressModal = useCallback(() => setAddressModalOpen(false), [])
   // Asiakas on muuttanut osoitetta tai kuljettajan tietoja tässä kassassa -

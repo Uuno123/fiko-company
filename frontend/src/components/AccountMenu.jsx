@@ -73,16 +73,19 @@ function AccountMenu({ currentPath, variant }) {
           </Link>
         </div>
 
-        {/* Mobiili: pelkkä musta Kirjaudu-nappi - käyttäjäikoni näkyy vasta
-            kirjautuneena (käyttäjän pyyntö 29.10.2026). Rekisteröityminen
-            löytyy kirjautumissivulta. */}
-        <Link
-          to="/login"
-          state={{ from: currentPath }}
-          className={`auth-login-btn${variant === 'overlay' ? ' auth-login-btn--overlay' : ''}`}
-        >
-          <span className="auth-login-btn__label">Kirjaudu</span>
-        </Link>
+        {/* Mobiili: harmaa pyöreä käyttäjäikoni (kirjautuminen) ja musta
+            Liity-pilleri (rekisteröityminen), käyttäjän mallikuva 3.11.2026. */}
+        <div className={`auth-login-btn${variant === 'overlay' ? ' auth-login-btn--overlay' : ''}`}>
+          <Link to="/login" state={{ from: currentPath }} className="auth-login-btn__icon" aria-label="Kirjaudu">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20.2C4 16.5 7.6 14 12 14s8 2.5 8 6.2c0 .45-.35.8-.8.8H4.8a.8.8 0 0 1-.8-.8Z" />
+            </svg>
+          </Link>
+          <Link to="/register" state={{ from: currentPath }} className="auth-login-btn__join">
+            Liity
+          </Link>
+        </div>
       </>
     )
   }

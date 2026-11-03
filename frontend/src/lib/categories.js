@@ -27,6 +27,8 @@ export const FILLER_TEMPLATES_BY_CATEGORY = {
     { name: 'Hesburger Kuopio Puijonkatu', keywords: ['hese'], rating: 4.0, pickup_estimate_minutes: 14, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67ea79d0e3aca1debaea9cdd' },
     { name: 'Burger King Kuopio Kauppakatu', rating: 4.2, pickup_estimate_minutes: 16, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/673206fbae168d77add71220' },
     { name: 'Hook Kuopio', rating: 4.6, pickup_estimate_minutes: 18, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/697ca18d8d71993ce3310d3c' },
+    { name: "Barot's Kuopio", rating: 4.5, pickup_estimate_minutes: 15, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6732147ca94945236d40b602' },
+    { name: "Chitir Chicken Kuopio", rating: 4.4, pickup_estimate_minutes: 15, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/692d7d6a6e49547bd7f44458' },
   ],
   // Liitä oma kuvalinkki lainausmerkkien väliin (image_url: 'https://...') -
   // sama tyhjä-kelpaa-periaate kuin Burgerit-listalla.
@@ -36,6 +38,54 @@ export const FILLER_TEMPLATES_BY_CATEGORY = {
     { name: 'Marina Pizzeria', rating: 4.4, pickup_estimate_minutes: 18, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/6810cc1ab4526c355f4c532e' },
     { name: 'Marmara Pizzeria', rating: 4.4, pickup_estimate_minutes: 22, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/6735db0c9a62d71e30a74cfa' },
     { name: 'Kuopion Pizzatori', rating: 4.6, pickup_estimate_minutes: 15, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6900e59a1c0a709b4414269a' },
+  ],
+  // Lisää Kuopion ravintoloita Woltin listalta kuvineen (käyttäjän pyyntö
+  // 3.11.2026). Kuvat ja nimet vain suunnittelua varten - luvat ennen julkaisua.
+  Aasialainen: [
+    { name: "Ozaki Sushi", rating: 4.5, pickup_estimate_minutes: 20, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67332fbb149445354de03f5c' },
+    { name: "Maido Restaurant", rating: 4.7, pickup_estimate_minutes: 20, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6968c27738b41bac5ad3f942' },
+    { name: "CaiJi Noodle House", rating: 4.6, pickup_estimate_minutes: 20, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/67335eb4a7cc62434f9d9b99' },
+    { name: "Kickin Korean Kauppakatu", rating: 4.3, pickup_estimate_minutes: 15, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6928177df7880d70c7d25991' },
+    { name: "SEOUL GOOD Matkus", rating: 4.7, pickup_estimate_minutes: 40, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67c56e69bbc4b81204a2fe41' },
+    { name: "Luckiefun's Matkus", rating: 4.5, pickup_estimate_minutes: 45, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/68401d07d1cf4208775f49e7' },
+    { name: "Sweetown Apaja", rating: 4.6, pickup_estimate_minutes: 20, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67321470479a971266a6ae92' },
+  ],
+  Kiinalainen: [
+    { name: "Dragon Sheng Kuopio", rating: 4.6, pickup_estimate_minutes: 15, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67332fc0e01243558b0bfc31' },
+    { name: "Nopsa Kulma", rating: 4.4, pickup_estimate_minutes: 15, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/6a3b98191eb69a0aa2253129' },
+  ],
+  Intialainen: [
+    { name: "Sanskriti", rating: 4.6, pickup_estimate_minutes: 25, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/673214696da31462759195ac' },
+    { name: "Namaste Kuopio", rating: 4.3, pickup_estimate_minutes: 20, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6732075e5521ce1fc3440826' },
+    { name: "Mandala Kuopio", rating: 4.6, pickup_estimate_minutes: 15, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/67333005ff1e1d7f67656ef9' },
+  ],
+  Bowlit: [
+    { name: "Huuva Kuopio", rating: 4.2, pickup_estimate_minutes: 30, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6a5dfe7aca398677dbafa2c2' },
+  ],
+  Aamiainen: [
+    { name: "Café Trube", rating: 4.8, pickup_estimate_minutes: 10, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/678912f0362be7192070c3a7' },
+    { name: "Espresso House Carlson", rating: 4.6, pickup_estimate_minutes: 10, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/68ac0080b9fd37e9e940a5c2' },
+    { name: "Kahvila & Kakkukauppa Houkutus Kuopio", rating: 4.5, pickup_estimate_minutes: 10, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67332fc129cd4b694e529c63' },
+    { name: "Arnolds Matkus", rating: 4.7, pickup_estimate_minutes: 40, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6908589e172128e180fba8f8' },
+    { name: "Lentävä Kalakukko", rating: 4.9, pickup_estimate_minutes: 15, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/686cc6ce6155cf1e51168479' },
+  ],
+  Salaatit: [
+    { name: "Subway Vuorikatu", rating: 4.4, pickup_estimate_minutes: 10, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/68a861195a13d705dbfaa783' },
+    { name: "SalaCavala", rating: 4.6, pickup_estimate_minutes: 15, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/678926a69573123c59b6e3c0' },
+    { name: "Picnic Matkus", rating: 4.6, pickup_estimate_minutes: 35, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/67c9a41c150e92790bee97e8' },
+  ],
+  Kotiruoka: [
+    { name: "Muikkuravintola Sampo", rating: 4.5, pickup_estimate_minutes: 15, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/673208c4b5de01710c50a83a' },
+    { name: "Lounaskahvila Hilima", rating: 4.5, pickup_estimate_minutes: 10, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6732148e479a971266a6b166' },
+  ],
+  Tacot: [
+    { name: "Pancho Villa / Kuopio", rating: 4.2, pickup_estimate_minutes: 30, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/67332fb5827209684f08e301' },
+    { name: "Wrapito Tex-Mex", rating: 4.2, pickup_estimate_minutes: 55, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6a438bc58866826f06471258' },
+  ],
+  Italialainen: [
+    { name: "Pizzeria Sorrento", rating: 4.4, pickup_estimate_minutes: 15, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67320809b5de01710c50a016' },
+    { name: "Fjorno", rating: 4.7, pickup_estimate_minutes: 15, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/67331c914d55f07b7e8941ef' },
+    { name: "Blocco", rating: 4.6, pickup_estimate_minutes: 10, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67332fe2f80c1126648b754d' },
   ],
   // Vain ravintolat, joille on annettu oikea Wolt-kuva (käyttäjän pyyntö
   // 3.11.2026). Keksityt ravintolat ja omat/Unsplash-kuvat poistettu.
