@@ -156,7 +156,7 @@ function RestaurantCard({
           <span className="restaurant-card__offer">
             {/* Pidempi kuvaus kortin alaosan pillerissä (käyttäjän pyyntö 3.11.2026),
                 edessä prosentti-ikoni. */}
-            <BadgePercent size={13} strokeWidth={2.4} aria-hidden="true" />
+            <BadgePercent size={11} strokeWidth={2.4} aria-hidden="true" />
             <span>{badge.text}</span>
           </span>
         )}
