@@ -2100,3 +2100,52 @@
     margin-right: -6px;
   }
 }
+
+/* Matalampi kortti ja vielä kevyempi varjo (käyttäjän pyyntö 3.11.2026):
+   kuva 1.8:1 -> 2.15:1, tiiviimpi tekstiosa. */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__media,
+.search-results__restaurant-grid .restaurant-card__media,
+.category-page__list .restaurant-card__media {
+  aspect-ratio: 2.15 / 1;
+}
+
+.page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  min-height: 0;
+  padding: 10px 14px 12px;
+  gap: 2px;
+}
+
+.page--home .category-row:not(.category-row--deals) .restaurant-card,
+.search-results__restaurant-grid .restaurant-card,
+.category-page__list .restaurant-card {
+  box-shadow:
+    0 0 6px -3px rgba(20, 21, 15, 0.08),
+    0 4px 10px -7px rgba(20, 21, 15, 0.18);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page--home .category-row:not(.category-row--deals) .restaurant-card:hover,
+  .search-results__restaurant-grid .restaurant-card:hover,
+  .category-page__list .restaurant-card:hover {
+    box-shadow:
+      0 0 10px -3px rgba(20, 21, 15, 0.12),
+      0 8px 18px -10px rgba(20, 21, 15, 0.24);
+  }
+}
+
+/* Kaikki kortit samankorkuisiksi myös matalampina. */
+.page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  min-height: 92px;
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+  .search-results__restaurant-grid .restaurant-card__body,
+  .category-page__list .restaurant-card__body {
+    min-height: 91px;
+  }
+}
