@@ -65,7 +65,7 @@ export const FILLER_TEMPLATES_BY_CATEGORY = {
   Aamiainen: [
     { name: "Café Trube", rating: 4.8, pickup_estimate_minutes: 10, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/678912f0362be7192070c3a7' },
     { name: "Espresso House Carlson", rating: 4.6, pickup_estimate_minutes: 10, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/68ac0080b9fd37e9e940a5c2' },
-    { name: "Kahvila & Kakkukauppa Houkutus Kuopio", rating: 4.5, pickup_estimate_minutes: 10, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67332fc129cd4b694e529c63' },
+    { name: "Kahvila Houkutus Kuopio", rating: 4.5, pickup_estimate_minutes: 10, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67332fc129cd4b694e529c63' },
     { name: "Arnolds Matkus", rating: 4.7, pickup_estimate_minutes: 40, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6908589e172128e180fba8f8' },
     { name: "Lentävä Kalakukko", rating: 4.9, pickup_estimate_minutes: 15, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/686cc6ce6155cf1e51168479' },
   ],

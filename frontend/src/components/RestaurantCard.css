@@ -636,3 +636,12 @@
   text-overflow: ellipsis;
   box-sizing: border-box;
 }
+
+/* Hillitympi tarjouspilleri (käyttäjän pyyntö 3.11.2026): pehmeämpi oranssi
+   pohja valkoisella tekstillä - ei yhtä räikeä kuin täysi oranssi, mutta
+   erottuu selvästi vaaleasta Ilmainen kuljetus -merkistä. */
+.restaurant-card__offer {
+  background: #fb7d4b;
+  color: #fff;
+  font-weight: 650;
+}

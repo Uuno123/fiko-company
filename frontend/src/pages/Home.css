@@ -2462,3 +2462,65 @@
     --card-n: 4.6;
   }
 }
+
+/* Ravintolat hyvin hentoina kortteina (käyttäjän pyyntö 3.11.2026): valkoinen
+   pohja, ohut reuna ja tuskin näkyvä varjo. Kuva kortin yläosassa, teksti
+   kortin sisällä. Kortit pysyvät yhtä korkeina. */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card,
+.search-results__restaurant-grid .restaurant-card,
+.category-page__list .restaurant-card {
+  overflow: hidden;
+  border: 1px solid rgba(20, 21, 15, 0.05);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(20, 21, 15, 0.04),
+    0 6px 14px -10px rgba(20, 21, 15, 0.18);
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__media,
+.search-results__restaurant-grid .restaurant-card__media,
+.category-page__list .restaurant-card__media {
+  border-radius: 0;
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  min-height: 78px;
+  padding: 5px 11px 10px;
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__body,
+  .search-results__restaurant-grid .restaurant-card__body,
+  .category-page__list .restaurant-card__body {
+    min-height: 77px;
+  }
+}
+
+/* Otsikko lähemmäs kuvaa (käyttäjän pyyntö 3.11.2026): yllä padding 9 -> 5 px. */
+
+/* Persoonallisempi fontti etusivun riviotsikoille (käyttäjän pyyntö
+   3.11.2026): Bricolage Grotesque (Google Fonts, ilmainen). */
+.page--home .category-row__title {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Rivit paljon lähemmäs toisiaan (käyttäjän pyyntö 3.11.2026). */
+.page--home .category-row:not(.category-row--deals),
+.page--home .category-row + .category-row:not(.category-row--deals) {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__header {
+  margin-bottom: 8px;
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll {
+  padding-top: 2px;
+  padding-bottom: 8px;
+}
