@@ -338,3 +338,38 @@
     font-size: 0.8rem;
   }
 }
+
+/* Puhelimella käyttäjäikoni + Liity (käyttäjän mallikuva 3.11.2026). */
+@media (max-width: 640px) {
+  .auth-login-btn {
+    gap: 8px;
+  }
+
+  .auth-login-btn__icon {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--round-button-bg);
+    color: var(--delivo-black);
+  }
+
+  .auth-login-btn__icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .auth-login-btn__join {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: var(--delivo-black);
+    color: #fff;
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+}

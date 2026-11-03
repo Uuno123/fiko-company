@@ -13,7 +13,8 @@ import { restaurantThumb } from '../lib/brandLogos.js'
 // showAddress: toimitusosoite logon vieressä (selaussivut). Osoiteikkuna itse
 // on AddressGatessa, jotta sama ikkuna aukeaa myös ensikäynnillä.
 // flatUntilScroll: ei varjoa ennen kuin sivua vieritetään (hakutulokset).
-function Header({ search, showAddress, cart, variant, back, actions, hideAccount, flatUntilScroll }) {
+// cartAlways: ostoskorinappi näkyy myös tyhjänä (vie ostoskorisivulle).
+function Header({ search, showAddress, cart, variant, back, actions, hideAccount, flatUntilScroll, cartAlways }) {
   const location = useLocation()
   const navigate = useNavigate()
   const deliveryAddress = useDeliveryAddress()
@@ -262,6 +263,13 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
         <div className="site-header__right">
           {/* Käynnissä olevan tilauksen kellonappi tulee tähän (ActiveOrderBubble). */}
           <div id="header-order-slot" className="header-order-slot" />
+          {cartAlways && !(cart && cart.count > 0) && (
+            <div className="cart-menu">
+              <Link to="/ostoskori" className="cart-menu__trigger" aria-label="Ostoskori">
+                <CartIcon />
+              </Link>
+            </div>
+          )}
           {cart && cart.count > 0 && (
             <div className="cart-menu" ref={cartRef}>
               <button

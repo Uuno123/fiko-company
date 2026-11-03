@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, ChevronDown, Search } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, ChevronDown, Search } from 'lucide-react'
+import BottomSheet from '../components/BottomSheet.jsx'
+import { ORDER_MODES, getOrderMode, saveOrderMode } from '../lib/orderMode.js'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
@@ -57,12 +59,81 @@ const NEARBY_ROW = 'Lähelläsi'
 // (/kategoria/...) ja ruudunlukijan nuolinapit käyttävät edelleen kategorian
 // nimeä. Puuttuva kategoria näkyy omalla nimellään.
 const ROW_TITLES = { [NEARBY_ROW]: 'Aivan nurkan takana', ...CATEGORY_SLOGANS }
+
+// Etusivun rivit teemoina ruokalajien sijaan (käyttäjän pyyntö 3.11.2026): ei
+// rivejä, joissa on vierekkäin pelkkiä pizzoja tai burgereita. Jokainen rivi
+// kokoaa ravintolat kaikista kategorioista omalla järjestyksellään, ja
+// mixCategories pitää vierekkäiset kortit eri kategorioista. seeAll: hakusana,
+// jonka hakusivu tunnistaa (lib/quickFilters.js).
+const THEME_ROWS = [
+  { id: 'Suosikit', title: 'Asiakkaiden suosikit', compare: SORT_COMPARATORS.rating, seeAll: 'Arvio 9+' },
+  { id: 'Nopeat', title: 'Nopeasti perillä', compare: SORT_COMPARATORS.eta, seeAll: 'Alle 30 min' },
+  // McDonald'sin tilalla Hesburger (käyttäjän pyyntö 3.11.2026): exclude pois
+  // riviltä, first rivin ensimmäiseksi.
+  {
+    id: 'Uutta',
+    title: 'Kokeile jotain uutta',
+    compare: byNameHash,
+    seeAll: 'Lähelläsi',
+    exclude: ["McDonald's Kuopio Tehtaankatu"],
+    first: 'Hesburger Kuopio Puijonkatu',
+  },
+  // Lisää teemarivejä (käyttäjän pyyntö 3.11.2026). categories: rivillä vain
+  // nämä kategoriat, silti sekaisin.
+  {
+    id: 'Maailma',
+    title: 'Maailman makuja',
+    compare: byNameHash,
+    categories: ['Aasialainen', 'Kiinalainen', 'Intialainen', 'Tacot', 'Italialainen', 'Kreikkalainen'],
+  },
+  {
+    id: 'Kevyet',
+    title: 'Kevyesti ja raikkaasti',
+    compare: SORT_COMPARATORS.rating,
+    categories: ['Salaatit', 'Bowlit', 'Aasialainen', 'Aamiainen', 'Vegaani'],
+  },
+  {
+    id: 'Lounas',
+    title: 'Lounasaikaan',
+    compare: SORT_COMPARATORS.eta,
+    categories: ['Kotiruoka', 'Salaatit', 'Intialainen', 'Kiinalainen', 'Italialainen'],
+  },
+  {
+    id: 'Ilta',
+    title: 'Iltanälkään',
+    compare: SORT_COMPARATORS.rating,
+    categories: ['Burgerit', 'Kebab & Pizza', 'Tacot', 'Kiinalainen', 'Aasialainen'],
+  },
+]
+const THEME_ROW_COUNT = 15
+
+// Tasainen mutta sekoitettu järjestys "Kokeile jotain uutta" -riville.
+function nameHash(name) {
+  let hash = 7
+  for (const char of String(name ?? '')) hash = (hash * 33 + char.charCodeAt(0)) >>> 0
+  return hash
+}
+function byNameHash(a, b) {
+  return nameHash(a.name) - nameHash(b.name)
+}
+
+// Järjestys säilyy, mutta seuraavaksi otetaan ensimmäinen ravintola, jonka
+// kategoria eroaa edellisestä kortista. Jos sellaista ei ole, otetaan seuraava.
+function mixCategories(items) {
+  const rest = [...items]
+  const mixed = []
+  while (rest.length > 0) {
+    const last = mixed[mixed.length - 1]
+    const index = last ? rest.findIndex((r) => r.category !== last.category) : 0
+    mixed.push(rest.splice(index < 0 ? 0 : index, 1)[0])
+  }
+  return mixed
+}
 // Kovimmat tarjoukset -rivi tulee tätä kategoriariviä seuraavan rivin jälkeen
 // (käyttäjän pyyntö 29.10.2026: yksi ravintolarivi lisää ennen tarjouksia).
 // Ravintolat ja järjestys: DEALS_RESTAURANTS (lib/categories.js, sama lista
 // kuin haussa).
-const DEALS_AFTER = 'Kebab & Pizza'
-const DEALS_ROWS_AFTER = 1
+const DEALS_ROWS_AFTER = 2
 const FREE_DELIVERY_ROWS_AFTER = 2
 
 // Sama ravintola ei saa näkyä allekkaisten rivien alussa yhtä aikaa (käyttäjän
@@ -102,7 +173,7 @@ const SHOW_HOME_ADS = false
 
 // KOKEILU 3.11.2026 (käyttäjän pyyntö): kategoriakuvakkeet pois etusivulta.
 // Takaisin: SHOW_HOME_CATEGORIES = true.
-const SHOW_HOME_CATEGORIES = true
+const SHOW_HOME_CATEGORIES = false
 // Kategorioiden määrä etusivulla ja haun kategorialistassa.
 const HOME_CATEGORY_COUNT = 8
 
@@ -201,6 +272,9 @@ function Home() {
   const [adIndex, setAdIndex] = useState(0)
   const { favoriteIds, toggleFavorite } = useFavorites()
   const [searchOpen, setSearchOpen] = useState(false)
+  // Toimitus/nouto-valinta osoitteen vieressä (Uber Eatsin tapaan, 3.11.2026).
+  const [orderMode, setOrderMode] = useState(getOrderMode)
+  const [modeSheetOpen, setModeSheetOpen] = useState(false)
   // Työpöydän kategoriarivin vierityspainike.
   const catsRef = useRef(null)
   // Työpöydän logorivin vierityspainike.
@@ -339,11 +413,40 @@ function Home() {
   // Kategoriarivit näkyvät nyt myös työpöydällä (otsikko + vaakarivi, kuten
   // Woltissa). activeCategory tulee vain ?category=-parametrista - työpöydän
   // kategorialaatikot vievät nykyään hakutuloksiin eivätkä suodata tätä sivua.
+  // Teemarivit kaikista ravintoloista (sama ravintola vain kerran per rivi).
+  const allRowRestaurants = mobileCategoryGroups
+    .flatMap((group) => group.items.map(({ sponsored: _sponsored, ...r }) => r))
+    .filter((r, index, all) => all.findIndex((other) => other.name === r.name) === index)
+  const themeGroups = THEME_ROWS.map((row) => ({
+    category: row.id,
+    title: row.title,
+    seeAll: row.seeAll,
+    first: row.first,
+    items: rankRestaurants(
+      allRowRestaurants.filter(
+        (r) => (!row.categories || row.categories.includes(r.category)) && !row.exclude?.includes(r.name),
+      ),
+      {
+        address: deliveryAddress,
+        popularity,
+        compare: row.compare,
+      },
+    )
+      // first mukaan rivin alkuun ennen rajausta, ettei se putoa pois.
+      .sort((x, y) => (y.name === row.first) - (x.name === row.first))
+      .slice(0, THEME_ROW_COUNT),
+  })).filter((group) => group.items.length > 0)
+
   const visibleCategoryGroups = avoidRepeatedStarts(
     activeCategory === ALL
-      ? [...(nearbyGroup ? [nearbyGroup] : []), ...mobileCategoryGroups]
+      ? [...(nearbyGroup ? [nearbyGroup] : []), ...themeGroups]
       : mobileCategoryGroups.filter((group) => group.category === activeCategory),
-  )
+  ).map((group) => {
+    const items = mixCategories(group.items)
+    const firstIndex = group.first ? items.findIndex((r) => r.name === group.first) : -1
+    if (firstIndex > 0) items.unshift(...items.splice(firstIndex, 1))
+    return { ...group, items }
+  })
 
   // Kovimmat tarjoukset -rivi (DealsRow) Kebab & Pizzaa seuraavan rivin jälkeen:
   // DEALS_RESTAURANTS-listan ravintolat samoista (täydennetyistä) riveistä,
@@ -355,7 +458,7 @@ function Home() {
     .map(({ sponsored: _sponsored, ...r }) => r)
   const dealsAnchorIndex =
     activeCategory === ALL && dealsItems.length > 0
-      ? visibleCategoryGroups.findIndex((group) => group.category === DEALS_AFTER)
+      ? 0
       : -1
   const dealsAfterIndex =
     dealsAnchorIndex < 0 ? -1 : Math.min(dealsAnchorIndex + DEALS_ROWS_AFTER, visibleCategoryGroups.length - 1)
@@ -622,6 +725,9 @@ function Home() {
       <Header
         search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Hae ravintoloita...' }}
         showAddress
+        // Ostoskori aina näkyvissä kirjautuneelle (käyttäjän pyyntö 3.11.2026).
+        // Kirjautumattomalle vain, kun korissa on tuotteita.
+        cartAlways={isAuthenticated}
         // Puhelimella haku avautuu headerin suurennuslasista (käyttäjän pyyntö
         // 3.11.2026, hakupalkki poistettu). Työpöydällä piilossa (Home.css).
         actions={
@@ -669,13 +775,48 @@ function Home() {
               onClick={openAddressPicker}
             >
               {/* Woltin tapaan pieni "Toimita nyt" ja lihava osoite (käyttäjän mallikuva 3.11.2026). */}
-              <span className="home-address__label">Toimita nyt</span>
+              <span className="home-address__label">{orderMode === 'pickup' ? 'Nouda nyt' : 'Toimita nyt'}</span>
               <span className="home-address__value">
                 <span>{deliveryAddress?.label ?? 'Lisää osoite'}</span>
                 <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
               </span>
             </button>
+            <button
+              type="button"
+              className="home-mode-pill"
+              aria-haspopup="dialog"
+              onClick={() => setModeSheetOpen(true)}
+            >
+              {ORDER_MODES.find((m) => m.value === orderMode)?.label}
+              <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
+            </button>
           </div>
+
+          {modeSheetOpen && (
+            <BottomSheet compact onClose={() => setModeSheetOpen(false)} labelledBy="order-mode-title">
+              {(close) => (
+                <div className="order-mode-sheet">
+                  <h2 id="order-mode-title">Tilaustapa</h2>
+                  {ORDER_MODES.map((mode) => (
+                    <button
+                      key={mode.value}
+                      type="button"
+                      className="order-mode-sheet__option"
+                      aria-pressed={orderMode === mode.value}
+                      onClick={() => {
+                        setOrderMode(mode.value)
+                        saveOrderMode(mode.value)
+                        close()
+                      }}
+                    >
+                      <span>{mode.label}</span>
+                      {orderMode === mode.value && <Check size={18} strokeWidth={2.6} aria-hidden="true" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </BottomSheet>
+          )}
 
           {/* Puhelimella header vierii pois ja vain haku jää ylälaitaan (käyttäjän
               pyyntö 29.10.2026). Oma lohkonsa suoraan mainin alla, jotta kiinnitys
@@ -804,22 +945,22 @@ function Home() {
           {status === 'ready' && visibleCategoryGroups.length > 0 && (
             <div className="category-rows">
               {visibleCategoryGroups.map(
-                ({ category, items }, groupIndex) =>
+                ({ category, title, seeAll, items }, groupIndex) =>
                   items.length > 0 && (
                     <Fragment key={category}>
                       <section className="category-row" id={`cat-${categorySlug(category)}`}>
                         <div className="category-row__header">
-                          <h2 className="category-row__title">{ROW_TITLES[category] ?? category}</h2>
+                          <h2 className="category-row__title">{title ?? ROW_TITLES[category] ?? category}</h2>
                           <div className="category-row__actions">
                             {/* Lähelläsi-rivi vie hakuun lähimmästä alkaen (3.11.2026). */}
                             <Link
                               className="category-row__see-all"
                               to={
-                                category === NEARBY_ROW
-                                  ? `/haku?q=${encodeURIComponent('Lähelläsi')}`
+                                seeAll || category === NEARBY_ROW
+                                  ? `/haku?q=${encodeURIComponent(seeAll ?? 'Lähelläsi')}`
                                   : `/kategoria/${categorySlug(category)}`
                               }
-                              aria-label={`Kaikki: ${category}`}
+                              aria-label={`Kaikki: ${title ?? category}`}
                             >
                               {/* Puhelimella pelkkä nuoli harmaalla pallolla (Home.css). */}
                               <span className="category-row__see-all-text">Näytä kaikki</span>
