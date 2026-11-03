@@ -685,3 +685,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Pienemmät tarjousmerkit (käyttäjän pyyntö 3.11.2026). */
+.restaurant-card__offer {
+  gap: 3px;
+  padding: 2px 7px 2px 5px;
+  font-size: 0.64rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 560px) {
+  .restaurant-card__offer {
+    font-size: 0.62rem;
+  }
+}
