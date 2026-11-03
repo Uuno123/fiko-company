@@ -2458,34 +2458,8 @@
   padding-bottom: 18px;
 }
 
-/* Kokeilu: koko etusivulle hieman harmaampi tausta puhtaan valkoisen sijaan
-   (käyttäjän pyyntö 3.11.2026). Valkoiset kortit ja hakupalkki erottuvat
-   taustasta. --delivo-bg ohjaa myös kiinnittyvän hakupalkin taustaa. */
-.page--home {
-  --delivo-bg: #f4f4f2;
-  background: var(--delivo-bg);
-}
-
-.page--home .site-header:not(.site-header--dark):not(.site-header--overlay) {
-  background: var(--delivo-bg);
-}
-
-.page--home .home-search-sticky .home-search {
-  background: #fff;
-}
-
-@media (max-width: 560px) {
-  .page--home .home-search-sticky .home-search {
-    background: #fff;
-  }
-}
-
-@media (max-width: 560px) {
-  .page--home .home-mobile-top {
-    background: var(--delivo-bg);
-  }
-}
-
+/* Harmaa taustakokeilu poistettu: tausta taas valkoinen (käyttäjän pyyntö
+   3.11.2026). Hakupalkki lähes valkoisena kuten ennen kokeilua. */
 /* Tiiviimpi kortin tekstiosa (käyttäjän pyyntö 3.11.2026): vähemmän tyhjää
    kortin alaosassa. Kortit pysyvät yhtä korkeina. */
 .page--home .category-row:not(.category-row--deals) .restaurant-card__body,
