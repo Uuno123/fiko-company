@@ -23,13 +23,12 @@ const OFFER_BADGES = [
   { value: '−15%', note: 'noudosta', text: '−15 % noudosta (max 5 €)', tone: 'black' },
 ]
 
-// Sama ravintola saa aina saman merkin. Noin 2/5 korteista ilman merkkiä;
-// alwaysBadge: nostoriveillä aina merkki. Burgereilla −30 %.
-function offerBadge(restaurant, alwaysBadge) {
+// Sama ravintola saa aina saman merkin. Jokaisella ravintolalla on merkki
+// (käyttäjän pyyntö 3.11.2026, aiemmin noin 2/5 ilman). Burgereilla −30 %.
+function offerBadge(restaurant) {
   const key = String(restaurant.id ?? restaurant.name ?? '')
   let hash = 0
   for (const char of key) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
-  if (!alwaysBadge && hash % 5 < 2) return null
   if (restaurant.category === 'Burgerit') return OFFER_BADGES[0]
   return OFFER_BADGES[hash % OFFER_BADGES.length]
 }
@@ -39,7 +38,6 @@ function RestaurantCard({
   disabled,
   isFavorite,
   onToggleFavorite,
-  alwaysBadge = false,
   badgeStyle = 'corner',
 }) {
   const {
@@ -54,7 +52,7 @@ function RestaurantCard({
   } = restaurant
 
   const etaRange = formatEtaRange(pickupEstimateMinutes)
-  const badge = offerBadge(restaurant, alwaysBadge)
+  const badge = offerBadge(restaurant)
 
   // Yksi tietorivi: arvosana · aika · kuljetus (käyttäjän pyyntö 3.11.2026).
   // Etäisyys pois korteista; etäisyys vaikuttaa edelleen järjestykseen, lib/ranking.js).
