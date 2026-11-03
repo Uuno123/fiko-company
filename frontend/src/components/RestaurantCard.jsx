@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Heart } from 'lucide-react'
+import { BadgePercent, Heart } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { ScoreSmiley } from './Smiley.jsx'
 import { DELIVERY_PRICE_RANGE, formatEtaRange } from '../lib/delivery.js'
@@ -154,8 +154,10 @@ function RestaurantCard({
 
         {badge && badgeStyle !== 'sticker' && (
           <span className="restaurant-card__offer">
-            {/* Pidempi kuvaus kortin alaosan pillerissä (käyttäjän pyyntö 3.11.2026). */}
-            {badge.text}
+            {/* Pidempi kuvaus kortin alaosan pillerissä (käyttäjän pyyntö 3.11.2026),
+                edessä prosentti-ikoni. */}
+            <BadgePercent size={13} strokeWidth={2.4} aria-hidden="true" />
+            <span>{badge.text}</span>
           </span>
         )}
       </div>
