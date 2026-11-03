@@ -645,3 +645,19 @@
   color: #fff;
   font-weight: 650;
 }
+
+/* Kuljetushinta tarjouksena (käyttäjän valinta 3.11.2026): logon oranssi
+   piste ja "Tarjoa 1,99–7,99 €". */
+.restaurant-card__bid {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.restaurant-card__bid-dot {
+  flex-shrink: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+}

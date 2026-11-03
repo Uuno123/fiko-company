@@ -311,7 +311,7 @@ function SearchResults() {
         {status === 'ready' && !query.trim() && <p className="state-message">Kirjoita jotain hakeaksesi.</p>}
 
         {status === 'ready' && query.trim() && allRestaurants.length === 0 && (
-          <p className="state-message">Ei tuloksia haulle &quot;{query}&quot;.</p>
+          <p className="state-message">Haulla &quot;{query}&quot; ei löytyny mitään. Kokeile toista sanaa.</p>
         )}
 
         {status === 'ready' && allRestaurants.length > 0 && (

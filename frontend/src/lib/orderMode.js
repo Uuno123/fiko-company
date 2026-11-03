@@ -2,9 +2,10 @@
 // Valinta muistetaan selaimessa ja kassa (Cart.jsx) aloittaa sillä tavalla.
 const STORAGE_KEY = 'delivo-order-mode'
 
+// note: lyhyt selitys valintapaneelissa (käyttäjän pyyntö 3.11.2026: persoonaa).
 export const ORDER_MODES = [
-  { value: 'delivery', label: 'Toimitus' },
-  { value: 'pickup', label: 'Nouto' },
+  { value: 'delivery', label: 'Toimitus', note: 'Kuljettaja tuo ovelle, sinä päätät hinnan' },
+  { value: 'pickup', label: 'Nouto', note: 'Haet itse ravintolasta, ei kuljetusmaksua' },
 ]
 
 export function getOrderMode() {
