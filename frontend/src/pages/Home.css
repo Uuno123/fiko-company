@@ -2149,3 +2149,43 @@
     min-height: 91px;
   }
 }
+
+/* Ravintolat taas täysin flätteinä (käyttäjän pyyntö 3.11.2026): ei kortin
+   reunaa, varjoa eikä valkoista laatikkoa - pyöristetty kuva ja teksti
+   suoraan sen alla. Ohittaa yllä olevat korttikokeilut. */
+.page--home .category-row:not(.category-row--deals) .restaurant-card,
+.search-results__restaurant-grid .restaurant-card,
+.category-page__list .restaurant-card {
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page--home .category-row:not(.category-row--deals) .restaurant-card:hover,
+  .search-results__restaurant-grid .restaurant-card:hover,
+  .category-page__list .restaurant-card:hover {
+    box-shadow: none;
+  }
+}
+
+.page--home .category-row:not(.category-row--deals) .restaurant-card__media,
+.search-results__restaurant-grid .restaurant-card__media,
+.category-page__list .restaurant-card__media {
+  border-radius: 12px;
+}
+
+.page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  padding: 10px 2px 0;
+}
+
+/* Ilman varjoa rivi ei tarvitse lisätilaa ylä- ja alapuolelle. */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll {
+  margin-top: 0;
+  padding-top: 6px;
+  padding-bottom: 14px;
+}
