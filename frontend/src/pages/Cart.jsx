@@ -977,8 +977,9 @@ function Cart() {
                 <path d="M7 6V5a3 3 0 0 1 6 0v1" stroke="currentColor" strokeWidth="1.4" />
               </svg>
             </div>
-            <h1>Ostoskorisi on tyhjä</h1>
-            <p>Selaa ravintoloita ja lisää herkullisia annoksia koriin.</p>
+            {/* Persoonallisempi teksti (käyttäjän pyyntö 3.11.2026). */}
+            <h1>Kori on vielä tyhjä</h1>
+            <p>Nälkä ei lähe odottamalla. Valitse ravintola ja lisää koriin jotain hyvvee.</p>
             <Link to="/" className="cart-empty__cta">
               Selaa ravintoloita
             </Link>
@@ -1634,8 +1635,8 @@ function Cart() {
             <h1>{order.status === 'awaiting_courier' ? 'Valitse kuljettaja' : 'Tilaus tehty!'}</h1>
             <p>
               {order.status === 'awaiting_courier'
-                ? 'Lähellä olevat kuljettajat tarjoavat hintaa kuljetukselle. Hyväksy tarjous tai tarjoa omaa hintaa.'
-                : 'Kiitos tilauksestasi. Voit seurata sitä etusivun Seuraa tilausta -painikkeesta.'}
+                ? 'Lähellä olevat kuljettajat tarjoavat hintaa kuljetuksesta. Hyväksy paras tarjous tai tee oma vastatarjous.'
+                : 'Kiitos! Laita lautaset valmiiksi. Tilausta voit seurata etusivun Seuraa tilausta -painikkeesta.'}
             </p>
             {/* Tilauksen tiedot riveinä (käyttäjän pyyntö 1.11.2026: selkeä
                 sovellusnäkymä). */}

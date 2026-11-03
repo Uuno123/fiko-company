@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Bike, Heart } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { ScoreSmiley } from './Smiley.jsx'
 import { DELIVERY_PRICE_RANGE, formatEtaRange } from '../lib/delivery.js'
@@ -76,9 +76,15 @@ function RestaurantCard({
     freeDelivery ? (
       <span key="fee" className="restaurant-card__free-badge">Ilmainen kuljetus</span>
     ) : (
-      <span key="fee" className="restaurant-card__stat">
-        <Bike size={14} aria-hidden="true" />
-        {DELIVERY_PRICE_RANGE}
+      // Hintatarjous näkyviin kortissa (käyttäjän valinta 3.11.2026): logon
+      // oranssi piste ja "Tarjoa" hinnan edessä - kuljettajat tarjoavat, asiakas valitsee.
+      <span
+        key="fee"
+        className="restaurant-card__stat restaurant-card__bid"
+        title="Kuljettajat tarjoavat hintaa, sinä valitset"
+      >
+        <span className="restaurant-card__bid-dot" aria-hidden="true" />
+        Tarjoa {DELIVERY_PRICE_RANGE}
       </span>
     ),
   ].filter(Boolean)

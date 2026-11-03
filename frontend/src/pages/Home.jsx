@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Check, ChevronDown, Search } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bike, ChevronDown, Search, ShoppingBag, Smartphone } from 'lucide-react'
 import BottomSheet from '../components/BottomSheet.jsx'
 import { ORDER_MODES, getOrderMode, saveOrderMode } from '../lib/orderMode.js'
 import Header from '../components/Header.jsx'
@@ -39,7 +39,7 @@ import {
 import WelcomeAddress from '../components/WelcomeAddress.jsx'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { formatPrice } from '../lib/format.js'
-import { BRAND_LOGOS } from '../lib/brandLogos.js'
+import { BRAND_LOGOS, brandLogoFor } from '../lib/brandLogos.js'
 import './Home.css'
 
 // Mobiilin kategoriariveille ei näytetä kahvilaosiota lainkaan (käyttäjän päätös).
@@ -66,13 +66,15 @@ const ROW_TITLES = { [NEARBY_ROW]: 'Aivan nurkan takana', ...CATEGORY_SLOGANS }
 // mixCategories pitää vierekkäiset kortit eri kategorioista. seeAll: hakusana,
 // jonka hakusivu tunnistaa (lib/quickFilters.js).
 const THEME_ROWS = [
-  { id: 'Suosikit', title: 'Asiakkaiden suosikit', compare: SORT_COMPARATORS.rating, seeAll: 'Arvio 9+' },
-  { id: 'Nopeat', title: 'Nopeasti perillä', compare: SORT_COMPARATORS.eta, seeAll: 'Alle 30 min' },
+  // Otsikot Bidropin omalla, vähän savolaisella äänellä (käyttäjän pyyntö
+  // 3.11.2026: persoonaa).
+  { id: 'Suosikit', title: 'Kuopiolaisten suosikit', compare: SORT_COMPARATORS.rating, seeAll: 'Arvio 9+' },
+  { id: 'Nopeat', title: 'Tulloo vauhilla', compare: SORT_COMPARATORS.eta, seeAll: 'Alle 30 min' },
   // McDonald'sin tilalla Hesburger (käyttäjän pyyntö 3.11.2026): exclude pois
   // riviltä, first rivin ensimmäiseksi.
   {
     id: 'Uutta',
-    title: 'Kokeile jotain uutta',
+    title: 'Uskalla kokkeilla',
     compare: byNameHash,
     seeAll: 'Lähelläsi',
     exclude: ["McDonald's Kuopio Tehtaankatu"],
@@ -82,30 +84,37 @@ const THEME_ROWS = [
   // nämä kategoriat, silti sekaisin.
   {
     id: 'Maailma',
-    title: 'Maailman makuja',
+    title: 'Maailma maistuu Kuopiossa',
     compare: byNameHash,
     categories: ['Aasialainen', 'Kiinalainen', 'Intialainen', 'Tacot', 'Italialainen', 'Kreikkalainen'],
   },
   {
     id: 'Kevyet',
-    title: 'Kevyesti ja raikkaasti',
+    title: 'Kevyttä mut hyvvee',
     compare: SORT_COMPARATORS.rating,
     categories: ['Salaatit', 'Bowlit', 'Aasialainen', 'Aamiainen', 'Vegaani'],
   },
   {
     id: 'Lounas',
-    title: 'Lounasaikaan',
+    title: 'Lounastauon pelastajat',
     compare: SORT_COMPARATORS.eta,
     categories: ['Kotiruoka', 'Salaatit', 'Intialainen', 'Kiinalainen', 'Italialainen'],
   },
   {
     id: 'Ilta',
-    title: 'Iltanälkään',
+    title: 'Iltanälkään sohvalle',
     compare: SORT_COMPARATORS.rating,
     categories: ['Burgerit', 'Kebab & Pizza', 'Tacot', 'Kiinalainen', 'Aasialainen'],
   },
 ]
 const THEME_ROW_COUNT = 15
+
+// Hakupalkin vaihtuva vihje (käyttäjän pyyntö 3.11.2026: persoonaa). Vaihtuu
+// SEARCH_HINT_MS välein, kun kenttä on tyhjä; ei vaihdu, jos käyttäjä on
+// pyytänyt vähemmän liikettä.
+const SEARCH_HINTS = ['Mitä tekis mieli?', 'Pizzaa?', 'Sushia?', 'Kebabia?', 'Jotain makeeta?', 'Burgeria?']
+const SEARCH_HINT_MS = 2600
+const MODE_ICONS = { delivery: Bike, pickup: ShoppingBag }
 
 // Tasainen mutta sekoitettu järjestys "Kokeile jotain uutta" -riville.
 function nameHash(name) {
@@ -275,6 +284,16 @@ function Home() {
   // Toimitus/nouto-valinta osoitteen vieressä (Uber Eatsin tapaan, 3.11.2026).
   const [orderMode, setOrderMode] = useState(getOrderMode)
   const [modeSheetOpen, setModeSheetOpen] = useState(false)
+  const [searchHint, setSearchHint] = useState(0)
+  // "Avaa sovellus" -napin paneeli (käyttäjän pyyntö 3.11.2026).
+  const [appSheetOpen, setAppSheetOpen] = useState(false)
+  useEffect(() => {
+    if (searchQuery) return undefined
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined
+    const timer = setInterval(() => setSearchHint((i) => (i + 1) % SEARCH_HINTS.length), SEARCH_HINT_MS)
+    return () => clearInterval(timer)
+  }, [searchQuery])
+  const ModeIcon = MODE_ICONS[orderMode] ?? Bike
   // Työpöydän kategoriarivin vierityspainike.
   const catsRef = useRef(null)
   // Työpöydän logorivin vierityspainike.
@@ -300,7 +319,10 @@ function Home() {
   useEffect(() => {
     function update() {
       const el = searchStickyRef.current
-      setSearchStuck(Boolean(el) && window.scrollY > 0 && el.getBoundingClientRect().top <= 0.5)
+      // Header pysyy puhelimella ylhäällä (3.11.2026), joten haku kiinnittyy sen alle.
+      const headerHeight =
+        parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--site-header-actual-height')) || 0
+      setSearchStuck(Boolean(el) && window.scrollY > 0 && el.getBoundingClientRect().top <= headerHeight + 0.5)
     }
     const frame = requestAnimationFrame(update)
     window.addEventListener('scroll', update, { passive: true })
@@ -436,6 +458,10 @@ function Home() {
       .sort((x, y) => (y.name === row.first) - (x.name === row.first))
       .slice(0, THEME_ROW_COUNT),
   })).filter((group) => group.items.length > 0)
+
+  // Suositut brändit -rivi (käyttäjän pyyntö 3.11.2026, Woltin malli): vain
+  // ketjut, joilla on ravintola Bidropissa, jotta laatta ei vie tyhjään hakuun.
+  const popularBrands = BRAND_LOGOS.filter((brand) => allRowRestaurants.some((r) => brandLogoFor(r.name) === brand))
 
   const visibleCategoryGroups = avoidRepeatedStarts(
     activeCategory === ALL
@@ -628,7 +654,7 @@ function Home() {
               <input
                 type="search"
                 aria-label="Hae Bidropista"
-                placeholder="Hae Bidropista"
+                placeholder="Mitä tekis mieli?"
                 value={searchQuery}
                 autoFocus
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -731,14 +757,21 @@ function Home() {
         // Puhelimella haku avautuu headerin suurennuslasista (käyttäjän pyyntö
         // 3.11.2026, hakupalkki poistettu). Työpöydällä piilossa (Home.css).
         actions={
-          <button
-            type="button"
-            className="home-header-search"
-            aria-label="Hae ravintoloita ja ruokia"
-            onClick={() => setSearchOpen(true)}
-          >
-            <Search size={20} strokeWidth={2.2} aria-hidden="true" />
-          </button>
+          <>
+            <button
+              type="button"
+              className="home-header-search"
+              aria-label="Hae ravintoloita ja ruokia"
+              onClick={() => setSearchOpen(true)}
+            >
+              <Search size={20} strokeWidth={2.2} aria-hidden="true" />
+            </button>
+            {/* Avaa sovellus puhelimella (käyttäjän pyyntö 3.11.2026). Sovellus ei
+                ole vielä kaupoissa, joten nappi kertoo sen paneelissa. */}
+            <button type="button" className="home-open-app" onClick={() => setAppSheetOpen(true)}>
+              Avaa sovellus
+            </button>
+          </>
         }
         cart={
           cart.count > 0
@@ -775,9 +808,10 @@ function Home() {
               onClick={openAddressPicker}
             >
               {/* Woltin tapaan pieni "Toimita nyt" ja lihava osoite (käyttäjän mallikuva 3.11.2026). */}
-              <span className="home-address__label">{orderMode === 'pickup' ? 'Nouda nyt' : 'Toimita nyt'}</span>
+              {/* Omalla äänellä (käyttäjän pyyntö 3.11.2026). */}
+              <span className="home-address__label">{orderMode === 'pickup' ? 'Haen itse' : deliveryAddress ? 'Tuodaan heti' : 'Ruoka ovelle'}</span>
               <span className="home-address__value">
-                <span>{deliveryAddress?.label ?? 'Lisää osoite'}</span>
+                <span>{deliveryAddress?.label ?? 'Minne tuodaan?'}</span>
                 <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
               </span>
             </button>
@@ -787,17 +821,35 @@ function Home() {
               aria-haspopup="dialog"
               onClick={() => setModeSheetOpen(true)}
             >
+              <ModeIcon size={15} strokeWidth={2.2} aria-hidden="true" />
               {ORDER_MODES.find((m) => m.value === orderMode)?.label}
               <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
             </button>
           </div>
 
+          {appSheetOpen && (
+            <BottomSheet compact onClose={() => setAppSheetOpen(false)} labelledBy="app-sheet-title">
+              {(close) => (
+                <div className="app-sheet">
+                  <Smartphone className="app-sheet__icon" size={28} strokeWidth={1.8} aria-hidden="true" />
+                  <h2 id="app-sheet-title">Sovellus on vielä uunissa</h2>
+                  <p>Bidrop-sovellus tulee pian App Storeen ja Google Playhin. Siihen asti tilaat kätevästi täältä.</p>
+                  <button type="button" className="app-sheet__ok" onClick={close}>
+                    Selvä
+                  </button>
+                </div>
+              )}
+            </BottomSheet>
+          )}
+
           {modeSheetOpen && (
             <BottomSheet compact onClose={() => setModeSheetOpen(false)} labelledBy="order-mode-title">
               {(close) => (
                 <div className="order-mode-sheet">
-                  <h2 id="order-mode-title">Tilaustapa</h2>
-                  {ORDER_MODES.map((mode) => (
+                  <h2 id="order-mode-title">Miten ruoka tulee?</h2>
+                  {ORDER_MODES.map((mode) => {
+                    const Icon = MODE_ICONS[mode.value]
+                    return (
                     <button
                       key={mode.value}
                       type="button"
@@ -809,10 +861,15 @@ function Home() {
                         close()
                       }}
                     >
-                      <span>{mode.label}</span>
-                      {orderMode === mode.value && <Check size={18} strokeWidth={2.6} aria-hidden="true" />}
+                      <Icon className="order-mode-sheet__icon" size={20} strokeWidth={2} aria-hidden="true" />
+                      <span className="order-mode-sheet__text">
+                        <strong>{mode.label}</strong>
+                        <small>{mode.note}</small>
+                      </span>
+                      {orderMode === mode.value && <span className="bidrop-dot" aria-hidden="true" />}
                     </button>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
             </BottomSheet>
@@ -830,7 +887,7 @@ function Home() {
               <input
                 type="search"
                 aria-label="Hae ravintoloita"
-                placeholder="Hae Bidropista"
+                placeholder={SEARCH_HINTS[searchHint]}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -1001,6 +1058,32 @@ function Home() {
                           ))}
                         </div>
                       </section>
+
+                      {/* Suositut brändit ensimmäisen rivin jälkeen (käyttäjän pyyntö
+                          3.11.2026): neliölaatta ketjun värillä, logo ja nimi. */}
+                      {groupIndex === 0 && activeCategory === ALL && popularBrands.length >= 3 && (
+                        <section className="category-row brand-tiles" aria-labelledby="brand-tiles-title">
+                          <div className="category-row__header">
+                            <h2 className="category-row__title" id="brand-tiles-title">
+                              Suositut brändit
+                            </h2>
+                          </div>
+                          <div className="category-row__scroll brand-tiles__scroll">
+                            {popularBrands.map((brand) => (
+                              <Link
+                                key={brand.name}
+                                to={`/haku?q=${encodeURIComponent(brand.search ?? brand.name)}`}
+                                className="brand-tile"
+                              >
+                                <span className="brand-tile__logo" style={{ background: brand.tile ?? '#fff' }}>
+                                  <img src={brand.logo} alt="" />
+                                </span>
+                                <span className="brand-tile__name">{brand.name}</span>
+                              </Link>
+                            ))}
+                          </div>
+                        </section>
+                      )}
 
                       {/* Kebab & Pizzaa seuraavan rivin jälkeen Kovimmat tarjoukset. */}
                       {groupIndex === dealsAfterIndex && (

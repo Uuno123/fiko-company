@@ -4,15 +4,16 @@
 // käyttöä ravintoloilta tarvitaan lupa logojen käyttöön.
 // pad: lisätila korkealle merkille, jottei se täytä ympyrää reunasta reunaan.
 // bg: taustaväri valkoiselle logolle (Taco Bell). search: hakusana, jos eri kuin nimi.
+// tile: etusivun "Suositut brändit" -laatan taustaväri (3.11.2026), oletus valkoinen.
 export const BRAND_LOGOS = [
-  { name: "McDonald's", logo: '/logos/mcdonalds.svg', pad: 20 },
+  { name: "McDonald's", logo: '/logos/mcdonalds.svg', pad: 20, tile: '#264a33' },
   { name: 'Hesburger', logo: '/logos/hesburger.svg' },
-  { name: 'Burger King', logo: '/logos/burger-king.png' },
+  { name: 'Burger King', logo: '/logos/burger-king.png', tile: '#f5ebdc' },
   { name: 'Kotipizza', logo: '/logos/kotipizza.svg', pad: 16 },
   { name: 'KFC', logo: '/logos/kfc.png', pad: 12 },
   { name: 'Subway', logo: '/logos/subway.png' },
   { name: 'Five Guys', logo: '/logos/five-guys.svg', pad: 16 },
-  { name: 'Taco Bell', logo: '/logos/taco-bell.svg', pad: 12, bg: '#702082' },
+  { name: 'Taco Bell', logo: '/logos/taco-bell.svg', pad: 12, bg: '#702082', tile: '#702082' },
   { name: 'Friends & Brgrs', search: 'Friends & Burgers', logo: '/logos/friends-burgers.svg' },
   { name: 'Rolls', logo: '/logos/rolls.png', pad: 12 },
   { name: 'Starbucks', logo: '/logos/starbucks.svg', pad: 14 },
