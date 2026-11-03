@@ -18,15 +18,15 @@ export const FILLER_TEMPLATES_BY_CATEGORY = {
   // Tyhjänä RestaurantCard näyttää RestaurantAvatarPlaceholderin (nimen
   // alkukirjain) - sama putoaminen kuin muillakin ravintoloilla joilta kuva
   // puuttuu, joten rivin voi jättää tyhjäksi ilman että mikään hajoaa.
+  // Ketjuravintoloilla sijainti nimessä (käyttäjän pyyntö 3.11.2026). Kadut ovat
+  // esittelyä varten - tarkista oikeat toimipisteet ennen julkaisua.
   Burgerit: [
     // demoId: tilattavissa esittelyä varten (lib/demoRestaurants.js), ei pelkkä täytekortti.
     // McDonald's 9,8 / 10 (käyttäjän pyyntö 28.10.2026; tallennettu 1–5-asteikolla 4.9).
-    { name: "McDonald's", keywords: ['mäkkäri', 'mäkki', 'mcd'], rating: 4.9, pickup_estimate_minutes: 15, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6735be5986f45b72713e2127', demoId: 'b42ac227-e8eb-4086-8de4-f2d7043465fd' },
-    { name: 'Hesburger', keywords: ['hese'], rating: 4.0, pickup_estimate_minutes: 14, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67ea79d0e3aca1debaea9cdd' },
-    { name: 'Burger King', rating: 4.2, pickup_estimate_minutes: 16, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/673206fbae168d77add71220' },
-    { name: 'Friends & Burgers', rating: 4.5, pickup_estimate_minutes: 20, free_delivery: false, image_url: 'https://www.friendsandbrgrs.fi/app/uploads/2026/09/mushroommaniac-kansikuva-1024x576.png' },
+    { name: "McDonald's Kuopio Tehtaankatu", keywords: ['mäkkäri', 'mäkki', 'mcd'], rating: 4.9, pickup_estimate_minutes: 15, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6735be5986f45b72713e2127', demoId: 'b42ac227-e8eb-4086-8de4-f2d7043465fd' },
+    { name: 'Hesburger Kuopio Puijonkatu', keywords: ['hese'], rating: 4.0, pickup_estimate_minutes: 14, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/67ea79d0e3aca1debaea9cdd' },
+    { name: 'Burger King Kuopio Kauppakatu', rating: 4.2, pickup_estimate_minutes: 16, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/673206fbae168d77add71220' },
     { name: 'Hook Kuopio', rating: 4.6, pickup_estimate_minutes: 18, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/697ca18d8d71993ce3310d3c' },
-    { name: 'Grilli 24', rating: 4.3, pickup_estimate_minutes: 17, free_delivery: true, image_url: '/burger.jpg' },
   ],
   // Liitä oma kuvalinkki lainausmerkkien väliin (image_url: 'https://...') -
   // sama tyhjä-kelpaa-periaate kuin Burgerit-listalla.
@@ -36,116 +36,9 @@ export const FILLER_TEMPLATES_BY_CATEGORY = {
     { name: 'Marina Pizzeria', rating: 4.4, pickup_estimate_minutes: 18, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/6810cc1ab4526c355f4c532e' },
     { name: 'Marmara Pizzeria', rating: 4.4, pickup_estimate_minutes: 22, free_delivery: true, image_url: 'https://imageproxy.wolt.com/assets/6735db0c9a62d71e30a74cfa' },
     { name: 'Kuopion Pizzatori', rating: 4.6, pickup_estimate_minutes: 15, free_delivery: false, image_url: 'https://imageproxy.wolt.com/assets/6900e59a1c0a709b4414269a' },
-    { name: 'Pizzeria Bella Vita', rating: 4.5, pickup_estimate_minutes: 21, free_delivery: false, image_url: '/pizza.jpg' },
   ],
-  Kotiruoka: [
-    {
-      name: 'Mummon Pöytä',
-      rating: 4.6,
-      pickup_estimate_minutes: 22,
-      free_delivery: false,
-      image_url: 'https://images.unsplash.com/photo-1566751640620-a9dd00cfbab4?auto=format&fit=crop&w=1600&q=80',
-    },
-    {
-      name: 'Kotilieden Lounas',
-      rating: 4.2,
-      pickup_estimate_minutes: 16,
-      free_delivery: true,
-      image_url: 'https://images.unsplash.com/photo-1708782340354-96cdbd9f70d6?auto=format&fit=crop&w=1600&q=80',
-    },
-    {
-      name: 'Lounaskeidas',
-      rating: 4.4,
-      pickup_estimate_minutes: 18,
-      free_delivery: false,
-      image_url: '/lihapullat.jpg',
-    },
-  ],
-  Salaatit: [
-    {
-      name: 'Vihreä Kulho',
-      rating: 4.5,
-      pickup_estimate_minutes: 9,
-      free_delivery: false,
-      image_url: 'https://images.unsplash.com/photo-1758721218560-aec50748d450?auto=format&fit=crop&w=1600&q=80',
-    },
-    {
-      name: 'Terveystalo Bistro',
-      rating: 4.0,
-      pickup_estimate_minutes: 13,
-      free_delivery: true,
-      image_url: 'https://images.unsplash.com/photo-1572449043416-55f4685c9bb7?auto=format&fit=crop&w=1600&q=80',
-    },
-    {
-      name: 'Fresh Bowl',
-      rating: 4.3,
-      pickup_estimate_minutes: 11,
-      free_delivery: false,
-      image_url: '/salaatti.jpg',
-    },
-  ],
-  Aasialainen: [
-    {
-      name: 'Wok & Roll',
-      rating: 4.3,
-      pickup_estimate_minutes: 17,
-      free_delivery: false,
-      image_url: 'https://images.unsplash.com/photo-1464500542410-1396074bf230?auto=format&fit=crop&w=1600&q=80',
-    },
-    {
-      name: 'Bangkok Bistro',
-      rating: 4.4,
-      pickup_estimate_minutes: 20,
-      free_delivery: true,
-      image_url: 'https://images.unsplash.com/photo-1633271332313-04df64c0105b?auto=format&fit=crop&w=1600&q=80',
-    },
-    {
-      name: 'Sushi Nami',
-      rating: 4.6,
-      pickup_estimate_minutes: 21,
-      free_delivery: false,
-      image_url: '/sushi.jpg',
-    },
-  ],
-  Italialainen: [
-    {
-      name: 'Piccolo Trattoria',
-      rating: 4.5,
-      pickup_estimate_minutes: 19,
-      free_delivery: false,
-      image_url: 'https://images.unsplash.com/photo-1615584240522-7fe7ed4dadee?auto=format&fit=crop&w=1600&q=80',
-    },
-    {
-      name: 'Pasta Fresca',
-      rating: 4.2,
-      pickup_estimate_minutes: 15,
-      free_delivery: true,
-      image_url: 'https://images.unsplash.com/photo-1571175534150-72cd2b5a6039?auto=format&fit=crop&w=1600&q=80',
-    },
-    {
-      name: 'Trattoria Verde',
-      rating: 4.1,
-      pickup_estimate_minutes: 17,
-      free_delivery: true,
-      image_url: '/pasta.jpg',
-    },
-  ],
-  Kahvila: [
-    {
-      name: 'Kahvipaahtimo Aurora',
-      rating: 4.5,
-      pickup_estimate_minutes: 8,
-      free_delivery: false,
-      image_url: '/kakku.jpg',
-    },
-    {
-      name: 'Cafe Torilla',
-      rating: 4.2,
-      pickup_estimate_minutes: 10,
-      free_delivery: true,
-      image_url: '/juoma.jpg',
-    },
-  ],
+  // Vain ravintolat, joille on annettu oikea Wolt-kuva (käyttäjän pyyntö
+  // 3.11.2026). Keksityt ravintolat ja omat/Unsplash-kuvat poistettu.
 }
 
 export function buildFillerRestaurant(category, index, template) {
@@ -278,10 +171,10 @@ export const DEALS_QUERY = 'Tarjoukset'
 // mobiilin etusivun rivi): kolmantena.
 export const DEALS_LINK_INDEX = 2
 export const DEALS_RESTAURANTS = [
-  "McDonald's",
+  "McDonald's Kuopio Tehtaankatu",
   'Kuopion Volkan Ravintola',
-  'Hesburger',
-  'Friends & Burgers',
+  'Hesburger Kuopio Puijonkatu',
+  'Friends & Burgers Kuopio Matkus',
   'Marina Pizzeria',
   'Sushi Nami',
   'Hook Kuopio',
@@ -345,14 +238,16 @@ export const ALL = 'Kaikki'
 // (Woltin tapaan, käyttäjän ChatGPT:llä tekemä sarja 29.10.2026; piirretty
 // läpinäkyvyysruudukko poistettu ja kuvat rajattu 256 px WebP:ksi).
 export const CATEGORY_TILE_META = {
-  Burgerit: { img: '/category-burger.webp', icon: '/category-burger-icon.webp' },
-  'Kebab & Pizza': { img: '/category-pizza.webp', icon: '/category-pizza-icon.webp' },
-  Salaatit: { img: '/category-salad.webp', icon: '/category-salad-icon.webp' },
-  Aasialainen: { img: '/category-sushi.webp', icon: '/category-sushi-icon.webp' },
-  Kahvila: { img: '/category-dessert.webp', icon: '/category-dessert-icon.webp' },
-  Italialainen: { img: '/category-pasta.webp', icon: '/category-pasta-icon.webp' },
-  Kotiruoka: { img: '/category-chicken.webp', icon: '/category-chicken-icon.webp' },
-  Kebab: { img: '/category-kebab.webp', icon: '/category-kebab-icon.webp' },
+  // Flätit kuvakkeet: Microsoft Fluent Emoji Flat (MIT-lisenssi,
+  // public/flat-icons/LICENSE-fluent-emoji.txt), käyttäjän pyyntö 3.11.2026.
+  Burgerit: { img: '/category-burger.webp', icon: '/flat-icons/hamburger.svg' },
+  'Kebab & Pizza': { img: '/category-pizza.webp', icon: '/flat-icons/pizza.svg' },
+  Salaatit: { img: '/category-salad.webp', icon: '/flat-icons/green_salad.svg' },
+  Aasialainen: { img: '/category-sushi.webp', icon: '/flat-icons/sushi.svg' },
+  Kahvila: { img: '/category-dessert.webp', icon: '/flat-icons/hot_beverage.svg' },
+  Italialainen: { img: '/category-pasta.webp', icon: '/flat-icons/spaghetti.svg' },
+  Kotiruoka: { img: '/category-chicken.webp', icon: '/flat-icons/pot_of_food.svg' },
+  Kebab: { img: '/category-kebab.webp', icon: '/flat-icons/stuffed_flatbread.svg' },
   Ramen: { img: '/category-ramen.webp', icon: '/category-ramen-icon.webp' },
   Kiinalainen: { img: '/category-chinese.webp', icon: '/category-chinese-icon.webp' },
   // Uudet kategoriat 29.10.2026: vain piirretty kuvake (ei valokuvaa), ei vielä ravintoloita.

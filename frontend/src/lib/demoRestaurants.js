@@ -128,13 +128,14 @@ export const DEMO_MCDONALDS_ID = 'b42ac227-e8eb-4086-8de4-f2d7043465fd'
 const DEMO_RESTAURANTS = {
   [DEMO_MCDONALDS_ID]: {
     id: DEMO_MCDONALDS_ID,
-    name: "McDonald's",
+    // Ravintolan nimi sijainnin kanssa (käyttäjän pyyntö 3.11.2026).
+    name: "McDonald's Kuopio Tehtaankatu",
     category: 'Burgerit',
     image_url: 'https://imageproxy.wolt.com/assets/6735be5986f45b72713e2127',
     description: 'Esittelyravintola - tilaukset ovat oikeita, maksu on simuloitu.',
     // Kuvitteellinen osoite Kuopion keskustassa, jotta etäisyys, reittikartta
     // ja tilauksen seuranta toimivat.
-    address: 'Kauppakatu 40, 70110 Kuopio',
+    address: 'Tehtaankatu, Kuopio',
     city: 'Kuopio',
     lat: 62.8922,
     lng: 27.6795,

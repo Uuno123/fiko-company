@@ -379,3 +379,152 @@
     font-size: 0.82rem;
   }
 }
+
+/* Korttien siistiminen (käyttäjän pyyntö 3.11.2026):
+   - tarjous pienenä oranssina pillerinä kuvan vasemmassa alakulmassa
+     yhdellä rivillä (arvo ja selite vierekkäin) ison kulmalapun sijaan
+   - ei sydäntä korteissa; suosikiksi lisätään ravintolasivulla. */
+.offer-badge--corner {
+  top: auto;
+  bottom: 8px;
+  left: 8px;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 999px;
+}
+
+.offer-badge--corner strong {
+  font-size: 0.78rem;
+  letter-spacing: -0.01em;
+}
+
+.offer-badge--corner span {
+  font-size: 0.68rem;
+  font-weight: 600;
+  opacity: 0.92;
+}
+
+@media (max-width: 560px) {
+  .offer-badge--corner {
+    padding: 4px 8px;
+  }
+
+  .offer-badge--corner strong {
+    font-size: 0.74rem;
+  }
+}
+
+.restaurant-card__fav {
+  display: none;
+}
+
+/* Korttien tarkennus (käyttäjän pyyntö 3.11.2026): korkeampi kuva, jotta ruoka
+   mahtuu kokonaan, isompi nimi ja tietorivi sekä tasaiset välit erottimien
+   ympärillä. Etusivun, haun ja kategoriasivun flätit kortit. */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__media,
+.search-results__restaurant-grid .restaurant-card__media,
+.category-page__list .restaurant-card__media {
+  aspect-ratio: 1.8 / 1;
+  height: auto;
+}
+
+.restaurant-card .restaurant-card__heading h3 {
+  font-size: 1.08rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.restaurant-card .restaurant-card__meta {
+  margin-top: 2px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.restaurant-card .restaurant-card__sep {
+  padding: 0 7px;
+}
+
+.restaurant-card .restaurant-card__stat--rating {
+  gap: 5px;
+  color: var(--delivo-black);
+}
+
+@media (max-width: 560px) {
+  .restaurant-card .restaurant-card__heading h3 {
+    font-size: 1.05rem;
+  }
+
+  .restaurant-card .restaurant-card__meta {
+    font-size: 0.85rem;
+  }
+}
+
+/* Koko nimi näkyviin (käyttäjän pyyntö 3.11.2026): pitkä nimi rivittyy
+   enintään kahdelle riville eikä katkea kolmeen pisteeseen. */
+.restaurant-card .restaurant-card__heading h3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  line-height: 1.25;
+  white-space: normal;
+  text-overflow: clip;
+}
+
+/* Tietorivi aina yhdellä rivillä (arvosana · aika · kuljetus); puhelimella
+   hieman pienempi teksti ja välit, ettei kuljetus rivity omalle rivilleen. */
+.restaurant-card .restaurant-card__meta {
+  flex-wrap: nowrap;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .restaurant-card .restaurant-card__meta {
+    font-size: 0.8rem;
+  }
+
+  .restaurant-card .restaurant-card__sep {
+    padding: 0 5px;
+  }
+
+  .restaurant-card .restaurant-card__stat {
+    gap: 3px;
+  }
+}
+
+/* Kaikki kortit yhtä korkeiksi (käyttäjän pyyntö 3.11.2026): rivin kortit
+   venyvät korkeimman mukaan ja ylimääräinen tila jää kortin pohjalle - nimen
+   ja tietorivin väliin ei tule tyhjää. */
+.restaurant-card .restaurant-card__heading {
+  align-items: flex-start;
+}
+
+.restaurant-card .restaurant-card__body {
+  flex: 1;
+  justify-content: flex-start;
+}
+
+
+/* Ilmainen kuljetus badgena omalla rivillään tietorivin alla (käyttäjän pyyntö
+   3.11.2026): vaalea oranssi pilleri oranssilla tekstillä. */
+.restaurant-card__free-badge {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--delivo-orange-soft);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  color: var(--delivo-orange-dark);
+}
+
+@media (max-width: 560px) {
+  .restaurant-card__free-badge {
+    font-size: 0.72rem;
+  }
+}

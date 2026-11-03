@@ -358,9 +358,7 @@
     cursor: pointer;
   }
 
-  /* Samassa linjassa osoitetekstin kanssa: neulan leveys (15 px) + väli (5 px). */
   .home-address__label {
-    padding-left: 20px;
     font-size: 0.78rem;
     font-weight: 500;
     color: var(--text-muted);
@@ -383,11 +381,6 @@
 
   .home-address__value svg {
     flex-shrink: 0;
-  }
-
-  .home-address__value .home-address__pin {
-    margin-right: 1px;
-    color: var(--delivo-orange);
   }
 
   /* Kategoriat kuvalaattoina vaakarivissä reunasta reunaan (käyttäjän pyyntö
@@ -1613,4 +1606,140 @@
 /* Kategoriarivin piilotus (SHOW_HOME_CATEGORIES, Home.jsx) ohittaa display-säännöt. */
 .home-cats-wrap[hidden] {
   display: none !important;
+}
+
+/* Etusivun ravintolakorttien kuva korkeammaksi (käyttäjän pyynnöt
+   3.11.2026): 2.25:1 -> 1.8:1, jotta ruoka mahtuu kuvaan. Nostorivien kuvasuhde DealsRow.css:ssä. */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__media {
+  aspect-ratio: 1.8 / 1;
+}
+
+/* Isompi nimi ja tietorivi (3.11.2026); ohittaa .category-row__scroll-säännöt yllä. */
+.page--home .category-row .category-row__scroll .restaurant-card__heading h3 {
+  font-size: 1.08rem;
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row .category-row__scroll .restaurant-card__heading h3 {
+    font-size: 1.05rem;
+  }
+}
+
+
+/* Vähemmän tilaa hakukentän ja kategorioiden välissä (käyttäjän pyyntö 3.11.2026). */
+@media (max-width: 560px) {
+  .home-cats-wrap {
+    margin-top: -10px;
+  }
+}
+
+/* Kategorioiden nimet pienemmiksi ja kevyemmiksi flättien kuvakkeiden alla
+   (käyttäjän pyyntö 3.11.2026). */
+@media (max-width: 560px) {
+  .home-cats .home-cat-tile {
+    gap: 2px;
+  }
+
+  .home-cats .home-cat-tile__label {
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: var(--delivo-black);
+  }
+}
+
+/* KOKEILU 3.11.2026 (käyttäjän pyyntö): ravintolat taas kortteina eikä
+   flätteinä - valkoinen kortti, ohut reuna ja kevyt varjo, kuva kortin
+   yläreunassa ja teksti kortin sisällä. Poista tämä lohko palauttaaksesi
+   flätit kortit. Nostorivit (DealsRow) ovat ennallaan. */
+.page--home .category-row:not(.category-row--deals) .restaurant-card,
+.search-results__restaurant-grid .restaurant-card,
+.category-page__list .restaurant-card {
+  overflow: hidden;
+  border: 1px solid #ecebe8;
+  border-radius: 16px;
+  background: var(--surface);
+  /* Varjo myös yläreunaan ja sivuille (käyttäjän pyyntö 3.11.2026). */
+  box-shadow:
+    0 0 0 1px rgba(20, 21, 15, 0.02),
+    0 0 14px -2px rgba(20, 21, 15, 0.14),
+    0 8px 22px -8px rgba(20, 21, 15, 0.26);
+}
+
+.page--home .category-row:not(.category-row--deals) .restaurant-card__media,
+.search-results__restaurant-grid .restaurant-card__media,
+.category-page__list .restaurant-card__media {
+  border-radius: 0;
+}
+
+.page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  padding: 12px 14px 14px;
+}
+
+/* Varjo ei saa leikkautua vieritettävän rivin alareunaan. */
+/* Tilaa varjolle kaikilla reunoilla, ettei se leikkaudu rivin reunaan. */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll {
+  margin-top: -12px;
+  padding-top: 18px;
+  padding-bottom: 28px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page--home .category-row:not(.category-row--deals) .restaurant-card:hover,
+  .search-results__restaurant-grid .restaurant-card:hover,
+  .category-page__list .restaurant-card:hover {
+    box-shadow:
+      0 0 18px -2px rgba(20, 21, 15, 0.18),
+      0 14px 30px -10px rgba(20, 21, 15, 0.34);
+  }
+}
+
+/* Ei jakoviivoja rivien välissä nyt kun ravintolat ovat kortteja (käyttäjän
+   pyyntö 3.11.2026) - kortit ja välit erottavat rivit. */
+.page--home .category-row + .category-row:not(.category-row--deals),
+.page--home .category-row:not(.category-row--deals) {
+  border-top: none;
+  border-bottom: none;
+}
+
+/* Pienempi väli rivien välissä (käyttäjän pyyntö 3.11.2026): korttien alla
+   tila vain varjolle, seuraavan rivin yläpuolella vähemmän. */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll {
+  padding-bottom: 18px;
+}
+
+.page--home .category-row + .category-row:not(.category-row--deals) {
+  padding-top: 6px;
+}
+
+@media (min-width: 900px) {
+  .page--home .category-row + .category-row:not(.category-row--deals) {
+    padding-top: 12px;
+  }
+}
+
+/* Rivin kortit venyvät samaan korkeuteen (RestaurantCard.css). */
+.page--home .category-row .category-row__scroll {
+  align-items: stretch;
+}
+
+/* KAIKKI kortit yhtä korkeiksi myös eri riveillä (käyttäjän pyyntö
+   3.11.2026): tekstiosalle aina kahden nimirivin, tietorivin ja
+   ilmaisen kuljetuksen badgen korkeus. Nimi ja tietorivi
+   pysyvät yhdessä ylhäällä, mahdollinen tyhjä jää kortin pohjalle. */
+.page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  min-height: 124px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row:not(.category-row--deals) .restaurant-card__body,
+  .search-results__restaurant-grid .restaurant-card__body,
+  .category-page__list .restaurant-card__body {
+    min-height: 120px;
+  }
 }
