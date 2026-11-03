@@ -278,3 +278,14 @@
     background: linear-gradient(160deg, #ffe1d2 0%, #ffbf9f 100%);
   }
 }
+
+/* Selvempi varjo tarjouskorttien alareunaan (käyttäjän pyyntö 3.11.2026). */
+.page--home .category-row--hot .category-row__scroll .restaurant-card {
+  box-shadow:
+    0 2px 4px -2px rgba(120, 40, 10, 0.18),
+    0 12px 20px -10px rgba(120, 40, 10, 0.55);
+}
+
+.page--home .category-row--hot .category-row__scroll {
+  padding-bottom: 22px;
+}
