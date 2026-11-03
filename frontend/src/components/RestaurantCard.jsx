@@ -56,8 +56,8 @@ function RestaurantCard({
   const etaRange = formatEtaRange(pickupEstimateMinutes)
   const badge = offerBadge(restaurant, alwaysBadge)
 
-  // Yksi tietorivi: arvosana · aika · kuljetusmaksu (käyttäjä: etäisyys pois
-  // korteista; etäisyys vaikuttaa edelleen järjestykseen, lib/ranking.js).
+  // Yksi tietorivi: arvosana · aika · kuljetus (käyttäjän pyyntö 3.11.2026).
+  // Etäisyys pois korteista; etäisyys vaikuttaa edelleen järjestykseen, lib/ranking.js).
   // Kiinni olevaa ravintolaa ei merkitä tekstillä vaan himmennetyllä kortilla
   // (.restaurant-card--closed).
   const stats = [
@@ -73,19 +73,13 @@ function RestaurantCard({
         {etaRange}
       </span>
     ),
-    <span
-      key="fee"
-      className={`restaurant-card__stat${freeDelivery ? ' restaurant-card__stat--accent' : ''}`}
-    >
-      {freeDelivery ? (
-        'Ilmainen kuljetus'
-      ) : (
-        <>
-          <Bike size={14} aria-hidden="true" />
-          {DELIVERY_PRICE_RANGE}
-        </>
-      )}
-    </span>,
+    // Kuljetuksen hinta tietorivillä; ilmainen kuljetus on oma badge alla.
+    !freeDelivery && (
+      <span key="fee" className="restaurant-card__stat">
+        <Bike size={14} aria-hidden="true" />
+        {DELIVERY_PRICE_RANGE}
+      </span>
+    ),
   ].filter(Boolean)
 
   const Wrapper = disabled ? 'div' : Link
@@ -148,6 +142,9 @@ function RestaurantCard({
             </span>
           ))}
         </div>
+
+        {/* Ilmainen kuljetus aina omalla rivillään badgena (käyttäjän pyyntö 3.11.2026). */}
+        {freeDelivery && <span className="restaurant-card__free-badge">Ilmainen kuljetus</span>}
       </div>
     </Wrapper>
   )

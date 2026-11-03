@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, ChevronDown, MapPin } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ChevronDown } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
@@ -102,7 +102,9 @@ const SHOW_HOME_ADS = false
 
 // KOKEILU 3.11.2026 (käyttäjän pyyntö): kategoriakuvakkeet pois etusivulta.
 // Takaisin: SHOW_HOME_CATEGORIES = true.
-const SHOW_HOME_CATEGORIES = false
+const SHOW_HOME_CATEGORIES = true
+// Kategorioiden määrä etusivulla ja haun kategorialistassa.
+const HOME_CATEGORY_COUNT = 8
 
 // Tarjousajastin headerin alla (DealsCountdown), pois 3.11.2026 käyttäjän pyynnöstä.
 const SHOW_DEALS_COUNTDOWN = false
@@ -292,12 +294,13 @@ function Home() {
   // Kaikki kategoriat, joilla on piirretty kuvake, näkyvät heti - myös ne,
   // joissa ei vielä ole ravintoloita (käyttäjän pyyntö 29.10.2026; kategoriasivu
   // kertoo silloin "tulossa pian"). Muut vain kun niissä on sisältöä.
+  // Vain 8 kategoriaa (käyttäjän pyyntö 3.11.2026), kaikilla flätti kuvake.
   const searchCategories = CATEGORY_NAMES.filter(
     (name) =>
       Boolean(CATEGORY_TILE_META[name]?.icon) ||
       SEARCH_CATEGORIES_WITH_FILLERS.includes(name) ||
       restaurants.some((r) => r.category === name),
-  )
+  ).slice(0, HOME_CATEGORY_COUNT)
   const mobileCategoryGroups = categoriesWithContent
     .filter((category) => !HIDDEN_MOBILE_CATEGORIES.includes(category))
     .map((category) => ({
@@ -653,9 +656,6 @@ function Home() {
             >
               <span className="home-address__label">Toimitusosoite</span>
               <span className="home-address__value">
-                {/* Pieni oranssi neula osoitteen edessä, ilman palloa tai laatikkoa
-                    (käyttäjän valinta 29.10.2026). */}
-                <MapPin className="home-address__pin" size={15} strokeWidth={2.4} aria-hidden="true" />
                 <span>{deliveryAddress?.label ?? 'Lisää osoite'}</span>
                 <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
               </span>

@@ -21,5 +21,6 @@ export function etaUpperMinutes(minutes) {
 
 export function formatEtaRange(minutes) {
   if (!minutes) return null
-  return `${minutes}-${minutes + ETA_WINDOW_MINUTES} min`
+  // Ajatusviiva (–) aikavälissä, ei tavuviivaa.
+  return `${minutes}–${minutes + ETA_WINDOW_MINUTES} min`
 }
