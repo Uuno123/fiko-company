@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { stripe } from '../stripeClient.js'
-import { supabase, isSupabaseConfigured } from '../supabaseClient.js'
+import { createClient } from '@supabase/supabase-js'
+import { supabase, supabaseAdmin, isSupabaseConfigured } from '../supabaseClient.js'
 
 const router = Router()
 
@@ -16,9 +17,37 @@ export const MAX_DELIVERY_PRICE_CENTS = 799
 // muutetaan, muuta toinenkin, muuten näytetty ja veloitettu summa voivat erota.
 const PROMO_CODES = {
   BIDROP10: { type: 'percent', value: 10 },
-  TERVETULOA: { type: 'fixed', value: 300 },
+  // 40 % ensimmäisestä tilauksesta, enintään 10 € (käyttäjän päätös 4.11.2026,
+  // aiemmin 3 €). firstOrderOnly: vain kirjautuneelle, jolla ei ole aiempaa
+  // tilausta (peruttuja ei lasketa).
+  TERVETULOA: { type: 'percent', value: 40, maxDiscountCents: 1000, firstOrderOnly: true },
   SUURTILAUS: { type: 'percent', value: 30, maxDiscountCents: 700, minSubtotalCents: 5000 },
   NOUTO15: { type: 'percent', value: 15, maxDiscountCents: 500, pickupOnly: true },
+}
+
+// Onko kirjautuneella asiakkaalla jo tilaus (muu kuin peruttu)? Token tulee
+// Authorization-otsikosta (frontendin lib/api.js). Ilman tokenia tai jos
+// tarkistus epäonnistuu, vastaus on "on jo tilannut", jolloin koodia ei anneta.
+async function hasPreviousOrder(req) {
+  const token = (req.get('authorization') ?? '').replace(/^Bearer\s+/i, '')
+  if (!token) return true
+  const { data: userData, error: userError } = await supabase.auth.getUser(token)
+  const userId = userData?.user?.id
+  if (userError || !userId) return true
+  // Palvelimen avaimella, jos se on; muuten asiakkaan omilla oikeuksilla (RLS).
+  const client =
+    supabaseAdmin ??
+    createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: `Bearer ${token}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    })
+  const { count, error } = await client
+    .from('orders')
+    .select('id', { count: 'exact', head: true })
+    .eq('customer_id', userId)
+    .neq('status', 'cancelled')
+  if (error) return true
+  return (count ?? 0) > 0
 }
 
 router.post('/create-intent', async (req, res) => {
@@ -81,6 +110,11 @@ router.post('/create-intent', async (req, res) => {
   let discountCents = 0
   let appliedPromoCode = null
   const promo = promoCode ? PROMO_CODES[String(promoCode).toUpperCase()] : null
+  // Ensimmäisen tilauksen koodi: selkeä virhe eikä hiljaa ilman alennusta, jotta
+  // asiakas ei maksa eri summaa kuin kassa näytti.
+  if (promo?.firstOrderOnly && (await hasPreviousOrder(req))) {
+    return res.status(409).json({ error: 'Koodi TERVETULOA käy vain ensimmäiseen tilaukseen.' })
+  }
   // minSubtotalCents täyttymättä -> koodia ei sovelleta, ei virhettä: tilaus
   // syntyy silti, vain ilman alennusta. Frontend on jo estänyt tämän UI:ssa,
   // mutta backend on se joka oikeasti veloittaa, joten se ei luota frontiin.

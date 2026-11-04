@@ -17,8 +17,8 @@ const OFFER_BADGES = [
   { value: '−30%', note: 'max 7 €', text: '−30 % tilauksesta (max 7 €)', tone: 'orange' },
   // BIDROP10
   { value: '−10%', note: 'tilauksesta', text: '−10 % tilauksesta', tone: 'orange' },
-  // TERVETULOA
-  { value: '−3 €', note: 'tilauksesta', text: '−3 € tilauksesta', tone: 'black' },
+  // TERVETULOA: 40 % ensimmäisestä tilauksesta, enintään 10 €.
+  { value: '−40%', note: 'eka tilaus', text: '−40 % ekasta tilauksesta (max 10 €)', tone: 'black' },
   // NOUTO15: 15 % noutotilauksista.
   { value: '−15%', note: 'noudosta', text: '−15 % noudosta (max 5 €)', tone: 'black' },
 ]
