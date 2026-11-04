@@ -3600,3 +3600,34 @@
     background: #f1f2f4;
   }
 }
+
+/* Kokeilu: ravintolat taas hentoina kortteina (käyttäjän pyyntö 4.11.2026),
+   ei tarjousosioissa. Poista tämä lohko, niin flätit palaavat. */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card,
+.search-results__restaurant-grid .restaurant-card,
+.category-page__list .restaurant-card {
+  overflow: hidden;
+  border: 1px solid rgba(20, 21, 15, 0.06);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgba(20, 21, 15, 0.04),
+    0 8px 18px -12px rgba(20, 21, 15, 0.22);
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__media,
+.search-results__restaurant-grid .restaurant-card__media,
+.category-page__list .restaurant-card__media {
+  border-radius: 0;
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  padding: 8px 12px 11px;
+}
+
+/* Varjolle tilaa rivin alla. */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll {
+  padding-bottom: 18px;
+}
