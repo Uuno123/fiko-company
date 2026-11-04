@@ -3593,3 +3593,10 @@
   width: 20px;
   background: var(--delivo-black);
 }
+
+/* Hakupalkki vaaleammaksi (käyttäjän pyyntö 4.11.2026). */
+@media (max-width: 560px) {
+  .page--home .home-search-sticky .home-search {
+    background: #f1f2f4;
+  }
+}

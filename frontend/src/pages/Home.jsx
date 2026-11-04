@@ -171,11 +171,9 @@ const PROMO_CARDS = [
   },
 ]
 
-// Hakupalkin vaihtuva vihje (käyttäjän pyyntö 3.11.2026: persoonaa). Vaihtuu
-// SEARCH_HINT_MS välein, kun kenttä on tyhjä; ei vaihdu, jos käyttäjä on
-// pyytänyt vähemmän liikettä.
-const SEARCH_HINTS = ['Mitä tekis mieli?', 'Pizzaa?', 'Sushia?', 'Kebabia?', 'Jotain makeeta?', 'Burgeria?']
-const SEARCH_HINT_MS = 2600
+// Hakupalkissa yksi selkeä teksti (käyttäjän pyyntö 4.11.2026, aiemmin
+// vaihtuva vihje).
+const SEARCH_PLACEHOLDER = 'Hae ravintoloita ja ruokia'
 // Tarjous- ja mainoskorttien vaihtumisväli.
 const PROMO_ROTATE_MS = 4500
 
@@ -344,7 +342,6 @@ function Home() {
   const [adIndex, setAdIndex] = useState(0)
   const { favoriteIds, toggleFavorite } = useFavorites()
   const [searchOpen, setSearchOpen] = useState(false)
-  const [searchHint, setSearchHint] = useState(0)
   // Tarjouskortin koodi kopioitu leikepöydälle (napissa hetken "Kopioitu!").
   const [copiedCode, setCopiedCode] = useState(null)
   function copyPromo(code) {
@@ -393,12 +390,6 @@ function Home() {
   }, [])
   // "Avaa sovellus" -napin paneeli (käyttäjän pyyntö 3.11.2026).
   const [appSheetOpen, setAppSheetOpen] = useState(false)
-  useEffect(() => {
-    if (searchQuery) return undefined
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined
-    const timer = setInterval(() => setSearchHint((i) => (i + 1) % SEARCH_HINTS.length), SEARCH_HINT_MS)
-    return () => clearInterval(timer)
-  }, [searchQuery])
   // Työpöydän kategoriarivin vierityspainike.
   const catsRef = useRef(null)
   // Työpöydän logorivin vierityspainike.
@@ -944,7 +935,7 @@ function Home() {
               <input
                 type="search"
                 aria-label="Hae ravintoloita"
-                placeholder={SEARCH_HINTS[searchHint]}
+                placeholder={SEARCH_PLACEHOLDER}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
