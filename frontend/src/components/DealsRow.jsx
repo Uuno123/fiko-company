@@ -57,6 +57,9 @@ function DealsRow({
 
   // --hot: räikeä oranssi Kovimmat tarjoukset -osio, --warm: hieman räikeämpi
   // Ilmaiset kuljetukset -osio (käyttäjän pyynnöt 3.11.2026).
+  // Kovimmat tarjoukset paneelina (käyttäjän mallikuva 4.11.2026): tarjous
+  // pillerinä kortin alaosassa ja leveä nappi paneelin alareunassa.
+  const isHot = rowId === 'deals-row'
   return (
     <section
       className={`category-row category-row--deals${rowId === 'deals-row' ? ' category-row--hot' : ''}${rowId === 'free-delivery-row' ? ' category-row--warm' : ''}`}
@@ -129,10 +132,15 @@ function DealsRow({
             disabled={restaurant.isPlaceholder}
             isFavorite={favoriteIds.has(restaurant.id)}
             onToggleFavorite={restaurant.isPlaceholder ? undefined : onToggleFavorite}
-            badgeStyle="sticker"
+            badgeStyle={isHot ? 'corner' : 'sticker'}
           />
         ))}
       </div>
+      {isHot && seeAllTo && (
+        <Link className="deals-row__cta" to={seeAllTo}>
+          Katso kaikki tarjoukset
+        </Link>
+      )}
     </section>
   )
 }

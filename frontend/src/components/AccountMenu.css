@@ -373,3 +373,11 @@
     text-decoration: none;
   }
 }
+
+/* Käyttäjäikoni pois puhelimen headerista (käyttäjän pyyntö 4.11.2026):
+   jäljelle jää Liity, jonka sivulta pääsee myös kirjautumaan. */
+@media (max-width: 640px) {
+  .auth-login-btn__icon {
+    display: none;
+  }
+}

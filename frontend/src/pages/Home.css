@@ -3600,3 +3600,335 @@
     background: #f1f2f4;
   }
 }
+
+/* Tarjouskaruselli: enemmän tilaa ylä- ja alapuolelle (käyttäjän pyyntö 4.11.2026). */
+.page--home .promo-cards {
+  margin-top: 14px;
+  margin-bottom: 18px;
+}
+
+/* Tarkempi valitsin: rivien yleinen nollaus ohitti edellisen. */
+.page--home .category-row.promo-cards:not(.category-row--deals) {
+  padding-top: 14px;
+  padding-bottom: 24px;
+}
+
+/* Karuselli hakupalkin alla: vähemmän tilaa yläpuolelle (haku on jo välissä). */
+.page--home .category-row.promo-cards:not(.category-row--deals) {
+  padding-top: 2px;
+}
+
+.page--home .category-row.promo-cards:not(.category-row--deals) {
+  padding-bottom: 6px;
+}
+
+/* Vähemmän tilaa karusellin alle (käyttäjän pyyntö 4.11.2026). */
+.page--home .category-row.promo-cards:not(.category-row--deals) .category-row__scroll {
+  padding-bottom: 4px;
+}
+
+.page--home .category-row.promo-cards:not(.category-row--deals) {
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+/* Pallot poistettu (käyttäjän pyyntö 4.11.2026): karusellin alle pieni väli. */
+.page--home .category-row.promo-cards:not(.category-row--deals) .category-row__scroll {
+  padding-bottom: 14px;
+}
+
+/* Hillitty Avaa sovellus -nappi (käyttäjän valinta 4.11.2026): pieni harmaa
+   pilleri ilman oranssia, jotta vain Liity on korostettu. */
+@media (max-width: 560px) {
+  .page--home .home-open-app {
+    height: 30px;
+    padding: 0 11px;
+    background: var(--round-button-bg);
+    color: var(--delivo-black);
+    font-size: 0.74rem;
+    font-weight: 600;
+  }
+
+  .page--home .site-header__right {
+    gap: 8px;
+  }
+}
+
+/* Puhelimella vieritettäessä ylälaitaan jäävät vain osoite ja hakupalkki
+   (käyttäjän pyyntö 4.11.2026): header (logo ja napit) vierii pois, ja
+   osoite + haku kiinnittyvät yhtenä valkoisena lohkona. Varjo vasta
+   kiinnittyneenä. */
+.home-sticky-top {
+  display: contents;
+}
+
+@media (max-width: 560px) {
+  .page--home .site-header {
+    position: relative;
+  }
+
+  .page--home .home-sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: block;
+    margin: 0 -16px;
+    padding: 0 16px;
+    background: #fff;
+    transition: box-shadow 0.2s ease;
+  }
+
+  .page--home .home-sticky-top.is-stuck {
+    box-shadow: 0 8px 16px -12px rgba(20, 21, 15, 0.4);
+  }
+
+  .page--home .home-sticky-top .home-search-sticky {
+    position: static;
+    box-shadow: none;
+  }
+}
+
+/* Osoiterivin negatiivinen yläreuna lohkolle, ettei "Tuodaan heti" jää
+   kiinnittyessä piiloon. */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top {
+    margin-top: -14px;
+    padding-top: 8px;
+    padding-bottom: 10px;
+  }
+
+  .page--home .home-sticky-top .home-mobile-top {
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .page--home .home-sticky-top .home-search-sticky {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+/* Vieritettäessä osoite tiivistyy (käyttäjän pyyntö 4.11.2026): "Tuodaan
+   heti" -otsikko piiloon ja vasemmalle sijainti-ikoni osoitteen eteen. */
+.home-address__stuck-pin {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .page--home .home-sticky-top.is-stuck .home-address__label {
+    display: none;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address__stuck-pin {
+    display: inline-block;
+    flex-shrink: 0;
+    margin-right: 6px;
+    color: var(--delivo-orange);
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address__value {
+    font-size: 0.9rem;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-mobile-top {
+    padding-bottom: 6px;
+  }
+}
+
+/* Osoitteen tiivistyminen animaationa ja musta sijainti-ikoni (käyttäjän
+   pyyntö 4.11.2026): otsikko liukuu pois ja ikoni liukuu esiin. */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top .home-address__label {
+    display: block;
+    max-height: 20px;
+    overflow: hidden;
+    opacity: 1;
+    transition: max-height 0.28s ease, opacity 0.2s ease;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address__label {
+    display: block;
+    max-height: 0;
+    opacity: 0;
+  }
+
+  .page--home .home-sticky-top .home-address__stuck-pin {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 0;
+    margin-right: 0;
+    opacity: 0;
+    color: var(--delivo-black);
+    transition: width 0.28s ease, margin-right 0.28s ease, opacity 0.2s ease;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address__stuck-pin {
+    width: 16px;
+    margin-right: 6px;
+    opacity: 1;
+    color: var(--delivo-black);
+  }
+
+  .page--home .home-sticky-top .home-address__value {
+    transition: font-size 0.28s ease;
+  }
+
+  .page--home .home-sticky-top .home-mobile-top {
+    transition: padding 0.28s ease;
+  }
+}
+
+@media (max-width: 560px) and (prefers-reduced-motion: reduce) {
+  .page--home .home-sticky-top .home-address__label,
+  .page--home .home-sticky-top .home-address__stuck-pin,
+  .page--home .home-sticky-top .home-address__value,
+  .page--home .home-sticky-top .home-mobile-top {
+    transition: none;
+  }
+}
+
+/* Piilotettu ikoni ei saa siirtää osoitetta: negatiivinen marginaali kumoaa
+   rivin välin, kunnes ikoni tulee näkyviin. */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top .home-address__value {
+    column-gap: 6px;
+  }
+
+  .page--home .home-sticky-top .home-address__stuck-pin {
+    margin-right: -6px;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address__stuck-pin {
+    margin-right: 0;
+  }
+}
+
+/* Kiinnitetty osoite isompana (käyttäjän pyyntö 4.11.2026). */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top.is-stuck .home-address__value {
+    font-size: 1.04rem;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address__stuck-pin {
+    width: 19px;
+    height: 19px;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address__value > svg:last-child {
+    width: 18px;
+    height: 18px;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-mobile-top {
+    padding-top: 2px;
+    padding-bottom: 8px;
+  }
+}
+
+/* Mallikuvan tapaan: täytetty neula, lihava osoite ja pieni nuoli. */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top.is-stuck .home-address__stuck-pin {
+    width: 18px;
+    height: 18px;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address__value {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address__value > svg:last-child {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Kiinnitetty osoite: enemmän tilaa yläreunaan ja selkeä sans-fontti
+   (käyttäjän palaute 4.11.2026). Sama fontti myös vierittämättömänä. */
+@media (max-width: 560px) {
+  .page--home .home-address__value {
+    font-family: 'Inter', var(--font-body, sans-serif);
+    letter-spacing: -0.01em;
+  }
+
+  .page--home .home-sticky-top.is-stuck {
+    padding-top: 14px;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address__value {
+    font-size: 0.98rem;
+    font-weight: 700;
+  }
+
+  .page--home .home-sticky-top {
+    transition: box-shadow 0.2s ease, padding-top 0.28s ease;
+  }
+}
+
+@media (max-width: 560px) {
+  .page--home .home-address__value {
+    font-weight: 700;
+  }
+}
+
+/* Kiinnitetty sijainti: lisää tilaa ja isompi, voimakkaampi neula
+   (käyttäjän pyyntö 4.11.2026). */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top.is-stuck {
+    padding-top: 22px;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-mobile-top {
+    padding-bottom: 12px;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address__stuck-pin {
+    width: 23px;
+    height: 23px;
+    margin-right: 2px;
+  }
+}
+
+/* Sijaintineula oranssiksi (käyttäjän pyyntö 4.11.2026). */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top .home-address__stuck-pin,
+  .page--home .home-sticky-top.is-stuck .home-address__stuck-pin {
+    color: var(--delivo-orange);
+  }
+}
+
+/* Symmetria hakupalkin kanssa (käyttäjän pyyntö 4.11.2026): neula samalla
+   pystylinjalla ja samankokoisena kuin hakupalkin suurennuslasi, ja osoite
+   alkaa samasta kohdasta kuin hakupalkin teksti. */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top.is-stuck .home-address__stuck-pin {
+    width: 21px;
+    height: 21px;
+    margin-left: 7.5px;
+    margin-right: 3.5px;
+  }
+}
+
+/* Hakukentän sisällä on 2 px oma reunus, joten osoite 2 px oikealle, jotta
+   teksti alkaa täsmälleen samasta kohdasta kuin "Hae ravintoloita ja ruokia". */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top.is-stuck .home-address__stuck-pin {
+    margin-right: 5.5px;
+  }
+}
+
+/* Symmetria toisin päin (käyttäjän ehdotus 4.11.2026): neula pysyy rivin
+   alussa ilman siirtoa, ja hakupalkki levenee hieman molempiin suuntiin, jolloin
+   suurennuslasi osuu neulan alle ja hakuteksti alkaa osoitteen kohdalta. */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top.is-stuck .home-address__stuck-pin {
+    margin-left: 0;
+    margin-right: 5.5px;
+  }
+
+  .page--home .home-sticky-top .home-search-sticky .home-search {
+    margin-right: -9.5px;
+    margin-left: -9.5px;
+    padding-left: 10px;
+  }
+}

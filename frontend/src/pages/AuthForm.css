@@ -328,3 +328,31 @@
     padding: 24px 20px 32px;
   }
 }
+
+/* Bidrop-logo kirjautumis- ja rekisteröitymisotsikon yläpuolella (käyttäjän
+   pyyntö 4.11.2026). */
+.auth-logo {
+  display: block;
+  height: 26px;
+  width: auto;
+  margin: 4px auto 14px;
+  color: var(--delivo-black);
+}
+
+/* Logo ja otsikko yhdeksi ryhmäksi: ei isoa väliä niiden väliin. */
+.auth-logo + h1 {
+  margin-top: 0;
+}
+
+.auth-logo {
+  margin-bottom: 10px;
+}
+
+.auth-logo + #auth-title {
+  margin-top: 0 !important;
+  padding-top: 0;
+}
+
+.auth-logo {
+  margin-bottom: 6px;
+}

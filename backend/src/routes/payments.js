@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { stripe } from '../stripeClient.js'
 import { createClient } from '@supabase/supabase-js'
 import { supabase, supabaseAdmin, isSupabaseConfigured } from '../supabaseClient.js'
+import { dealPriceCents } from '../lib/dailyDeals.js'
 
 const router = Router()
 
@@ -100,7 +101,8 @@ router.post('/create-intent', async (req, res) => {
     const optionDeltas = Array.isArray(line.optionIds)
       ? line.optionIds.map((id) => optionPriceById.get(id) ?? 0)
       : []
-    const unitPriceCents = menuItem.price_cents + optionDeltas.reduce((sum, delta) => sum + delta, 0)
+    // Päivän tarjous alentaa tuotteen perushintaa (lib/dailyDeals.js, sama sääntö kuin frontendissä).
+    const unitPriceCents = dealPriceCents(menuItem) + optionDeltas.reduce((sum, delta) => sum + delta, 0)
     subtotalCents += unitPriceCents * quantity
   }
 

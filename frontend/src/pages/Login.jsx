@@ -5,6 +5,7 @@ import AppleAuthButton from '../components/AppleAuthButton.jsx'
 import FacebookAuthButton from '../components/FacebookAuthButton.jsx'
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js'
 import { translateAuthError } from '../lib/authErrors.js'
+import DelivoLogo from '../components/DelivoLogo.jsx'
 import './AuthForm.css'
 
 // Kirjautumisen sisältö. App.jsx (AppRoutes) näyttää sen puhelimella alhaalta
@@ -80,7 +81,8 @@ function Login({ onDone }) {
     <div className="auth-card">
       {mode === 'login' ? (
         <>
-          <h1 id="auth-title">Kirjaudu sisään Bidropiin</h1>
+          <DelivoLogo className="auth-logo" />
+          <h1 id="auth-title">Kirjaudu sisään</h1>
 
           <GoogleAuthButton returnTo={redirectTo} />
           <AppleAuthButton />

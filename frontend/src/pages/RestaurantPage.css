@@ -1952,3 +1952,168 @@
     font-size: 0.96rem;
   }
 }
+
+/* Ravintolasivu yhteen sopivaksi etusivun kanssa (käyttäjän pyyntö
+   4.11.2026): otsikot Bricolage Grotesquella ja osio-otsikoiden perässä
+   logon oranssi piste, leipäteksti Interillä, tarjousmerkki samanlaisena
+   pillerinä kuin etusivun korteissa. */
+.restaurant-mhead__name,
+.featured-items__title,
+.menu-section__title {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.restaurant-mhead__name {
+  font-weight: 800;
+}
+
+.featured-items__title,
+.menu-section__title {
+  font-weight: 700;
+}
+
+.featured-items__title::after,
+.menu-section__title::after {
+  content: '';
+  display: inline-block;
+  width: 0.26em;
+  height: 0.26em;
+  margin-left: 0.12em;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+  vertical-align: baseline;
+}
+
+.restaurant-menu-tabs__btn {
+  font-family: 'Inter', var(--font-body, sans-serif);
+}
+
+.restaurant-mhead__offer {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  width: fit-content;
+  margin-top: 10px;
+  padding: 3px 9px 3px 6px;
+  border-radius: 999px;
+  background: #ec5420;
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+/* Pyöreämpi fontti tuotekortteihin (käyttäjän pyyntö 4.11.2026): tuotteen
+   nimi ja hinta Nunitolla (ladataan index.html:ssä), kuvaus ennallaan. */
+.menu-card__name,
+.featured-item__name {
+  font-family: 'Nunito', var(--font-body, sans-serif);
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.menu-card__price,
+.featured-item__price {
+  font-family: 'Nunito', var(--font-body, sans-serif);
+  font-weight: 700;
+}
+
+/* Välilehdet samalla pyöreällä fontilla kuin tuotekortit (käyttäjän pyyntö 4.11.2026). */
+.restaurant-menu-tabs__btn {
+  font-family: 'Nunito', var(--font-body, sans-serif);
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+/* Bugikorjaus (4.11.2026): kosketusnäytöllä napautettu välilehti jäi :hover-
+   tilaan mustaksi, jolloin kaksi välilehteä näytti valituilta. Hover vain
+   hiirellä, ja valittu välilehti erottuu myös paksuudella. */
+.restaurant-menu-tabs__btn:not(.restaurant-menu-tabs__btn--active),
+.restaurant-menu-tabs__btn:not(.restaurant-menu-tabs__btn--active):hover {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.restaurant-menu-tabs__btn--active {
+  color: var(--delivo-black);
+  font-weight: 800;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .restaurant-menu-tabs__btn:not(.restaurant-menu-tabs__btn--active):hover {
+    color: #3d3e38;
+  }
+}
+
+/* Päivän tarjoukset (käyttäjän pyyntö 4.11.2026): alennettu hinta oranssina,
+   vanha hinta yliviivattuna ja pieni prosenttimerkki. Ajastin ruokalistan
+   yläpuolella hillittynä rivinä. */
+.deal-price {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 6px;
+}
+
+.deal-price__now {
+  color: #d9420f;
+}
+
+.deal-price__was {
+  font-size: 0.86em;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.deal-price__tag {
+  align-self: center;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #ec5420;
+  color: #fff;
+  font-family: 'Inter', var(--font-body, sans-serif);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.deals-timer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 4px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fff1ea;
+  color: #b9390d;
+  font-size: 0.86rem;
+}
+
+.deals-timer__label {
+  font-weight: 700;
+}
+
+.deals-timer__time {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* Ajastin tuotteessa itsessään (käyttäjän pyyntö 4.11.2026), erillinen palkki pois. */
+.deal-price__timer {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 3px;
+  padding: 1px 7px 1px 5px;
+  border-radius: 999px;
+  background: #fff1ea;
+  color: #b9390d;
+  font-family: 'Inter', var(--font-body, sans-serif);
+  font-size: 0.66rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+}

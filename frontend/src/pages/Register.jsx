@@ -10,6 +10,7 @@ import { nationalPhone, splitName } from '../lib/format.js'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { forgetAuthRedirect, readAuthRedirect, rememberAuthRedirect } from '../lib/authRedirect.js'
 import { REGISTER_ADDRESS_PATH, ageFromBirthDate, hasSavedAddress } from '../lib/customerAddress.js'
+import DelivoLogo from '../components/DelivoLogo.jsx'
 import './AuthForm.css'
 
 // Rekisteröityminen alkaa AINA sähköpostin vahvistuksella (käyttäjän vaatimus):
@@ -325,7 +326,9 @@ function Register({ preview } = {}) {
 
   return (
     <div className="auth-card">
-      <h1 id="auth-title">Luo Bidrop-tili</h1>
+      {/* Bidrop-logo otsikon yläpuolella (käyttäjän pyyntö 4.11.2026). */}
+      <DelivoLogo className="auth-logo" />
+      <h1 id="auth-title">Luo tili</h1>
 
       {status === 'code-sent' || status === 'verifying' ? (
         <form
