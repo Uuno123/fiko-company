@@ -37,7 +37,7 @@ import {
 } from '../lib/deliveryAddress.js'
 import WelcomeAddress from '../components/WelcomeAddress.jsx'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
-import { formatPrice } from '../lib/format.js'
+import { formatDisplayAddress, formatPrice } from '../lib/format.js'
 import { BRAND_LOGOS } from '../lib/brandLogos.js'
 import './Home.css'
 
@@ -355,25 +355,6 @@ function Home() {
   // taustalla tai käyttäjä on pyytänyt vähemmän liikettä.
   const promoScrollRef = useRef(null)
   const promoPausedRef = useRef(false)
-  // Pallot korttien alla (käyttäjän pyyntö 4.11.2026): näkyvä kortti
-  // korostettuna, palloa painamalla siirrytään korttiin.
-  const [promoIndex, setPromoIndex] = useState(0)
-  function promoStep(scroller) {
-    const card = scroller?.querySelector('.promo-card')
-    if (!card) return 0
-    return card.getBoundingClientRect().width + (parseFloat(getComputedStyle(scroller).columnGap) || 12)
-  }
-  function handlePromoScroll(e) {
-    const scroller = e.currentTarget
-    const step = promoStep(scroller)
-    if (!step) return
-    const atEnd = scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 4
-    setPromoIndex(atEnd ? PROMO_CARDS.length - 1 : Math.round(scroller.scrollLeft / step))
-  }
-  function goToPromo(index) {
-    const scroller = promoScrollRef.current
-    scroller?.scrollTo({ left: index * promoStep(scroller), behavior: 'smooth' })
-  }
   useEffect(() => {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined
     const timer = setInterval(() => {
@@ -415,10 +396,8 @@ function Home() {
   useEffect(() => {
     function update() {
       const el = searchStickyRef.current
-      // Header pysyy puhelimella ylhäällä (3.11.2026), joten haku kiinnittyy sen alle.
-      const headerHeight =
-        parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--site-header-actual-height')) || 0
-      setSearchStuck(Boolean(el) && window.scrollY > 0 && el.getBoundingClientRect().top <= headerHeight + 0.5)
+      // Osoite + haku kiinnittyvät sivun ylälaitaan (4.11.2026, header vierii pois).
+      setSearchStuck(Boolean(el) && window.scrollY > 0 && el.getBoundingClientRect().top <= 0.5)
     }
     const frame = requestAnimationFrame(update)
     window.addEventListener('scroll', update, { passive: true })
@@ -889,27 +868,6 @@ function Home() {
 
       <main className="home-content">
         <div className="home-main">
-          {/* Mobiilin yläosa: osoite headerin osana yhtenä rivinä logon alla
-              (käyttäjän valinta 3.11.2026). Napautus avaa saman osoiteikkunan
-              kuin työpöydän headerissa. */}
-          <div className="home-mobile-top">
-            <button
-              type="button"
-              className="home-address"
-              aria-haspopup="dialog"
-              aria-label={deliveryAddress ? `Toimitusosoite: ${deliveryAddress.full}. Vaihda osoite` : 'Lisää toimitusosoite'}
-              onClick={openAddressPicker}
-            >
-              {/* Woltin tapaan pieni "Toimita nyt" ja lihava osoite (käyttäjän mallikuva 3.11.2026). */}
-              {/* Omalla äänellä (käyttäjän pyyntö 3.11.2026). */}
-              <span className="home-address__label">{deliveryAddress ? 'Tuodaan heti' : 'Ruoka ovelle'}</span>
-              <span className="home-address__value">
-                <span>{deliveryAddress?.label ?? 'Minne tuodaan?'}</span>
-                <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
-              </span>
-            </button>
-          </div>
-
           {appSheetOpen && (
             <BottomSheet compact onClose={() => setAppSheetOpen(false)} labelledBy="app-sheet-title">
               {(close) => (
@@ -925,10 +883,50 @@ function Home() {
             </BottomSheet>
           )}
 
+          {/* Vieritettäessä ylälaitaan jäävät vain osoite ja hakupalkki (käyttäjän
+              pyyntö 4.11.2026): logo ja napit vierivät pois, tämä lohko kiinnittyy. */}
+          <div className={`home-sticky-top${searchStuck ? ' is-stuck' : ''}`} ref={searchStickyRef}>
+          {/* Mobiilin yläosa: osoite headerin osana yhtenä rivinä logon alla
+              (käyttäjän valinta 3.11.2026). Napautus avaa saman osoiteikkunan
+              kuin työpöydän headerissa. */}
+          <div className="home-mobile-top">
+            <button
+              type="button"
+              className="home-address"
+              aria-haspopup="dialog"
+              aria-label={deliveryAddress ? `Toimitusosoite: ${deliveryAddress.full}. Vaihda osoite` : 'Lisää toimitusosoite'}
+              onClick={openAddressPicker}
+            >
+              {/* Woltin tapaan pieni "Toimita nyt" ja lihava osoite (käyttäjän mallikuva 3.11.2026). */}
+              {/* Omalla äänellä (käyttäjän pyyntö 3.11.2026). */}
+              <span className="home-address__label">{deliveryAddress ? 'Tuodaan heti' : 'Ruoka ovelle'}</span>
+              <span className="home-address__value">
+                {/* Sijainti-ikoni näkyy vain kiinnitettynä (vieritettäessä), jolloin
+                    osoite tiivistyy yhdelle riville (käyttäjän pyyntö 4.11.2026). */}
+                {/* Täytetty sijaintineula valkoisella pisteellä (käyttäjän mallikuva 4.11.2026). */}
+                <svg className="home-address__stuck-pin" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M12 2a8 8 0 0 0-8 8c0 5.4 6.6 11.3 7.3 11.9a1 1 0 0 0 1.4 0C13.4 21.3 20 15.4 20 10a8 8 0 0 0-8-8Z"
+                    fill="currentColor"
+                  />
+                  <circle cx="12" cy="10" r="3" fill="#fff" />
+                </svg>
+                {/* Koko osoite postinumeron ja kaupungin kanssa (käyttäjän pyyntö
+                    4.11.2026), esim. "Metsurintie 5, 70150 Kuopio". */}
+                <span>
+                  {deliveryAddress
+                    ? formatDisplayAddress(deliveryAddress.full) || deliveryAddress.label
+                    : 'Minne tuodaan?'}
+                </span>
+                <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
+              </span>
+            </button>
+          </div>
+
           {/* Puhelimella header vierii pois ja vain haku jää ylälaitaan (käyttäjän
               pyyntö 29.10.2026). Oma lohkonsa suoraan mainin alla, jotta kiinnitys
               kestää koko sivun. */}
-          <div className={`home-search-sticky${searchStuck ? ' is-stuck' : ''}`} ref={searchStickyRef}>
+          <div className="home-search-sticky">
             <div className="home-search" onClick={() => setSearchOpen(true)}>
               {/* Ohut suurennuslasi ja oikealla suodatinpainike (käyttäjän mallikuva 4.11.2026). */}
               <Search className="home-search__icon" size={20} strokeWidth={1.9} aria-hidden="true" />
@@ -961,6 +959,7 @@ function Home() {
                 </button>
               )}
             </div>
+          </div>
           </div>
 
           <div className="home-cats-wrap" hidden={!SHOW_HOME_CATEGORIES}>
@@ -1067,6 +1066,59 @@ function Home() {
                 ({ category, title, seeAll, items }, groupIndex) =>
                   items.length > 0 && (
                     <Fragment key={category}>
+                      {/* Tarjouskaruselli heti hakupalkin alla, ennen ensimmäistä riviä (käyttäjän pyyntö
+                          4.11.2026). Alkuperäinen malli: käyttäjän mallikuva
+                          4.11.2026, korvasi Suositut brändit -rivin; sisältö poistettu, pelkät värikortit): vaalea
+                          pohja, otsikko, ehto, koodin kopiointi ja kuva oikealla. */}
+                      {groupIndex === 0 && activeCategory === ALL && (
+                        <section className="category-row promo-cards" aria-label="Tarjoukset">
+                          <div
+                            className="category-row__scroll promo-cards__scroll"
+                            ref={promoScrollRef}
+                            onMouseEnter={() => (promoPausedRef.current = true)}
+                            onMouseLeave={() => (promoPausedRef.current = false)}
+                            onTouchStart={() => (promoPausedRef.current = true)}
+                            onTouchEnd={() => (promoPausedRef.current = false)}
+                          >
+                            {PROMO_CARDS.map((promo) => (
+                              promo.ad ? (
+                                <Link key={promo.code} to={promo.link} className="promo-card promo-card--ad">
+                                  <img className="promo-card__bg" src={promo.background} alt="" loading="lazy" />
+                                  <span className="promo-card__ad-label">Mainos</span>
+                                  <div className="promo-card__copy promo-card__copy--ad">
+                                    <h3>{promo.title}</h3>
+                                    <p>{promo.text}</p>
+                                  </div>
+                                </Link>
+                              ) : (
+                                <article key={promo.code} className={`promo-card promo-card--${promo.tone}`}>
+                                  {promo.image && (
+                                    <img
+                                      className={`promo-card__photo${promo.photoBg ? ' promo-card__photo--contain' : ''}`}
+                                      src={promo.image}
+                                      alt=""
+                                      loading="lazy"
+                                      style={promo.photoBg ? { backgroundColor: promo.photoBg } : undefined}
+                                    />
+                                  )}
+                                  {promo.showText && (
+                                    <div className="promo-card__copy">
+                                      <h3>{promo.title}</h3>
+                                      <p>{promo.text}</p>
+                                      {promo.cta && (
+                                      <button type="button" className="promo-card__cta" onClick={() => copyPromo(promo.code)}>
+                                        {copiedCode === promo.code ? 'Kopioitu!' : 'Kopioi koodi'}
+                                      </button>
+                                      )}
+                                    </div>
+                                  )}
+                                </article>
+                              )
+                            ))}
+                          </div>
+                        </section>
+                      )}
+
                       <section className="category-row" id={`cat-${categorySlug(category)}`}>
                         <div className="category-row__header">
                           <h2 className="category-row__title">{title ?? ROW_TITLES[category] ?? category}</h2>
@@ -1120,72 +1172,6 @@ function Home() {
                           ))}
                         </div>
                       </section>
-
-                      {/* Tarjouskortit ensimmäisen rivin jälkeen (käyttäjän mallikuva
-                          4.11.2026, korvasi Suositut brändit -rivin; sisältö poistettu, pelkät värikortit): vaalea
-                          pohja, otsikko, ehto, koodin kopiointi ja kuva oikealla. */}
-                      {groupIndex === 0 && activeCategory === ALL && (
-                        <section className="category-row promo-cards" aria-label="Tarjoukset">
-                          <div
-                            className="category-row__scroll promo-cards__scroll"
-                            ref={promoScrollRef}
-                            onMouseEnter={() => (promoPausedRef.current = true)}
-                            onMouseLeave={() => (promoPausedRef.current = false)}
-                            onTouchStart={() => (promoPausedRef.current = true)}
-                            onTouchEnd={() => (promoPausedRef.current = false)}
-                            onScroll={handlePromoScroll}
-                          >
-                            {PROMO_CARDS.map((promo) => (
-                              promo.ad ? (
-                                <Link key={promo.code} to={promo.link} className="promo-card promo-card--ad">
-                                  <img className="promo-card__bg" src={promo.background} alt="" loading="lazy" />
-                                  <span className="promo-card__ad-label">Mainos</span>
-                                  <div className="promo-card__copy promo-card__copy--ad">
-                                    <h3>{promo.title}</h3>
-                                    <p>{promo.text}</p>
-                                  </div>
-                                </Link>
-                              ) : (
-                                <article key={promo.code} className={`promo-card promo-card--${promo.tone}`}>
-                                  {promo.image && (
-                                    <img
-                                      className={`promo-card__photo${promo.photoBg ? ' promo-card__photo--contain' : ''}`}
-                                      src={promo.image}
-                                      alt=""
-                                      loading="lazy"
-                                      style={promo.photoBg ? { backgroundColor: promo.photoBg } : undefined}
-                                    />
-                                  )}
-                                  {promo.showText && (
-                                    <div className="promo-card__copy">
-                                      <h3>{promo.title}</h3>
-                                      <p>{promo.text}</p>
-                                      {promo.cta && (
-                                      <button type="button" className="promo-card__cta" onClick={() => copyPromo(promo.code)}>
-                                        {copiedCode === promo.code ? 'Kopioitu!' : 'Kopioi koodi'}
-                                      </button>
-                                      )}
-                                    </div>
-                                  )}
-                                </article>
-                              )
-                            ))}
-                          </div>
-                          <div className="promo-dots" role="tablist" aria-label="Tarjoukset">
-                            {PROMO_CARDS.map((promo, index) => (
-                              <button
-                                key={promo.code}
-                                type="button"
-                                role="tab"
-                                aria-selected={index === promoIndex}
-                                aria-label={`Tarjous ${index + 1}/${PROMO_CARDS.length}`}
-                                className={`promo-dots__dot${index === promoIndex ? ' is-active' : ''}`}
-                                onClick={() => goToPromo(index)}
-                              />
-                            ))}
-                          </div>
-                        </section>
-                      )}
 
                       {/* Kebab & Pizzaa seuraavan rivin jälkeen Kovimmat tarjoukset. */}
                       {groupIndex === dealsAfterIndex && (

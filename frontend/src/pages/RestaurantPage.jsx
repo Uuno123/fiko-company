@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { Bike, ChevronRight, Clock, Heart, Minus, Plus, Search, X } from 'lucide-react'
+import { BadgePercent, Bike, ChevronRight, Clock, Heart, Minus, Plus, Search, X } from 'lucide-react'
 import { ScoreSmiley } from '../components/Smiley.jsx'
 import { formatScore } from '../lib/score.js'
 import { brandLogoFor } from '../lib/brandLogos.js'
@@ -30,6 +30,8 @@ import {
   computeTotalDeltaCents,
   buildSelectedOptionsPayload,
 } from '../lib/menuOptions.js'
+import { offerBadge } from '../lib/offers.js'
+import { dealPercent, dealPriceCents, formatCountdown, msUntilDealsEnd } from '../lib/dailyDeals.js'
 import './RestaurantPage.css'
 
 // TILAPÄINEN: sama id:t kuin supabase/migrations/0039_remove_burger_talli_placeholder_items.sql -
@@ -88,18 +90,6 @@ function pseudoReviewCount(id) {
   return 40 + (hash % 460)
 }
 
-// Sama placeholder-periaate kuin yllä: ei oikeaa per-tuote arvostelutietoa
-// tietokannassa, joten luku lasketaan deterministisesti tuotteen id:stä (pysyy
-// samana joka renderöinnillä, vaihtelee tuotteittain).
-function pseudoItemRating(id) {
-  let hash = 0
-  for (let i = 0; i < id.length; i++) {
-    hash = (hash * 13 + id.charCodeAt(i)) >>> 0
-  }
-  const rating = 3.8 + (hash % 13) / 10
-  const count = 5 + (hash % 55)
-  return { rating: rating.toFixed(1), count }
-}
 
 // Sama raja kuin RestaurantPage.css:n Wolt-tyylisellä mobiiliasettelulla (780px).
 const COMPACT_QUERY = '(max-width: 780px)'
@@ -195,6 +185,43 @@ function RestaurantCartPanel({ restaurant, cart }) {
         </p>
       )}
     </aside>
+  )
+}
+
+// Aika päivän tarjousten loppuun (keskiyö Suomen aikaa), päivittyy sekunnin välein.
+function useDealsCountdown() {
+  const [ms, setMs] = useState(() => msUntilDealsEnd())
+  useEffect(() => {
+    const timer = setInterval(() => setMs(msUntilDealsEnd()), 1000)
+    return () => clearInterval(timer)
+  }, [])
+  return ms
+}
+
+// Tuotteen hinta päivän tarjouksella (lib/dailyDeals.js, 4.11.2026): alennettu
+// hinta, yliviivattu vanha hinta, prosenttimerkki ja ajastin tuotteessa itsessään
+// (käyttäjän pyyntö: ajastin tuotteeseen, ei erillistä palkkia). Ilman tarjousta
+// pelkkä hinta.
+function DealCountdown() {
+  const ms = useDealsCountdown()
+  return (
+    <span className="deal-price__timer" role="timer" aria-label={`Tarjous päättyy ${formatCountdown(ms)}`}>
+      <Clock size={12} strokeWidth={2.6} aria-hidden="true" />
+      {formatCountdown(ms)}
+    </span>
+  )
+}
+
+function DealPrice({ item, className }) {
+  const percent = dealPercent(item.id)
+  if (!percent) return <span className={className}>{formatPrice(item.price_cents)}</span>
+  return (
+    <span className={`${className} deal-price`}>
+      <span className="deal-price__now">{formatPrice(dealPriceCents(item))}</span>
+      <s className="deal-price__was">{formatPrice(item.price_cents)}</s>
+      <span className="deal-price__tag">−{percent} %</span>
+      <DealCountdown />
+    </span>
   )
 }
 
@@ -326,8 +353,17 @@ function RestaurantPage() {
       setTabIndicator(active ? { left: active.offsetLeft, width: active.offsetWidth } : null)
     }
     measure()
+    // Mitataan uudelleen, kun fontit ovat latautuneet: Nunito muuttaa nappien
+    // leveyttä, ja ennen latausta mitattu viiva jäi väärään kohtaan (4.11.2026).
+    let cancelled = false
+    document.fonts?.ready.then(() => {
+      if (!cancelled) measure()
+    })
     window.addEventListener('resize', measure)
-    return () => window.removeEventListener('resize', measure)
+    return () => {
+      cancelled = true
+      window.removeEventListener('resize', measure)
+    }
   }, [shownCategory, menuCategoryCount, status])
 
   useEffect(() => {
@@ -449,7 +485,8 @@ function RestaurantPage() {
   function addSelectedToCart() {
     if (selectedItem.is_available === false || restaurant.is_open === false || !optionsValid) return
     const selectedOptions = buildSelectedOptionsPayload(selectedItemGroups, optionSelections)
-    const unitPriceCents = selectedItem.price_cents + optionsDeltaCents
+    // Päivän tarjous alentaa perushintaa; backend laskee saman (payments.js).
+    const unitPriceCents = dealPriceCents(selectedItem) + optionsDeltaCents
     cart.addItem(restaurant, selectedItem, quantity, { selectedOptions, unitPriceCents })
     setJustAdded(true)
   }
@@ -603,9 +640,16 @@ function RestaurantPage() {
                   )}
                   <span className={restaurant.free_delivery ? 'is-free' : undefined}>
                     <Bike size={15} strokeWidth={2.2} aria-hidden="true" />
-                    {restaurant.free_delivery ? 'Ilmainen kuljetus' : `Kuljetus ${DELIVERY_PRICE_RANGE}`}
+                    {/* Sama hintatarjous-sanamuoto kuin etusivun korteissa (4.11.2026). */}
+                    {restaurant.free_delivery ? 'Ilmainen kuljetus' : `Tarjoa kuljetuksesta ${DELIVERY_PRICE_RANGE}`}
                   </span>
                 </p>
+                {/* Sama tarjousmerkki kuin etusivun kortissa (käyttäjän pyyntö
+                    4.11.2026: ravintolasivu yhteen sopivaksi etusivun kanssa). */}
+                <span className="restaurant-mhead__offer">
+                  <BadgePercent size={14} strokeWidth={2.4} aria-hidden="true" />
+                  {offerBadge(restaurant).text}
+                </span>
               </div>
 
               {/* Työpöytä: hakukenttä ja sydän tietojen tasolla oikealla
@@ -663,7 +707,7 @@ function RestaurantPage() {
                             </span>
                           </span>
                           <span className="featured-item__name">{item.name}</span>
-                          <span className="featured-item__price">{formatPrice(item.price_cents)}</span>
+                          <DealPrice item={item} className="featured-item__price" />
                         </button>
                       ))}
                     </div>
@@ -758,15 +802,7 @@ function RestaurantPage() {
 
                               <div className="menu-card__info">
                                 <span className="menu-card__name">{item.name}</span>
-                                {item.is_available !== false && (
-                                  <span className="menu-card__rating">
-                                    <ScoreSmiley rating={pseudoItemRating(item.id).rating} size={13} />
-                                    {formatScore(pseudoItemRating(item.id).rating)}
-                                    <span className="menu-card__rating-count">
-                                      ({pseudoItemRating(item.id).count}+)
-                                    </span>
-                                  </span>
-                                )}
+                                {/* Tuotteiden hymiöt ja arvostelut poistettu (käyttäjän pyyntö 4.11.2026). */}
                                 {item.description && (
                                   <span className="menu-card__description">{item.description}</span>
                                 )}
@@ -787,7 +823,7 @@ function RestaurantPage() {
                                 {item.is_available === false ? (
                                   <span className="menu-card__sold-out">Loppu valikoimasta</span>
                                 ) : (
-                                  <span className="menu-card__price">{formatPrice(item.price_cents)}</span>
+                                  <DealPrice item={item} className="menu-card__price" />
                                 )}
                               </div>
                             </div>
@@ -865,7 +901,9 @@ function RestaurantPage() {
                   ))}
                 </div>
               )}
-              <p className="item-modal__price">{formatPrice(selectedItem.price_cents)}</p>
+              <p className="item-modal__price">
+                <DealPrice item={selectedItem} className="item-modal__price-inner" />
+              </p>
 
               {selectedItemGroups.map((group) => {
                 const selected = optionSelections[group.id] ?? []
@@ -983,7 +1021,7 @@ function RestaurantPage() {
                         Lisätty ostoskoriin
                       </>
                     ) : (
-                      `Lisää ostoskoriin · ${formatPrice((selectedItem.price_cents + optionsDeltaCents) * quantity)}`
+                      `Lisää ostoskoriin · ${formatPrice((dealPriceCents(selectedItem) + optionsDeltaCents) * quantity)}`
                     )}
                   </button>
                 </div>

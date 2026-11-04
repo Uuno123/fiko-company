@@ -359,3 +359,187 @@
     gap: 6px;
   }
 }
+
+/* Kovimmat tarjoukset paneelina (käyttäjän mallikuva 4.11.2026): pyöristetty
+   vaalea persikkapaneeli sisällön levyisenä, iso liukuvärinen otsikko, valkoiset
+   kortit, tarjous pillerinä kortin alaosassa ja leveä nappi alareunassa.
+   Ohittaa aiemmat oranssin kaistan säännöt. */
+.page--home .category-row--hot {
+  overflow: hidden;
+  padding: 20px 16px 16px;
+  border-radius: 24px;
+  background: linear-gradient(165deg, #fff3ec 0%, #ffe2d3 100%);
+}
+
+.page--home .category-row--hot::before {
+  display: none;
+}
+
+.page--home .category-row--hot .deals-row__logo {
+  display: none;
+}
+
+.page--home .category-row--hot .category-row__title {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #e2430f 0%, #f4702f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.page--home .category-row--hot .category-row__title::after {
+  display: none;
+}
+
+.page--home .category-row--hot .category-row__see-all {
+  display: none;
+}
+
+.page--home .category-row--hot .category-row__nav {
+  border: none;
+  background: #fff;
+  color: var(--delivo-black);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.page--home .category-row--hot .category-row__scroll {
+  margin: 0 -16px;
+  padding: 4px 16px 12px;
+  scroll-padding-left: 16px;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card {
+  overflow: hidden;
+  border: none;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 6px 16px -10px rgba(150, 60, 20, 0.35);
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__media {
+  border-radius: 0;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__body {
+  padding: 10px 12px 12px;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__heading h3 {
+  color: var(--delivo-black);
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__meta,
+.page--home .category-row--hot .category-row__scroll .restaurant-card__stat,
+.page--home .category-row--hot .category-row__scroll .restaurant-card__sep {
+  color: var(--text-muted);
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__stat--rating {
+  color: var(--delivo-black);
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__bid-dot {
+  background: var(--delivo-orange);
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__free-badge {
+  background: var(--delivo-orange-soft);
+  color: var(--delivo-orange-dark);
+}
+
+/* Tarjous pehmeänä pillerinä kortin alaosassa. */
+.page--home .category-row--hot .restaurant-card__offer {
+  background: #ffe6da;
+  color: #c43c10;
+}
+
+.deals-row__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 46px;
+  margin-top: 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.75);
+  color: #c43c10;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.deals-row__cta:active {
+  background: #fff;
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row--hot {
+    padding: 18px 16px 16px;
+  }
+}
+
+/* Ei oranssia (käyttäjän pyyntö 4.11.2026): liilansininen paneeli mallikuvan
+   tapaan, otsikko violetista siniseen, tarjouspilleri vaaleansininen ja
+   nappi vaalea sinisellä tekstillä. */
+.page--home .category-row--hot {
+  background: linear-gradient(165deg, #f4eeff 0%, #e3dafb 100%);
+}
+
+.page--home .category-row--hot .category-row__title {
+  background: linear-gradient(90deg, #7a3fe0 0%, #2b6bd6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.page--home .category-row--hot .restaurant-card__offer {
+  background: #dcf2fb;
+  color: #0b6a94;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card {
+  box-shadow: 0 6px 16px -10px rgba(70, 50, 150, 0.35);
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__bid-dot {
+  background: var(--delivo-orange);
+}
+
+.deals-row__cta {
+  background: rgba(255, 255, 255, 0.6);
+  color: #1f6fd1;
+}
+
+/* Kortit alkavat samasta kohdasta kuin otsikko myös työpöydällä. */
+.page--home section.category-row--hot .category-row__scroll {
+  margin-right: -16px;
+  margin-left: -16px;
+  padding-right: 16px;
+  padding-left: 16px;
+  scroll-padding-left: 16px;
+}
+
+/* Paneelin ravintolat flätteinä (käyttäjän pyyntö 4.11.2026): ei valkoista
+   korttia eikä varjoa, pyöristetty kuva ja tummat tekstit suoraan paneelilla. */
+.page--home .category-row--hot .category-row__scroll .restaurant-card {
+  overflow: visible;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__media {
+  border-radius: 14px;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__body {
+  padding: 10px 2px 0;
+}
+
+.page--home .category-row--hot .restaurant-card__offer {
+  background: rgba(255, 255, 255, 0.75);
+}
