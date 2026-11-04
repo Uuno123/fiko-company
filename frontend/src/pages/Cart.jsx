@@ -105,7 +105,8 @@ const SERVICE_FEE_CENTS = 49
 
 const PROMO_CODES = {
   BIDROP10: { type: 'percent', value: 10, label: '10 % alennus' },
-  TERVETULOA: { type: 'fixed', value: 300, label: '3,00 € alennus' },
+  // Sama kuin backendin payments.js: 40 % ensimmäisestä tilauksesta, enint. 10 €.
+  TERVETULOA: { type: 'percent', value: 40, maxDiscountCents: 1000, firstOrderOnly: true, label: '40 % alennus (enint. 10 €)' },
   // Sama koodi mainostetaan ravintolakorttien merkissä (RestaurantCard) ja
   // etusivun mainoskarusellissa - maxDiscountCents ja minSubtotalCents pitävät
   // sen totena: alennus ei koskaan ole yli 7 € eikä koodi toimi ellei tilaus
@@ -531,13 +532,30 @@ function Cart() {
     setStep('review')
   }
 
-  function applyPromo(e) {
+  async function applyPromo(e) {
     e.preventDefault()
     const code = promoInput.trim().toUpperCase()
     const found = PROMO_CODES[code]
     if (!found) {
       setPromoError('Koodi ei kelpaa')
       return
+    }
+    // Ensimmäisen tilauksen koodi: tarkistetaan jo kassalla, ettei virhe tule
+    // vasta maksuvaiheessa (backend tarkistaa saman uudelleen).
+    if (found.firstOrderOnly) {
+      if (!customer?.id || !supabase) {
+        setPromoError('Kirjaudu sisään käyttääksesi koodia')
+        return
+      }
+      const { count, error } = await supabase
+        .from('orders')
+        .select('id', { count: 'exact', head: true })
+        .eq('customer_id', customer.id)
+        .neq('status', 'cancelled')
+      if (error || (count ?? 0) > 0) {
+        setPromoError('Koodi käy vain ensimmäiseen tilaukseen')
+        return
+      }
     }
     if (found.pickupOnly && delivery.method !== 'pickup') {
       setPromoError('Koodi koskee vain noutotilauksia - valitse Nouto')

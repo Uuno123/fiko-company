@@ -290,3 +290,72 @@
 .page--home .category-row--hot .category-row__scroll {
   padding-bottom: 16px;
 }
+
+/* Kovimmat tarjoukset ilman korttipohjaa ja siistimpi nuoli (käyttäjän pyyntö
+   4.11.2026): kuva pyöristettynä ja tekstit valkoisina suoraan oranssilla
+   kaistalla. Nuoli läpikuultavassa pallossa valkoisena, isompana. */
+.page--home .category-row--hot .category-row__scroll .restaurant-card {
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__media {
+  border-radius: 14px;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__body {
+  padding: 10px 2px 0;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__heading h3 {
+  color: #fff;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__meta,
+.page--home .category-row--hot .category-row__scroll .restaurant-card__stat,
+.page--home .category-row--hot .category-row__scroll .restaurant-card__stat--rating,
+.page--home .category-row--hot .category-row__scroll .restaurant-card__sep {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__bid-dot {
+  background: #fff;
+}
+
+.page--home .category-row--hot .category-row__scroll .restaurant-card__free-badge {
+  background: #fff;
+  color: var(--delivo-orange-dark);
+}
+
+.page--home .category-row--hot .category-row__see-all,
+.page--home .category-row--hot .category-row__nav {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  justify-content: center;
+}
+
+.page--home .category-row--hot .category-row__see-all svg,
+.page--home .category-row--hot .category-row__nav svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.4;
+}
+
+@media (min-width: 561px) {
+  .page--home .category-row--hot .category-row__see-all {
+    width: auto;
+    padding: 0 14px;
+    border-radius: 999px;
+    gap: 6px;
+  }
+}

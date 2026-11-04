@@ -27,10 +27,14 @@ export async function getRestaurantById(id) {
   return data ? { ...demo, is_open: data.is_open, opening_hours: data.opening_hours } : demo
 }
 
-export function createPaymentIntent(payload) {
+// Kirjautuneen asiakkaan token mukaan: backend tarkistaa sillä ensimmäisen
+// tilauksen koodin (TERVETULOA, 4.11.2026).
+export async function createPaymentIntent(payload) {
+  const { data } = supabase ? await supabase.auth.getSession() : { data: null }
+  const token = data?.session?.access_token
   return request('/api/payments/create-intent', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     body: JSON.stringify(payload),
   })
 }

@@ -2768,3 +2768,828 @@
     top: var(--site-header-actual-height, 64px);
   }
 }
+
+/* Hakupalkki käyttäjän mallikuvan mukaan (4.11.2026): vaalea harmaa
+   pyöristetty suorakulmio (ei pilleri), ohut suurennuslasi, harmaa
+   vihjeteksti ja oikealla suodatinpainike. */
+@media (max-width: 560px) {
+  .page--home .home-search-sticky .home-search {
+    height: 48px;
+    gap: 10px;
+    padding: 0 6px 0 14px;
+    border: none;
+    border-radius: 12px;
+    background: #f3f4f6;
+    box-shadow: none;
+  }
+
+  .page--home .home-search-sticky .home-search .home-search__icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    color: #1f2328;
+  }
+
+  .page--home .home-search-sticky .home-search input,
+  .page--home .home-search-sticky .home-search input::placeholder {
+    font-size: 0.95rem;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .page--home .home-search-sticky .home-search input::placeholder {
+    color: #6b7078;
+  }
+}
+
+.home-search__filters {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: #1f2328;
+  cursor: pointer;
+}
+
+.home-search__filters:active {
+  background: rgba(20, 21, 15, 0.06);
+}
+
+/* Harmaampi hakupalkki (käyttäjän pyyntö 4.11.2026) ja suodatinpainike ilman
+   valkoista palloa (vanha .home-search button -sääntö antoi sen). */
+@media (max-width: 560px) {
+  .page--home .home-search-sticky .home-search {
+    background: #e9eaec;
+  }
+}
+
+.page--home .home-search .home-search__filters {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: none;
+  box-shadow: none;
+}
+
+/* Ravintolat taas flätteinä (käyttäjän pyyntö 4.11.2026): ei pohjaa, reunaa
+   eikä varjoa, pyöristetty kuva ja teksti suoraan sen alla. Ohittaa yllä
+   olevan hentojen korttien lohkon. */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card,
+.search-results__restaurant-grid .restaurant-card,
+.category-page__list .restaurant-card {
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__media,
+.search-results__restaurant-grid .restaurant-card__media,
+.category-page__list .restaurant-card__media {
+  border-radius: 12px;
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  min-height: 0;
+  padding: 8px 2px 0;
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__body,
+  .search-results__restaurant-grid .restaurant-card__body,
+  .category-page__list .restaurant-card__body {
+    min-height: 0;
+  }
+}
+
+/* Tarjouskortit (käyttäjän mallikuva 4.11.2026): vaalean persikka pohja,
+   teksti vasemmalla, kuva oikealla reunasta reunaan, oranssi nappi. */
+.promo-cards__scroll {
+  gap: 12px;
+}
+
+.promo-card {
+  display: grid;
+  flex: 0 0 86vw;
+  grid-template-columns: 1fr 38%;
+  max-width: 420px;
+  min-height: 156px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #fff1e9;
+}
+
+.promo-card__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 16px 12px 16px 16px;
+}
+
+.promo-card__text h3 {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--delivo-black);
+}
+
+.promo-card__text p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #3d3f38;
+}
+
+.promo-card__text strong {
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+.promo-card__btn {
+  margin-top: auto;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 999px;
+  background: #ec5420;
+  color: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.promo-card__btn:active {
+  background: #d4441a;
+}
+
+.promo-card__media {
+  position: relative;
+  min-height: 100%;
+}
+
+.promo-card__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.promo-card__media--contain img {
+  inset: 12%;
+  width: 76%;
+  height: 76%;
+  object-fit: contain;
+}
+
+@media (min-width: 561px) {
+  .promo-card {
+    flex-basis: 400px;
+    min-height: 170px;
+  }
+}
+
+/* Tarjouskortit ilman kuvaa (käyttäjän pyyntö 4.11.2026): koko kortti
+   tekstille, jokaisella oma vaalea tausta ja sen sävyinen nappi. */
+.promo-card {
+  display: flex;
+  grid-template-columns: none;
+  flex: 0 0 78vw;
+  max-width: 360px;
+  min-height: 150px;
+}
+
+.promo-card__text {
+  flex: 1;
+  padding: 18px 18px 16px;
+}
+
+.promo-card--blue {
+  background: #ddf2f3;
+}
+
+.promo-card--blue .promo-card__btn {
+  background: #0f8086;
+}
+
+.promo-card--peach {
+  background: #ffeadf;
+}
+
+.promo-card--peach .promo-card__btn {
+  background: #e4521f;
+}
+
+.promo-card--lilac {
+  background: #ece8fb;
+}
+
+.promo-card--lilac .promo-card__btn {
+  background: #5b45c2;
+}
+
+.promo-card--mint {
+  background: #e2f4e6;
+}
+
+.promo-card--mint .promo-card__btn {
+  background: #24803f;
+}
+
+.promo-card__btn:active {
+  filter: brightness(0.92);
+}
+
+@media (min-width: 561px) {
+  .promo-card {
+    flex-basis: 340px;
+  }
+}
+
+/* Kuva täyttää koko tarjouskortin (käyttäjän pyyntö 4.11.2026). */
+.promo-card {
+  position: relative;
+}
+
+.promo-card__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Kuva vain kortin oikealla puolella (käyttäjän pyyntö 4.11.2026). */
+.promo-card__photo {
+  left: auto;
+  width: 46%;
+  object-position: 60% center;
+}
+
+/* Kuva kapeammaksi (käyttäjän pyyntö 4.11.2026: ei noin paljoa). */
+.promo-card__photo {
+  width: 34%;
+}
+
+/* Kortti samanvärinen kuin kuvan tausta (käyttäjän pyyntö 4.11.2026), ja
+   kuvan vasen reuna liukuu taustaan, ettei saumaa näy. */
+.promo-card--blue {
+  background: #c8d2d1;
+}
+
+.promo-card__photo {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 22%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 22%);
+}
+
+/* Kulho kokonaan näkyviin (käyttäjän palaute 4.11.2026: kuva katkesi):
+   leveämpi kuva-alue, rajaus kulhon kohdalle ja lyhyempi häivytys. */
+.promo-card__photo {
+  width: 50%;
+  object-position: 50% center;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 10%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 10%);
+}
+
+/* Ensimmäinen tarjouskortti pellavan värisenä kuvan taustan mukaan
+   (käyttäjän pyyntö 4.11.2026). Pystykuva rajataan kulhon kohdalta. */
+.promo-card--linen {
+  background: #d8b99c;
+}
+
+.promo-card__photo {
+  object-position: center 50%;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 24%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 24%);
+}
+
+/* Tarkempi pellavan sävy kuvan vasemman reunan keskiarvoista (ylä #dbbca5,
+   ala #d6b697) ja pidempi häivytys, ettei saumaa näy (käyttäjän pyyntö 4.11.2026). */
+.promo-card--linen {
+  background: linear-gradient(180deg, #dbbca4 0%, #d6b699 55%, #d4b395 100%);
+}
+
+.promo-card__photo {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 38%);
+}
+
+/* Kuva vaalenee oikealle (#d8b897 -> #e3ceb5), joten kortin tausta tekee
+   saman: liukuväri vasemmalta oikealle mitattujen sävyjen mukaan. */
+.promo-card--linen {
+  background: linear-gradient(90deg, #d5b699 0%, #d9bca1 45%, #dcc1a7 62%, #e1c9b1 100%);
+}
+
+/* Tarjouskortin teksti vasemmalla, kuvan häivytyksen päällä (4.11.2026). */
+.promo-card__copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  width: 58%;
+  padding: 18px 0 18px 18px;
+}
+
+.promo-card__copy h3 {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: #2b1d12;
+}
+
+.promo-card__copy p {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #5a4331;
+}
+
+/* Tarjouskortin teksti mallikuvan tapaan (käyttäjän pyyntö 4.11.2026):
+   lihava selkeä otsikko, kaksirivinen ehto ja pyöreä nappi. */
+.promo-card__copy {
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 4px;
+  width: 64%;
+  padding: 16px 0 16px 16px;
+}
+
+.promo-card__copy h3 {
+  font-family: 'Inter', var(--font-body, sans-serif);
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  color: #24180f;
+}
+
+.promo-card__copy p {
+  font-size: 0.82rem;
+  font-weight: 400;
+  line-height: 1.35;
+  color: #3b2b1f;
+}
+
+.promo-card__cta {
+  margin-top: auto;
+  padding: 9px 18px;
+  border: none;
+  border-radius: 999px;
+  background: #6b4429;
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.promo-card__cta:active {
+  filter: brightness(0.9);
+}
+
+/* Leveämmät tarjouskortit (käyttäjän pyyntö 4.11.2026). */
+.promo-card {
+  flex-basis: 88vw;
+  max-width: 420px;
+}
+
+@media (min-width: 561px) {
+  .promo-card {
+    flex-basis: 420px;
+  }
+}
+
+.promo-card__copy {
+  width: 60%;
+}
+
+/* Tarjouskortin otsikko ja nappi Plus Jakarta Sansilla (käyttäjän pyyntö
+   4.11.2026: kokeile eri fonttia; lähimpänä mallikuvan lihavaa sansia). */
+.promo-card__copy h3 {
+  font-family: 'Plus Jakarta Sans', var(--font-body, sans-serif);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.promo-card__cta {
+  font-family: 'Plus Jakarta Sans', var(--font-body, sans-serif);
+  font-weight: 700;
+}
+
+/* Kokeilu: pyöreä fontti tarjouskorttiin (käyttäjän pyyntö 4.11.2026),
+   Nunito ladataan jo index.html:ssä. */
+.promo-card__copy h3,
+.promo-card__cta {
+  font-family: 'Nunito', var(--font-body, sans-serif);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.promo-card__copy h3 {
+  font-size: 1.14rem;
+}
+
+/* Leveämpi teksti ja pienempi kuva (käyttäjän pyyntö 4.11.2026), jotta ehto
+   mahtuu yhdelle-kahdelle riville. */
+.promo-card__copy {
+  width: 74%;
+  padding-right: 6px;
+}
+
+.promo-card__photo {
+  width: 40%;
+}
+
+/* Teksti ei saa mennä kulhon päälle: kapeampi kuva oikeassa reunassa. */
+.promo-card__copy {
+  width: 68%;
+}
+
+.promo-card__photo {
+  width: 33%;
+}
+
+/* Kuva vähän isommaksi takaisin (käyttäjän pyyntö 4.11.2026). */
+.promo-card__copy {
+  width: 64%;
+}
+
+.promo-card__photo {
+  width: 39%;
+}
+
+/* Ehto yhdelle riville ja napille enemmän tilaa (käyttäjän pyyntö 4.11.2026). */
+.promo-card__copy p {
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.promo-card__cta {
+  margin-top: 14px;
+  padding: 10px 20px;
+}
+
+/* Ammattimaisempi tarjouskortti (käyttäjän palaute 4.11.2026), mallikuvan
+   tapaan: vaalea tasainen tekstiosa, kuva oikealla terävällä reunalla ilman
+   häivytystä, selkeä sans-otsikko, tiivis rytmi ja pieni tumma nappi. */
+.promo-card--linen {
+  background: #f6eee5;
+}
+
+.promo-card__photo {
+  width: 40%;
+  object-position: center;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.promo-card__copy {
+  justify-content: center;
+  gap: 0;
+  width: 60%;
+  padding: 16px 12px 16px 16px;
+}
+
+.promo-card__copy h3 {
+  font-family: 'Plus Jakarta Sans', var(--font-body, sans-serif);
+  font-size: 1.06rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #1c140d;
+}
+
+.promo-card__copy p {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: normal;
+  color: #5b4a3c;
+}
+
+.promo-card__cta {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: #1c140d;
+  font-family: 'Plus Jakarta Sans', var(--font-body, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Kuva sulautuu taas korttiin (käyttäjän palaute 4.11.2026: terävä reuna ei
+   sopinut): pellavan sävyinen liukuväri ja pehmeä häivytys takaisin, uusi
+   tiivis tekstityyli pysyy. Ehto yhdelle riville. */
+.promo-card--linen {
+  background: linear-gradient(90deg, #d5b699 0%, #d9bca1 45%, #dcc1a7 62%, #e1c9b1 100%);
+}
+
+.promo-card__photo {
+  width: 44%;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 38%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 38%);
+}
+
+.promo-card__copy p {
+  white-space: nowrap;
+  color: #4a3626;
+}
+
+/* Takaisin vaaleaan korttiin (käyttäjän pyyntö 4.11.2026) ja fontiksi
+   Bricolage Grotesque, sama kuin riviotsikoissa. */
+.promo-card--linen {
+  background: #f6eee5;
+}
+
+.promo-card__photo {
+  width: 40%;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.promo-card__copy h3 {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.promo-card__cta {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-weight: 600;
+}
+
+.promo-card__copy p {
+  white-space: normal;
+  color: #5b4a3c;
+}
+
+/* Kapeampi kuva-alue, mutta kulho pysyy samankokoisena (käyttäjän pyyntö
+   4.11.2026). Kortti alkuperäisen korkuinen (150 px), kulho pysyy
+   isona zoomauksella (alla). */
+.promo-card {
+  min-height: 150px;
+}
+
+.promo-card__photo {
+  width: 32%;
+}
+
+.promo-card__copy {
+  width: 68%;
+}
+
+/* Kulho samaan kokoon kuin ennen kavennusta: kuvaa zoomataan hieman, ja
+   kortti rajaa ylimenevän osan. */
+.promo-card__photo {
+  transform: scale(1.18);
+  transform-origin: center;
+}
+
+/* Isompi otsikko (käyttäjän pyyntö 4.11.2026), muut tekstit ennallaan. */
+.promo-card__copy h3 {
+  font-size: 1.3rem;
+  line-height: 1.12;
+}
+
+/* Otsikko kahdelle riville, jotta kortti pysyy matalana. */
+.promo-card__copy h3 {
+  font-size: 1.2rem;
+}
+
+/* Kaikki tarjouskortit samalla kaavalla (käyttäjän pyyntö 4.11.2026):
+   vaalea tausta, otsikko + ehto vasemmalla, kuva oikealla. Kortit ilman nappia
+   keskittävät tekstin pystysuunnassa. */
+.promo-card--peach {
+  background: #fbeee6;
+}
+
+.promo-card--lilac {
+  background: #f0edfa;
+}
+
+.promo-card--mint {
+  background: #eaf4ec;
+}
+
+/* Koko annos näkyy (käyttäjän palaute 4.11.2026: paremmat kuvat): neliökuva
+   mahtuu kuva-alueeseen kokonaan, ja ylä- ja alapuolelle jää kuvan oma
+   taustaväri (inline backgroundColor). Ei zoomausta. */
+.promo-card__photo--contain {
+  object-fit: contain;
+  transform: none;
+}
+
+/* Neliökuvat täsmälleen neliöalueeseen (kortin korkeus = leveys), jolloin
+   ylä- ja alapuolelle ei jää taustaraitoja. */
+.promo-card__photo--contain {
+  width: auto;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+/* Räikeät värikortit ilman kuvaa (käyttäjän pyyntö 4.11.2026): tummansininen,
+   oranssi ja keltainen. Teksti koko kortin levyisenä. */
+.promo-card--navy,
+.promo-card--orange,
+.promo-card--yellow {
+  align-items: stretch;
+}
+
+.promo-card--navy .promo-card__copy,
+.promo-card--orange .promo-card__copy,
+.promo-card--yellow .promo-card__copy {
+  width: 100%;
+  padding-right: 18px;
+}
+
+.promo-card--navy {
+  background: #12235c;
+}
+
+.promo-card--orange {
+  background: #f4501e;
+}
+
+.promo-card--yellow {
+  background: #ffcc1f;
+}
+
+.promo-card--navy .promo-card__copy h3,
+.promo-card--orange .promo-card__copy h3 {
+  color: #fff;
+}
+
+.promo-card--navy .promo-card__copy p,
+.promo-card--orange .promo-card__copy p {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.promo-card--yellow .promo-card__copy h3 {
+  color: #1c140d;
+}
+
+.promo-card--yellow .promo-card__copy p {
+  color: #4a3b10;
+}
+
+.promo-card--navy .promo-card__cta,
+.promo-card--orange .promo-card__cta {
+  background: #fff;
+  color: #1c140d;
+}
+
+/* Mainoskortti (käyttäjän pyyntö 4.11.2026): ravintolan kuva koko kortin
+   taustana, vasemmalla tumma liukuväri tekstin luettavuuteen, valkoinen teksti
+   ja pieni Mainos-merkki oikeassa yläkulmassa. */
+.promo-card--ad {
+  color: #fff;
+  text-decoration: none;
+  background: #0b5d2a;
+}
+
+.promo-card__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.promo-card--ad::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.25) 45%, rgba(0, 0, 0, 0) 70%);
+}
+
+.promo-card__copy--ad {
+  z-index: 2;
+  width: 70%;
+}
+
+.promo-card--ad .promo-card__copy h3 {
+  color: #fff;
+}
+
+.promo-card--ad .promo-card__copy p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.promo-card__ad-label {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* Mainoskorteissa vahvempi tumma liukuväri, jotta teksti erottuu kaikista
+   kuvista (käyttäjän pyyntö 4.11.2026: lisää mainoksia). */
+.promo-card--ad::after {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.4) 50%, rgba(0, 0, 0, 0.05) 80%);
+}
+
+/* Mainosten teksti kortin vasempaan alakulmaan (käyttäjän pyyntö 4.11.2026):
+   alhaalta nouseva tumma liukuväri pitää tekstin luettavana kuvasta
+   riippumatta, eikä teksti mene annoksen keskelle. Tiiviimpi typografia. */
+.promo-card--ad::after {
+  background:
+    linear-gradient(0deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.35) 38%, rgba(0, 0, 0, 0) 62%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0) 55%);
+}
+
+.promo-card__copy--ad {
+  justify-content: flex-end;
+  gap: 2px;
+  width: 100%;
+  padding: 14px 16px;
+}
+
+.promo-card--ad .promo-card__copy h3 {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.18rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
+}
+
+.promo-card--ad .promo-card__copy p {
+  margin-top: 0;
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+/* Mainos-merkki lasina (käyttäjän pyyntö 4.11.2026): himmennetty läpikuultava
+   pinta, ohut vaalea reuna ja valkoinen teksti. */
+.promo-card__ad-label {
+  padding: 3px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.16);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: blur(10px) saturate(140%);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* Pallot tarjouskorttien alla (käyttäjän pyyntö 4.11.2026): näkyvä kortti
+   pitkänä tummana pillerinä, muut pieninä harmaina palloina. */
+.promo-cards .category-row__scroll {
+  padding-bottom: 6px;
+}
+
+.promo-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.promo-dots__dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: #d3d5d8;
+  cursor: pointer;
+  transition: width 0.25s ease, background 0.25s ease;
+}
+
+.promo-dots__dot.is-active {
+  width: 20px;
+  background: var(--delivo-black);
+}

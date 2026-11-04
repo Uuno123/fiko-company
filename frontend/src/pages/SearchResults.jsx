@@ -40,7 +40,8 @@ function SearchResults() {
   const [items, setItems] = useState([])
   const [status, setStatus] = useState('idle')
   const [restaurantSort, setRestaurantSort] = useState('relevance')
-  const [sortSheetOpen, setSortSheetOpen] = useState(false)
+  // ?suodata=1: etusivun hakupalkin suodatinpainike avaa lajittelun heti (4.11.2026).
+  const [sortSheetOpen, setSortSheetOpen] = useState(() => searchParams.get('suodata') === '1')
   // Suodattimet paneelista (Alle 30 min, Ilmainen kuljetus, Arvio 9+), useampi
   // kerrallaan - siirretty etusivun pillereistä 29.10.2026.
   const [activeFilters, setActiveFilters] = useState([])
