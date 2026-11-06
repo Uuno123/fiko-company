@@ -7,6 +7,7 @@ import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import SearchSuggest from './SearchSuggest.jsx'
 import { openAddressPicker, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { supabase } from '../lib/supabaseClient.js'
+import { formatDisplayAddress } from '../lib/format.js'
 import './Header.css'
 import { restaurantThumb } from '../lib/brandLogos.js'
 
@@ -202,6 +203,34 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
               </button>
             </div>
           )}
+          {showAddress && (
+            <div className="header-desk-tools">
+              {/* Osoite pillerinä logon vieressä (käyttäjän pyyntö 6.11.2026) (käyttäjän mallikuva 6.11.2026). */}
+              <button
+                type="button"
+                className="header-address-pill"
+                aria-haspopup="dialog"
+                aria-label={deliveryAddress ? `Toimitusosoite: ${deliveryAddress.full}. Vaihda osoite` : 'Lisää toimitusosoite'}
+                onClick={openAddressPicker}
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    d="M12 2a8 8 0 0 0-8 8c0 5.4 6.6 11.3 7.3 11.9a1 1 0 0 0 1.4 0C13.4 21.3 20 15.4 20 10a8 8 0 0 0-8-8Z"
+                    fill="currentColor"
+                  />
+                  <circle cx="12" cy="10" r="3" fill="#fff" />
+                </svg>
+                <span>
+                  {deliveryAddress
+                    ? formatDisplayAddress(deliveryAddress.full)?.split(',')[0] || deliveryAddress.label
+                    : 'Lisää osoite'}
+                </span>
+                <svg className="header-address-pill__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="m6 8 4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
 
         {search && (
@@ -263,10 +292,13 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
         <div className="site-header__right">
           {/* Käynnissä olevan tilauksen kellonappi tulee tähän (ActiveOrderBubble). */}
           <div id="header-order-slot" className="header-order-slot" />
-          {cartAlways && !(cart && cart.count > 0) && (
-            <div className="cart-menu">
+          {/* Tyhjä kori: työpöydällä aina pillerinä (sama header kaikilla sivuilla,
+              6.11.2026), puhelimella vain kun cartAlways (Header.css). */}
+          {!(cart && cart.count > 0) && (
+            <div className={`cart-menu cart-menu--empty${cartAlways ? ' is-always' : ''}`}>
               <Link to="/ostoskori" className="cart-menu__trigger" aria-label="Ostoskori">
                 <CartIcon />
+                <span className="cart-menu__count">0</span>
               </Link>
             </div>
           )}
@@ -282,6 +314,7 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
                 {/* Bidropin oma kori-ikoni (CartIcon, 30.10.2026). */}
                 <CartIcon />
                 <span className="cart-menu__badge">{cart.count}</span>
+                <span className="cart-menu__count">{cart.count}</span>
               </button>
 
               {isCartOpen && (
