@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, ChevronDown, Search, SlidersHorizontal, Smartpho
 import BottomSheet from '../components/BottomSheet.jsx'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
+import HomeSidebar from '../components/HomeSidebar.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import DealsRow from '../components/DealsRow.jsx'
 import DealsCountdown from '../components/DealsCountdown.jsx'
@@ -176,6 +177,10 @@ const PROMO_CARDS = [
 const SEARCH_PLACEHOLDER = 'Hae ravintoloita ja ruokia'
 // Tarjous- ja mainoskorttien vaihtumisväli.
 const PROMO_ROTATE_MS = 4500
+// Loputon karuselli (käyttäjän pyyntö 6.11.2026): kortit kahteen kertaan peräkkäin;
+// kun ensimmäinen kierros on vieritetty ohi, hypätään huomaamatta takaisin
+// samaan kohtaan ensimmäisellä kierroksella.
+const PROMO_LOOP = [0, 1].flatMap((copy) => PROMO_CARDS.map((promo) => ({ ...promo, loopKey: `${promo.code}-${copy}`, isCopy: copy > 0 })))
 
 // Tasainen mutta sekoitettu järjestys "Kokeile jotain uutta" -riville.
 function nameHash(name) {
@@ -355,6 +360,19 @@ function Home() {
   // taustalla tai käyttäjä on pyytänyt vähemmän liikettä.
   const promoScrollRef = useRef(null)
   const promoPausedRef = useRef(false)
+  const promoWrapTimer = useRef(null)
+  // Ensimmäisen kierroksen leveys = toisen kierroksen ensimmäisen kortin kohta.
+  function wrapPromoLoop(scroller) {
+    const firstCopy = scroller.querySelector('[data-loop-copy="true"]')
+    if (!firstCopy) return
+    const loopWidth = firstCopy.offsetLeft - scroller.querySelector('.promo-card').offsetLeft
+    if (loopWidth > 0 && scroller.scrollLeft >= loopWidth - 1) scroller.scrollLeft -= loopWidth
+  }
+  function handlePromoScroll(e) {
+    const scroller = e.currentTarget
+    clearTimeout(promoWrapTimer.current)
+    promoWrapTimer.current = setTimeout(() => wrapPromoLoop(scroller), 160)
+  }
   useEffect(() => {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined
     const timer = setInterval(() => {
@@ -364,8 +382,8 @@ function Home() {
       if (!card) return
       const gap = parseFloat(getComputedStyle(scroller).columnGap) || 12
       const step = card.getBoundingClientRect().width + gap
-      const atEnd = scroller.scrollLeft + scroller.clientWidth >= scroller.scrollWidth - 4
-      scroller.scrollTo({ left: atEnd ? 0 : scroller.scrollLeft + step, behavior: 'smooth' })
+      wrapPromoLoop(scroller)
+      scroller.scrollTo({ left: scroller.scrollLeft + step, behavior: 'smooth' })
     }, PROMO_ROTATE_MS)
     return () => clearInterval(timer)
   }, [])
@@ -712,7 +730,7 @@ function Home() {
   }
 
   return (
-    <div className="page page--home">
+    <div className={`page page--home${isAuthenticated ? '' : ' is-guest'}`}>
       {/* Mobiilin koko ruudun hakunäkymä. Ehdotukset tulevat samasta
           SearchSuggest-komponentista kuin headerin pudotusvalikossa. */}
       {searchOpen && (
@@ -825,7 +843,9 @@ function Home() {
         showAddress
         // Ostoskori aina näkyvissä kirjautuneelle (käyttäjän pyyntö 3.11.2026).
         // Kirjautumattomalle vain, kun korissa on tuotteita.
-        cartAlways={isAuthenticated}
+        // Työpöydällä kori-pilleri aina (mallikuva 6.11.2026); puhelimella
+        // tyhjä kori vain kirjautuneelle (Home.css piilottaa muilta).
+        cartAlways
         // Puhelimella haku avautuu headerin suurennuslasista (käyttäjän pyyntö
         // 3.11.2026, hakupalkki poistettu). Työpöydällä piilossa (Home.css).
         actions={
@@ -866,6 +886,8 @@ function Home() {
       {/* Työpöydän kategoriat teksteinä headerin alla, kiinni vieritettäessä. Tämä on
           sivun suora lapsi eikä .home-contentin sisällä, jotta sticky pysyy koko sivun. */}
 
+      {/* Työpöydän navigaatiosivupalkki (6.11.2026), puhelimella piilossa. */}
+      <HomeSidebar />
       <main className="home-content">
         <div className="home-main">
           {appSheetOpen && (
@@ -1079,10 +1101,18 @@ function Home() {
                             onMouseLeave={() => (promoPausedRef.current = false)}
                             onTouchStart={() => (promoPausedRef.current = true)}
                             onTouchEnd={() => (promoPausedRef.current = false)}
+                            onScroll={handlePromoScroll}
                           >
-                            {PROMO_CARDS.map((promo) => (
+                            {PROMO_LOOP.map((promo, loopIndex) => (
                               promo.ad ? (
-                                <Link key={promo.code} to={promo.link} className="promo-card promo-card--ad">
+                                <Link
+                                  key={promo.loopKey}
+                                  to={promo.link}
+                                  className="promo-card promo-card--ad"
+                                  data-loop-copy={promo.isCopy && loopIndex === PROMO_CARDS.length ? 'true' : undefined}
+                                  aria-hidden={promo.isCopy || undefined}
+                                  tabIndex={promo.isCopy ? -1 : undefined}
+                                >
                                   <img className="promo-card__bg" src={promo.background} alt="" loading="lazy" />
                                   <span className="promo-card__ad-label">Mainos</span>
                                   <div className="promo-card__copy promo-card__copy--ad">
@@ -1091,7 +1121,12 @@ function Home() {
                                   </div>
                                 </Link>
                               ) : (
-                                <article key={promo.code} className={`promo-card promo-card--${promo.tone}`}>
+                                <article
+                                  key={promo.loopKey}
+                                  className={`promo-card promo-card--${promo.tone}`}
+                                  data-loop-copy={promo.isCopy && loopIndex === PROMO_CARDS.length ? 'true' : undefined}
+                                  aria-hidden={promo.isCopy || undefined}
+                                >
                                   {promo.image && (
                                     <img
                                       className={`promo-card__photo${promo.photoBg ? ' promo-card__photo--contain' : ''}`}

@@ -1,0 +1,152 @@
+/* Työpöydän navigaatiosivupalkki etusivulla (6.11.2026). Kiinteä vasemmassa
+   reunassa headerin alla; sivun sisältö ja footer siirtyvät sen oikealle
+   puolelle (Home.css). Alle 1100 px leveydellä piilossa. */
+.home-sidebar {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .home-sidebar {
+    position: fixed;
+    top: var(--site-header-actual-height, 66px);
+    bottom: 0;
+    left: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 232px;
+    padding: 20px 12px;
+    overflow-y: auto;
+    border-right: 1px solid #ececea;
+    background: #fff;
+    box-sizing: border-box;
+  }
+
+  .home-sidebar__group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0ee;
+  }
+
+  .home-sidebar__group:last-child {
+    border-bottom: none;
+  }
+
+  .home-sidebar__link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+    color: var(--delivo-black);
+    font-size: 0.94rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+
+  .home-sidebar__link:hover {
+    background: #f4f4f2;
+  }
+
+  .home-sidebar__link.is-active {
+    background: #f1f2f4;
+    font-weight: 700;
+  }
+
+  /* Ei oranssia (käyttäjän pyyntö 6.11.2026): aktiivinen ikoni mustana. */
+  .home-sidebar__link.is-active svg {
+    color: var(--delivo-black);
+  }
+
+  .home-sidebar__group--muted .home-sidebar__link {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    font-weight: 500;
+  }
+}
+
+/* Mallikuvan mittasuhteet (6.11.2026): isommat ikonit, korkeampi rivi. */
+@media (min-width: 1100px) {
+  .home-sidebar__link {
+    gap: 14px;
+    height: 48px;
+    font-size: 0.98rem;
+    font-weight: 600;
+  }
+}
+
+/* Pienemmät fontit ja napit (käyttäjän pyyntö 6.11.2026). */
+@media (min-width: 1100px) {
+  .home-sidebar {
+    width: 212px;
+    padding: 16px 10px;
+  }
+
+  .home-sidebar__link {
+    gap: 12px;
+    height: 40px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+  }
+
+  .page--home .home-content {
+    margin-left: 212px;
+    width: calc(100% - 212px);
+  }
+
+  .page--home .site-footer {
+    margin-left: 212px;
+  }
+}
+
+/* Brändivärit (6.11.2026): kermainen palkki, valittu kohta vaalean oranssi
+   ja oranssi ikoni. */
+@media (min-width: 1100px) {
+  .home-sidebar {
+    border-right-color: #efe6db;
+    background: #fbf7f2;
+  }
+
+  .home-sidebar__group {
+    border-bottom-color: #efe6db;
+  }
+
+  .home-sidebar__link {
+    color: #2a1b12;
+  }
+
+  .home-sidebar__link:hover {
+    background: #f3ece3;
+  }
+
+  .home-sidebar__link.is-active {
+    background: #fce9df;
+    color: #b8380d;
+  }
+
+  .home-sidebar__link.is-active svg {
+    color: #e8501c;
+  }
+}
+
+/* Kerma pois (6.11.2026): palkki valkoinen. */
+@media (min-width: 1100px) {
+  .home-sidebar {
+    border-right-color: #ececea;
+    background: #fff;
+  }
+
+  .home-sidebar__group {
+    border-bottom-color: #f0f0ee;
+  }
+
+  .home-sidebar__link:hover {
+    background: #f4f4f2;
+  }
+}

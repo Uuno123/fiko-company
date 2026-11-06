@@ -249,7 +249,7 @@ function SearchResults() {
               suodatinpainike, joka avaa lajittelun (käyttäjän kuva 28.10.2026);
               oranssi piste kertoo, että muu kuin oletuslajittelu on valittu. */}
           <div className="search-results__title-row">
-            <h1 className="search-results__heading">Hakutulokset</h1>
+            <h1 className="search-results__heading">{quickFilter?.id === 'all' ? 'Kaikki ravintolat' : 'Hakutulokset'}</h1>
             {status === 'ready' && allRestaurants.length > 1 && (
               <button
                 type="button"
@@ -262,7 +262,7 @@ function SearchResults() {
               </button>
             )}
           </div>
-          {query && <p className="search-results__heading-sub">haulle &quot;{query}&quot;</p>}
+          {query && quickFilter?.id !== 'all' && <p className="search-results__heading-sub">haulle &quot;{query}&quot;</p>}
         </div>
 
         {sortSheetOpen && (

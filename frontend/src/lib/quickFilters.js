@@ -20,8 +20,13 @@ export const QUICK_FILTERS = [
 // 3.11.2026): kaikki ravintolat lähimmästä alkaen. Ei suodatinpaneelissa.
 export const NEARBY_FILTER = { id: 'near', query: 'Lähelläsi', test: () => true, sort: 'distance' }
 
+// Sivupalkin "Selaa kaikkia" (käyttäjän pyyntö 6.11.2026): kaikki ravintolat
+// suositelluimmat ensin, suodattimet ja lajittelu käytössä. Ei tyhjää hakusivua.
+export const ALL_FILTER = { id: 'all', query: 'Kaikki ravintolat', test: () => true }
+
 export function quickFilterForQuery(query) {
   const term = (query ?? '').trim().toLowerCase()
   if (term === NEARBY_FILTER.query.toLowerCase()) return NEARBY_FILTER
+  if (term === ALL_FILTER.query.toLowerCase()) return ALL_FILTER
   return QUICK_FILTERS.find((filter) => filter.query.toLowerCase() === term) ?? null
 }

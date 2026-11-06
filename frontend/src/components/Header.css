@@ -1459,3 +1459,154 @@
     font-size: 0.86rem;
   }
 }
+
+/* Sama työpöydän header kaikilla sivuilla (käyttäjän pyyntö 6.11.2026, aiemmin
+   vain etusivulla): logo + osoite tekstinä, haku keskellä, oikealla oranssi
+   ostoskori-pilleri, Kirjaudu-teksti ja tumma Rekisteröidy. Vain vaalealla
+   headerilla (ei ravintolasivun kuvan päällä). Puhelimella ennallaan. */
+.cart-menu__count,
+.header-desk-tools {
+  display: none;
+}
+
+@media (max-width: 899px) {
+  .cart-menu--empty:not(.is-always) {
+    display: none;
+  }
+}
+
+@media (min-width: 900px) {
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .site-header__inner {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 520px) minmax(0, 1fr);
+    gap: 14px;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .site-header__left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    min-width: 0;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .city-select {
+    display: none;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .site-header__center {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .search-field-bar {
+    width: 100%;
+    max-width: 520px;
+    height: 38px;
+    border-radius: 999px;
+    background: #f1f2f4;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .site-header__right {
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .header-desk-tools {
+    display: flex;
+    align-items: center;
+  }
+
+  .header-address-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    max-width: 230px;
+    height: 36px;
+    padding: 0 8px;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--delivo-black);
+    font: inherit;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .header-address-pill:hover {
+    background: #f4f4f2;
+  }
+
+  .header-address-pill > svg:first-child {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+  }
+
+  .header-address-pill > span {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .header-address-pill__chevron {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger,
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger:hover {
+    gap: 6px;
+    width: auto;
+    height: 38px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 999px;
+    background: #e8501c;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger svg {
+    width: 18px;
+    height: 18px;
+    color: #fff;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__badge {
+    display: none;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__count {
+    display: inline;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .auth-ghost-btn,
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .auth-ghost-btn:hover {
+    height: 38px;
+    padding: 0 8px;
+    border: none;
+    background: none;
+    color: #2a1b12;
+    font-size: 0.86rem;
+    font-weight: 600;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .auth-ghost-btn svg {
+    display: none;
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .auth-pill-btn,
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .auth-pill-btn:hover {
+    height: 38px;
+    padding: 0 18px;
+    border: none;
+    background: #2a1b12;
+    color: #fff;
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+}
