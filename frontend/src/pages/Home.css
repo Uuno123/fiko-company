@@ -5624,3 +5624,613 @@
   background: var(--delivo-orange);
   color: #fff;
 }
+
+/* ── Työpöytä (vapaat kädet, 9.11.2026) ─────────────────────────────────────
+   Yhtenäinen työpöytänäkymä: mainokset vierekkäin eikä yksi venytetty banneri,
+   molemmat tarjouspaneelit samanlaisina pyöristettyinä laatikoina sisällön
+   levyisinä, paneelien kortit samankokoisia kuin muilla riveillä ja footer
+   samassa linjassa sivupalkin kanssa. */
+@media (min-width: 900px) {
+  /* Mainoskaruselli: kaksi korttia rinnakkain, isoilla näytöillä kolme. */
+  .page--home .promo-carousel__slide {
+    flex-basis: 50%;
+  }
+
+  .page--home .promo-carousel__card {
+    height: 230px;
+    border-radius: 16px;
+  }
+
+  .page--home .promo-carousel__title {
+    font-size: 26px;
+    line-height: 30px;
+  }
+
+  .page--home .promo-carousel__text {
+    left: 20px;
+    right: 20px;
+    bottom: 18px;
+  }
+
+  /* Ilmaiset kuljetukset samanlaisena paneelina kuin Kovimmat tarjoukset. */
+  .page--home .category-row--warm {
+    overflow: hidden;
+    padding: 24px 24px 20px;
+    border-radius: 24px;
+    background: linear-gradient(160deg, #ffe1d2 0%, #ffbf9f 100%);
+  }
+
+  .page--home .category-row--warm::before {
+    display: none;
+  }
+
+  .page--home .category-row--hot {
+    padding: 24px 24px 20px;
+  }
+
+  /* Paneelien kortit vierivät paneelin sisällä samalla korttikoolla kuin
+     tavallisilla riveillä. */
+  .page--home .category-row--deals .category-row__scroll {
+    margin: 0 -24px;
+    padding: 4px 24px 8px;
+    scroll-padding-left: 24px;
+  }
+
+  .page--home .category-row--deals .category-row__scroll .restaurant-card {
+    flex: 0 0 calc((100% - var(--card-gap, 16px) * (var(--card-n, 4) - 1)) / var(--card-n, 4)) !important;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .page--home .category-row--deals .category-row__scroll .restaurant-card__media {
+    aspect-ratio: auto;
+  }
+
+  .page--home .category-row--deals + .category-row,
+  .page--home .category-row + .category-row--deals {
+    margin-top: 12px;
+  }
+}
+
+@media (min-width: 1500px) {
+  .page--home .promo-carousel__slide {
+    flex-basis: 33.3333%;
+  }
+}
+
+/* Footer alkaa sivupalkin reunasta ilman rakoa. */
+@media (min-width: 1100px) {
+  .page--home .site-footer {
+    margin-left: 212px !important;
+  }
+}
+
+/* Paneelien korttimäärä: sama kuin tavallisilla riveillä, vähennettynä
+   paneelin sisennyksen verran, jotta kortit ovat yhtä leveitä. */
+@media (min-width: 900px) {
+  .page--home .category-row--deals {
+    --card-n: 2.98;
+  }
+}
+
+@media (min-width: 1200px) {
+  .page--home .category-row--deals {
+    --card-n: 3.65;
+  }
+}
+
+@media (min-width: 1600px) {
+  .page--home .category-row--deals {
+    --card-n: 4.25;
+  }
+}
+
+@media (min-width: 2000px) {
+  .page--home .category-row--deals {
+    --card-n: 4.15;
+  }
+}
+
+/* Ilman sivupalkkia (käyttäjän pyyntö 9.11.2026): sisältö täyttää leveyden
+   samoilla reunoilla kuin header, valikko aukeaa logon vieressä olevasta
+   hampurilaisesta (MobileMenu). */
+@media (min-width: 900px) {
+  .page--home .home-sidebar {
+    display: none !important;
+  }
+
+  .page--home .home-content {
+    width: 100% !important;
+    max-width: none !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+    box-sizing: border-box;
+  }
+
+  .page--home .site-footer {
+    margin-left: 0 !important;
+  }
+
+  .page--home .site-header__inner {
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+
+  /* Leveämpi sisältö: enemmän kortteja riville, ettei kortti veny. */
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 3.4;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 3.3;
+  }
+
+  /* Paneelien kuvat samankorkuisina kuin muilla riveillä. */
+  .page--home .category-row--deals .category-row__scroll .restaurant-card__media {
+    aspect-ratio: 2.15 / 1 !important;
+    height: auto !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 4.4;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 4.25;
+  }
+}
+
+@media (min-width: 1600px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 5.4;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 5.25;
+  }
+}
+
+@media (min-width: 2000px) {
+  .page--home .home-content {
+    padding-left: 72px !important;
+    padding-right: 72px !important;
+  }
+
+  .page--home .site-header__inner {
+    padding-left: 72px;
+    padding-right: 72px;
+  }
+
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 6.25;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 6.1;
+  }
+}
+
+/* Työpöydällä ravintolat kortteina (käyttäjän pyyntö 9.11.2026): valkoinen
+   pohja, ohut reuna, kevyt varjo, kuva kortin yläosassa ja teksti kortin
+   sisällä. Puhelimella kortit pysyvät ilman taustaa. */
+@media (min-width: 900px) {
+  .page--home .category-row .category-row__scroll .restaurant-card,
+  .search-results__restaurant-grid .restaurant-card,
+  .category-page__list .restaurant-card {
+    overflow: hidden !important;
+    border: 1px solid #ececea !important;
+    border-radius: 14px !important;
+    background: #fff !important;
+    box-shadow: 0 1px 3px rgba(20, 21, 15, 0.06) !important;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+
+  .page--home .category-row .category-row__scroll .restaurant-card:hover,
+  .search-results__restaurant-grid .restaurant-card:hover,
+  .category-page__list .restaurant-card:hover {
+    box-shadow: 0 8px 22px -8px rgba(20, 21, 15, 0.22) !important;
+    transform: translateY(-2px);
+  }
+
+  .page--home .category-row .category-row__scroll .restaurant-card__media,
+  .search-results__restaurant-grid .restaurant-card__media,
+  .category-page__list .restaurant-card__media {
+    border-radius: 0 !important;
+  }
+
+  .page--home .category-row .category-row__scroll .restaurant-card__body,
+  .search-results__restaurant-grid .restaurant-card__body,
+  .category-page__list .restaurant-card__body {
+    padding: 12px 14px 14px !important;
+  }
+
+  /* Tilaa varjolle ja nostolle vieritettävän rivin ylä- ja alareunassa. */
+  .page--home .category-row .category-row__scroll {
+    padding-top: 6px;
+    padding-bottom: 14px;
+  }
+}
+
+/* Footerin sisältö samoihin reunoihin kuin header ja sisältö (9.11.2026). */
+@media (min-width: 900px) {
+  .page--home .site-footer__inner {
+    max-width: none !important;
+    margin: 0 !important;
+    padding-left: 40px !important;
+    padding-right: 40px !important;
+  }
+}
+
+@media (min-width: 2000px) {
+  .page--home .site-footer__inner {
+    padding-left: 72px !important;
+    padding-right: 72px !important;
+  }
+}
+
+/* Työpöydän kortit Woltin mallikuvan tapaan (käyttäjän pyyntö 9.11.2026):
+   isommat kortit (noin 3 riville), ei reunaviivaa vaan pehmeä varjo joka
+   puolella, isommat kulmat, isompi nimi, tietorivi ja tarjouspilleri. */
+@media (min-width: 900px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 2.6 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 2.5 !important;
+  }
+
+  .page--home .category-row .category-row__scroll .restaurant-card,
+  .search-results__restaurant-grid .restaurant-card,
+  .category-page__list .restaurant-card {
+    border: none !important;
+    border-radius: 18px !important;
+    box-shadow:
+      0 0 0 1px rgba(20, 21, 15, 0.03),
+      0 2px 12px rgba(20, 21, 15, 0.12) !important;
+  }
+
+  .page--home .category-row .category-row__scroll .restaurant-card:hover,
+  .search-results__restaurant-grid .restaurant-card:hover,
+  .category-page__list .restaurant-card:hover {
+    box-shadow:
+      0 0 0 1px rgba(20, 21, 15, 0.03),
+      0 8px 24px rgba(20, 21, 15, 0.16) !important;
+  }
+
+  .page--home .category-row .category-row__scroll .restaurant-card__media,
+  .search-results__restaurant-grid .restaurant-card__media,
+  .category-page__list .restaurant-card__media {
+    aspect-ratio: 2.2 / 1 !important;
+    height: auto !important;
+  }
+
+  .page--home .category-row .category-row__scroll .restaurant-card__body,
+  .search-results__restaurant-grid .restaurant-card__body,
+  .category-page__list .restaurant-card__body {
+    padding: 14px 16px 16px !important;
+  }
+
+  .page--home .category-row .category-row__scroll .restaurant-card__heading h3,
+  .search-results__restaurant-grid .restaurant-card__heading h3,
+  .category-page__list .restaurant-card__heading h3 {
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+  }
+
+  .page--home .restaurant-card .restaurant-card__meta,
+  .search-results__restaurant-grid .restaurant-card .restaurant-card__meta,
+  .category-page__list .restaurant-card .restaurant-card__meta {
+    margin-top: 6px;
+    font-size: 0.86rem !important;
+  }
+
+  .restaurant-card .restaurant-card__meta svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .restaurant-card .restaurant-card__offer,
+  .restaurant-card .restaurant-card__offer--hot,
+  .restaurant-card .restaurant-card__offer--soft,
+  .restaurant-card .restaurant-card__offer--new,
+  .restaurant-card .restaurant-card__offer--pickup {
+    margin-top: 10px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 500;
+  }
+
+  .page--home .category-row .category-row__scroll {
+    padding-top: 10px;
+    padding-bottom: 20px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 3.3 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 3.2 !important;
+  }
+}
+
+@media (min-width: 2000px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 4.3 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 4.2 !important;
+  }
+}
+
+/* Korttikoko takaisin aiempaan (käyttäjän palaute 9.11.2026: liian isot),
+   Woltin tyyli (varjo, kulmat, tekstit) säilyy. */
+@media (min-width: 900px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 3.4 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 3.3 !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 4.4 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 4.25 !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 5.4 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 5.25 !important;
+  }
+}
+
+@media (min-width: 2000px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 6.25 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 6.1 !important;
+  }
+}
+
+/* Pienemmillä korteilla tekstit hieman pienempinä kuin Woltin isoissa. */
+@media (min-width: 900px) {
+  .page--home .category-row .category-row__scroll .restaurant-card__heading h3,
+  .search-results__restaurant-grid .restaurant-card__heading h3,
+  .category-page__list .restaurant-card__heading h3 {
+    font-size: 0.95rem !important;
+  }
+
+  .page--home .restaurant-card .restaurant-card__meta,
+  .search-results__restaurant-grid .restaurant-card .restaurant-card__meta,
+  .category-page__list .restaurant-card .restaurant-card__meta {
+    font-size: 0.8rem !important;
+  }
+
+  .restaurant-card .restaurant-card__meta svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .restaurant-card .restaurant-card__offer,
+  .restaurant-card .restaurant-card__offer--hot,
+  .restaurant-card .restaurant-card__offer--soft,
+  .restaurant-card .restaurant-card__offer--new,
+  .restaurant-card .restaurant-card__offer--pickup {
+    margin-top: 8px;
+    padding: 3px 8px;
+    font-size: 0.76rem;
+  }
+
+  .page--home .category-row .category-row__scroll .restaurant-card__body,
+  .search-results__restaurant-grid .restaurant-card__body,
+  .category-page__list .restaurant-card__body {
+    padding: 12px 14px 14px !important;
+  }
+}
+
+/* Kuvan alakulmat suoriksi (käyttäjän pyyntö 9.11.2026): kuva pyöristyy vain
+   kortin yläkulmista, alareuna suora. */
+@media (min-width: 900px) {
+  .page--home .category-row .category-row__scroll .restaurant-card__media,
+  .page--home .category-row .category-row__scroll .restaurant-card__media > *,
+  .search-results__restaurant-grid .restaurant-card__media,
+  .search-results__restaurant-grid .restaurant-card__media > *,
+  .category-page__list .restaurant-card__media,
+  .category-page__list .restaurant-card__media > * {
+    border-radius: 18px 18px 0 0 !important;
+  }
+}
+
+/* Tarkempi valitsin voittaa aiemman 12 px:n pyöristyksen (9.11.2026). */
+@media (min-width: 900px) {
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__media,
+  .page--home .category-row.category-row--deals .category-row__scroll .restaurant-card__media,
+  .page--home .category-row--hot .category-row__scroll .restaurant-card__media {
+    border-radius: 18px 18px 0 0 !important;
+  }
+}
+
+/* Leveämmät kortit (käyttäjän pyyntö 9.11.2026): hieman leveämmät, noin 0,3 korttia vähemmän riville. */
+@media (min-width: 900px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 3.15 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 3.05 !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 4.05 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 3.9 !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 4.95 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 4.8 !important;
+  }
+}
+
+@media (min-width: 2000px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 5.85 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 5.7 !important;
+  }
+}
+
+/* Korttien varjo Woltin mallikuvan tapaan (käyttäjän pyyntö 9.11.2026):
+   ohut reunavarjo joka puolella ja selvempi pehmeä varjo alaspäin. */
+@media (min-width: 900px) {
+  .page--home .category-row .category-row__scroll .restaurant-card,
+  .search-results__restaurant-grid .restaurant-card,
+  .category-page__list .restaurant-card {
+    box-shadow:
+      0 0 2px rgba(0, 0, 0, 0.08),
+      0 3px 10px rgba(0, 0, 0, 0.14) !important;
+  }
+
+  .page--home .category-row .category-row__scroll .restaurant-card:hover,
+  .search-results__restaurant-grid .restaurant-card:hover,
+  .category-page__list .restaurant-card:hover {
+    box-shadow:
+      0 0 2px rgba(0, 0, 0, 0.08),
+      0 8px 20px rgba(0, 0, 0, 0.18) !important;
+  }
+
+  .page--home .category-row .category-row__scroll {
+    padding-bottom: 22px;
+  }
+}
+
+/* Tilaa varjolle rivin reunoissa, ettei ensimmäisen kortin varjo leikkaudu. */
+@media (min-width: 900px) {
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll {
+    margin-left: -14px;
+    margin-right: -14px;
+    padding-left: 14px;
+    padding-right: 14px;
+    scroll-padding-left: 14px;
+  }
+}
+
+/* Työpöydälläkin flätit ilman korttia (käyttäjän pyyntö 9.11.2026): ei
+   pohjaa, reunaa eikä varjoa, kuva pyöristettynä ja teksti suoraan sivulla.
+   Kortit hieman pienempinä. */
+@media (min-width: 900px) {
+  .page--home .category-row .category-row__scroll .restaurant-card,
+  .page--home .category-row .category-row__scroll .restaurant-card:hover,
+  .search-results__restaurant-grid .restaurant-card,
+  .search-results__restaurant-grid .restaurant-card:hover,
+  .category-page__list .restaurant-card,
+  .category-page__list .restaurant-card:hover {
+    overflow: visible !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__media,
+  .page--home .category-row.category-row--deals .category-row__scroll .restaurant-card__media,
+  .page--home .category-row--hot .category-row__scroll .restaurant-card__media,
+  .page--home .category-row .category-row__scroll .restaurant-card__media > *,
+  .search-results__restaurant-grid .restaurant-card__media,
+  .search-results__restaurant-grid .restaurant-card__media > *,
+  .category-page__list .restaurant-card__media,
+  .category-page__list .restaurant-card__media > * {
+    border-radius: 12px !important;
+  }
+
+  .page--home .category-row .category-row__scroll .restaurant-card__body,
+  .search-results__restaurant-grid .restaurant-card__body,
+  .category-page__list .restaurant-card__body {
+    padding: 10px 2px 0 !important;
+  }
+
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 3.4 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 3.3 !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 4.3 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 4.15 !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 5.25 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 5.1 !important;
+  }
+}
+
+@media (min-width: 2000px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 6.15 !important;
+  }
+
+  .page--home .category-row--deals {
+    --card-n: 6 !important;
+  }
+}
+
+/* Flätit kortit eivät tarvitse varjotilaa reunoissa. */
+@media (min-width: 900px) {
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+    scroll-padding-left: 0;
+    padding-bottom: 8px;
+  }
+}

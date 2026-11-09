@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Bell, ChevronDown, Search, SlidersHorizontal, Smartphone } from 'lucide-react'
 import MobileMenu from '../components/MobileMenu.jsx'
+import { OPEN_TRACKING_EVENT } from '../components/ActiveOrderBubble.jsx'
 import PromoCarousel from '../components/PromoCarousel.jsx'
 import CartIcon from '../components/CartIcon.jsx'
 import BottomSheet from '../components/BottomSheet.jsx'
@@ -888,7 +889,18 @@ function Home() {
               <button type="button" className="home-mobile-icon" aria-label="Hae" onClick={() => setSearchOpen(true)}>
                 <Search size={21} strokeWidth={2.2} aria-hidden="true" />
               </button>
-              <Link to="/omat-tilaukset" className="home-mobile-icon home-mobile-bell" aria-label="Tilaukset ja ilmoitukset">
+              {/* Käynnissä olevan tilauksen aikana kello avaa seurannan (kartta ja
+                  kuljettajat, ActiveOrderBubble); muuten tilauslista. */}
+              <Link
+                to="/omat-tilaukset"
+                className="home-mobile-icon home-mobile-bell"
+                aria-label="Tilaukset ja ilmoitukset"
+                onClick={(e) => {
+                  if (!document.querySelector('.header-order-clock')) return
+                  e.preventDefault()
+                  window.dispatchEvent(new Event(OPEN_TRACKING_EVENT))
+                }}
+              >
                 <Bell size={21} strokeWidth={2.2} aria-hidden="true" />
               </Link>
               <Link to="/ostoskori" className="home-mobile-icon home-mobile-cart" aria-label={`Ostoskori, ${cart.count} tuotetta`}>

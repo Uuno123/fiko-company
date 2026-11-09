@@ -1741,3 +1741,134 @@
     margin-right: 10px;
   }
 }
+
+/* Hampurilainen myös työpöydällä etusivulla (sivupalkin tilalla, käyttäjän
+   pyyntö 9.11.2026): avaa saman sivuvalikon kuin puhelimella. */
+@media (min-width: 561px) {
+  .site-header__menu-btn {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin: 0 12px 0 -8px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: var(--delivo-black);
+    cursor: pointer;
+  }
+
+  .site-header__menu-btn:hover {
+    background: #f1f2f4;
+  }
+
+  .site-header__menu-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Isompi osoite työpöydän headerissa (käyttäjän pyyntö 9.11.2026). */
+@media (min-width: 900px) {
+  .header-address-pill__label {
+    font-size: 0.8rem !important;
+  }
+
+  .header-address-pill__value {
+    font-size: 1.08rem !important;
+    font-weight: 700 !important;
+  }
+
+  .header-address-pill svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (min-width: 900px) {
+  .header-address-pill__value {
+    max-width: 260px !important;
+  }
+}
+
+/* Työpöydän hamburger logon korkuiseksi (käyttäjän pyyntö 9.11.2026): viivat
+   ulottuvat logon kirjainten korkeudelle. */
+@media (min-width: 561px) {
+  .site-header__menu-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .site-header__menu-btn svg {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+/* Hamburger ja osoite pienemmiksi (käyttäjän palaute 9.11.2026: liian isot). */
+@media (min-width: 561px) {
+  .site-header__menu-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .site-header__menu-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+@media (min-width: 900px) {
+  .header-address-pill__label {
+    font-size: 0.72rem !important;
+  }
+
+  .header-address-pill__value {
+    font-size: 0.95rem !important;
+  }
+
+  .header-address-pill svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Toimitusosoite harmaana pillerinä yhdellä rivillä (käyttäjän valinta
+   9.11.2026): sama korkeus ja väri kuin hakukentässä ja ostoskorissa, ilman
+   ikonia ja ilman yläotsikkoa. */
+@media (min-width: 900px) {
+  .header-address-pill {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    height: 40px;
+    margin-left: 8px;
+    padding: 0 14px 0 16px !important;
+    border-radius: 999px !important;
+    background: #f1f2f4 !important;
+    transition: background 0.15s ease;
+  }
+
+  .header-address-pill:hover {
+    background: #e7e8eb !important;
+  }
+
+  .header-address-pill__label {
+    display: none !important;
+  }
+
+  .header-address-pill__value {
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    line-height: 1;
+  }
+
+  .header-address-pill__chevron,
+  .header-address-pill svg {
+    width: 15px !important;
+    height: 15px !important;
+    color: var(--delivo-black);
+  }
+}
