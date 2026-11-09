@@ -4354,3 +4354,1273 @@
     background: none;
   }
 }
+
+/* Kapeammat ravintolakortit puhelimella (käyttäjän pyyntö 7.11.2026):
+   70vw -> 65vw, enintään 256 px. Työpöytä ennallaan. */
+@media (max-width: 899px) {
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card {
+    flex: 0 0 65vw;
+    width: 65vw;
+    max-width: 256px;
+  }
+}
+
+/* Tarjousbannerit napsahtavat aina kokonaiseen korttiin (käyttäjän pyyntö
+   7.11.2026): pyyhkäisy ei voi jäädä puoliväliin. */
+.page--home .promo-cards__scroll {
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: var(--promo-snap-pad, 16px);
+}
+
+.page--home .promo-cards__scroll .promo-card {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+@media (min-width: 900px) {
+  .page--home .promo-cards__scroll {
+    --promo-snap-pad: 0px;
+  }
+}
+
+/* Ravintolarivit napsahtavat kokonaiseen korttiin (käyttäjän pyyntö 7.11.2026,
+   kumoaa 29.10.2026 "ei scroll-snapia" -päätöksen). Nopea pyyhkäisy saa silti
+   ohittaa useita kortteja. */
+.page--home .category-row__scroll {
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 16px;
+}
+
+.page--home .category-row__scroll .restaurant-card {
+  scroll-snap-align: start;
+}
+
+@media (min-width: 900px) {
+  .page--home .category-row__scroll {
+    scroll-padding-left: 0;
+  }
+}
+
+/* Puhelimella vähän enemmän väliä korttirivien väliin (käyttäjän pyyntö 7.11.2026). */
+@media (max-width: 899px) {
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll {
+    padding-bottom: 22px;
+  }
+}
+
+/* Kategoriavalinta hakupalkin suodatinpainikkeesta (käyttäjän pyyntö
+   7.11.2026): ruudukko kategorioista kuvineen, valittu kehystettynä. Valittu
+   kategoria näkyy pillerinä hakupalkin alla, rastista takaisin kaikkiin. */
+.home-search__filters.is-active {
+  position: relative;
+}
+
+.home-search__filters.is-active::after {
+  content: '';
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+}
+
+.home-active-cat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 6px;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.home-active-cat__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--delivo-black);
+  color: #fff;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cat-sheet h2 {
+  margin: 0 0 14px;
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.25rem;
+}
+
+.cat-sheet__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cat-sheet__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 6px 10px;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background: #f4f4f2;
+  color: var(--delivo-black);
+  font: inherit;
+  cursor: pointer;
+}
+
+.cat-sheet__item.is-selected {
+  border-color: var(--delivo-black);
+  background: #fff;
+}
+
+.cat-sheet__art {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+}
+
+.cat-sheet__art img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.cat-sheet__all {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.cat-sheet__name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.cat-sheet__check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+@media (min-width: 561px) {
+  .cat-sheet__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Kategoriat ilman kuvia (käyttäjän pyyntö 7.11.2026): tekstipillerit. */
+.cat-sheet__grid,
+.cat-sheet__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cat-sheet__item {
+  flex-direction: row;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+}
+
+.cat-sheet__item.is-selected {
+  border-color: var(--delivo-black);
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+.cat-sheet__name {
+  font-size: 0.9rem;
+}
+
+/* Kategoriat tekstipillereinä hakupalkin alla (käyttäjän pyyntö 7.11.2026):
+   vaakasuunnassa vieritettävä rivi, valittu musta. */
+.home-cat-chips {
+  display: flex;
+  gap: 8px;
+  margin: 2px -16px 4px;
+  padding: 2px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.home-cat-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.home-cat-chip {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: #f1f2f4;
+  color: var(--delivo-black);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.home-cat-chip.is-active {
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+@media (min-width: 900px) {
+  .home-cat-chips {
+    margin: 0 0 4px;
+    padding: 2px 0;
+  }
+}
+
+/* Kategoriapillerit pois etusivulta (käyttäjän pyyntö 7.11.2026); samat
+   valinnat suodatinpainikkeen valintasivulla. */
+.home-cat-chips {
+  display: none;
+}
+
+.browse-sheet h2 {
+  margin: 0 0 16px;
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.3rem;
+}
+
+.browse-sheet h3 {
+  margin: 18px 0 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.browse-sheet h2 + h3 {
+  margin-top: 0;
+}
+
+.browse-sheet__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.browse-sheet__chip {
+  height: 40px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: #f1f2f4;
+  color: var(--delivo-black);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.browse-sheet__chip:active {
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+/* Haun aloitusnäkymän kategoriat tekstipillereinä (7.11.2026). */
+.home-search-chips .home-search-cat-chip {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Haun aloitusnäkymän ravintolat ruudukkona eikä sivuttain vieritettävänä
+   rivinä (käyttäjän pyyntö 7.11.2026). */
+.home-search-start .search-suggest-restaurants {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  overflow: visible;
+}
+
+.home-search-start .search-suggest-restaurants > * {
+  width: auto;
+  min-width: 0;
+  flex: none;
+}
+
+@media (min-width: 700px) {
+  .home-search-start .search-suggest-restaurants {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Kirjautuneelle Avaa sovellus oranssina (käyttäjän pyyntö 7.11.2026);
+   kirjautumattomalle harmaa, koska Liity on silloin korostettu nappi. */
+@media (max-width: 560px) {
+  .page--home:not(.is-guest) .home-open-app {
+    background: var(--delivo-orange);
+    color: #fff;
+  }
+}
+
+/* Työpöydän ostoskori ilman oranssia (7.11.2026), ohittaa brändivärien säännön. */
+@media (min-width: 900px) {
+  .page--home .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger,
+  .page--home .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger:hover {
+    background: #f1f2f4;
+  }
+
+  .page--home .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger svg,
+  .page--home .site-header .cart-menu__count {
+    color: var(--delivo-black);
+  }
+}
+
+/* Työpöydällä lisää tilaa rivien väliin (käyttäjän pyyntö 7.11.2026):
+   myös tarjouskarusellin ja ensimmäisen rivin väliin. */
+@media (min-width: 900px) {
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll {
+    padding-bottom: 44px;
+  }
+
+  .page--home .category-row.promo-cards:not(.category-row--deals) {
+    padding-bottom: 28px;
+  }
+}
+
+/* Bugikorjaus (7.11.2026): leveällä näytöllä header oli rajattu 1600 px:iin
+   keskelle, jolloin logo ja oikean reunan napit eivät olleet linjassa
+   sivupalkin ja sisällön kanssa. Header koko leveydeltä kuten sivupalkki. */
+@media (min-width: 1100px) {
+  .page--home .site-header__inner {
+    max-width: none;
+    margin: 0;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+/* Työpöydällä reilusti pienemmät ravintolakortit (käyttäjän pyyntö 7.11.2026):
+   enemmän kortteja rivillä. Tarjousrivit ennallaan. */
+@media (min-width: 900px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 3.4;
+  }
+}
+
+@media (min-width: 1200px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 4.4;
+  }
+}
+
+@media (min-width: 1600px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 5.4;
+  }
+}
+
+@media (min-width: 2000px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 7.3;
+  }
+}
+
+/* Vähemmän kortteja kerralla (käyttäjän palaute 7.11.2026: liikaa näkyvissä),
+   kompromissi edellisen ja nykyisen väliltä. */
+@media (min-width: 900px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 3.1;
+  }
+}
+
+@media (min-width: 1200px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 3.8;
+  }
+}
+
+@media (min-width: 1600px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 4.4;
+  }
+}
+
+@media (min-width: 2000px) {
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 5.3;
+  }
+}
+
+/* Erittäin isot näytöt (käyttäjän pyyntö 7.11.2026: "ihan eri design"):
+   sisältö ei enää veny koko leveydelle, vaan on keskitetty 1680 px:n palsta
+   sivupalkin oikealla puolella, isommat otsikot ja kortit. Vierekkäin
+   näkyy rajattu määrä kortteja, joten rivi pysyy rauhallisena. */
+@media (min-width: 2000px) {
+  .page--home .home-content {
+    width: auto;
+    max-width: 1680px;
+    margin-left: calc(212px + max(0px, (100vw - 212px - 1680px) / 2));
+    margin-right: auto;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 4.3;
+  }
+
+  .page--home .category-row__title {
+    font-size: 1.7rem;
+  }
+
+  .page--home .home-intro h1 {
+    font-size: 2.6rem;
+  }
+
+  .page--home .home-intro p {
+    font-size: 1.05rem;
+  }
+
+  .page--home .restaurant-card__heading h3 {
+    font-size: 1rem;
+  }
+
+  .page--home .restaurant-card__meta {
+    font-size: 0.84rem;
+  }
+
+  .page--home .site-footer {
+    margin-left: 212px;
+  }
+}
+
+/* Iso näyttö mallikuvan tapaan (käyttäjän pyyntö 7.11.2026, korvaa keskitetyn
+   palstan): sisältö alkaa sivupalkin vierestä ja täyttää leveyden, rivillä
+   noin 6 korttia ja seuraava pilkistää. Otsikot hieman isompia. */
+@media (min-width: 2000px) {
+  .page--home .home-content {
+    width: calc(100% - 212px);
+    max-width: none;
+    margin-left: 212px;
+    margin-right: 0;
+    padding-left: 72px;
+    padding-right: 48px;
+  }
+
+  .page--home .category-row:not(.category-row--deals) {
+    --card-n: 6.25;
+  }
+
+  .page--home .category-row__title {
+    font-size: 1.45rem;
+  }
+
+  .page--home .home-intro h1 {
+    font-size: 2.2rem;
+  }
+}
+
+/* Leveän näytön header täyteläisemmäksi (käyttäjän pyyntö 7.11.2026, mallina
+   DoorDash): haku heti osoitteen jälkeen ja leveämpi, ettei keskelle jää
+   tyhjää. Haku venyy vapaaseen tilaan enintään 880 px. */
+@media (min-width: 1100px) {
+  .page--home .site-header__inner {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 28px;
+  }
+
+  .page--home .site-header__center {
+    justify-content: flex-start;
+  }
+
+  .page--home .site-header:not(.site-header--dark):not(.site-header--overlay) .search-field-bar,
+  .page--home .site-header .search-field-bar {
+    max-width: 880px;
+    height: 42px;
+  }
+
+  .page--home .site-header__right {
+    gap: 12px;
+  }
+}
+
+/* Puhelimen etusivun yläosa käyttäjän mallikuvan mukaan (8.11.2026):
+   hamburger + logo + Kirjaudu + oranssi Avaa sovellus; alla osoite ja
+   oikealla haku, kello ja ostoskori. Hakupalkki pois, haku ikonista. */
+.home-mobile-actions {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .page--home .site-header__left {
+    display: flex;
+    align-items: center;
+  }
+
+  .page--home .site-header__right {
+    gap: 14px;
+  }
+
+  /* Kirjaudu tekstinä ennen oranssia Avaa sovellus -nappia. */
+  .page--home .auth-login-btn {
+    order: 1;
+  }
+
+  .page--home .home-open-app {
+    order: 2;
+  }
+
+  .page--home .auth-login-btn__join,
+  .page--home .auth-login-btn__icon {
+    display: none !important;
+  }
+
+  .page--home .auth-login-btn__text {
+    display: inline;
+    color: var(--delivo-black);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .page--home .home-open-app,
+  .page--home.is-guest .home-open-app {
+    height: 36px;
+    padding: 0 16px;
+    background: var(--delivo-orange);
+    color: #fff;
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  /* Ostoskori ja tilauskello siirtyvät osoiteriville. */
+  .page--home .site-header .cart-menu,
+  .page--home .site-header .header-order-slot {
+    display: none !important;
+  }
+
+  .page--home .home-search-sticky {
+    display: none !important;
+  }
+
+  .page--home .home-sticky-top .home-mobile-top {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #efefed;
+  }
+
+  .page--home .home-address__label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .home-mobile-actions {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .home-mobile-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 4px;
+    border: none;
+    background: none;
+    color: var(--delivo-black);
+    font: inherit;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .home-mobile-cart span {
+    font-size: 0.92rem;
+    font-weight: 700;
+  }
+
+  /* Kellon oranssi piste vain kun tilaus on käynnissä (ActiveOrderBubble
+     piirtää silloin kellonsa headerin paikkaan). */
+  .page--home:has(.header-order-slot > *) .home-mobile-bell::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    right: 7px;
+    width: 8px;
+    height: 8px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--delivo-orange);
+  }
+}
+
+/* Mainosbanneri mallikuvan tapaan: RAVINTOLA, iso nimi, kuvaus, Sponsoroitu. */
+.promo-card--ad .promo-card__ad-label {
+  display: none;
+}
+
+.promo-card__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.promo-card--ad .promo-card__copy.promo-card__copy--ad h3 {
+  font-size: 1.6rem;
+  line-height: 1.05;
+}
+
+.promo-card__sponsored {
+  margin-top: 2px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+@media (max-width: 560px) {
+  .page--home .promo-cards__scroll .promo-card {
+    flex-basis: calc(100vw - 32px);
+    max-width: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row.promo-cards:not(.category-row--deals) {
+    padding-top: 0;
+    margin-top: -10px;
+  }
+}
+
+/* Puhelimella yksi iso banneri kerrallaan (käyttäjän pyyntö 8.11.2026):
+   tasan rivin levyinen, ei naapuribannereita reunoilla, korkeampi. */
+@media (max-width: 560px) {
+  .page--home .promo-cards__scroll {
+    gap: 16px;
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
+    scroll-padding-left: 16px;
+  }
+
+  .page--home .promo-cards__scroll .promo-card {
+    flex: 0 0 calc(100vw - 32px);
+    min-height: 200px;
+  }
+
+  .page--home .promo-card--ad .promo-card__copy.promo-card__copy--ad h3 {
+    font-size: 1.85rem;
+  }
+}
+
+/* Naapuribannerit eivät saa näkyä reunoilla: rivi rajataan sisällön levyiseksi. */
+@media (max-width: 560px) {
+  .page--home .category-row.promo-cards .promo-cards__scroll {
+    margin: 0;
+    padding-left: 0;
+    padding-right: 0;
+    scroll-padding-left: 0;
+  }
+
+  .page--home .category-row.promo-cards .promo-cards__scroll .promo-card {
+    flex: 0 0 100%;
+  }
+}
+
+/* Ohut jakoviiva headerin ja osoiterivin väliin sekä osoiterivin alle
+   (käyttäjän pyyntö 8.11.2026). */
+@media (max-width: 560px) {
+  .page--home .site-header {
+    border-bottom: 1px solid #ececea;
+    box-shadow: none;
+  }
+
+  .page--home .home-sticky-top {
+    padding-top: 12px;
+  }
+
+  .page--home .home-sticky-top .home-mobile-top,
+  .page--home .home-sticky-top.is-stuck .home-mobile-top {
+    margin: 0 -16px;
+    padding: 0 16px 12px;
+    border-bottom: 1px solid #ececea;
+  }
+}
+
+@media (max-width: 560px) {
+  .page--home .site-header.site-header,
+  .page--home .site-header:not(.site-header--dark):not(.site-header--overlay) {
+    border-bottom: 1px solid #ececea !important;
+  }
+}
+
+/* Mainosbannerin teksti ylemmäs, jotta sille jää tilaa (käyttäjän pyyntö
+   8.11.2026): pystysuunnassa keskelle, tumma liukuväri vasemmalta. */
+.promo-card__copy.promo-card__copy--ad {
+  justify-content: center;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.promo-card--ad::after {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.3) 45%, rgba(0, 0, 0, 0) 75%);
+}
+
+/* Mainosbanneri mallikuvan mukaan (8.11.2026): teksti vasemmassa alakulmassa,
+   tiivis ja pienempi otsikko, alhaalta nouseva tumma liukuväri. */
+.promo-card__copy.promo-card__copy--ad {
+  justify-content: flex-end;
+  gap: 1px;
+  padding: 14px 16px;
+}
+
+.promo-card--ad::after {
+  background:
+    linear-gradient(0deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.28) 40%, rgba(0, 0, 0, 0) 65%);
+}
+
+.promo-card__eyebrow {
+  margin-bottom: 2px;
+  font-size: 0.62rem;
+}
+
+.promo-card--ad .promo-card__copy.promo-card__copy--ad h3,
+.page--home .promo-card--ad .promo-card__copy.promo-card__copy--ad h3 {
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.promo-card--ad .promo-card__copy.promo-card__copy--ad p {
+  font-size: 0.78rem;
+}
+
+.promo-card__sponsored {
+  font-size: 0.66rem;
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row.promo-cards .promo-cards__scroll .promo-card {
+    min-height: 168px;
+  }
+}
+
+/* Korkeampi banneri ja enemmän väliä RAVINTOLA-otsakkeen ja nimen väliin
+   (käyttäjän pyyntö 8.11.2026). */
+.promo-card__eyebrow {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row.promo-cards .promo-cards__scroll .promo-card {
+    min-height: 210px;
+  }
+}
+
+/* Isompi ravintolan nimi ja täysin valkoinen RAVINTOLA-otsake (8.11.2026). */
+.promo-card__eyebrow {
+  color: #fff;
+}
+
+.promo-card--ad .promo-card__copy.promo-card__copy--ad h3,
+.page--home .promo-card--ad .promo-card__copy.promo-card__copy--ad h3 {
+  font-size: 1.75rem;
+}
+
+/* Banneri hieman matalammaksi (käyttäjän pyyntö 8.11.2026). */
+@media (max-width: 560px) {
+  .page--home .category-row.promo-cards .promo-cards__scroll .promo-card {
+    min-height: 196px;
+  }
+}
+
+/* Isompi alaotsikko (kuvaus · aika) bannerissa (käyttäjän pyyntö 8.11.2026). */
+.promo-card--ad .promo-card__copy.promo-card__copy--ad p {
+  font-size: 0.9rem;
+}
+
+/* Puhelimella reilusti enemmän tilaa ravintolarivien väliin (8.11.2026). */
+@media (max-width: 560px) {
+  .page--home .category-row:not(.category-row--deals):not(.promo-cards) .category-row__scroll {
+    padding-bottom: 36px;
+  }
+}
+
+/* Enemmän tilaa bannerin ja ensimmäisen ravintolarivin väliin (8.11.2026). */
+@media (max-width: 560px) {
+  .page--home .category-row.promo-cards:not(.category-row--deals) {
+    padding-bottom: 26px;
+  }
+}
+
+/* Mainosbanneri täsmälleen mallikuvan mukaan (käyttäjän pyyntö 8.11.2026):
+   reunoilta 20 px, otsake → nimi 10 px, nimi → kuvaus 4 px, kuvaus →
+   Sponsoroitu 6 px; isommat kuvaus ja Sponsoroitu, pehmeämpi tummennus. */
+.promo-card__copy.promo-card__copy--ad {
+  gap: 0;
+  padding: 20px 20px 22px;
+}
+
+.promo-card__eyebrow {
+  margin-bottom: 10px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.promo-card--ad .promo-card__copy.promo-card__copy--ad h3,
+.page--home .promo-card--ad .promo-card__copy.promo-card__copy--ad h3 {
+  margin: 0 0 4px;
+  font-size: 1.8rem;
+  line-height: 1.05;
+}
+
+.promo-card--ad .promo-card__copy.promo-card__copy--ad p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #fff;
+}
+
+.promo-card__sponsored {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.promo-card--ad::after {
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.18) 45%, rgba(0, 0, 0, 0) 70%);
+}
+
+@media (max-width: 560px) {
+  .page--home .category-row.promo-cards .promo-cards__scroll .promo-card {
+    min-height: 0;
+    aspect-ratio: 1.85 / 1;
+  }
+}
+
+/* Banneri vertailukuvan (Figma) mukaan (8.11.2026): pienempi teksti lähempänä
+   alareunaa, kapeammat välit ja tummempi alareuna. */
+.promo-card__copy.promo-card__copy--ad {
+  padding: 16px 16px 18px;
+}
+
+.promo-card__eyebrow {
+  margin-bottom: 6px;
+  font-size: 0.6rem;
+}
+
+.promo-card--ad .promo-card__copy.promo-card__copy--ad h3,
+.page--home .promo-card--ad .promo-card__copy.promo-card__copy--ad h3 {
+  margin: 0 0 3px;
+  font-size: 1.45rem;
+}
+
+.promo-card--ad .promo-card__copy.promo-card__copy--ad p {
+  font-size: 0.82rem;
+}
+
+.promo-card__sponsored {
+  margin-top: 5px;
+  font-size: 0.7rem;
+}
+
+.promo-card--ad::after {
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.25) 40%, rgba(0, 0, 0, 0) 65%);
+}
+
+/* Pienemmät Kirjaudu ja Avaa sovellus (käyttäjän pyyntö 8.11.2026). */
+@media (max-width: 560px) {
+  .page--home .auth-login-btn__text {
+    font-size: 0.82rem;
+  }
+
+  .page--home .home-open-app,
+  .page--home.is-guest .home-open-app {
+    height: 32px;
+    padding: 0 13px;
+    font-size: 0.78rem;
+  }
+
+  .page--home .site-header__right {
+    gap: 12px;
+  }
+}
+
+/* Riviotsikot ihan hieman isommiksi (käyttäjän pyyntö 8.11.2026):
+   puhelimella 19,2 -> 20,5 px, työpöydällä 23,2 -> 24,5 px. */
+.page--home .category-row:not(.promo-cards) .category-row__title {
+  font-size: 1.28rem;
+}
+
+@media (min-width: 900px) {
+  .page--home .category-row:not(.promo-cards) .category-row__title {
+    font-size: 1.53rem;
+  }
+}
+
+/* Ravintolakortit käyttäjän mallikuvan mukaan (8.11.2026): valkoinen
+   pyöristetty kortti ohuella reunalla, kuva kortin yläosassa, lihavoitu nimi,
+   harmaa tietorivi (hymiö · aika · pyörä + hinta) ja vaaleansininen
+   tarjouspilleri. Koskee etusivun rivejä, hakua ja kategoriasivua. */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card,
+.search-results__restaurant-grid .restaurant-card,
+.category-page__list .restaurant-card {
+  overflow: hidden;
+  border: 1px solid #ebebeb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(20, 21, 15, 0.06);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card:hover,
+  .search-results__restaurant-grid .restaurant-card:hover,
+  .category-page__list .restaurant-card:hover {
+    box-shadow: 0 4px 14px rgba(20, 21, 15, 0.1);
+  }
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__media,
+.search-results__restaurant-grid .restaurant-card__media,
+.category-page__list .restaurant-card__media {
+  border-radius: 0 !important;
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  min-height: 0;
+  padding: 10px 12px 12px;
+}
+
+.page--home .category-row .category-row__scroll .restaurant-card__heading h3,
+.search-results__restaurant-grid .restaurant-card__heading h3,
+.category-page__list .restaurant-card__heading h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #202125;
+}
+
+.page--home .restaurant-card .restaurant-card__meta,
+.search-results__restaurant-grid .restaurant-card .restaurant-card__meta,
+.category-page__list .restaurant-card .restaurant-card__meta {
+  margin-top: 4px;
+  color: #6b6b6b;
+  font-size: 0.8rem;
+}
+
+.restaurant-card .restaurant-card__bid {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: inherit;
+}
+
+.restaurant-card .restaurant-card__bike {
+  flex: none;
+}
+
+/* Tarjouspilleri: vaaleansininen pohja, sininen teksti, ei ikonia. */
+.restaurant-card .restaurant-card__offer,
+.restaurant-card .restaurant-card__offer--hot,
+.restaurant-card .restaurant-card__offer--soft,
+.restaurant-card .restaurant-card__offer--new,
+.restaurant-card .restaurant-card__offer--pickup {
+  margin-top: 8px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 8px;
+  background: #e3f4fb;
+  color: #0b6e99;
+  font-size: 0.78rem;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+/* Erot mallikuvaan korjattu (8.11.2026): nimi yhdellä rivillä (pitkä nimi
+   katkeaa kolmeen pisteeseen), koko tietorivi harmaana myös arvosanan osalta,
+   selvempi varjo kortin alla ja pienempi tarjouspilleri. */
+.page--home .category-row .category-row__scroll .restaurant-card__heading h3,
+.search-results__restaurant-grid .restaurant-card__heading h3,
+.category-page__list .restaurant-card__heading h3 {
+  overflow: hidden;
+  display: block;
+  -webkit-line-clamp: unset;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 0.94rem;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  padding: 12px 12px 12px;
+}
+
+.page--home .restaurant-card .restaurant-card__meta,
+.search-results__restaurant-grid .restaurant-card .restaurant-card__meta,
+.category-page__list .restaurant-card .restaurant-card__meta {
+  margin-top: 5px;
+  color: #707070;
+  font-size: 0.78rem;
+}
+
+.restaurant-card .restaurant-card__meta .restaurant-card__stat--rating {
+  gap: 4px;
+  color: inherit;
+}
+
+.restaurant-card .restaurant-card__meta .restaurant-card__sep {
+  padding: 0 5px;
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card,
+.search-results__restaurant-grid .restaurant-card,
+.category-page__list .restaurant-card {
+  border-color: #eeeeee;
+  box-shadow:
+    0 1px 2px rgba(20, 21, 15, 0.05),
+    0 4px 12px rgba(20, 21, 15, 0.08);
+}
+
+.restaurant-card .restaurant-card__offer,
+.restaurant-card .restaurant-card__offer--hot,
+.restaurant-card .restaurant-card__offer--soft,
+.restaurant-card .restaurant-card__offer--new,
+.restaurant-card .restaurant-card__offer--pickup {
+  margin-top: 9px;
+  padding: 3px 7px;
+  border-radius: 7px;
+  background: #dff2fa;
+  color: #0a5f85;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+/* Koko ravintolan nimi näkyviin kuten Woltilla (8.11.2026): hieman pienempi ja
+   tiiviimpi fontti, jolla kaikki nykyiset nimet mahtuvat puhelimen kortin
+   leveyteen. Kolme pistettä jää varalle hyvin pitkille nimille. */
+.page--home .category-row .category-row__scroll .restaurant-card__heading h3,
+.search-results__restaurant-grid .restaurant-card__heading h3,
+.category-page__list .restaurant-card__heading h3 {
+  font-size: 0.84rem;
+  letter-spacing: -0.01em;
+}
+
+/* Pienempi tietorivi (arvosana · aika · hinta) ja sen ikonit (8.11.2026). */
+.page--home .restaurant-card .restaurant-card__meta,
+.search-results__restaurant-grid .restaurant-card .restaurant-card__meta,
+.category-page__list .restaurant-card .restaurant-card__meta {
+  font-size: 0.72rem;
+}
+
+.restaurant-card .restaurant-card__meta svg {
+  width: 13px;
+  height: 13px;
+}
+
+.restaurant-card .restaurant-card__meta .restaurant-card__sep {
+  padding: 0 4px;
+}
+
+/* Tarjouspilleri oranssiksi sinisen tilalle (käyttäjän pyyntö 9.11.2026). */
+.restaurant-card .restaurant-card__offer,
+.restaurant-card .restaurant-card__offer--hot,
+.restaurant-card .restaurant-card__offer--soft,
+.restaurant-card .restaurant-card__offer--new,
+.restaurant-card .restaurant-card__offer--pickup {
+  background: #ffeadb;
+  color: #c2410c;
+}
+
+/* Pienempi tarjouspilleri (käyttäjän pyyntö 9.11.2026). */
+.restaurant-card .restaurant-card__offer,
+.restaurant-card .restaurant-card__offer--hot,
+.restaurant-card .restaurant-card__offer--soft,
+.restaurant-card .restaurant-card__offer--new,
+.restaurant-card .restaurant-card__offer--pickup {
+  margin-top: 7px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+/* Lähes suorakulmaiset kortit (käyttäjän pyyntö 9.11.2026: radius 1–5 px). */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card,
+.search-results__restaurant-grid .restaurant-card,
+.category-page__list .restaurant-card {
+  border-radius: 4px;
+}
+
+.restaurant-card .restaurant-card__offer,
+.restaurant-card .restaurant-card__offer--hot,
+.restaurant-card .restaurant-card__offer--soft,
+.restaurant-card .restaurant-card__offer--new,
+.restaurant-card .restaurant-card__offer--pickup {
+  border-radius: 3px;
+}
+
+/* Ilman korttitaustaa (käyttäjän pyyntö 9.11.2026): ei valkoista pohjaa,
+   reunaa eikä varjoa; kuvalla lähes suorat kulmat ja teksti suoraan sivulla. */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card,
+.search-results__restaurant-grid .restaurant-card,
+.category-page__list .restaurant-card {
+  overflow: visible;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card:hover,
+  .search-results__restaurant-grid .restaurant-card:hover,
+  .category-page__list .restaurant-card:hover {
+    box-shadow: none;
+  }
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__media,
+.search-results__restaurant-grid .restaurant-card__media,
+.category-page__list .restaurant-card__media {
+  overflow: hidden;
+  border-radius: 4px !important;
+}
+
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__body,
+.search-results__restaurant-grid .restaurant-card__body,
+.category-page__list .restaurant-card__body {
+  padding: 8px 0 0;
+}
+
+/* Pyöristys takaisin kuvaan ja pilleriin, edelleen ilman korttia (9.11.2026). */
+.page--home .category-row:not(.category-row--deals) .category-row__scroll .restaurant-card__media,
+.search-results__restaurant-grid .restaurant-card__media,
+.category-page__list .restaurant-card__media {
+  border-radius: 12px !important;
+}
+
+.restaurant-card .restaurant-card__offer,
+.restaurant-card .restaurant-card__offer--hot,
+.restaurant-card .restaurant-card__offer--soft,
+.restaurant-card .restaurant-card__offer--new,
+.restaurant-card .restaurant-card__offer--pickup {
+  border-radius: 6px;
+}
+
+/* Kaksiväriset tarjouspillerit (käyttäjän pyyntö 9.11.2026, lib/offers.js
+   variant): alennukset (hot, soft) oranssina, uutuus- ja noutotarjoukset
+   (new, pickup) vihreänä. */
+.restaurant-card .restaurant-card__offer--hot,
+.restaurant-card .restaurant-card__offer--soft {
+  background: #ffeadb;
+  color: #c2410c;
+}
+
+.restaurant-card .restaurant-card__offer--new,
+.restaurant-card .restaurant-card__offer--pickup {
+  background: #e3f6e8;
+  color: #1f7a3a;
+}
+
+/* Kiinnitetty osoiterivi symmetriseksi (käyttäjän pyyntö 9.11.2026): neula
+   alkaa sisällön vasemmasta reunasta (16 px) kuten ostoskori päättyy oikeaan,
+   ja osoite on pystysuunnassa ikonien keskellä. Hakupalkkia ei enää ole
+   kiinnitetyssä tilassa, joten neulan ei tarvitse olla suurennuslasin kohdalla. */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top .home-mobile-top,
+  .page--home .home-sticky-top.is-stuck .home-mobile-top {
+    display: flex;
+    align-items: center;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address__stuck-pin {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .page--home .home-sticky-top .home-mobile-top .home-address {
+    align-self: center;
+  }
+}
+
+/* Sijaintineula ei ilmesty vieritettäessä (käyttäjän pyyntö 9.11.2026). */
+.page--home .home-sticky-top .home-address__stuck-pin,
+.page--home .home-sticky-top.is-stuck .home-address__stuck-pin {
+  display: none !important;
+}
+
+/* "Tuodaan heti" näkyy myös vieritettäessä (käyttäjän pyyntö 9.11.2026):
+   kiinnitetty osoiterivi pysyy samanlaisena kuin sivun ylälaidassa. */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top.is-stuck .home-address__label {
+    display: block !important;
+    max-height: none !important;
+    opacity: 1 !important;
+  }
+
+  .page--home .home-sticky-top.is-stuck .home-address {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Ei ylimääräistä palkkia jakoviivan alla vieritettäessä (käyttäjän pyyntö
+   9.11.2026): kiinnitetty osa loppuu osoiterivin viivaan, ei varjoa eikä
+   tyhjää kaistaletta sen alla. */
+@media (max-width: 560px) {
+  .page--home .home-sticky-top.is-stuck {
+    padding-bottom: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Vain oranssi tarjouspilleri kaikille tarjoustyypeille (käyttäjän pyyntö 9.11.2026). */
+.restaurant-card .restaurant-card__offer,
+.restaurant-card .restaurant-card__offer--hot,
+.restaurant-card .restaurant-card__offer--soft,
+.restaurant-card .restaurant-card__offer--new,
+.restaurant-card .restaurant-card__offer--pickup,
+.page--home .category-row--hot .restaurant-card .restaurant-card__offer--new,
+.page--home .category-row--hot .restaurant-card .restaurant-card__offer--pickup {
+  background: #ffeadb;
+  color: #c2410c;
+}
+
+/* Oranssi pilleri valkoisella tekstillä, sama väri kuin Avaa sovellus -napissa
+   (käyttäjän pyyntö 9.11.2026; tumma
+   punertava #d9480f hylätty). */
+.restaurant-card .restaurant-card__offer,
+.restaurant-card .restaurant-card__offer--hot,
+.restaurant-card .restaurant-card__offer--soft,
+.restaurant-card .restaurant-card__offer--new,
+.restaurant-card .restaurant-card__offer--pickup,
+.page--home .category-row--hot .restaurant-card .restaurant-card__offer--new,
+.page--home .category-row--hot .restaurant-card .restaurant-card__offer--pickup {
+  background: var(--delivo-orange);
+  color: #fff;
+}

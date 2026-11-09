@@ -381,3 +381,17 @@
     display: none;
   }
 }
+
+/* Nuoli pois: tilinappi vie suoraan tilinäkymään eikä avaa valikkoa (7.11.2026). */
+.account-menu__trigger-chevron {
+  display: none;
+}
+
+.account-menu__trigger {
+  text-decoration: none;
+}
+
+/* "Kirjaudu"-teksti vain etusivun puhelinheaderissa (8.11.2026). */
+.auth-login-btn__text {
+  display: none;
+}

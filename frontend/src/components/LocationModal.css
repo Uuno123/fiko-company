@@ -404,3 +404,12 @@ button.location-modal__option:hover {
     animation-duration: 2s;
   }
 }
+
+/* Puhelimella paneeli vain sisällön korkuinen (käyttäjän pyyntö 7.11.2026),
+   ei koko näytön korkuinen tyhjällä alaosalla. */
+@media (max-width: 560px) {
+  .location-modal {
+    height: auto;
+    max-height: calc(100dvh - 12px - env(safe-area-inset-top, 0px));
+  }
+}

@@ -26,6 +26,7 @@ import SettingsPassword from './pages/SettingsPassword.jsx'
 import SettingsPayments from './pages/SettingsPayments.jsx'
 import SettingsNotifications from './pages/SettingsNotifications.jsx'
 import OrderHistory from './pages/OrderHistory.jsx'
+import OrderDetail from './pages/OrderDetail.jsx'
 import PartnerRestaurants from './pages/PartnerRestaurants.jsx'
 import PartnerCouriers from './pages/PartnerCouriers.jsx'
 import PartnerTerms from './pages/PartnerTerms.jsx'
@@ -116,6 +117,7 @@ function AppRoutes() {
         <Route path="/asetukset/maksutavat" element={<SettingsPayments />} />
         <Route path="/asetukset/ilmoitukset" element={<SettingsNotifications />} />
         <Route path="/omat-tilaukset" element={<OrderHistory />} />
+        <Route path="/omat-tilaukset/:id" element={<OrderDetail />} />
         <Route path="/__preview-account" element={<PreviewAccount />} />
         <Route path="/__preview-cart" element={<PreviewCart />} />
         <Route path="/__preview-tracking" element={<PreviewTracking />} />

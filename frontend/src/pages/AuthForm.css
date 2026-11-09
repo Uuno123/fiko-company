@@ -356,3 +356,11 @@
 .auth-logo {
   margin-bottom: 6px;
 }
+
+/* Bugikorjaus (7.11.2026): työpöydän ponnahdusikkunassa on jo oma logo
+   (.auth-sheet-logo, App.jsx), joten lomakkeen logo piiloon, kun se näkyy. */
+@media (min-width: 640px) {
+  .bottom-sheet .auth-logo {
+    display: none;
+  }
+}

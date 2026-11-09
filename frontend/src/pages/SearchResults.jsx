@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Check, ListFilter } from 'lucide-react'
-import BottomSheet from '../components/BottomSheet.jsx'
+import { SlidersHorizontal } from 'lucide-react'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
@@ -14,6 +13,9 @@ import { QUICK_FILTERS, quickFilterForQuery } from '../lib/quickFilters.js'
 import { restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
 import { supabase } from '../lib/supabaseClient.js'
+import { browseFromParams, browseToParams, hasBrowseFilters, matchesBrowse } from '../lib/browseFilters.js'
+import BrowseSheet from '../components/BrowseSheet.jsx'
+import { CATEGORY_NAMES } from '../lib/categories.js'
 import './SearchResults.css'
 
 // Lajitteluvaihtoehdot: työpöydän valikko ja mobiilin suodatinpaneeli.
@@ -35,6 +37,9 @@ function SearchResults() {
   const query = searchParams.get('q') ?? ''
   // Etusivun pikavalinta ("Alle 30 min" ym.): kaikki ehdon täyttävät ravintolat.
   const quickFilter = quickFilterForQuery(query)
+  // Etusivun suodatinsivun valinnat (BrowseSheet, 7.11.2026) URL-parametreista.
+  const browse = useMemo(() => browseFromParams(searchParams), [searchParams])
+  const browseActive = hasBrowseFilters(browse)
   const [inputValue, setInputValue] = useState(query)
   const [restaurants, setRestaurants] = useState([])
   const [items, setItems] = useState([])
@@ -45,9 +50,6 @@ function SearchResults() {
   // Suodattimet paneelista (Alle 30 min, Ilmainen kuljetus, Arvio 9+), useampi
   // kerrallaan - siirretty etusivun pillereistä 29.10.2026.
   const [activeFilters, setActiveFilters] = useState([])
-  function toggleFilter(id) {
-    setActiveFilters((current) => (current.includes(id) ? current.filter((x) => x !== id) : [...current, id]))
-  }
   // Mobiilin yläpalkki madaltuu heti kun sivua vieritetään.
   const [topbarCompact, setTopbarCompact] = useState(() => window.scrollY > 8)
 
@@ -71,7 +73,7 @@ function SearchResults() {
   }, [query])
 
   useEffect(() => {
-    if (!inputValue.trim()) return undefined
+    if (!inputValue.trim() || inputValue.trim() === query.trim()) return undefined
     const timer = setTimeout(() => {
       setSearchParams({ q: inputValue.trim() }, { replace: true })
     }, 400)
@@ -88,7 +90,7 @@ function SearchResults() {
     let cancelled = false
     setStatus('loading')
     // "Lähelläsi" järjestää lähimmästä alkaen, muut haut suositellut ensin.
-    setRestaurantSort(quickFilterForQuery(query)?.sort ?? 'relevance')
+    setRestaurantSort(searchParams.get('jarj') ?? quickFilterForQuery(query)?.sort ?? 'relevance')
 
     // Pikavalinta ei ole tekstihaku: kaikki ravintolat, joista ehto suodattaa.
     const filter = quickFilterForQuery(query)
@@ -176,14 +178,14 @@ function SearchResults() {
   const sortedRestaurants = useMemo(() => {
     const tests = QUICK_FILTERS.filter((filter) => activeFilters.includes(filter.id)).map((filter) => filter.test)
     return rankRestaurants(
-      allRestaurants.filter((r) => tests.every((test) => test(r))),
+      allRestaurants.filter((r) => tests.every((test) => test(r)) && matchesBrowse(r, browse)),
       {
         address: deliveryAddress,
         popularity,
         compare: SORT_COMPARATORS[restaurantSort] ?? null,
       },
     )
-  }, [allRestaurants, activeFilters, restaurantSort, deliveryAddress, popularity])
+  }, [allRestaurants, activeFilters, restaurantSort, deliveryAddress, popularity, browse])
 
   return (
     <div className="page page--search">
@@ -249,62 +251,38 @@ function SearchResults() {
               suodatinpainike, joka avaa lajittelun (käyttäjän kuva 28.10.2026);
               oranssi piste kertoo, että muu kuin oletuslajittelu on valittu. */}
           <div className="search-results__title-row">
-            <h1 className="search-results__heading">{quickFilter?.id === 'all' ? 'Kaikki ravintolat' : 'Hakutulokset'}</h1>
+            <h1 className="search-results__heading">{quickFilter?.id === 'all' ? (browseActive ? 'Suodatetut ravintolat' : 'Kaikki ravintolat') : 'Hakutulokset'}</h1>
             {status === 'ready' && allRestaurants.length > 1 && (
               <button
                 type="button"
-                className={`search-filter-btn${restaurantSort !== 'relevance' || activeFilters.length > 0 ? ' is-active' : ''}`}
-                aria-label="Lajittele hakutulokset"
+                className={`search-filter-btn${restaurantSort !== 'relevance' || activeFilters.length > 0 || browseActive ? ' is-active' : ''}`}
+                aria-label="Suodata ja lajittele hakutulokset"
                 aria-haspopup="dialog"
                 onClick={() => setSortSheetOpen(true)}
               >
-                <ListFilter size={20} strokeWidth={2.2} aria-hidden="true" />
+                {/* Sama ikoni kuin etusivun hakupalkissa (7.11.2026). */}
+                <SlidersHorizontal size={20} strokeWidth={1.9} aria-hidden="true" />
               </button>
             )}
           </div>
           {query && quickFilter?.id !== 'all' && <p className="search-results__heading-sub">haulle &quot;{query}&quot;</p>}
         </div>
 
+        {/* Sama suodatinsivu kuin etusivun hakupalkin napista (käyttäjän pyyntö
+            7.11.2026): valinnat tulevat nykyisen haun päälle. */}
         {sortSheetOpen && (
-          <BottomSheet onClose={() => setSortSheetOpen(false)} labelledBy="sort-sheet-title" compact>
-            {(close) => (
-              <div className="sort-sheet">
-                <h2 id="sort-sheet-title">Lajittelu</h2>
-                <div className="sort-sheet__options" role="radiogroup" aria-labelledby="sort-sheet-title">
-                  {SORT_OPTIONS.filter((option) => !option.needsAddress || deliveryAddress).map((option) => (
-                    <button
-                      key={option.value}
-                      type="button"
-                      role="radio"
-                      aria-checked={restaurantSort === option.value}
-                      className={`sort-sheet__option${restaurantSort === option.value ? ' is-selected' : ''}`}
-                      onClick={() => {
-                        setRestaurantSort(option.value)
-                        close()
-                      }}
-                    >
-                      {option.label}
-                      {restaurantSort === option.value && <Check size={18} strokeWidth={2.6} aria-hidden="true" />}
-                    </button>
-                  ))}
-                </div>
-                <h2 className="sort-sheet__subtitle">Suodata</h2>
-                <div className="sort-sheet__chips">
-                  {QUICK_FILTERS.map(({ id, query }) => (
-                    <button
-                      key={id}
-                      type="button"
-                      aria-pressed={activeFilters.includes(id)}
-                      className={`sort-sheet__chip${activeFilters.includes(id) ? ' is-selected' : ''}`}
-                      onClick={() => toggleFilter(id)}
-                    >
-                      {query}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </BottomSheet>
+          <BrowseSheet
+            restaurants={allRestaurants}
+            categories={CATEGORY_NAMES.filter((name) => allRestaurants.some((r) => r.category === name))}
+            hasAddress={Boolean(deliveryAddress)}
+            initial={{ ...browse, sort: restaurantSort }}
+            onClose={() => setSortSheetOpen(false)}
+            onApply={(filters) => {
+              setActiveFilters([])
+              setRestaurantSort(filters.sort)
+              navigate(`/haku?${browseToParams(filters, query || 'Kaikki ravintolat')}`, { replace: true })
+            }}
+          />
         )}
 
         {status === 'loading' && <Skeleton variant="grid" label="Haetaan" />}

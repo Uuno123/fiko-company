@@ -1,0 +1,166 @@
+/* Yksittäisen tilauksen näkymä (OrderDetail.jsx, 9.11.2026). */
+.order-detail {
+  display: grid;
+  gap: 22px;
+  padding-bottom: 32px;
+}
+
+.order-detail__hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.order-detail__thumb {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #f3f3f3;
+}
+
+.order-detail__thumb > * {
+  width: 100%;
+  height: 100%;
+}
+
+.order-detail__thumb img {
+  object-fit: cover;
+}
+
+.order-detail__hero-text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.order-detail__hero-text h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--delivo-black);
+}
+
+.order-detail__hero-text p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.order-detail__note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f6f6f6;
+  font-size: 0.84rem;
+  color: var(--delivo-black);
+}
+
+.order-detail__section {
+  display: grid;
+  gap: 10px;
+  padding-top: 18px;
+  border-top: 1px solid #ececea;
+}
+
+.order-detail__section h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+.order-detail__facts,
+.order-detail__sum {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.order-detail__facts > div,
+.order-detail__sum > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 0.86rem;
+}
+
+.order-detail__facts dt,
+.order-detail__sum dt {
+  color: var(--text-muted);
+}
+
+.order-detail__facts dd,
+.order-detail__sum dd {
+  margin: 0;
+  text-align: right;
+  color: var(--delivo-black);
+}
+
+.order-detail__total {
+  padding-top: 6px;
+  font-size: 1rem !important;
+}
+
+.order-detail__total dt,
+.order-detail__total dd {
+  font-weight: 700;
+  color: var(--delivo-black) !important;
+}
+
+.order-detail__lines {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-detail__lines li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: start;
+  font-size: 0.88rem;
+  color: var(--delivo-black);
+}
+
+.order-detail__qty {
+  min-width: 22px;
+  font-weight: 600;
+}
+
+.order-detail__line-main {
+  display: grid;
+  gap: 2px;
+}
+
+.order-detail__line-main small {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.order-detail__price {
+  white-space: nowrap;
+}
+
+.order-detail__cta {
+  display: grid;
+  place-items: center;
+  height: 50px;
+  border-radius: 12px;
+  background: var(--delivo-black);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.order-detail__link {
+  color: var(--delivo-black);
+  font-weight: 600;
+}
