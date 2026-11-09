@@ -132,7 +132,7 @@ function DealsRow({
             disabled={restaurant.isPlaceholder}
             isFavorite={favoriteIds.has(restaurant.id)}
             onToggleFavorite={restaurant.isPlaceholder ? undefined : onToggleFavorite}
-            badgeStyle={isHot ? 'corner' : 'sticker'}
+            badgeStyle="corner"
           />
         ))}
       </div>

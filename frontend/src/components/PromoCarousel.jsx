@@ -24,9 +24,10 @@ export default function PromoCarousel({ items = [], ariaLabel = 'Nostot' }) {
     const timer = setInterval(() => {
       const track = trackRef.current
       if (!track || pausedRef.current || document.hidden) return
-      const width = track.clientWidth
-      const atEnd = track.scrollLeft + width >= track.scrollWidth - 2
-      track.scrollTo({ left: atEnd ? 0 : track.scrollLeft + width, behavior: 'smooth' })
+      // Yhden dian verran (työpöydällä useampi dia näkyy rinnakkain).
+      const step = track.querySelector('.promo-carousel__slide')?.offsetWidth || track.clientWidth
+      const atEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 2
+      track.scrollTo({ left: atEnd ? 0 : track.scrollLeft + step, behavior: 'smooth' })
     }, AUTOPLAY_MS)
     return () => clearInterval(timer)
   }, [items.length])
