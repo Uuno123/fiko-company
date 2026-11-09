@@ -602,3 +602,49 @@
   border-radius: 14px;
   font-size: 1rem;
 }
+
+/* Tiiviimpi tarjouspaneeli (käyttäjän pyyntö 7.11.2026). */
+.order-done--bids .bid-panel {
+  gap: 10px;
+}
+
+.order-done--bids .bid-panel__head h3 {
+  font-size: 0.88rem;
+}
+
+.order-done--bids .bid-panel__timer {
+  font-size: 0.74rem;
+}
+
+.order-done--bids .bid-panel__empty {
+  padding: 10px 12px;
+  font-size: 0.8rem;
+}
+
+.order-done--bids .bid-panel__offer-text strong {
+  font-size: 0.9rem;
+}
+
+.order-done--bids .bid-panel__offer-text span,
+.order-done--bids .bid-panel__note {
+  font-size: 0.72rem;
+}
+
+.order-done--bids .bid-stepper {
+  height: 44px;
+}
+
+.order-done--bids .bid-stepper__value {
+  font-size: 1.05rem;
+}
+
+.order-done--bids .bid-panel__offer-btn,
+.order-done--bids .bid-card__accept {
+  height: 42px;
+  min-height: 0;
+  font-size: 0.88rem;
+}
+
+.order-done--bids .bid-panel__cancel {
+  font-size: 0.78rem;
+}

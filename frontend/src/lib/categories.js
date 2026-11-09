@@ -1,4 +1,5 @@
 import { getDemoRestaurant } from './demoRestaurants.js'
+import { searchRestaurants } from './searchEngine.js'
 
 // Kategorian nimi URL-muotoon. Jaettu, koska etusivu luo linkit ja
 // kategoriasivu tulkitsee ne - eri toteutukset ajautuisivat erilleen.
@@ -106,6 +107,7 @@ export function buildFillerRestaurant(category, index, template) {
     menu_items: [],
     free_delivery: template.free_delivery,
     pickup_estimate_minutes: template.pickup_estimate_minutes,
+    keywords: template.keywords,
     isPlaceholder: true,
   }
 }
@@ -187,6 +189,14 @@ function textMatches(text, term) {
 // Täyteravintolat, jotka liittyvät hakusanaan nimen, kategorian tai
 // lempinimen (esim. "hese") kautta. Samat id:t kuin etusivun täytteillä.
 export function searchFillerRestaurants(query) {
+  // Hakukone (lib/searchEngine.js, 7.11.2026): nimen alku, sanat, lempinimet,
+  // kirjoitusvirheet ja kategoriat pisteytettynä.
+  const ranked = searchRestaurants(allFillerRestaurants(), query ?? '')
+  if (ranked.length > 0) return ranked
+  return legacySearchFillerRestaurants(query)
+}
+
+function legacySearchFillerRestaurants(query) {
   // Kaksi kirjainta osuu liian moneen ("ab" -> kebab -> koko kategoria).
   const term = normalizeSearchText(query ?? '')
   if (term.length < 3) return []

@@ -1942,3 +1942,32 @@ label.checkout-group__row:focus-within {
 .page--cart .order-done .cart-empty__cta:active {
   background: var(--round-button-bg-pressed);
 }
+
+/* Kuljettajan valinta -näkymä paljon pienempänä (käyttäjän pyyntö 7.11.2026):
+   pienempi otsikko ja tekstit, matalammat napit ja tiiviimmät välit. */
+.page--cart .order-done.order-done--bids h1 {
+  margin-bottom: 4px;
+  font-size: 1.35rem;
+}
+
+.page--cart .order-done.order-done--bids > p {
+  margin-bottom: 10px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.page--cart .order-done--bids .order-done__facts {
+  font-size: 0.82rem;
+}
+
+.page--cart .order-done--bids .order-done__facts > div {
+  padding: 8px 0;
+}
+
+.page--cart .order-done--bids .cart-empty__cta,
+.page--cart .order-done--bids .cart-empty__cta:hover {
+  height: 40px;
+  min-height: 0;
+  margin-top: 10px;
+  font-size: 0.86rem;
+}

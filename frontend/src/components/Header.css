@@ -1610,3 +1610,134 @@
     font-weight: 700;
   }
 }
+
+/* Työpöydän ostoskori ilman oranssia taustaa (käyttäjän pyyntö 7.11.2026):
+   vaaleanharmaa pilleri, tumma ikoni ja määrä. */
+@media (min-width: 900px) {
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger,
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger:hover,
+  .page--home .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger,
+  .page--home .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger:hover {
+    background: #f1f2f4;
+    color: var(--delivo-black);
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger svg,
+  .page--home .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__trigger svg {
+    color: var(--delivo-black);
+  }
+
+  .site-header:not(.site-header--dark):not(.site-header--overlay) .cart-menu__count,
+  .page--home .site-header .cart-menu__count {
+    color: var(--delivo-black);
+  }
+}
+
+/* Hienompi työpöydän osoite (käyttäjän pyyntö 7.11.2026): oranssi neula
+   vaalean oranssissa pyöreässä merkissä, pieni harmaa otsikko ja lihava osoite. */
+@media (min-width: 900px) {
+  .header-address-pill {
+    gap: 10px;
+    height: 44px;
+    padding: 0 10px 0 4px;
+    border-radius: 999px;
+    font-weight: 400;
+    transition: background 0.15s ease;
+  }
+
+  .header-address-pill__icon {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #fde8de;
+    color: #e8501c;
+  }
+
+  .header-address-pill__icon svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .header-address-pill__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    line-height: 1.15;
+  }
+
+  .header-address-pill__label {
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .header-address-pill__value {
+    max-width: 180px;
+    overflow: hidden;
+    color: var(--delivo-black);
+    font-size: 0.9rem;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .header-address-pill__chevron {
+    align-self: center;
+    color: var(--text-muted);
+  }
+}
+
+/* Osoite ilman neulaikonia (käyttäjän pyyntö 7.11.2026): pelkkä kaksirivinen teksti. */
+@media (min-width: 900px) {
+  .header-address-pill__icon {
+    display: none;
+  }
+
+  .header-address-pill {
+    padding: 0 10px;
+    border-radius: 10px;
+  }
+}
+
+/* Hamburger (Header onMenu, 8.11.2026): vain puhelimella. */
+.site-header__menu-btn {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .site-header__menu-btn {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin: 0 6px 0 -6px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--delivo-black);
+    cursor: pointer;
+  }
+
+  .site-header__menu-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Hamburger logon korkuiseksi (käyttäjän pyyntö 8.11.2026): viivat ulottuvat
+   logon kirjainten korkeudelle. */
+@media (max-width: 560px) {
+  .site-header__menu-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .site-header__menu-btn {
+    margin-right: 10px;
+  }
+}

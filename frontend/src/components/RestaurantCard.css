@@ -699,3 +699,24 @@
     font-size: 0.62rem;
   }
 }
+
+/* Erilaiset tarjousmerkit, ettei sama toistu (käyttäjän pyyntö 7.11.2026). */
+.restaurant-card__offer--hot {
+  background: #ec5420;
+  color: #fff;
+}
+
+.restaurant-card__offer--soft {
+  background: #ffe6da;
+  color: #b9390d;
+}
+
+.restaurant-card__offer--new {
+  background: #2a1b12;
+  color: #fff;
+}
+
+.restaurant-card__offer--pickup {
+  background: #e3f3e6;
+  color: #1d6b34;
+}

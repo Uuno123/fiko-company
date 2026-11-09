@@ -206,7 +206,7 @@ function BottomSheet({ onClose, labelledBy, footer, compact = false, children })
             {typeof children === 'function' ? children(close) : children}
           </div>
         </div>
-        {footer ? <div className="bottom-sheet__footer">{footer}</div> : null}
+        {footer ? <div className="bottom-sheet__footer">{typeof footer === 'function' ? footer(close) : footer}</div> : null}
       </div>
     </>
   )

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { BadgePercent, Heart } from 'lucide-react'
+import { Bike, Heart } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { ScoreSmiley } from './Smiley.jsx'
 import { DELIVERY_PRICE_RANGE, formatEtaRange } from '../lib/delivery.js'
@@ -59,8 +59,9 @@ function RestaurantCard({
         className="restaurant-card__stat restaurant-card__bid"
         title="Kuljettajat tarjoavat hintaa, sinä valitset"
       >
-        <span className="restaurant-card__bid-dot" aria-hidden="true" />
-        Tarjoa {DELIVERY_PRICE_RANGE}
+        {/* Pyöräikoni ja kuljetushinta (käyttäjän mallikuva 8.11.2026). */}
+        <Bike className="restaurant-card__bike" size={15} strokeWidth={2} aria-hidden="true" />
+        {DELIVERY_PRICE_RANGE}
       </span>
     ),
   ].filter(Boolean)
@@ -129,10 +130,10 @@ function RestaurantCard({
         </div>
 
         {badge && badgeStyle !== 'sticker' && (
-          <span className="restaurant-card__offer">
+          <span className={`restaurant-card__offer restaurant-card__offer--${badge.variant ?? 'hot'}`}>
             {/* Pidempi kuvaus kortin alaosan pillerissä (käyttäjän pyyntö 3.11.2026),
                 edessä prosentti-ikoni. */}
-            <BadgePercent size={11} strokeWidth={2.4} aria-hidden="true" />
+            {/* Ilman ikonia vaaleansinisenä pillerinä (käyttäjän mallikuva 8.11.2026). */}
             <span>{badge.text}</span>
           </span>
         )}

@@ -1,9 +1,14 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, ChevronDown, Search, SlidersHorizontal, Smartphone } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bell, ChevronDown, Search, SlidersHorizontal, Smartphone } from 'lucide-react'
+import MobileMenu from '../components/MobileMenu.jsx'
+import PromoCarousel from '../components/PromoCarousel.jsx'
+import CartIcon from '../components/CartIcon.jsx'
 import BottomSheet from '../components/BottomSheet.jsx'
 import Header from '../components/Header.jsx'
 import Footer from '../components/Footer.jsx'
+import BrowseSheet from '../components/BrowseSheet.jsx'
+import { browseToParams } from '../lib/browseFilters.js'
 import HomeSidebar from '../components/HomeSidebar.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import DealsRow from '../components/DealsRow.jsx'
@@ -109,78 +114,51 @@ const THEME_ROWS = [
 ]
 const THEME_ROW_COUNT = 15
 
-// Tarjouskortit Suositut brändit -rivin tilalla (käyttäjän mallikuva
-// 4.11.2026). Vain oikeita koodeja: samat ehdot kassalla (Cart.jsx
-// PROMO_CODES) ja backendin payments.js:ssä. Nappi kopioi koodin. Ei kuvia
-// (käyttäjän pyyntö 4.11.2026): jokaisella kortilla oma vaalea taustasävy (tone).
-const PROMO_CARDS = [
+// Etusivun promokaruselli (PromoCarousel, käyttäjän speksi 8.11.2026).
+// Kuvina alkuperäiset ravintolakuvat (käyttäjän pyyntö 8.11.2026) - vain
+// suunnittelua varten, lupa ravintoloilta ennen julkaisua. Mainokset: sponsored.
+const PROMO_ITEMS = [
   {
-    code: 'TERVETULOA',
-    title: '−40 % ensimmäisestä tilauksesta',
-    text: 'Max 10 € · koodi TERVETULOA',
-    tone: 'linen',
-    // showText: teksti näkyy kortissa (käyttäjän pyyntö 4.11.2026), muut
-    // kortit vielä pelkkiä värikortteja.
-    showText: true,
-    cta: true,
-    // Käyttäjän kuva 4.11.2026 (salaattikulho pellavalla). Käyttöoikeus
-    // tarkistettava ennen julkaisua. Kortin väri = kuvan taustan väri.
-    image: '/high-angle-view-food-bowl-table_1605434-4590.avif',
-  },
-  // Mainoskortit (käyttäjän pyyntö 4.11.2026): ravintolan Wolt-kuva taustana,
-  // vain suunnittelua varten - lupa ravintoloilta ennen julkaisua. Merkitään
-  // aina Mainos-merkillä ja vievät ravintolan hakuun. Värikortit poistettu.
-  {
-    code: 'SUBWAY',
-    title: 'Tuore sub ovelle',
-    text: 'Subway Vuorikatu · 10–20 min',
-    tone: 'ad',
-    ad: true,
-    background: 'https://imageproxy.wolt.com/assets/68a861195a13d705dbfaa783',
-    link: '/haku?q=Subway',
-    showText: true,
+    id: 'subway',
+    image: 'https://imageproxy.wolt.com/assets/68a861195a13d705dbfaa783',
+    alt: 'Subway',
+    title: 'Subway',
+    description: 'Subit, wrapit ja salaatit · 10–20 min',
+    sponsored: true,
+    href: '/haku?q=Subway',
   },
   {
-    code: 'HESBURGER',
-    title: 'Hesburger kotisohvalle',
-    text: 'Hesburger Puijonkatu · 15–25 min',
-    tone: 'ad',
-    ad: true,
-    background: 'https://imageproxy.wolt.com/assets/67ea79d0e3aca1debaea9cdd',
-    link: '/haku?q=Hesburger',
-    showText: true,
+    id: 'hesburger',
+    image: 'https://imageproxy.wolt.com/assets/67ea79d0e3aca1debaea9cdd',
+    alt: 'Hesburger',
+    title: 'Hesburger',
+    description: 'Burgerit ja ateriat · 15–25 min',
+    sponsored: true,
+    href: '/haku?q=Hesburger',
   },
   {
-    code: 'OZAKI',
-    title: 'Sushia illaksi?',
-    text: 'Ozaki Sushi · 20–30 min',
-    tone: 'ad',
-    ad: true,
-    background: 'https://imageproxy.wolt.com/assets/67332fbb149445354de03f5c',
-    link: '/haku?q=Ozaki',
-    showText: true,
+    id: 'ozaki',
+    image: 'https://imageproxy.wolt.com/assets/67332fbb149445354de03f5c',
+    alt: 'Ozaki Sushi',
+    title: 'Ozaki Sushi',
+    description: 'Sushia ja sashimia · 20–30 min',
+    sponsored: true,
+    href: '/haku?q=Ozaki',
   },
   {
-    code: 'FJORNO',
-    title: 'Kuopion paras pizza?',
-    text: 'Fjorno · ilmainen kuljetus',
-    tone: 'ad',
-    ad: true,
-    background: 'https://imageproxy.wolt.com/assets/67331c914d55f07b7e8941ef',
-    link: '/haku?q=Fjorno',
-    showText: true,
+    id: 'fjorno',
+    image: 'https://imageproxy.wolt.com/assets/67331c914d55f07b7e8941ef',
+    alt: 'Fjorno',
+    title: 'Fjorno',
+    description: 'Napolilainen pizza · ilmainen kuljetus',
+    sponsored: true,
+    href: '/haku?q=Fjorno',
   },
 ]
 
 // Hakupalkissa yksi selkeä teksti (käyttäjän pyyntö 4.11.2026, aiemmin
 // vaihtuva vihje).
 const SEARCH_PLACEHOLDER = 'Hae ravintoloita ja ruokia'
-// Tarjous- ja mainoskorttien vaihtumisväli.
-const PROMO_ROTATE_MS = 4500
-// Loputon karuselli (käyttäjän pyyntö 6.11.2026): kortit kahteen kertaan peräkkäin;
-// kun ensimmäinen kierros on vieritetty ohi, hypätään huomaamatta takaisin
-// samaan kohtaan ensimmäisellä kierroksella.
-const PROMO_LOOP = [0, 1].flatMap((copy) => PROMO_CARDS.map((promo) => ({ ...promo, loopKey: `${promo.code}-${copy}`, isCopy: copy > 0 })))
 
 // Tasainen mutta sekoitettu järjestys "Kokeile jotain uutta" -riville.
 function nameHash(name) {
@@ -326,6 +304,9 @@ function Home() {
   const [status, setStatus] = useState('loading')
   const [errorMessage, setErrorMessage] = useState('')
   const [activeCategory, setActiveCategory] = useState(() => searchParams.get('category') ?? ALL)
+  const [browseOpen, setBrowseOpen] = useState(false)
+  // Puhelimen hamburger-valikko (8.11.2026).
+  const [menuOpen, setMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') ?? '')
   const deliveryAddress = useDeliveryAddress()
   const [welcomeDismissed, setWelcomeDismissed] = useState(welcomeSkipped)
@@ -347,46 +328,6 @@ function Home() {
   const [adIndex, setAdIndex] = useState(0)
   const { favoriteIds, toggleFavorite } = useFavorites()
   const [searchOpen, setSearchOpen] = useState(false)
-  // Tarjouskortin koodi kopioitu leikepöydälle (napissa hetken "Kopioitu!").
-  const [copiedCode, setCopiedCode] = useState(null)
-  function copyPromo(code) {
-    navigator.clipboard?.writeText(code).catch(() => {})
-    setCopiedCode(code)
-    setTimeout(() => setCopiedCode((current) => (current === code ? null : current)), 1800)
-  }
-  // Tarjous- ja mainoskortit vaihtuvat itsestään (käyttäjän pyyntö 4.11.2026),
-  // kuten Kovimmat tarjoukset -rivi: kortin verran PROMO_ROTATE_MS välein ja
-  // lopusta alkuun. Ei liikettä, kun sormi tai hiiri on rivillä, sivu on
-  // taustalla tai käyttäjä on pyytänyt vähemmän liikettä.
-  const promoScrollRef = useRef(null)
-  const promoPausedRef = useRef(false)
-  const promoWrapTimer = useRef(null)
-  // Ensimmäisen kierroksen leveys = toisen kierroksen ensimmäisen kortin kohta.
-  function wrapPromoLoop(scroller) {
-    const firstCopy = scroller.querySelector('[data-loop-copy="true"]')
-    if (!firstCopy) return
-    const loopWidth = firstCopy.offsetLeft - scroller.querySelector('.promo-card').offsetLeft
-    if (loopWidth > 0 && scroller.scrollLeft >= loopWidth - 1) scroller.scrollLeft -= loopWidth
-  }
-  function handlePromoScroll(e) {
-    const scroller = e.currentTarget
-    clearTimeout(promoWrapTimer.current)
-    promoWrapTimer.current = setTimeout(() => wrapPromoLoop(scroller), 160)
-  }
-  useEffect(() => {
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined
-    const timer = setInterval(() => {
-      const scroller = promoScrollRef.current
-      if (!scroller || promoPausedRef.current || document.hidden) return
-      const card = scroller.querySelector('.promo-card')
-      if (!card) return
-      const gap = parseFloat(getComputedStyle(scroller).columnGap) || 12
-      const step = card.getBoundingClientRect().width + gap
-      wrapPromoLoop(scroller)
-      scroller.scrollTo({ left: scroller.scrollLeft + step, behavior: 'smooth' })
-    }, PROMO_ROTATE_MS)
-    return () => clearInterval(timer)
-  }, [])
   // "Avaa sovellus" -napin paneeli (käyttäjän pyyntö 3.11.2026).
   const [appSheetOpen, setAppSheetOpen] = useState(false)
   // Työpöydän kategoriarivin vierityspainike.
@@ -485,6 +426,10 @@ function Home() {
   // kertoo silloin "tulossa pian"). Muut vain kun niissä on sisältöä.
   // Vain 8 kategoriaa (käyttäjän pyyntö 3.11.2026), kaikilla flätti kuvake.
   // Kahvila pois etusivun kategoriariviltä (käyttäjän pyyntö 3.11.2026).
+  // Suodatinpainikkeen valintasivun kategoriat (7.11.2026): vain ne, joissa on ravintoloita.
+  const chipCategories = CATEGORY_NAMES.filter(
+    (name) => categoriesWithContent.includes(name) && !HIDDEN_MOBILE_CATEGORIES.includes(name),
+  )
   const searchCategories = CATEGORY_NAMES.filter(
     (name) =>
       name !== 'Kahvila' &&
@@ -693,13 +638,11 @@ function Home() {
   }, [restaurants])
 
   // Samalla järjestyssäännöllä kuin rivit (lib/ranking.js).
-  const popularRestaurants = useMemo(
-    () =>
-      rankRestaurants(withDistance(restaurants, deliveryAddress), { address: deliveryAddress, popularity })
-        .filter((r) => !r.isPlaceholder)
-        .slice(0, 8),
-    [restaurants, deliveryAddress, popularity],
-  )
+  // Haun aloitusnäkymän ravintolat (käyttäjän pyyntö 7.11.2026: lisää
+  // ravintoloita): kaikki etusivun ravintolat parhaan arvion mukaan, 12 kpl.
+  const searchStartRestaurants = [...allRowRestaurants]
+    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
+    .slice(0, 12)
 
   // Kategoriarivin nuolet. Vieritettävä säiliö haetaan napin omasta rivistä,
   // jolloin jokainen rivi ei tarvitse omaa refiä. Askel on kaksi korttia,
@@ -798,24 +741,17 @@ function Home() {
               {searchCategories.length > 0 && (
                 <section className="home-search-start__section">
                   <h3 className="search-suggest-section__title">Kategoriat</h3>
-                  <div className="home-search-cats">
+                  {/* Kategoriat ilman kuvia tekstipillereinä (käyttäjän pyyntö 7.11.2026). */}
+                  <div className="home-search-chips">
                     {searchCategories.map((category) => {
-                      const tile = CATEGORY_TILE_META[category] ?? DEFAULT_TILE_META
                       return (
                         <Link
                           key={category}
                           to={`/haku?q=${encodeURIComponent(category)}`}
-                          className="home-cat-tile"
+                          className="home-search-cat-chip"
                           onClick={() => setSearchOpen(false)}
                         >
-                          {/* Samat piirretyt kuvakkeet kuin etusivun kategoriarivissä. */}
-                          <span
-                            className={`home-cat-tile__art${tile.icon ? ' home-cat-tile__art--icon' : ''}`}
-                            aria-hidden="true"
-                          >
-                            {tile.icon || tile.img ? <img src={tile.icon ?? tile.img} alt="" loading="lazy" /> : tile.emoji}
-                          </span>
-                          <span className="home-cat-tile__label">{category}</span>
+                          {category}
                         </Link>
                       )
                     })}
@@ -823,11 +759,11 @@ function Home() {
                 </section>
               )}
 
-              {popularRestaurants.length > 0 && (
+              {searchStartRestaurants.length > 0 && (
                 <section className="home-search-start__section">
                   <h3 className="search-suggest-section__title">Suositut ravintolat</h3>
                   <div className="search-suggest-restaurants">
-                    {popularRestaurants.map((r) => (
+                    {searchStartRestaurants.map((r) => (
                       <RestaurantResultCard key={r.id} restaurant={r} onNavigate={() => setSearchOpen(false)} />
                     ))}
                   </div>
@@ -848,6 +784,7 @@ function Home() {
         cartAlways
         // Puhelimella haku avautuu headerin suurennuslasista (käyttäjän pyyntö
         // 3.11.2026, hakupalkki poistettu). Työpöydällä piilossa (Home.css).
+        onMenu={() => setMenuOpen(true)}
         actions={
           <>
             <button
@@ -890,6 +827,8 @@ function Home() {
       <HomeSidebar />
       <main className="home-content">
         <div className="home-main">
+          {menuOpen && <MobileMenu onClose={() => setMenuOpen(false)} onOpenApp={() => setAppSheetOpen(true)} />}
+
           {appSheetOpen && (
             <BottomSheet compact onClose={() => setAppSheetOpen(false)} labelledBy="app-sheet-title">
               {(close) => (
@@ -921,7 +860,7 @@ function Home() {
             >
               {/* Woltin tapaan pieni "Toimita nyt" ja lihava osoite (käyttäjän mallikuva 3.11.2026). */}
               {/* Omalla äänellä (käyttäjän pyyntö 3.11.2026). */}
-              <span className="home-address__label">{deliveryAddress ? 'Tuodaan heti' : 'Ruoka ovelle'}</span>
+              <span className="home-address__label">Tuodaan heti</span>
               <span className="home-address__value">
                 {/* Sijainti-ikoni näkyy vain kiinnitettynä (vieritettäessä), jolloin
                     osoite tiivistyy yhdelle riville (käyttäjän pyyntö 4.11.2026). */}
@@ -938,11 +877,25 @@ function Home() {
                 <span>
                   {deliveryAddress
                     ? formatDisplayAddress(deliveryAddress.full) || deliveryAddress.label
-                    : 'Minne tuodaan?'}
+                    : 'Lisää toimitusosoite'}
                 </span>
                 <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
               </span>
             </button>
+            {/* Haku, ilmoitukset ja ostoskori osoitteen oikealla (mallikuva 8.11.2026).
+                Kellon piste näkyy, kun tilaus on käynnissä (Home.css :has). */}
+            <div className="home-mobile-actions">
+              <button type="button" className="home-mobile-icon" aria-label="Hae" onClick={() => setSearchOpen(true)}>
+                <Search size={21} strokeWidth={2.2} aria-hidden="true" />
+              </button>
+              <Link to="/omat-tilaukset" className="home-mobile-icon home-mobile-bell" aria-label="Tilaukset ja ilmoitukset">
+                <Bell size={21} strokeWidth={2.2} aria-hidden="true" />
+              </Link>
+              <Link to="/ostoskori" className="home-mobile-icon home-mobile-cart" aria-label={`Ostoskori, ${cart.count} tuotetta`}>
+                <CartIcon size={21} />
+                <span>{cart.count}</span>
+              </Link>
+            </div>
           </div>
 
           {/* Puhelimella header vierii pois ja vain haku jää ylälaitaan (käyttäjän
@@ -950,7 +903,7 @@ function Home() {
               kestää koko sivun. */}
           <div className="home-search-sticky">
             <div className="home-search" onClick={() => setSearchOpen(true)}>
-              {/* Ohut suurennuslasi ja oikealla suodatinpainike (käyttäjän mallikuva 4.11.2026). */}
+              {/* Ohut suurennuslasi ja oikealla suodatinpainike (mallikuva 4.11.2026). */}
               <Search className="home-search__icon" size={20} strokeWidth={1.9} aria-hidden="true" />
               <input
                 type="search"
@@ -972,9 +925,9 @@ function Home() {
                   className="home-search__filters"
                   aria-label="Suodata ja lajittele ravintolat"
                   onClick={(e) => {
-                    // Ei avaa hakuikkunaa: suodattimet hakusivulla.
+                    // Avaa valintasivun valmiine ehdotuksineen (7.11.2026).
                     e.stopPropagation()
-                    navigate(`/haku?q=${encodeURIComponent('Lähelläsi')}&suodata=1`)
+                    setBrowseOpen(true)
                   }}
                 >
                   <SlidersHorizontal size={20} strokeWidth={1.9} aria-hidden="true" />
@@ -983,6 +936,18 @@ function Home() {
             </div>
           </div>
           </div>
+
+          {/* Suodatinpainikkeen valintasivu (käyttäjän pyyntö 7.11.2026): valmiit
+              ehdotukset (pikavalinnat ja kategoriat), joista valinta tekee haun. */}
+          {browseOpen && (
+            <BrowseSheet
+              restaurants={allRowRestaurants}
+              categories={chipCategories}
+              hasAddress={Boolean(deliveryAddress)}
+              onClose={() => setBrowseOpen(false)}
+              onApply={(filters) => navigate(`/haku?${browseToParams(filters)}`)}
+            />
+          )}
 
           <div className="home-cats-wrap" hidden={!SHOW_HOME_CATEGORIES}>
             {/* Kategoriat piirrettyinä kuvakkeina vaakarivissä (CATEGORY_TILE_META)
@@ -1093,65 +1058,7 @@ function Home() {
                           4.11.2026, korvasi Suositut brändit -rivin; sisältö poistettu, pelkät värikortit): vaalea
                           pohja, otsikko, ehto, koodin kopiointi ja kuva oikealla. */}
                       {groupIndex === 0 && activeCategory === ALL && (
-                        <section className="category-row promo-cards" aria-label="Tarjoukset">
-                          <div
-                            className="category-row__scroll promo-cards__scroll"
-                            ref={promoScrollRef}
-                            onMouseEnter={() => (promoPausedRef.current = true)}
-                            onMouseLeave={() => (promoPausedRef.current = false)}
-                            onTouchStart={() => (promoPausedRef.current = true)}
-                            onTouchEnd={() => (promoPausedRef.current = false)}
-                            onScroll={handlePromoScroll}
-                          >
-                            {PROMO_LOOP.map((promo, loopIndex) => (
-                              promo.ad ? (
-                                <Link
-                                  key={promo.loopKey}
-                                  to={promo.link}
-                                  className="promo-card promo-card--ad"
-                                  data-loop-copy={promo.isCopy && loopIndex === PROMO_CARDS.length ? 'true' : undefined}
-                                  aria-hidden={promo.isCopy || undefined}
-                                  tabIndex={promo.isCopy ? -1 : undefined}
-                                >
-                                  <img className="promo-card__bg" src={promo.background} alt="" loading="lazy" />
-                                  <span className="promo-card__ad-label">Mainos</span>
-                                  <div className="promo-card__copy promo-card__copy--ad">
-                                    <h3>{promo.title}</h3>
-                                    <p>{promo.text}</p>
-                                  </div>
-                                </Link>
-                              ) : (
-                                <article
-                                  key={promo.loopKey}
-                                  className={`promo-card promo-card--${promo.tone}`}
-                                  data-loop-copy={promo.isCopy && loopIndex === PROMO_CARDS.length ? 'true' : undefined}
-                                  aria-hidden={promo.isCopy || undefined}
-                                >
-                                  {promo.image && (
-                                    <img
-                                      className={`promo-card__photo${promo.photoBg ? ' promo-card__photo--contain' : ''}`}
-                                      src={promo.image}
-                                      alt=""
-                                      loading="lazy"
-                                      style={promo.photoBg ? { backgroundColor: promo.photoBg } : undefined}
-                                    />
-                                  )}
-                                  {promo.showText && (
-                                    <div className="promo-card__copy">
-                                      <h3>{promo.title}</h3>
-                                      <p>{promo.text}</p>
-                                      {promo.cta && (
-                                      <button type="button" className="promo-card__cta" onClick={() => copyPromo(promo.code)}>
-                                        {copiedCode === promo.code ? 'Kopioitu!' : 'Kopioi koodi'}
-                                      </button>
-                                      )}
-                                    </div>
-                                  )}
-                                </article>
-                              )
-                            ))}
-                          </div>
-                        </section>
+                        <PromoCarousel items={PROMO_ITEMS} ariaLabel="Tarjoukset" />
                       )}
 
                       <section className="category-row" id={`cat-${categorySlug(category)}`}>

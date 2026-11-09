@@ -15,7 +15,8 @@ import { restaurantThumb } from '../lib/brandLogos.js'
 // on AddressGatessa, jotta sama ikkuna aukeaa myös ensikäynnillä.
 // flatUntilScroll: ei varjoa ennen kuin sivua vieritetään (hakutulokset).
 // cartAlways: ostoskorinappi näkyy myös tyhjänä (vie ostoskorisivulle).
-function Header({ search, showAddress, cart, variant, back, actions, hideAccount, flatUntilScroll, cartAlways }) {
+// onMenu: hamburger logon vasemmalla puolella puhelimella (etusivu 8.11.2026).
+function Header({ search, showAddress, cart, variant, back, actions, hideAccount, flatUntilScroll, cartAlways, onMenu }) {
   const location = useLocation()
   const navigate = useNavigate()
   const deliveryAddress = useDeliveryAddress()
@@ -143,6 +144,13 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
     >
       <div className="site-header__inner">
         <div className="site-header__left">
+          {onMenu && (
+            <button type="button" className="site-header__menu-btn" aria-label="Avaa valikko" onClick={onMenu}>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path fillRule="evenodd" clipRule="evenodd" d="M23 4H1v3h22V4Zm0 7H1v3h22v-3ZM1 18h22v3H1v-3Z" fill="currentColor" />
+              </svg>
+            </button>
+          )}
           {/* back: takaisin-nuoli logon tilalla (ravintolasivu, käyttäjän pyyntö).
               Nuoli palaa edelliselle sivulle - paitsi jos sivu avattiin suoraan
               linkistä, jolloin historiassa ei ole Bidropin sivua ja navigate(-1)
@@ -213,17 +221,24 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
                 aria-label={deliveryAddress ? `Toimitusosoite: ${deliveryAddress.full}. Vaihda osoite` : 'Lisää toimitusosoite'}
                 onClick={openAddressPicker}
               >
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path
-                    d="M12 2a8 8 0 0 0-8 8c0 5.4 6.6 11.3 7.3 11.9a1 1 0 0 0 1.4 0C13.4 21.3 20 15.4 20 10a8 8 0 0 0-8-8Z"
-                    fill="currentColor"
-                  />
-                  <circle cx="12" cy="10" r="3" fill="#fff" />
-                </svg>
-                <span>
-                  {deliveryAddress
-                    ? formatDisplayAddress(deliveryAddress.full)?.split(',')[0] || deliveryAddress.label
-                    : 'Lisää osoite'}
+                {/* Hienompi osoite (käyttäjän pyyntö 7.11.2026): neula pyöreässä
+                    vaaleassa merkissä, pieni otsikko ja lihava osoite kahdella rivillä. */}
+                <span className="header-address-pill__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      d="M12 2a8 8 0 0 0-8 8c0 5.4 6.6 11.3 7.3 11.9a1 1 0 0 0 1.4 0C13.4 21.3 20 15.4 20 10a8 8 0 0 0-8-8Z"
+                      fill="currentColor"
+                    />
+                    <circle cx="12" cy="10" r="3" fill="#fff" />
+                  </svg>
+                </span>
+                <span className="header-address-pill__text">
+                  <span className="header-address-pill__label">{deliveryAddress ? 'Toimitetaan' : 'Toimitusosoite'}</span>
+                  <span className="header-address-pill__value">
+                    {deliveryAddress
+                      ? formatDisplayAddress(deliveryAddress.full)?.split(',')[0] || deliveryAddress.label
+                      : 'Lisää osoite'}
+                  </span>
                 </span>
                 <svg className="header-address-pill__chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path d="m6 8 4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

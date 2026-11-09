@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import {
   Building2,
   Check,
@@ -17,10 +17,10 @@ import {
 } from 'lucide-react'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import AccountMenu from '../components/AccountMenu.jsx'
+import CartIcon from '../components/CartIcon.jsx'
 import DelivoLogo from '../components/DelivoLogo.jsx'
 import { coordinate, deliveryLegMinutes, hasCoords } from '../lib/deliveryTime.js'
 import { DELIVERY_ETA_BUFFER_MINUTES, estimatedArrivalAt } from '../lib/orderStatus.js'
-import LoginModal from '../components/LoginModal.jsx'
 import AddressPickerModal from '../components/AddressPickerModal.jsx'
 import DeliveryAddressForm from '../components/DeliveryAddressForm.jsx'
 import DeliveryBidPanel from '../components/DeliveryBidPanel.jsx'
@@ -878,41 +878,11 @@ function Cart() {
   const hasMobileFixedCta = (step === 'review' && cart.count > 0) || step === 'payment' || step === 'processing'
   const hasDetailsErrors = Object.keys(detailsErrors).length > 0
 
+  // Kirjautumaton ohjataan tavalliseen kirjautumisnäkymään (käyttäjän pyyntö
+  // 9.11.2026: ei ostoskorin omaa kirjautumisikkunaa). Kirjautumisen jälkeen
+  // palataan ostoskoriin (state.from).
   if (authStatus !== 'loading' && !isAuthenticated) {
-    return (
-      <div className="page page--cart">
-        <div className="cart-topbar">
-          <button type="button" className="cart-topbar__back" aria-label="Takaisin" onClick={() => navigate('/')}>
-            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M12 5 7 10l5 5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
-          <AccountMenu currentPath="/ostoskori" />
-        </div>
-        <main className="cart-page" aria-hidden="true">
-          <div className="cart-empty">
-            <div className="cart-empty__icon">
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path
-                  d="M4 6h12l-1 9.5a1 1 0 0 1-1 .9H6a1 1 0 0 1-1-.9L4 6Z"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinejoin="round"
-                />
-                <path d="M7 6V5a3 3 0 0 1 6 0v1" stroke="currentColor" strokeWidth="1.4" />
-              </svg>
-            </div>
-            <h1>Ostoskori</h1>
-            <p>Kirjaudu sisään nähdäksesi ostoskorisi.</p>
-          </div>
-        </main>
-        <LoginModal
-          title="Kirjaudu ostoskoriin"
-          message="Sinun täytyy kirjautua sisään ennen kuin voit siirtyä kassalle."
-          onClose={() => navigate('/')}
-        />
-      </div>
-    )
+    return <Navigate to="/login" replace state={{ from: '/ostoskori' }} />
   }
 
   // Kassalle vain tarkalla toimitusosoitteella (käyttäjän pyyntö 30.10.2026 -
@@ -984,16 +954,9 @@ function Cart() {
       >
         {step === 'review' && cart.count === 0 && (
           <div className="cart-empty">
+            {/* Sama ostoskärry-ikoni kuin headerissa (käyttäjän pyyntö 9.11.2026). */}
             <div className="cart-empty__icon">
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path
-                  d="M4 6h12l-1 9.5a1 1 0 0 1-1 .9H6a1 1 0 0 1-1-.9L4 6Z"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinejoin="round"
-                />
-                <path d="M7 6V5a3 3 0 0 1 6 0v1" stroke="currentColor" strokeWidth="1.4" />
-              </svg>
+              <CartIcon size={22} strokeWidth={1.8} />
             </div>
             {/* Persoonallisempi teksti (käyttäjän pyyntö 3.11.2026). */}
             <h1>Kori on vielä tyhjä</h1>

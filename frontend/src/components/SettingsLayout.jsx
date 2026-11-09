@@ -17,7 +17,8 @@ const NAV = [
 // Mobiilissa navigaatio on tilisivu (variant="hub", pages/AccountHub.jsx):
 // alasivuilla ei ole pilleririviä, vaan yläpalkin nuoli vie takaisin tilisivulle.
 // Tilisivulta nuoli vie etusivulle. Työpöydällä sivupalkki kuten ennenkin.
-function SettingsLayout({ title, description, children, variant }) {
+// backTo: puhelimen takaisin-nuolen kohde (esim. tilausnäkymästä tilauslistaan).
+function SettingsLayout({ title, description, children, variant, backTo }) {
   const { isAuthenticated, status, customer, signOut } = useAuth()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
@@ -48,7 +49,7 @@ function SettingsLayout({ title, description, children, variant }) {
       {isMobile ? (
         <div className="settings-topbar">
           <Link
-            to={isHub ? '/' : '/asetukset'}
+            to={backTo ?? (isHub ? '/' : '/asetukset')}
             className="settings-topbar__back"
             aria-label={isHub ? 'Takaisin etusivulle' : 'Takaisin tilisivulle'}
           >

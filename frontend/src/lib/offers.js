@@ -6,15 +6,18 @@
 // oikeassa reunassa) nostoriveillä (DealsRow). Vain oikeita tarjouksia: koodit
 // toimivat kassalla (Cart.jsx PROMO_CODES, backendin payments.js). Ilmaisesta
 // kuljetuksesta ei merkkiä - se näkyy tietorivillä tekstinä.
+// variant: merkin tyyli ja ikoni (käyttäjän pyyntö 7.11.2026: ei samaa toistoa):
+// hot = täysi oranssi, soft = vaalea oranssi, new = tumma (uusille asiakkaille),
+// pickup = vihreä (nouto).
 export const OFFER_BADGES = [
   // SUURTILAUS: 30 %, enintään 7 €.
-  { value: '−30%', note: 'max 7 €', text: '−30 % tilauksesta (max 7 €)', tone: 'orange' },
+  { value: '−30%', note: 'max 7 €', text: '−30 % tilauksesta (max 7 €)', tone: 'orange', variant: 'hot' },
   // BIDROP10
-  { value: '−10%', note: 'tilauksesta', text: '−10 % tilauksesta', tone: 'orange' },
+  { value: '−10%', note: 'tilauksesta', text: '−10 % tilauksesta', tone: 'orange', variant: 'soft' },
   // TERVETULOA: 40 % ensimmäisestä tilauksesta, enintään 10 €.
-  { value: '−40%', note: 'eka tilaus', text: '−40 % ekasta tilauksesta (max 10 €)', tone: 'black' },
+  { value: '−40%', note: 'eka tilaus', text: '−40 % ekasta tilauksesta (max 10 €)', tone: 'black', variant: 'new' },
   // NOUTO15: 15 % noutotilauksista.
-  { value: '−15%', note: 'noudosta', text: '−15 % noudosta (max 5 €)', tone: 'black' },
+  { value: '−15%', note: 'noudosta', text: '−15 % noudosta (max 5 €)', tone: 'black', variant: 'pickup' },
 ]
 
 // Sama ravintola saa aina saman merkin. Jokaisella ravintolalla on merkki

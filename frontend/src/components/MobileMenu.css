@@ -1,0 +1,353 @@
+/* Puhelimen hamburger-valikko (MobileMenu.jsx). Siisti sivupalkki
+   käyttäjän mallikuvan mukaan 9.11.2026. */
+.mobile-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+}
+
+.mobile-menu__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 21, 15, 0.45);
+  animation: mobile-menu-fade 0.24s ease both;
+}
+
+.mobile-menu__panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(86vw, 320px);
+  padding: 24px 24px calc(24px + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  background: #fff;
+  animation: mobile-menu-in 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.mobile-menu.is-leaving .mobile-menu__backdrop {
+  animation: mobile-menu-fade 0.24s ease reverse both;
+}
+
+.mobile-menu.is-leaving .mobile-menu__panel {
+  animation: mobile-menu-out 0.24s ease both;
+}
+
+@keyframes mobile-menu-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mobile-menu-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes mobile-menu-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* Isot napit ylhäällä: musta Liity, harmaa Kirjaudu sisään. */
+.mobile-menu__auth {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.mobile-menu__join,
+.mobile-menu__login {
+  display: grid;
+  place-items: center;
+  height: 54px;
+  border-radius: 10px;
+  font-size: 1.02rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mobile-menu__join {
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+.mobile-menu__login {
+  background: #f3f3f3;
+  color: var(--delivo-black);
+}
+
+.mobile-menu__hello {
+  margin: 4px 0 14px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+/* Tekstilinkit ilman ikoneita. */
+.mobile-menu__list {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mobile-menu__list--account {
+  margin-bottom: 18px;
+}
+
+.mobile-menu__link {
+  display: block;
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  background: none;
+  color: var(--delivo-black);
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.mobile-menu__link--strong {
+  font-size: 1.02rem;
+  font-weight: 600;
+}
+
+.mobile-menu__link--muted {
+  color: var(--text-muted);
+}
+
+/* Sovellusnosto alareunassa. */
+.mobile-menu__app {
+  margin-top: auto;
+  padding-top: 28px;
+}
+
+.mobile-menu__app-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mobile-menu__app-icon {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+}
+
+.mobile-menu__app-row p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--delivo-black);
+}
+
+.mobile-menu__app-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  background: #f3f3f3;
+  color: var(--delivo-black);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu__backdrop,
+  .mobile-menu__panel {
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Sovelluskuvake: musta neliö, jossa valkoinen Bidrop-sanamerkki. */
+.mobile-menu__app-icon {
+  display: grid;
+  place-items: center;
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+.mobile-menu__app-icon .delivo-logo {
+  width: 44px;
+  height: auto;
+}
+
+/* App Store- ja Google Play -napit vierekkäin (9.11.2026). */
+.mobile-menu__stores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.mobile-menu__store {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 10px;
+  background: var(--delivo-black);
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile-menu__store svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+.mobile-menu__store span {
+  display: grid;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.mobile-menu__store small {
+  font-size: 0.62rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* Kauppojen virallisten merkkien näköiset napit (käyttäjän pyyntö 9.11.2026):
+   musta pohja, ohut harmaa reuna, pieni yläteksti ja iso kaupan nimi. */
+.mobile-menu__store {
+  height: 44px;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid #a6a6a6;
+  border-radius: 7px;
+  background: #000;
+}
+
+.mobile-menu__store svg {
+  width: 22px;
+  height: 22px;
+}
+
+.mobile-menu__store span {
+  font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.mobile-menu__store small {
+  font-size: 0.58rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  opacity: 1;
+}
+
+/* Pienemmät tekstilinkit (käyttäjän pyyntö 9.11.2026). */
+.mobile-menu__link {
+  padding: 9px 0;
+  font-size: 0.84rem;
+}
+
+.mobile-menu__link--strong {
+  font-size: 0.92rem;
+}
+
+/* Kirjautuneen valikko (käyttäjän mallikuva 9.11.2026): profiili ylhäällä,
+   ikonilista, harmaa Kirjaudu ulos, jakoviiva ja tekstilinkit. */
+.mobile-menu__profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  color: var(--delivo-black);
+  text-decoration: none;
+}
+
+.mobile-menu__avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #6b6b6b;
+  color: #fff;
+}
+
+.mobile-menu__profile-text {
+  display: grid;
+  gap: 2px;
+}
+
+.mobile-menu__profile-text strong {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.mobile-menu__profile-text span {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--delivo-orange);
+}
+
+.mobile-menu__list--account {
+  gap: 0;
+  margin-bottom: 6px;
+}
+
+.mobile-menu__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 11px 0;
+  color: var(--delivo-black);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mobile-menu__signout {
+  align-self: flex-start;
+  padding: 12px 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.mobile-menu__divider {
+  height: 1px;
+  margin: 8px -24px 14px;
+  background: #ececea;
+}

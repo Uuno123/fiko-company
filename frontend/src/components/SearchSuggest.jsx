@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { Truck } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { getRestaurants } from '../lib/api.js'
-import { searchFillerRestaurants } from '../lib/categories.js'
+import { allFillerRestaurants } from '../lib/categories.js'
+import { searchRestaurants } from '../lib/searchEngine.js'
 import { DELIVERY_PRICE_RANGE } from '../lib/delivery.js'
 import { supabase } from '../lib/supabaseClient.js'
 import './SearchSuggest.css'
@@ -60,6 +61,20 @@ function SearchSuggest({ query, variant = 'dropdown', onNavigate }) {
   const [itemResults, setItemResults] = useState([])
   const [restaurantResults, setRestaurantResults] = useState([])
   const [fallback, setFallback] = useState([])
+  // Hakukone käy läpi jokaisen ravintolan (tietokanta + esittelyravintolat)
+  // selaimessa, joten "mac" ehdottaa McDonald'sia heti (7.11.2026).
+  const [allRestaurants, setAllRestaurants] = useState([])
+  useEffect(() => {
+    let cancelled = false
+    getRestaurants()
+      .catch(() => [])
+      .then((data) => {
+        if (!cancelled) setAllRestaurants(data ?? [])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     const term = query?.trim()
@@ -103,11 +118,12 @@ function SearchSuggest({ query, variant = 'dropdown', onNavigate }) {
         pickup_estimate_minutes: item.restaurant_pickup_estimate_minutes,
       })
     }
-    const real = [...restaurantResults, ...fromItems]
-    const realNames = new Set(real.map((r) => r.name?.toLowerCase()))
-    const fillers = searchFillerRestaurants(query).filter((f) => !realNames.has(f.name.toLowerCase()))
-    return [...real, ...fillers]
-  }, [restaurantResults, itemResults, query])
+    // Nimiosumat hakukoneella pisteiden mukaan; annoshaun löytämät
+    // ravintolat (esim. "kinkkupizza") perään.
+    const engine = searchRestaurants([...allRestaurants, ...restaurantResults, ...allFillerRestaurants()], query ?? '')
+    const engineNames = new Set(engine.map((r) => r.name?.toLowerCase()))
+    return [...engine, ...fromItems.filter((r) => !engineNames.has(r.name?.toLowerCase()))]
+  }, [restaurantResults, itemResults, query, allRestaurants])
 
   const hasResults = shownRestaurants.length > 0
   const trimmed = query?.trim() ?? ''

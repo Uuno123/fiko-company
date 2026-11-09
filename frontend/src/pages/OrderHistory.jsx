@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { ChevronDown } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import SettingsLayout from '../components/SettingsLayout.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
 import DeliveryRouteMap from '../components/DeliveryRouteMap.jsx'
@@ -87,13 +87,14 @@ function itemCountLabel(order) {
   return `${count} ${count === 1 ? 'tuote' : 'tuotetta'}`
 }
 
-function PastOrderRow({ order, isOpen, onToggle }) {
+// Rivi avaa tilauksen omaan näkymään (OrderDetail.jsx, käyttäjän pyyntö 9.11.2026).
+function PastOrderRow({ order }) {
   const restaurantName = order.restaurants?.name ?? 'Ravintola'
   const thumb = restaurantThumb(order.restaurants?.name, order.restaurants?.image_url)
 
   return (
     <li className="past-order">
-      <button type="button" className="past-order__summary" onClick={onToggle} aria-expanded={isOpen}>
+      <Link to={`/omat-tilaukset/${order.id}`} className="past-order__summary">
         <span className="past-order__thumb">
           {thumb ? (
             <img
@@ -119,27 +120,8 @@ function PastOrderRow({ order, isOpen, onToggle }) {
             {customerStatusLabel(order)}
           </span>
         </span>
-        <ChevronDown className="past-order__chevron" size={18} strokeWidth={1.75} aria-hidden="true" />
-      </button>
-
-      {isOpen && (
-        <div className="past-order__details">
-          <div className="past-order__facts">
-            <span>Tilaus {order.order_number}</span>
-            <span>{order.delivery_method === 'delivery' ? 'Kotiinkuljetus' : 'Nouto'}</span>
-          </div>
-          <OrderLines order={order} />
-          <div className="order-history-card__total">
-            <span>Yhteensä</span>
-            <span>{formatPrice(order.total_cents)}</span>
-          </div>
-          {order.restaurant_id && (
-            <Link to={`/ravintola/${order.restaurant_id}`} className="past-order__link">
-              Siirry ravintolaan
-            </Link>
-          )}
-        </div>
-      )}
+        <ChevronRight className="past-order__chevron" size={18} strokeWidth={1.75} aria-hidden="true" />
+      </Link>
     </li>
   )
 }
@@ -279,12 +261,7 @@ function OrderHistory() {
               <h3 className="past-orders__date">{group.heading}</h3>
               <ul className="settings-panel past-orders">
                 {group.orders.map((order) => (
-                  <PastOrderRow
-                    key={order.id}
-                    order={order}
-                    isOpen={openOrderId === order.id}
-                    onToggle={() => setOpenOrderId(openOrderId === order.id ? null : order.id)}
-                  />
+                  <PastOrderRow key={order.id} order={order} />
                 ))}
               </ul>
             </div>

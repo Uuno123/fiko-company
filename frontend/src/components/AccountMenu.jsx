@@ -76,6 +76,9 @@ function AccountMenu({ currentPath, variant }) {
         {/* Mobiili: harmaa pyöreä käyttäjäikoni (kirjautuminen) ja musta
             Liity-pilleri (rekisteröityminen), käyttäjän mallikuva 3.11.2026. */}
         <div className={`auth-login-btn${variant === 'overlay' ? ' auth-login-btn--overlay' : ''}`}>
+          <Link to="/login" state={{ from: currentPath }} className="auth-login-btn__text">
+            Kirjaudu
+          </Link>
           <Link to="/login" state={{ from: currentPath }} className="auth-login-btn__icon" aria-label="Kirjaudu">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <circle cx="12" cy="8" r="4" />
@@ -99,12 +102,13 @@ function AccountMenu({ currentPath, variant }) {
 
   return (
     <div className="account-menu" ref={menuRef}>
-      <button
-        type="button"
+      {/* Käyttäjäikoni vie suoraan tilinäkymään ilman välivalikkoa (käyttäjän
+          pyyntö 7.11.2026). Puhelimella /asetukset on tilisivu, työpöydällä se
+          ohjaa Omiin tietoihin; Tilaukset ja Kirjaudu ulos löytyvät sieltä. */}
+      <Link
+        to="/asetukset"
         className="account-menu__trigger"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-label={`Tili: ${firstName}`}
+        aria-label={`Oma tili: ${firstName}`}
       >
         {/* Puhelimella harmaa pyöreä käyttäjäikoni, työpöydällä nimikirjaimet
             ja nuoli (käyttäjän pyyntö 29.10.2026, AccountMenu.css). */}
@@ -112,8 +116,8 @@ function AccountMenu({ currentPath, variant }) {
           <PersonIcon />
         </span>
         <span className="account-menu__avatar">{initial}</span>
-        <ChevronIcon className={`account-menu__trigger-chevron${open ? ' account-menu__trigger-chevron--open' : ''}`} />
-      </button>
+        <ChevronIcon className="account-menu__trigger-chevron" />
+      </Link>
 
       {open && (
         <div className="account-menu__dropdown" role="menu">

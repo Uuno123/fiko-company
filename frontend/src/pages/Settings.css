@@ -1362,3 +1362,9 @@
 .favorites-empty__icon {
   color: var(--delivo-black);
 }
+
+/* Tilausrivi on nyt linkki tilausnäkymään (9.11.2026). */
+a.past-order__summary {
+  color: inherit;
+  text-decoration: none;
+}
