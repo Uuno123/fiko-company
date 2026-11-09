@@ -300,6 +300,21 @@ function RestaurantPage() {
 
   const restaurantClosed = restaurant?.is_open === false
 
+  // Aukiolorivi (käyttäjän pyyntö 9.11.2026): "Avoinna · sulkeutuu klo 21.00"
+  // tai "Suljettu · avautuu klo 11.00" tämän päivän aukioloajoista.
+  const hoursStatus = useMemo(() => {
+    const hours = getTodayHours(restaurant?.opening_hours)
+    const valid = hours && !hours.closed && hours.open && hours.close
+    const fi = (t) => t.replace(':', '.')
+    if (restaurant?.is_open === false) {
+      const now = new Date()
+      const nowHm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+      return { closed: true, text: valid && nowHm < hours.open ? `avautuu klo ${fi(hours.open)}` : null }
+    }
+    if (!valid) return null
+    return { closed: false, text: `sulkeutuu klo ${fi(hours.close)}` }
+  }, [restaurant])
+
   const selectedItemGroups = useMemo(() => getOptionGroups(selectedItem ?? {}), [selectedItem])
   const optionsDeltaCents = useMemo(
     () => computeTotalDeltaCents(selectedItemGroups, optionSelections),
@@ -614,6 +629,12 @@ function RestaurantPage() {
                     {[restaurant.address && formatDisplayAddress(restaurant.address), distance]
                       .filter(Boolean)
                       .join(' · ')}
+                  </p>
+                )}
+                {hoursStatus && (
+                  <p className={`restaurant-mhead__hours${hoursStatus.closed ? ' is-closed' : ''}`}>
+                    <strong>{hoursStatus.closed ? 'Suljettu' : 'Avoinna'}</strong>
+                    {hoursStatus.text && <span>· {hoursStatus.text}</span>}
                   </p>
                 )}
                 {/* Linkki saman ketjun muihin ravintoloihin tai saman kategorian
