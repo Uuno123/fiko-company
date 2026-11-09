@@ -2117,3 +2117,76 @@
   font-variant-numeric: tabular-nums;
   line-height: 1.5;
 }
+
+/* Ruokalistan välilehdet asiallisemmalla fontilla (käyttäjän pyyntö
+   9.11.2026): Inter pyöreän Nuniton tilalle. */
+.restaurant-menu-tabs__btn,
+.restaurant-menu-tabs__btn:not(.restaurant-menu-tabs__btn--active):hover {
+  font-family: 'Inter', var(--font-body, sans-serif);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.restaurant-menu-tabs__btn--active {
+  font-family: 'Inter', var(--font-body, sans-serif);
+  font-weight: 600;
+}
+
+/* Aukiolo: avoinna ja sulkemisaika, tai suljettu ja avautumisaika. */
+.restaurant-mhead__hours {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.restaurant-mhead__hours strong {
+  font-weight: 600;
+  color: #1f7a3a;
+}
+
+.restaurant-mhead__hours.is-closed strong {
+  color: #c62828;
+}
+
+/* Puhelimella ravintolan tiedot keskelle (käyttäjän mallikuva 9.11.2026):
+   logo, nimi, arvio, osoite, aukiolo, linkki, toimitusrivi ja tarjous
+   keskitettyinä allekkain. */
+@media (max-width: 780px) {
+  .restaurant-mhead {
+    align-items: center;
+    text-align: center;
+  }
+
+  .restaurant-mhead__logo,
+  .restaurant-info--banner .restaurant-mhead__logo {
+    align-self: center;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .restaurant-mhead__rating,
+  .restaurant-mhead__hours,
+  .restaurant-mhead__delivery {
+    justify-content: center;
+  }
+
+  .restaurant-mhead__delivery {
+    flex-wrap: wrap;
+  }
+
+  .restaurant-mhead__more,
+  .restaurant-mhead__offer {
+    align-self: center;
+  }
+}
+
+/* Ei vihreää Lisätty-tilaa (käyttäjän pyyntö 9.11.2026): nappi pysyy
+   mustana, lisäyksen kertoo väkänen ja teksti. */
+.item-modal__add--added,
+.item-modal__add--added:hover {
+  background: var(--delivo-black);
+  color: #fff;
+}
