@@ -1872,3 +1872,187 @@
     color: var(--delivo-black);
   }
 }
+
+/* Logo, Toimitus/Nouto ja osoite yhdellä rivillä (10.11.2026). */
+@media (min-width: 1100px) {
+  .site-header .site-header__left {
+    flex-wrap: nowrap !important;
+    min-width: 0;
+  }
+
+  .site-header .header-desk-tools {
+    flex-wrap: nowrap;
+    margin-left: 18px;
+  }
+}
+
+/* Logo lähemmäs hampurilaista työpöydällä (käyttäjän pyyntö 10.11.2026). */
+@media (min-width: 561px) {
+  .site-header__menu-btn {
+    margin-right: 4px !important;
+  }
+}
+
+/* Pienempi hampurilainen ja kapeampi nappi, jotta logo on lähempänä
+   (käyttäjän pyyntö 10.11.2026). */
+@media (min-width: 561px) {
+  .site-header__menu-btn {
+    width: 32px !important;
+    height: 32px !important;
+    margin: 0 8px 0 -6px !important;
+  }
+
+  .site-header__menu-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+/* Logo aivan hampurilaisen viereen: rivin 18 px väli kumotaan napin osalta. */
+@media (min-width: 561px) {
+  .site-header__menu-btn {
+    margin-right: -10px !important;
+  }
+}
+
+/* Osoite ilman harmaata taustaa, uusi muoto (käyttäjän pyyntö 10.11.2026):
+   ohut pystyviiva logon jälkeen, pieni oranssi yläteksti ja lihava osoite. */
+@media (min-width: 900px) {
+  .header-address-pill {
+    position: relative;
+    height: 40px !important;
+    margin-left: 6px !important;
+    padding: 0 6px 0 20px !important;
+    border-radius: 0 !important;
+    background: none !important;
+  }
+
+  .header-address-pill::before {
+    content: '';
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 0;
+    width: 1px;
+    background: #dcdcd8;
+  }
+
+  .header-address-pill:hover {
+    background: none !important;
+  }
+
+  .header-address-pill:hover .header-address-pill__value {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .header-address-pill__text {
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+  }
+
+  .header-address-pill__label {
+    display: block !important;
+    font-size: 0.64rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--delivo-orange) !important;
+  }
+
+  .header-address-pill__value {
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    line-height: 1.15;
+  }
+
+  .header-address-pill__chevron,
+  .header-address-pill svg {
+    align-self: flex-end;
+    margin-bottom: 2px;
+    color: var(--text-muted) !important;
+  }
+}
+
+/* Yläteksti harmaana, ei oranssia (käyttäjän pyyntö 10.11.2026). */
+@media (min-width: 900px) {
+  .header-address-pill__label {
+    color: var(--text-muted) !important;
+  }
+}
+
+/* Ostoskori ilman harmaata taustaa työpöydällä (käyttäjän pyyntö 10.11.2026). */
+@media (min-width: 900px) {
+  .site-header .cart-menu,
+  .site-header .cart-menu--empty,
+  .site-header .cart-menu:hover,
+  .site-header .cart-menu > a,
+  .site-header .cart-menu > button {
+    background: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Tuotemäärä mustana pallona kiinni kori-ikonissa (käyttäjän pyyntö 10.11.2026). */
+@media (min-width: 900px) {
+  .site-header .cart-menu__trigger {
+    position: relative;
+    width: 44px !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    padding: 0 !important;
+    justify-content: center;
+    background: none !important;
+  }
+
+  .site-header .cart-menu__trigger svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .site-header .cart-menu__badge {
+    display: none !important;
+  }
+
+  .site-header .cart-menu__count {
+    position: absolute;
+    top: 4px;
+    right: 2px;
+    display: grid !important;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--delivo-black);
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+}
+
+@media (min-width: 900px) {
+  .site-header .cart-menu .cart-menu__count {
+    top: 5px !important;
+    right: 3px !important;
+    color: #fff !important;
+    font-size: 0.66rem !important;
+    -webkit-text-fill-color: #fff;
+  }
+
+  .site-header .cart-menu__trigger svg,
+  .site-header .cart-menu__trigger .cart-icon {
+    width: 24px !important;
+    height: 24px !important;
+  }
+}
+
+/* Hieman enemmän väliä hampurilaisen ja logon väliin (käyttäjän pyyntö 10.11.2026). */
+@media (min-width: 561px) {
+  .site-header__menu-btn {
+    margin-right: 2px !important;
+  }
+}

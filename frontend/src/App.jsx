@@ -37,6 +37,7 @@ import PreviewDashboard from './pages/__PreviewDashboard.jsx'
 import PreviewAccount from './pages/__PreviewAccount.jsx'
 import PreviewCart from './pages/__PreviewCart.jsx'
 import PreviewTracking from './pages/__PreviewTracking.jsx'
+import PreviewBids from './pages/__PreviewBids.jsx'
 import PreviewRegister from './pages/__PreviewRegister.jsx'
 
 // React Router ei nollaa vieritystä sivunvaihdossa - ilman tätä esim. ravintolan sivulle
@@ -121,6 +122,7 @@ function AppRoutes() {
         <Route path="/__preview-account" element={<PreviewAccount />} />
         <Route path="/__preview-cart" element={<PreviewCart />} />
         <Route path="/__preview-tracking" element={<PreviewTracking />} />
+        <Route path="/__preview-bids" element={<PreviewBids />} />
         <Route path="/__preview-register" element={<PreviewRegister />} />
 
         <Route

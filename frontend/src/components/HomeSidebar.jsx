@@ -52,7 +52,7 @@ export default function HomeSidebar() {
             <SidebarLink to="/asetukset" label="Tili" icon={CircleUserRound} />
           </>
         ) : (
-          <SidebarLink to="/login" label="Kirjaudu tai liity" icon={CircleUserRound} />
+          <SidebarLink to="/login" label="Kirjaudu sisään" icon={CircleUserRound} />
         )}
       </nav>
 

@@ -8,7 +8,8 @@ import { AuthContext } from '../lib/AuthContext.jsx'
 const MOCK_ORDER = {
   id: 'mock-order-1',
   order_number: 'BIDROP-0015',
-  status: 'pending',
+  // ?tila=awaiting_courier näyttää kuljettajan etsinnän.
+  status: new URLSearchParams(window.location.search).get('tila') ?? 'pending',
   delivery_method: 'delivery',
   created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
   estimated_ready_at: new Date(Date.now() + 25 * 60 * 1000).toISOString(),

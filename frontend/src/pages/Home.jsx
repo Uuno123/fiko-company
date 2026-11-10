@@ -2,6 +2,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Bell, ChevronDown, Search, SlidersHorizontal, Smartphone } from 'lucide-react'
 import MobileMenu from '../components/MobileMenu.jsx'
+import HomeDesktopGrid from '../components/HomeDesktopGrid.jsx'
 import SearchStart from '../components/SearchStart.jsx'
 import { rememberSearch } from '../lib/recentSearches.js'
 import { OPEN_TRACKING_EVENT } from '../components/ActiveOrderBubble.jsx'
@@ -158,6 +159,15 @@ const PROMO_ITEMS = [
 // Hakupalkissa yksi selkeä teksti (käyttäjän pyyntö 4.11.2026, aiemmin
 // vaihtuva vihje).
 const SEARCH_PLACEHOLDER = 'Hae ravintoloita ja ruokia'
+
+// Tervehdys vuorokaudenajan mukaan (työpöydän otsikko, 10.11.2026).
+function greeting() {
+  const hour = new Date().getHours()
+  if (hour < 5) return 'Hyvää yötä'
+  if (hour < 10) return 'Hyvää huomenta'
+  if (hour < 17) return 'Hyvää päivää'
+  return 'Hyvää iltaa'
+}
 
 // Tasainen mutta sekoitettu järjestys "Kokeile jotain uutta" -riville.
 function nameHash(name) {
@@ -949,9 +959,52 @@ function Home() {
 
           {/* Työpöydällä teksti kategorioiden jälkeen (käyttäjän pyyntö 29.10.2026). */}
           <div className="home-intro">
-            <h1>Mitä tänään syötäisiin?</h1>
-            <p>Selaa lähiravintoloita tai hae ravintolaa, ruokalajia tai annosta.</p>
+            {/* Uusi työpöytä (10.11.2026): tervehdys vuorokaudenajan mukaan ja
+                Bidropin oma lupaus. */}
+            <h1>
+              {greeting()}
+              {customer?.name ? `, ${customer.name.split(' ')[0]}` : ''}
+            </h1>
+            <p>Kuopion ravintolat ovelle. Kuljettajat tarjoavat hinnan, sinä valitset.</p>
           </div>
+
+          {/* Työpöydän ravintolaruudukko suodattimineen (käyttäjän mallikuva
+              10.11.2026, ilman kategorioita). Näkyy vain leveillä näytöillä;
+              silloin rivit, mainokset ja otsikko piilotetaan (Home.css). */}
+          {status === 'ready' && (
+            <HomeDesktopGrid
+              promoItems={PROMO_ITEMS}
+              // Tarjousosiot (Kovimmat tarjoukset, Ilmaiset kuljetukset) samoihin
+              // kohtiin kuin puhelimella (käyttäjän pyyntö 10.11.2026).
+              groups={visibleCategoryGroups.flatMap(({ category, title, seeAll, items }, groupIndex) => [
+                {
+                  key: category,
+                  title: title ?? category,
+                  seeAllTo:
+                    seeAll || category === NEARBY_ROW
+                      ? `/haku?q=${encodeURIComponent(seeAll ?? 'Lähelläsi')}`
+                      : `/kategoria/${categorySlug(category)}`,
+                  items,
+                },
+                ...(groupIndex === dealsAfterIndex && activeCategory === ALL && dealsItems.length > 0
+                  ? [{ key: 'deals-row', title: 'Kovimmat tarjoukset', seeAllTo: '/haku?q=Tarjoukset', items: dealsItems, deal: true }]
+                  : []),
+                ...(groupIndex === freeDeliveryAfterIndex && freeDeliveryItems.length > 0
+                  ? [
+                      {
+                        key: 'free-delivery-row',
+                        title: 'Ilmaiset kuljetukset',
+                        seeAllTo: `/haku?q=${encodeURIComponent('Ilmainen kuljetus')}`,
+                        items: freeDeliveryItems,
+                        deal: true,
+                      },
+                    ]
+                  : []),
+              ])}
+              favoriteIds={favoriteIds}
+              onToggleFavorite={toggleFavorite}
+            />
+          )}
 
           {/* Ravintolaketjujen logot ilman otsikkoa (käyttäjän pyyntö 29.10.2026). */}
           <section

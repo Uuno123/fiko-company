@@ -1,0 +1,126 @@
+/* Kuljettajan valintanäkymän otsikko ja vaiheet (CourierBidsIntro.jsx). Käytössä
+   kassan valmis-näkymässä ja tilauksen seurannassa (10.11.2026). */
+.order-bids__title {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--delivo-black);
+}
+
+.order-bids__lead {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.order-bids__title::after {
+  content: '';
+  display: inline-block;
+  width: 0.26em;
+  height: 0.26em;
+  margin-left: 0.12em;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+}
+
+.order-bids__steps {
+  display: grid;
+  gap: 0;
+  margin: 16px 0 6px;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.order-bids__steps li {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 14px;
+}
+
+/* Pystyviiva vaiheiden välissä */
+.order-bids__steps li:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  top: 26px;
+  bottom: 2px;
+  left: 12px;
+  width: 2px;
+  background: #e4e4e1;
+}
+
+.order-bids__steps li.is-done::before {
+  background: var(--delivo-black);
+}
+
+.order-bids__step-no {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 2px solid #d9d9d5;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.order-bids__steps li.is-done .order-bids__step-no {
+  border-color: var(--delivo-black);
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+.order-bids__steps li.is-active .order-bids__step-no {
+  border-color: var(--delivo-orange);
+  background: var(--delivo-orange);
+  color: #fff;
+  box-shadow: 0 0 0 0 rgba(244, 80, 30, 0.45);
+  animation: order-bids-pulse 1.6s ease-out infinite;
+}
+
+@keyframes order-bids-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(244, 80, 30, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 10px rgba(244, 80, 30, 0);
+  }
+}
+
+.order-bids__steps li > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 2px;
+}
+
+.order-bids__steps strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+.order-bids__steps li:not(.is-done):not(.is-active) strong {
+  color: var(--text-muted);
+}
+
+.order-bids__steps small {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .order-bids__steps li.is-active .order-bids__step-no {
+    animation: none;
+  }
+}
