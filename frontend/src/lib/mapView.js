@@ -42,10 +42,11 @@ const LOCALE = {
 }
 
 const PINS = {
+  // Ravintola: sijainti-ikoni (käyttäjän pyyntö 10.11.2026, aiemmin auto).
   store: {
     size: 30,
     anchor: [15, 15],
-    html: '<span><svg viewBox="0 0 20 20" fill="none"><path d="M3 6h9l3 4h2v4h-1M3 6v8h1m0 0a2 2 0 1 0 4 0m-4 0h4m6 0a2 2 0 1 0 4 0m-4 0h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>',
+    html: '<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 5-5.5 10.2-7.4 11.8a1 1 0 0 1-1.2 0C9.5 20.2 4 15 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg></span>',
   },
   dest: {
     size: 26,

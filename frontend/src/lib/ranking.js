@@ -129,7 +129,10 @@ export function rankRestaurants(list, { address = null, popularity = null, compa
   }))
 
   // Sponsori vain jos se toimittaa asiakkaan osoitteeseen; useampi vuorottelee päivittäin.
-  const slots = compare ? SPONSOR_SLOTS.slice(0, 1) : SPONSOR_SLOTS
+  // Asiakkaan oma järjestys (Lähin, Nopein, Paras arvio) on tarkasti valinnan
+  // mukainen ilman sponsorinostoa (käyttäjän palaute 10.11.2026: sponsori
+  // kärjessä sai järjestyksen näyttämään rikkinäiseltä).
+  const slots = compare ? [] : SPONSOR_SLOTS
   const sponsors = scored
     .filter(({ restaurant }) => {
       if (!isSponsored(restaurant, now)) return false
@@ -153,7 +156,10 @@ export function rankRestaurants(list, { address = null, popularity = null, compa
   // Asiakkaan oma lajittelu järjestää myös täytepohjat keskenään (ne pysyvät
   // silti oikeiden ravintoloiden perässä) - muuten "Paras arvio" näytti
   // sekalaiselta, kun suurin osa riveistä on täytepohjia.
-  if (compare) fillers.sort(compare)
+  // Asiakkaan oma järjestys koskee oikeita ravintoloita ja täytepohjia yhdessä
+  // (käyttäjän palaute 10.11.2026: oikea ravintola oli aina kärjessä, jolloin
+  // Nopein/Paras arvio näytti rikkinäiseltä). Kiinni olevat pysyvät lopussa.
+  if (compare) return [...[...ranked, ...fillers].sort(compare), ...closed]
   return [...ranked, ...closed, ...fillers]
 }
 

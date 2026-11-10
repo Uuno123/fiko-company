@@ -2,6 +2,8 @@ import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Bell, ChevronDown, Search, SlidersHorizontal, Smartphone } from 'lucide-react'
 import MobileMenu from '../components/MobileMenu.jsx'
+import SearchStart from '../components/SearchStart.jsx'
+import { rememberSearch } from '../lib/recentSearches.js'
 import { OPEN_TRACKING_EVENT } from '../components/ActiveOrderBubble.jsx'
 import PromoCarousel from '../components/PromoCarousel.jsx'
 import CartIcon from '../components/CartIcon.jsx'
@@ -15,7 +17,7 @@ import RestaurantCard from '../components/RestaurantCard.jsx'
 import DealsRow from '../components/DealsRow.jsx'
 import DealsCountdown from '../components/DealsCountdown.jsx'
 import Skeleton from '../components/Skeleton.jsx'
-import SearchSuggest, { RestaurantResultCard } from '../components/SearchSuggest.jsx'
+import SearchSuggest from '../components/SearchSuggest.jsx'
 import { getRestaurants } from '../lib/api.js'
 import {
   ALL,
@@ -126,7 +128,6 @@ const PROMO_ITEMS = [
     title: 'Subway',
     description: 'Subit, wrapit ja salaatit · 10–20 min',
     sponsored: true,
-    href: '/haku?q=Subway',
   },
   {
     id: 'hesburger',
@@ -135,7 +136,6 @@ const PROMO_ITEMS = [
     title: 'Hesburger',
     description: 'Burgerit ja ateriat · 15–25 min',
     sponsored: true,
-    href: '/haku?q=Hesburger',
   },
   {
     id: 'ozaki',
@@ -144,7 +144,6 @@ const PROMO_ITEMS = [
     title: 'Ozaki Sushi',
     description: 'Sushia ja sashimia · 20–30 min',
     sponsored: true,
-    href: '/haku?q=Ozaki',
   },
   {
     id: 'fjorno',
@@ -153,7 +152,6 @@ const PROMO_ITEMS = [
     title: 'Fjorno',
     description: 'Napolilainen pizza · ilmainen kuljetus',
     sponsored: true,
-    href: '/haku?q=Fjorno',
   },
 ]
 
@@ -638,12 +636,6 @@ function Home() {
       .map(([category]) => category)
   }, [restaurants])
 
-  // Samalla järjestyssäännöllä kuin rivit (lib/ranking.js).
-  // Haun aloitusnäkymän ravintolat (käyttäjän pyyntö 7.11.2026: lisää
-  // ravintoloita): kaikki etusivun ravintolat parhaan arvion mukaan, 12 kpl.
-  const searchStartRestaurants = [...allRowRestaurants]
-    .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-    .slice(0, 12)
 
   // Kategoriarivin nuolet. Vieritettävä säiliö haetaan napin omasta rivistä,
   // jolloin jokainen rivi ei tarvitse omaa refiä. Askel on kaksi korttia,
@@ -694,6 +686,7 @@ function Home() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && searchQuery.trim()) {
+                    rememberSearch(searchQuery)
                     setSearchOpen(false)
                     navigate(`/haku?q=${encodeURIComponent(searchQuery.trim())}`)
                   }
@@ -707,6 +700,7 @@ function Home() {
                 </button>
               )}
             </div>
+            {/* ×-sulkunappi (käyttäjän pyyntö 10.11.2026, ei Peruuta-tekstiä). */}
             <button
               type="button"
               className="home-search-overlay__close"
@@ -722,55 +716,11 @@ function Home() {
           {searchQuery.trim() ? (
             <SearchSuggest query={searchQuery} variant="fullscreen" onNavigate={() => setSearchOpen(false)} />
           ) : (
-            <div className="home-search-start">
-              {popularSearches.length > 0 && (
-                <section className="home-search-start__section">
-                  <h3 className="search-suggest-section__title">Suositut haut</h3>
-                  {/* Ehdotukset ovat kategorioita, joten ne vievät suoraan
-                      kategoriasivulle - hakusanalla ne löytäisivät vain ne
-                      ravintolat joiden NIMESSÄ sana esiintyy. */}
-                  <div className="home-search-chips">
-                    {popularSearches.map((term) => (
-                      <Link key={term} to={`/kategoria/${categorySlug(term)}`} onClick={() => setSearchOpen(false)}>
-                        {term}
-                      </Link>
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {searchCategories.length > 0 && (
-                <section className="home-search-start__section">
-                  <h3 className="search-suggest-section__title">Kategoriat</h3>
-                  {/* Kategoriat ilman kuvia tekstipillereinä (käyttäjän pyyntö 7.11.2026). */}
-                  <div className="home-search-chips">
-                    {searchCategories.map((category) => {
-                      return (
-                        <Link
-                          key={category}
-                          to={`/haku?q=${encodeURIComponent(category)}`}
-                          className="home-search-cat-chip"
-                          onClick={() => setSearchOpen(false)}
-                        >
-                          {category}
-                        </Link>
-                      )
-                    })}
-                  </div>
-                </section>
-              )}
-
-              {searchStartRestaurants.length > 0 && (
-                <section className="home-search-start__section">
-                  <h3 className="search-suggest-section__title">Suositut ravintolat</h3>
-                  <div className="search-suggest-restaurants">
-                    {searchStartRestaurants.map((r) => (
-                      <RestaurantResultCard key={r.id} restaurant={r} onNavigate={() => setSearchOpen(false)} />
-                    ))}
-                  </div>
-                </section>
-              )}
-            </div>
+            <SearchStart
+              restaurants={allRowRestaurants}
+              categories={[...new Set([...popularSearches, ...searchCategories])].slice(0, 8)}
+              onNavigate={() => setSearchOpen(false)}
+            />
           )}
         </div>
       )}

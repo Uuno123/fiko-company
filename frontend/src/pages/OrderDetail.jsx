@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import SettingsLayout from '../components/SettingsLayout.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
+import VatBreakdown from '../components/VatBreakdown.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import { formatPrice } from '../lib/format.js'
@@ -236,6 +237,11 @@ export default function OrderDetail() {
                 <dd>{formatPrice(order.total_cents)}</dd>
               </div>
             </dl>
+            <VatBreakdown
+              foodCents={subtotal - (order.discount_cents ?? 0)}
+              serviceCents={order.service_fee_cents ?? 0}
+              hasDelivery={isDelivery}
+            />
           </section>
 
           {order.restaurant_id && (

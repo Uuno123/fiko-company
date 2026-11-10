@@ -413,3 +413,389 @@ button.location-modal__option:hover {
     max-height: calc(100dvh - 12px - env(safe-area-inset-top, 0px));
   }
 }
+
+/* ── Siistimpi osoiteikkuna (käyttäjän pyyntö 10.11.2026) ─────────────────
+   Woltin tapaan: otsikko ja sulkunappi samalla rivillä, harmaa hakukenttä
+   hakuikonilla, vaihtoehdot rivilistana ilman laatikoita ja tallennusnappi
+   vasta valinnan jälkeen. */
+.location-modal {
+  padding: 24px 24px 20px;
+}
+
+.location-modal__close {
+  top: 18px;
+  right: 18px;
+  border: none;
+  background: #f1f2f4;
+}
+
+.location-modal__close:hover {
+  background: #e7e8eb;
+  border-color: transparent;
+}
+
+.location-modal__title {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 36px;
+}
+
+.location-modal__title + * {
+  margin-top: 18px;
+}
+
+.location-modal__field {
+  gap: 10px;
+  margin-bottom: 8px;
+  padding-left: 14px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: #f1f2f4;
+}
+
+.location-modal__field:focus-within {
+  border-color: var(--delivo-black);
+  background: #fff;
+}
+
+.location-modal__field-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.location-modal__field input {
+  height: 48px;
+  padding: 0 14px 0 0;
+}
+
+.location-modal__results {
+  margin: 4px 0 8px;
+  padding: 0;
+  border: none;
+}
+
+.location-modal__results button {
+  padding: 12px 4px;
+  border-radius: 0;
+  border-bottom: 1px solid #f0f0ee;
+}
+
+.location-modal__results button:hover {
+  background: none;
+}
+
+.location-modal__list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.location-modal__row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  border-bottom: 1px solid #f0f0ee;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.location-modal__row:last-child {
+  border-bottom: none;
+}
+
+.location-modal__row--static,
+.location-modal__row:disabled {
+  cursor: default;
+}
+
+.location-modal__row-icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f1f2f4;
+  color: var(--delivo-black);
+}
+
+.location-modal__row-icon .location-modal__spinner {
+  border-color: rgba(20, 21, 15, 0.2);
+  border-top-color: var(--delivo-black);
+}
+
+.location-modal__row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.location-modal__row-text strong {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.location-modal__row-text span {
+  overflow: hidden;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  button.location-modal__row:hover:not(:disabled) .location-modal__row-icon {
+    background: #e7e8eb;
+  }
+}
+
+.location-modal__submit {
+  height: 50px;
+  margin-top: 12px;
+  border-radius: 12px;
+  font-size: 0.98rem;
+}
+
+.location-modal__skip {
+  margin-top: 12px;
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.location-modal__skip:hover {
+  color: var(--delivo-black);
+}
+
+@media (max-width: 560px) {
+  .location-modal {
+    padding: 20px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .location-modal__title {
+    font-size: 1.25rem;
+  }
+}
+
+/* ── Woltin mallinen osoitelista (käyttäjän mallikuva 10.11.2026) ──────────
+   Sulku- ja takaisin-napit ylimmällä rivillä, iso otsikko, tallennetut
+   osoitteet Valitse-napeilla ja jakoviivoin erotetut toiminnot. */
+.location-modal {
+  padding: 16px 20px 20px;
+}
+
+.location-modal__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+}
+
+.location-modal__icon-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #f1f2f4;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.location-modal__icon-btn:hover {
+  background: #e7e8eb;
+}
+
+.location-modal__title {
+  margin-top: 10px;
+  padding-right: 0;
+  font-size: 1.6rem;
+  line-height: 1.2;
+}
+
+.location-modal__title + * {
+  margin-top: 16px;
+}
+
+.location-modal__saved {
+  display: flex;
+  flex-direction: column;
+}
+
+.location-modal__saved-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0 14px;
+}
+
+.location-modal__pin {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+  color: #fff;
+}
+
+.location-modal__saved-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.location-modal__saved-text strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+}
+
+.location-modal__saved-text > span {
+  overflow: hidden;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.location-modal__edit {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--delivo-orange-soft, #ffeadb);
+  color: var(--delivo-orange);
+  cursor: pointer;
+}
+
+.location-modal__pick {
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 10px;
+  background: var(--delivo-orange-soft, #ffeadb);
+  color: #c2410c;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.location-modal__pick:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.location-modal__actions {
+  display: flex;
+  flex-direction: column;
+  margin: 0 -20px;
+}
+
+.location-modal__action {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  padding: 20px 24px;
+  border: none;
+  border-top: 1px solid #e5e5e3;
+  background: none;
+  color: var(--delivo-black);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.location-modal__action:disabled {
+  cursor: default;
+}
+
+.location-modal__action .location-modal__spinner {
+  width: 18px;
+  height: 18px;
+  border-color: rgba(20, 21, 15, 0.2);
+  border-top-color: var(--delivo-black);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .location-modal__action:hover:not(:disabled) {
+    background: #f7f7f6;
+  }
+}
+
+/* Ensimmäisellä kerralla ilman tallennettuja osoitteita toiminnot alkavat
+   suoraan otsikon alta. */
+.location-modal__saved:empty {
+  display: none;
+}
+
+.location-modal__saved:empty + .location-modal__actions .location-modal__action:first-child {
+  border-top: none;
+}
+
+@media (max-width: 560px) {
+  .location-modal {
+    padding: 14px 18px calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .location-modal__actions {
+    margin: 0 -18px;
+  }
+
+  .location-modal__title {
+    font-size: 1.5rem;
+  }
+}
+
+/* Otsikko samalla rivillä sulkunapin kanssa kuten aiemmin (10.11.2026). */
+.location-modal__top {
+  gap: 12px;
+}
+
+.location-modal__top .location-modal__title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.25;
+}
+
+.location-modal__top + * {
+  margin-top: 18px;
+}
+
+@media (max-width: 560px) {
+  .location-modal__top .location-modal__title {
+    font-size: 1.25rem;
+  }
+}
+
+.location-modal__top .location-modal__title + * {
+  margin-top: 0;
+}
