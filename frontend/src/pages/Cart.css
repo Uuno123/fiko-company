@@ -1971,3 +1971,194 @@ label.checkout-group__row:focus-within {
   margin-top: 10px;
   font-size: 0.86rem;
 }
+
+/* Noutopaikan kortti (käyttäjän pyyntö 10.11.2026): logo, nimi ja osoite,
+   alla valmistumisaika ja reittiohjeet ohuen viivan erottamana. */
+.pickup-card {
+  padding: 0;
+}
+
+.pickup-card__place {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.pickup-card__logo {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border: 1px solid #ececea;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--delivo-black);
+}
+
+.pickup-card__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pickup-card__logo img.brand-thumb-logo {
+  object-fit: contain;
+}
+
+.pickup-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pickup-card__text strong {
+  overflow: hidden;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pickup-card__text span {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.pickup-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid #ececea;
+  font-size: 0.86rem;
+  color: var(--delivo-black);
+}
+
+.pickup-card__meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+}
+
+.pickup-card__meta em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.pickup-card__route {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+  font-weight: 600;
+  color: var(--delivo-black);
+  text-decoration: none;
+}
+
+.pickup-card__route:hover {
+  text-decoration: underline;
+}
+
+/* Alennuskoodin sulkunappi: pieni harmaa pyöreä nappi Käytä-napin vieressä. */
+.promo-code__form .promo-code__close {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 38px;
+  padding: 0;
+  border-radius: 50%;
+  background: #f1f2f4;
+  color: var(--delivo-black);
+}
+
+.promo-code__form .promo-code__close:hover {
+  background: #e7e8eb;
+}
+
+/* Alennuskoodin avaus- ja sulkuanimaatio (käyttäjän pyyntö 10.11.2026):
+   kenttä liukuu esiin ylhäältä ja häivyttyy pois suljettaessa, linkki
+   palaa pehmeästi. */
+.promo-code {
+  animation: promo-code-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.promo-code.is-closing {
+  animation: promo-code-out 0.18s ease both;
+}
+
+.promo-code__toggle {
+  animation: promo-code-fade 0.2s ease both;
+}
+
+@keyframes promo-code-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes promo-code-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes promo-code-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promo-code,
+  .promo-code.is-closing,
+  .promo-code__toggle {
+    animation-duration: 0.01ms;
+  }
+}
+
+/* Kassan kartta otsikon alla (käyttäjän pyyntö 10.11.2026). */
+.checkout-map {
+  margin-top: 14px;
+}
+
+.checkout-map .delivery-route-map {
+  height: 170px;
+  border: none;
+  border-radius: 14px;
+}
+
+@media (min-width: 900px) {
+  .checkout-map .delivery-route-map {
+    height: 200px;
+  }
+}
+
+/* Valmistumisaika yhdellä rivillä ilman reittiohjelinkkiä. */
+.pickup-card__meta {
+  justify-content: flex-start;
+}
+
+.pickup-card__meta > span {
+  white-space: nowrap;
+}

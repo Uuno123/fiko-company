@@ -64,7 +64,11 @@ export default function PromoCarousel({ items = [], ariaLabel = 'Nostot' }) {
           )
           return (
             <div className="promo-carousel__slide" key={item.id}>
-              {isInternal(item.href) ? (
+              {/* Ilman hrefiä kortti ei ole linkki (mainostetut ravintolat eivät
+                  vielä ole palvelussa, käyttäjän pyyntö 10.11.2026). */}
+              {!item.href ? (
+                <div className="promo-carousel__card">{content}</div>
+              ) : isInternal(item.href) ? (
                 <Link to={item.href} className="promo-carousel__card">
                   {content}
                 </Link>

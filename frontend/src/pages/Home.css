@@ -6234,3 +6234,27 @@
     padding-bottom: 8px;
   }
 }
+
+/* Haun yläpalkki uudessa aloitusnäkymässä (10.11.2026): kenttä ja
+   tekstinappi "Peruuta" pyöreän sulkunapin tilalla. */
+.home-search-overlay__cancel {
+  flex-shrink: 0;
+  padding: 0 2px 0 6px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.home-search-overlay .home-search {
+  border: 1.5px solid transparent;
+  background: #f1f2f4;
+}
+
+.home-search-overlay .home-search:focus-within {
+  border-color: var(--delivo-black);
+  background: #fff;
+}

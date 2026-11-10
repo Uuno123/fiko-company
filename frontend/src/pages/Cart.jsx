@@ -4,6 +4,7 @@ import {
   Building2,
   Check,
   ChevronRight,
+  Clock,
   DoorClosed,
   MapPin,
   MessageCircle,
@@ -14,16 +15,17 @@ import {
   Trash2,
   User,
   UtensilsCrossed,
+  X,
 } from 'lucide-react'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import AccountMenu from '../components/AccountMenu.jsx'
 import CartIcon from '../components/CartIcon.jsx'
 import DelivoLogo from '../components/DelivoLogo.jsx'
-import { coordinate, deliveryLegMinutes, hasCoords } from '../lib/deliveryTime.js'
-import { DELIVERY_ETA_BUFFER_MINUTES, estimatedArrivalAt } from '../lib/orderStatus.js'
+import { estimatedArrivalAt } from '../lib/orderStatus.js'
 import AddressPickerModal from '../components/AddressPickerModal.jsx'
 import DeliveryAddressForm from '../components/DeliveryAddressForm.jsx'
 import DeliveryBidPanel from '../components/DeliveryBidPanel.jsx'
+import DeliveryRouteMap from '../components/DeliveryRouteMap.jsx'
 import { geocodeAddress, haversineKm } from '../lib/geocode.js'
 import { getDeliveryAddress } from '../lib/deliveryAddress.js'
 import { DELIVERY_PRICE_RANGE } from '../lib/delivery.js'
@@ -200,6 +202,17 @@ const QUICK_PAY_METHODS = [
 // aukeaa vasta "Lisää alennuskoodi" -painalluksesta.
 function PromoCode({ promo, promoApplies, promoInput, setPromoInput, promoError, onApply, onRemove }) {
   const [open, setOpen] = useState(false)
+  // Sulkemisanimaatio ennen kuin kenttä vaihtuu takaisin linkiksi (10.11.2026).
+  const [closing, setClosing] = useState(false)
+
+  function close() {
+    setClosing(true)
+    setTimeout(() => {
+      setPromoInput('')
+      setOpen(false)
+      setClosing(false)
+    }, 180)
+  }
 
   if (!promo && !open) {
     return (
@@ -210,7 +223,7 @@ function PromoCode({ promo, promoApplies, promoInput, setPromoInput, promoError,
   }
 
   return (
-    <div className="promo-code">
+    <div className={`promo-code${closing ? ' is-closing' : ''}`}>
       {promo ? (
         <div className="promo-code__applied">
           <span>
@@ -242,6 +255,15 @@ function PromoCode({ promo, promoApplies, promoInput, setPromoInput, promoError,
           />
           <button type="button" onClick={onApply}>
             Käytä
+          </button>
+          {/* Sulkunappi piilottaa kentän takaisin linkiksi (käyttäjän pyyntö 10.11.2026). */}
+          <button
+            type="button"
+            className="promo-code__close"
+            aria-label="Sulje alennuskoodi"
+            onClick={close}
+          >
+            <X size={16} strokeWidth={2.2} aria-hidden="true" />
           </button>
         </div>
       )}
@@ -500,17 +522,6 @@ function Cart() {
 
   const activeSubtotal = activeGroup ? groupTotalCents(activeGroup) : 0
   const activePickupMinutes = activeRestaurant?.pickup_estimate_minutes ?? 25
-  // Toimitusaika samalla mallilla kuin tilauksen seurannassa: valmistus + kuljetus
-  // ravintolasta osoitteeseen (lib/deliveryTime.js), ilman sijaintia +15 min.
-  const restaurantPoint = { lat: coordinate(activeRestaurant?.lat), lng: coordinate(activeRestaurant?.lng) }
-  const deliveryPoint = { lat: coordinate(delivery.lat), lng: coordinate(delivery.lng) }
-  const activeEtaMinutes =
-    delivery.method !== 'delivery'
-      ? activePickupMinutes
-      : activePickupMinutes +
-        (hasCoords(restaurantPoint) && hasCoords(deliveryPoint)
-          ? deliveryLegMinutes(restaurantPoint, deliveryPoint, 'bike')
-          : DELIVERY_ETA_BUFFER_MINUTES)
   const isDeliveryOrder = delivery.method === 'delivery'
   const serviceFee = activeGroup ? SERVICE_FEE_CENTS : 0
   // Noutokoodi (pickupOnly) ei alenna kotiinkuljetusta, vaikka se jäisi voimaan.
@@ -1014,9 +1025,25 @@ function Cart() {
                       activeGroup.restaurantName?.trim().charAt(0).toUpperCase() || '?'
                     )}
                   </span>
-                  {activeGroup.restaurantName} · {delivery.method === 'delivery' ? 'Toimitus' : 'Nouto'} n.{' '}
-                  {activeEtaMinutes} min
+                  {/* Vain ravintolan nimi, ei toimitusaikaa (käyttäjän pyyntö 10.11.2026). */}
+                  {activeGroup.restaurantName}
                 </p>
+                {/* Kartta ravintolasta (ja toimituksessa reitti kotiin) otsikon alla
+                    (käyttäjän pyyntö 10.11.2026). OpenFreeMap, ei maksullinen. */}
+                {activeRestaurant?.lat && activeRestaurant?.lng && (
+                  <div className="checkout-map">
+                    <DeliveryRouteMap
+                      restaurant={activeRestaurant}
+                      destination={
+                        delivery.method === 'delivery' && delivery.lat && delivery.lng
+                          ? { lat: delivery.lat, lng: delivery.lng, address: delivery.address }
+                          : undefined
+                      }
+                      pickupOnly={delivery.method !== 'delivery'}
+                      showEta={false}
+                    />
+                  </div>
+                )}
               </header>
 
               {activeRestaurantClosed && (
@@ -1276,12 +1303,36 @@ function Cart() {
                     )}
                   </>
                 ) : (
-                  <div className="checkout-group">
-                    <div className="checkout-group__row">
-                      <Store className="checkout-group__icon" size={19} strokeWidth={1.8} aria-hidden="true" />
-                      <span className="checkout-group__text">
-                        <span className="checkout-group__main">Nouto: {activeGroup.restaurantName}</span>
-                        <span>Valmiina n. {activePickupMinutes} minuutin kuluttua</span>
+                  // Noutopaikka selkeämmin (käyttäjän pyyntö 10.11.2026): ravintolan
+                  // logo, nimi ja osoite sekä valmistumisen kellonaika (reittiohjeet pois 10.11.2026).
+                  <div className="checkout-group pickup-card">
+                    <div className="pickup-card__place">
+                      <span className="pickup-card__logo" aria-hidden="true">
+                        {restaurantLogo ? (
+                          <img
+                            src={restaurantLogo.src}
+                            alt=""
+                            className={restaurantLogo.logo ? 'brand-thumb-logo' : undefined}
+                            style={restaurantLogo.style}
+                          />
+                        ) : (
+                          <Store size={20} strokeWidth={1.8} />
+                        )}
+                      </span>
+                      <span className="pickup-card__text">
+                        <strong>{activeGroup.restaurantName}</strong>
+                        {activeRestaurant?.address && <span>{formatDisplayAddress(activeRestaurant.address)}</span>}
+                      </span>
+                    </div>
+                    <div className="pickup-card__meta">
+                      <span>
+                        <Clock size={16} strokeWidth={2} aria-hidden="true" />
+                        Valmis noin klo{' '}
+                        {new Date(Date.now() + activePickupMinutes * 60_000).toLocaleTimeString('fi-FI', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                        <em> · n. {activePickupMinutes} min</em>
                       </span>
                     </div>
                   </div>

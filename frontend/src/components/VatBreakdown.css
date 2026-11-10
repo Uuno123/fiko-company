@@ -1,0 +1,29 @@
+/* ALV-erittely tilauksen kuitissa (VatBreakdown.jsx). */
+.vat-breakdown {
+  display: grid;
+  gap: 4px;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2e2df;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.vat-breakdown__title {
+  margin: 0 0 2px;
+  font-weight: 600;
+}
+
+.vat-breakdown__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vat-breakdown__row--sum {
+  font-weight: 600;
+}
+
+.vat-breakdown__note {
+  margin: 2px 0 0;
+}
