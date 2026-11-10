@@ -26,6 +26,7 @@ import AddressPickerModal from '../components/AddressPickerModal.jsx'
 import DeliveryAddressForm from '../components/DeliveryAddressForm.jsx'
 import DeliveryBidPanel from '../components/DeliveryBidPanel.jsx'
 import DeliveryRouteMap from '../components/DeliveryRouteMap.jsx'
+import CourierBidsIntro from '../components/CourierBidsIntro.jsx'
 import { geocodeAddress, haversineKm } from '../lib/geocode.js'
 import { getDeliveryAddress } from '../lib/deliveryAddress.js'
 import { DELIVERY_PRICE_RANGE } from '../lib/delivery.js'
@@ -1653,23 +1654,25 @@ function Cart() {
             löytyy etusivun "Seuraa tilausta" -kuplasta. */}
         {step === 'success' && order && (
           <div className={`cart-empty order-done${order.status === 'awaiting_courier' ? ' order-done--bids' : ''}`}>
-            <div className="cart-empty__icon order-done__icon">
-              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path
-                  d="m5 10.5 3.2 3.2L15 7"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
-            <h1>{order.status === 'awaiting_courier' ? 'Valitse kuljettaja' : 'Tilaus tehty!'}</h1>
-            <p>
-              {order.status === 'awaiting_courier'
-                ? 'Lähellä olevat kuljettajat tarjoavat hintaa kuljetuksesta. Hyväksy paras tarjous tai tee oma vastatarjous.'
-                : 'Kiitos! Laita lautaset valmiiksi. Tilausta voit seurata etusivun Seuraa tilausta -painikkeesta.'}
-            </p>
+            {order.status === 'awaiting_courier' ? (
+              <CourierBidsIntro />
+            ) : (
+              <>
+                <div className="cart-empty__icon order-done__icon">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path
+                      d="m5 10.5 3.2 3.2L15 7"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <h1>Tilaus tehty!</h1>
+                <p>Kiitos! Laita lautaset valmiiksi. Tilausta voit seurata etusivun Seuraa tilausta -painikkeesta.</p>
+              </>
+            )}
             {/* Tilauksen tiedot riveinä (käyttäjän pyyntö 1.11.2026: selkeä
                 sovellusnäkymä). */}
             <dl className="order-done__facts">
@@ -1711,7 +1714,7 @@ function Cart() {
               </div>
             )}
 
-            <Link to="/" className="cart-empty__cta">
+            <Link to="/" className="cart-empty__cta order-done__home">
               Takaisin etusivulle
             </Link>
           </div>

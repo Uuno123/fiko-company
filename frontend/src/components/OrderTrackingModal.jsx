@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ChevronDown, ChevronRight, MessageCircle, Receipt } from 'lucide-react'
 import DeliveryBidPanel from './DeliveryBidPanel.jsx'
 import DeliveryRouteMap from './DeliveryRouteMap.jsx'
+import CourierBidsIntro from './CourierBidsIntro.jsx'
 import OrderCountdownRing from './OrderCountdownRing.jsx'
 import { formatPrice } from '../lib/format.js'
 import {
@@ -99,11 +100,23 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
         </div>
 
         <span className="tracking__restaurant">{order.restaurants?.name ?? 'Ravintola'}</span>
-        <h2 className="tracking__headline">{trackingHeadline(order)}</h2>
-        <p className="tracking__message">{trackingMessage(order)}</p>
-
-        {/* Kotiinkuljetuksen hinnasta sovitaan ennen kuin ravintola saa tilauksen. */}
-        {order.status === 'awaiting_courier' && order.id && <DeliveryBidPanel orderId={order.id} />}
+        {/* Kuljettajaa etsittäessä sama selkeä otsikko ja vaiheet kuin kassan
+            jälkeen (käyttäjän pyyntö 10.11.2026), tarjoukset korttina. */}
+        {order.status === 'awaiting_courier' ? (
+          <>
+            <CourierBidsIntro compact />
+            {order.id && (
+              <div className="tracking__bids">
+                <DeliveryBidPanel orderId={order.id} />
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <h2 className="tracking__headline">{trackingHeadline(order)}</h2>
+            <p className="tracking__message">{trackingMessage(order)}</p>
+          </>
+        )}
 
         {/* Edistymispalkki kertoo vaiheen yhdellä silmäyksellä. Peruttu tilaus
             ei etene, joten sille palkkia ei näytetä. */}

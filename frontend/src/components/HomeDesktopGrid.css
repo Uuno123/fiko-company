@@ -1,0 +1,657 @@
+/* Työpöydän etusivun ravintolaruudukko (HomeDesktopGrid.jsx, 10.11.2026).
+   Näkyy vain leveillä näytöillä; Home.css piilottaa silloin rivit. */
+.hgrid {
+  display: none;
+}
+
+@media (min-width: 1100px) {
+  .hgrid {
+    display: block;
+  }
+}
+
+.hgrid__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hgrid__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 999px;
+  background: #f1f2f4;
+  color: var(--delivo-black);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.hgrid__pill:hover {
+  background: #e7e8eb;
+}
+
+.hgrid__pill.is-active {
+  background: var(--delivo-black);
+  color: #fff;
+}
+
+.hgrid__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  margin: 26px 0 18px;
+}
+
+.hgrid__count {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--delivo-black);
+}
+
+.hgrid__reset {
+  height: 38px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: #f1f2f4;
+  color: var(--delivo-black);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.hgrid__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 36px 18px;
+}
+
+@media (min-width: 1100px) and (max-width: 1299px) {
+  .hgrid__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 2000px) {
+  .hgrid__grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.hgrid__empty {
+  margin: 30px 0;
+  color: var(--text-muted);
+}
+
+/* Kortti: kuva, nimi ja sydän, kaksi tietoriviä. */
+.hgrid-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  color: var(--delivo-black);
+  text-decoration: none;
+}
+
+.hgrid-card__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 2.45 / 1;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f1f2f4;
+}
+
+.hgrid-card__media > img,
+.hgrid-card__media > :not(.hgrid-card__badge) {
+  width: 100%;
+  height: 100%;
+}
+
+.hgrid-card__media img {
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.hgrid-card:hover .hgrid-card__media img {
+  transform: scale(1.03);
+}
+
+.hgrid-card__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  max-width: calc(100% - 20px);
+  overflow: hidden;
+  padding: 4px 9px;
+  border-radius: 6px;
+  background: var(--delivo-orange);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hgrid-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.hgrid-card__head strong {
+  overflow: hidden;
+  font-size: 1.12rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hgrid-card__fav {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #6b6b6b;
+  cursor: pointer;
+}
+
+.hgrid-card__fav:hover,
+.hgrid-card__fav.is-active {
+  color: var(--delivo-orange);
+}
+
+.hgrid-card__line {
+  margin-top: 4px;
+  overflow: hidden;
+  font-size: 0.92rem;
+  color: #545454;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hgrid-card__sponsored {
+  text-decoration: underline;
+}
+
+.hgrid-card__line--muted {
+  margin-top: 2px;
+  color: #757575;
+}
+
+/* Otsikkorivit mallikuvan tapaan (10.11.2026): iso otsikko, Näytä kaikki,
+   nuolet ja neljä korttia rinnakkain, ohut viiva rivien välissä. */
+.hgrid__rows {
+  margin-top: 28px;
+}
+
+.hgrid-row + .hgrid-row {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid #e8e8e6;
+}
+
+.hgrid-row__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.hgrid-row__head h2 {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--delivo-black);
+}
+
+.hgrid-row__actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.hgrid-row__all {
+  margin-right: 14px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--delivo-black);
+  text-decoration: none;
+}
+
+.hgrid-row__all:hover {
+  text-decoration: underline;
+}
+
+.hgrid-row__nav {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #f1f2f4;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.hgrid-row__nav:hover {
+  background: #e7e8eb;
+}
+
+.hgrid-row__scroll {
+  display: grid;
+  grid-auto-columns: calc((100% - 3 * 18px) / 4);
+  grid-auto-flow: column;
+  gap: 18px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.hgrid-row__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.hgrid-row__scroll > * {
+  scroll-snap-align: start;
+}
+
+@media (min-width: 1100px) and (max-width: 1299px) {
+  .hgrid-row__scroll {
+    grid-auto-columns: calc((100% - 2 * 18px) / 3);
+  }
+}
+
+@media (min-width: 2000px) {
+  .hgrid-row__scroll {
+    grid-auto-columns: calc((100% - 4 * 18px) / 5);
+  }
+}
+
+/* Otsikot samaan Bidrop-tyyliin kuin puhelimella (käyttäjän pyyntö
+   10.11.2026): oranssi piste otsikon perässä. */
+.hgrid-row__head h2::after {
+  content: '';
+  display: inline-block;
+  width: 0.26em;
+  height: 0.26em;
+  margin-left: 0.12em;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+  vertical-align: baseline;
+}
+
+/* Pienemmät otsikot (käyttäjän pyyntö 10.11.2026). */
+.hgrid-row__head h2 {
+  font-size: 1.4rem;
+}
+
+/* Otsikkoteksti ja promokortti rivien yläpuolella (10.11.2026). */
+.hgrid-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
+  align-items: center;
+  gap: 40px;
+  margin-bottom: 8px;
+}
+
+.hgrid-hero__text h1 {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--delivo-black);
+}
+
+.hgrid-hero__text h1 span {
+  color: var(--delivo-orange);
+}
+
+.hgrid-hero__text p {
+  margin: 14px 0 0;
+  font-size: 1.05rem;
+  color: #545454;
+}
+
+.hgrid-hero__promo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42%;
+  min-height: 200px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(160deg, #ffe1d2 0%, #ffbf9f 100%);
+}
+
+.hgrid-hero__promo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 22px;
+}
+
+.hgrid-hero__promo-text strong {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--delivo-black);
+}
+
+.hgrid-hero__promo-text span {
+  font-size: 0.9rem;
+  color: rgba(20, 21, 15, 0.72);
+}
+
+.hgrid-hero__promo-btn {
+  margin-top: auto;
+  height: 36px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--delivo-black);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hgrid-hero__promo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 1299px) {
+  .hgrid-hero__text h1 {
+    font-size: 2.4rem;
+  }
+}
+
+/* Kuvapromot hero-alueen oikealla puolella: yksi kortti kerrallaan. */
+.hgrid-hero__promo {
+  display: block;
+  min-height: 0;
+  overflow: visible;
+  border-radius: 0;
+  background: none;
+}
+
+.page--home .hgrid-hero__promo .promo-carousel {
+  display: block !important;
+  margin: 0 -10px;
+}
+
+.page--home .hgrid-hero__promo .promo-carousel__track {
+  padding: 0;
+}
+
+.page--home .hgrid-hero__promo .promo-carousel__slide {
+  flex-basis: 100% !important;
+}
+
+.page--home .hgrid-hero__promo .promo-carousel__card {
+  height: 220px;
+  border-radius: 18px;
+}
+
+/* Promokuvat tekstin alle koko leveydelle, kaksi rinnakkain (10.11.2026). */
+.hgrid-hero {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 22px;
+}
+
+.page--home .hgrid-hero__promo .promo-carousel__slide {
+  flex-basis: 50% !important;
+}
+
+@media (min-width: 1700px) {
+  .page--home .hgrid-hero__promo .promo-carousel__slide {
+    flex-basis: 33.3333% !important;
+  }
+}
+
+/* Puhelimen ravintolakortti työpöydän riveillä (10.11.2026): flätti kortti,
+   pyöristetty kuva, nimi yhdellä rivillä, harmaa tietorivi ja oranssi
+   tarjouspilleri. */
+.hgrid-row__scroll .restaurant-card {
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.hgrid-row__scroll .restaurant-card__media {
+  aspect-ratio: 2.2 / 1;
+  height: auto;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.hgrid-row__scroll .restaurant-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hgrid-row__scroll .restaurant-card__body {
+  min-height: 0;
+  padding: 10px 2px 0;
+}
+
+.hgrid-row__scroll .restaurant-card__heading h3 {
+  overflow: hidden;
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hgrid-row__scroll .restaurant-card .restaurant-card__meta {
+  margin-top: 4px;
+  color: #707070;
+  font-size: 0.82rem;
+}
+
+/* Flätti kortti voittaa RestaurantCard.css:n työpöydän korttityylin. */
+.page--home .hgrid-row__scroll .restaurant-card,
+.page--home .hgrid-row__scroll .restaurant-card:hover {
+  overflow: visible !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.page--home .hgrid-row__scroll .restaurant-card__media,
+.page--home .hgrid-row__scroll .restaurant-card__media > * {
+  border-radius: 12px !important;
+}
+
+.page--home .hgrid-row__scroll .restaurant-card__media {
+  aspect-ratio: 2.2 / 1 !important;
+  height: auto !important;
+}
+
+.page--home .hgrid-row__scroll .restaurant-card__body {
+  padding: 10px 2px 0 !important;
+}
+
+/* Tarjousmerkki kuvan sisään vasempaan yläkulmaan (käyttäjän pyyntö
+   10.11.2026) kortin alaosan pillerin sijaan. */
+.page--home .hgrid-row__scroll .restaurant-card {
+  position: relative;
+}
+
+.page--home .hgrid-row__scroll .restaurant-card .restaurant-card__offer {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  max-width: calc(100% - 20px);
+  margin: 0 !important;
+  padding: 4px 9px !important;
+  border-radius: 6px !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
+}
+
+.page--home .hgrid-row__scroll .restaurant-card .restaurant-card__offer > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tarjousmerkit mustiksi (käyttäjän pyyntö 10.11.2026). */
+.page--home .hgrid-row__scroll .restaurant-card .restaurant-card__offer {
+  background: var(--delivo-black) !important;
+  color: #fff !important;
+}
+
+/* Pienempi teksti tarjousmerkeissä (käyttäjän pyyntö 10.11.2026). */
+.page--home .hgrid-row__scroll .restaurant-card .restaurant-card__offer {
+  padding: 3px 8px !important;
+  font-size: 0.7rem !important;
+}
+
+/* Tarjousosiot persikkapaneeleina Bidrop-logolla kuten puhelimella
+   (käyttäjän pyyntö 10.11.2026). */
+.hgrid-row__title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.hgrid-row__logo {
+  height: 15px;
+  color: var(--delivo-black);
+}
+
+.hgrid-row--deal {
+  padding: 24px 24px 22px !important;
+  border: none !important;
+  border-radius: 24px;
+  background: linear-gradient(160deg, #ffe1d2 0%, #ffbf9f 100%);
+}
+
+.hgrid-row + .hgrid-row--deal,
+.hgrid-row--deal + .hgrid-row {
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: none;
+}
+
+.hgrid-row--deal + .hgrid-row {
+  padding-top: 0;
+}
+
+.hgrid-row--deal .hgrid-row__nav {
+  background: #fff;
+}
+
+/* Kovimmissa tarjouksissa pinkit tarjousmerkit (käyttäjän pyyntö 10.11.2026). */
+.page--home .hgrid-row--hot .hgrid-row__scroll .restaurant-card .restaurant-card__offer {
+  background: #ff2d87 !important;
+  color: #fff !important;
+}
+
+/* Läpikuultavat pinkit merkit (käyttäjän pyyntö 10.11.2026). */
+.page--home .hgrid-row--hot .hgrid-row__scroll .restaurant-card .restaurant-card__offer {
+  background: rgba(255, 45, 135, 0.82) !important;
+  color: #fff !important;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  box-shadow: none !important;
+}
+
+/* Kaikki tarjousmerkit punaisiksi (käyttäjän pyyntö 10.11.2026). */
+.page--home .hgrid-row__scroll .restaurant-card .restaurant-card__offer,
+.page--home .hgrid-row--hot .hgrid-row__scroll .restaurant-card .restaurant-card__offer {
+  background: #e3262f !important;
+  color: #fff !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Hyvin isolla näytöllä neljä isoa korttia riville (mallikuva 10.11.2026). */
+@media (min-width: 2000px) {
+  .hgrid-row__scroll {
+    grid-auto-columns: calc((100% - 3 * 16px) / 4);
+    gap: 16px;
+  }
+
+  .hgrid-row__head h2 {
+    font-size: 1.55rem;
+  }
+
+  .page--home .hgrid-row__scroll .restaurant-card__heading h3 {
+    font-size: 1.12rem;
+  }
+
+  .page--home .hgrid-row__scroll .restaurant-card .restaurant-card__meta {
+    font-size: 0.9rem;
+  }
+}
+
+/* Iso näyttö: reilusti pienemmät kortit, kuusi riville (10.11.2026). */
+@media (min-width: 2000px) {
+  .hgrid-row__scroll {
+    grid-auto-columns: calc((100% - 5 * 16px) / 6);
+  }
+
+  .hgrid-row__head h2 {
+    font-size: 1.4rem;
+  }
+
+  .page--home .hgrid-row__scroll .restaurant-card__heading h3 {
+    font-size: 0.98rem;
+  }
+
+  .page--home .hgrid-row__scroll .restaurant-card .restaurant-card__meta {
+    font-size: 0.82rem;
+  }
+
+  .page--home .hgrid-hero__promo .promo-carousel__slide {
+    flex-basis: 25% !important;
+  }
+
+  .page--home .hgrid-hero__promo .promo-carousel__card {
+    height: 190px;
+  }
+}
+
+/* Iso näyttö: kortteja hieman isommiksi, viisi riville (10.11.2026). */
+@media (min-width: 2000px) {
+  .hgrid-row__scroll {
+    grid-auto-columns: calc((100% - 4 * 16px) / 5);
+  }
+}

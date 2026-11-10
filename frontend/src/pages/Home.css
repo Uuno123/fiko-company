@@ -6258,3 +6258,144 @@
   border-color: var(--delivo-black);
   background: #fff;
 }
+
+/* Tervehdysotsikko */
+@media (min-width: 900px) {
+  .page--home .home-intro h1 {
+    font-family: 'Bricolage Grotesque', var(--font-display);
+    font-size: 2.1rem;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+  }
+
+  .page--home .home-intro p {
+    font-size: 1rem;
+  }
+}
+
+/* Rivien väli takaisin (flätit kortit, 10.11.2026). */
+@media (min-width: 900px) {
+  .page--home .category-row:not(.category-row--deals) .category-row__scroll {
+    padding-bottom: 26px;
+  }
+}
+
+/* ── Työpöytä Uber Eatsin mallikuvan asettelulla (10.11.2026) ─────────────
+   Vasemmalla sivupalkki, oikealla suodattimet ja ravintolaruudukko
+   (HomeDesktopGrid). Rivit, mainokset, logot ja otsikko piilotetaan
+   työpöydällä; puhelin ennallaan. */
+@media (min-width: 1100px) {
+  .page--home .home-sidebar {
+    display: flex !important;
+  }
+
+  .page--home .home-content {
+    margin-left: 232px !important;
+    width: calc(100% - 232px) !important;
+    padding-left: 32px !important;
+    padding-right: 40px !important;
+    padding-top: 28px !important;
+  }
+
+  .page--home .site-footer {
+    margin-left: 0 !important;
+    position: relative;
+    z-index: 6;
+  }
+
+  .page--home .home-intro,
+  .page--home .home-brands,
+  .page--home .category-rows,
+  .page--home .promo-carousel,
+  .page--home .home-promo {
+    display: none !important;
+  }
+}
+
+@media (min-width: 2000px) {
+  .page--home .home-content {
+    padding-left: 56px !important;
+    padding-right: 72px !important;
+  }
+}
+
+/* Footer sivupalkin oikealta puolelta, sisältö samaan linjaan kuin ruudukko. */
+@media (min-width: 1100px) {
+  .page--home .site-footer {
+    margin-left: 212px !important;
+  }
+
+  .page--home .site-footer__inner {
+    padding-left: 52px !important;
+  }
+}
+
+/* Sisältö ja footer kapeamman sivupalkin mukaan (10.11.2026). */
+@media (min-width: 1100px) {
+  .page--home .home-content {
+    margin-left: 200px !important;
+    width: calc(100% - 200px) !important;
+  }
+
+  .page--home .site-footer {
+    margin-left: 200px !important;
+  }
+
+  .page--home .site-footer__inner {
+    padding-left: 32px !important;
+  }
+}
+
+/* ── Hyvin iso näyttö mallikuvan mukaan (käyttäjän pyyntö 10.11.2026) ──────
+   Koko sivu keskitettynä 1880 px:n kehykseen: header, sivupalkki ja sisältö
+   samoissa reunoissa, sivupalkin ja sisällön välissä väljä tila ja riveillä
+   neljä isoa korttia. */
+@media (min-width: 2000px) {
+  .page--home {
+    --wrap-gutter: calc((100vw - 1880px) / 2);
+  }
+
+  .page--home .site-header__inner {
+    max-width: 1880px;
+    margin: 0 auto;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  .page--home .home-sidebar {
+    left: calc(var(--wrap-gutter) + 24px) !important;
+    width: 220px !important;
+    padding-left: 0 !important;
+    border-right: none !important;
+  }
+
+  .page--home .home-content {
+    width: auto !important;
+    margin-left: calc(var(--wrap-gutter) + 24px + 220px + 96px) !important;
+    margin-right: calc(var(--wrap-gutter) + 24px) !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .page--home .site-footer {
+    margin-left: 0 !important;
+  }
+
+  .page--home .site-footer__inner {
+    max-width: 1880px;
+    margin: 0 auto !important;
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+}
+
+/* Iso näyttö: kapeampi sivupalkki ja pienempi väli (käyttäjän pyyntö 10.11.2026). */
+@media (min-width: 2000px) {
+  .page--home .home-sidebar {
+    width: 170px !important;
+  }
+
+  .page--home .home-content {
+    margin-left: calc(var(--wrap-gutter) + 24px + 170px + 56px) !important;
+  }
+}

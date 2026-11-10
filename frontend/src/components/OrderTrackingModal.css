@@ -511,3 +511,97 @@
     transition: none;
   }
 }
+
+/* Kuljettajan etsintä seurannassa (10.11.2026): vasemmalle tasattu otsikko
+   ja vaiheet, tarjoukset omana korttinaan. */
+.tracking__sheet .order-bids__intro--compact {
+  width: 100%;
+  margin-top: 6px;
+  text-align: left;
+}
+
+.tracking__sheet .order-bids__intro--compact .order-bids__steps {
+  margin: 16px 0 4px;
+}
+
+.tracking__bids {
+  width: 100%;
+  margin-top: 6px;
+  padding: 16px;
+  border: 1px solid #ececea;
+  border-radius: 18px;
+  background: #fff;
+  text-align: left;
+}
+
+.tracking__bids .bid-panel {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.tracking__bids .bid-panel__head h3 {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.tracking__bids .bid-panel__empty {
+  border-radius: 14px;
+  background: #f6f6f4;
+}
+
+.tracking__sheet .order-bids__intro--compact {
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: none !important;
+}
+
+/* Väljempi asettelu (käyttäjän pyyntö 10.11.2026: ei niin ahdasta). */
+.tracking__sheet .order-bids__intro--compact {
+  margin-top: 18px;
+}
+
+.tracking__sheet .order-bids__intro--compact .order-bids__lead {
+  margin-top: 8px;
+  line-height: 1.5;
+}
+
+.tracking__sheet .order-bids__intro--compact .order-bids__steps {
+  margin: 26px 0 8px;
+}
+
+.tracking__sheet .order-bids__intro--compact .order-bids__steps li {
+  gap: 14px;
+  padding-bottom: 22px;
+}
+
+.tracking__sheet .order-bids__intro--compact .order-bids__steps li:last-child {
+  padding-bottom: 0;
+}
+
+.tracking__sheet .order-bids__intro--compact .order-bids__steps small {
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+.tracking__bids {
+  margin-top: 24px;
+  padding: 20px;
+}
+
+.tracking__bids .bid-panel__empty {
+  margin-top: 6px;
+  padding: 16px;
+}
+
+.tracking__bids .bid-panel__offer {
+  margin-top: 20px;
+  padding-top: 20px;
+}
+
+.tracking__bids .bid-panel__offer-text span {
+  margin-top: 4px;
+  line-height: 1.5;
+}

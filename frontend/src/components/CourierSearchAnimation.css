@@ -1,0 +1,122 @@
+/* Kuljettajan etsinnän kuvitus (CourierSearchAnimation.jsx, 10.11.2026). */
+.courier-scene {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+  background: #fff3eb;
+}
+
+.courier-scene__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 320 / 170;
+}
+
+.courier-scene__rider {
+  animation: courier-scene-bob 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes courier-scene-bob {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-1.5px);
+  }
+}
+
+.courier-scene__wheel {
+  animation: courier-scene-spin 0.5s linear infinite;
+}
+
+@keyframes courier-scene-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.courier-scene__lane {
+  stroke: #e7cdbd;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 18 14;
+  animation: courier-scene-lane 0.6s linear infinite;
+}
+
+@keyframes courier-scene-lane {
+  to {
+    stroke-dashoffset: 32;
+  }
+}
+
+.courier-scene__speed rect {
+  animation: courier-scene-speed 0.9s ease-in-out infinite;
+}
+
+.courier-scene__speed rect:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.courier-scene__speed rect:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes courier-scene-speed {
+  0% {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-14px);
+  }
+}
+
+.courier-scene__cloud {
+  animation: courier-scene-cloud 9s linear infinite alternate;
+}
+
+.courier-scene__cloud--b {
+  animation-duration: 12s;
+}
+
+@keyframes courier-scene-cloud {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(18px);
+  }
+}
+
+.courier-scene__pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: courier-scene-pulse 1.8s ease-out infinite;
+}
+
+@keyframes courier-scene-pulse {
+  0% {
+    opacity: 0.55;
+    transform: scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .courier-scene__rider,
+  .courier-scene__wheel,
+  .courier-scene__lane,
+  .courier-scene__speed rect,
+  .courier-scene__cloud,
+  .courier-scene__pulse {
+    animation: none;
+  }
+}

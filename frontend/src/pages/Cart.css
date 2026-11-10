@@ -2162,3 +2162,138 @@ label.checkout-group__row:focus-within {
 .pickup-card__meta > span {
   white-space: nowrap;
 }
+
+/* Kuljettajan valintanäkymä (10.11.2026): logo, animaatio, otsikko oranssilla
+   pisteellä ja kolmen vaiheen ohje, jossa nykyinen vaihe korostettu. */
+.page--cart .order-done--bids {
+  text-align: left;
+}
+
+.order-bids__logo {
+  align-self: flex-start;
+  height: 18px;
+  margin-bottom: 14px;
+  color: var(--delivo-black);
+}
+
+.page--cart .order-done.order-done--bids h1.order-bids__title {
+  margin: 14px 0 0;
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-align: left;
+}
+
+
+/* ── Kuljettajan valintanäkymä ammattimaisemmaksi (10.11.2026) ─────────────
+   Keskitetty palsta, kuvitus kortin yläosassa, selkeä otsikko ja ohje,
+   tilauksen tiedot ja tarjoukset omina kortteinaan, napit alareunassa. */
+.page--cart .cart-empty.order-done.order-done--bids {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px 16px 40px;
+  text-align: left;
+}
+
+.order-bids__intro {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 18px 6px;
+  border: 1px solid #ececea;
+  border-radius: 22px;
+  background: #fff;
+}
+
+.order-bids__intro .order-bids__logo {
+  height: 16px;
+  margin-bottom: 14px;
+}
+
+.page--cart .order-done.order-done--bids h1.order-bids__title {
+  margin: 18px 0 0;
+  font-size: 1.5rem;
+}
+
+.order-bids__lead {
+  margin: 4px 0 0;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+.order-bids__intro .order-bids__steps {
+  margin: 18px 0 4px;
+}
+
+/* Tilauksen tiedot korttina */
+.page--cart .order-done--bids .order-done__facts {
+  margin: 0;
+  padding: 6px 18px;
+  border: 1px solid #ececea;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.page--cart .order-done--bids .order-done__facts > div {
+  padding: 12px 0;
+}
+
+.page--cart .order-done--bids .order-done__facts > div + div {
+  border-top: 1px solid #f0f0ee;
+}
+
+/* Tarjoukset korttina */
+.page--cart .order-done--bids .order-done__bids {
+  margin: 0;
+  padding: 18px;
+  border: 1px solid #ececea;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.page--cart .order-done--bids .bid-panel__head h3 {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.page--cart .order-done--bids .bid-panel__empty {
+  border-radius: 14px;
+  background: #f6f6f4;
+}
+
+/* Napit */
+.page--cart .order-done--bids .order-done__home {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 50px;
+  margin-top: 4px;
+  border: 1px solid #e2e2df;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--delivo-black);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (min-width: 900px) {
+  .page--cart .cart-empty.order-done.order-done--bids {
+    padding-top: 32px;
+  }
+}
+
+.page--cart .order-done--bids .order-done__facts > div {
+  border-bottom: none !important;
+}
+
+.page--cart .order-done--bids .order-done__bids .bid-panel {
+  padding-top: 0;
+  border-top: none;
+}
