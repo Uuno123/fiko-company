@@ -351,3 +351,14 @@
   margin: 8px -24px 14px;
   background: #ececea;
 }
+
+/* Liity-napissa valkoinen Bidrop-logo ilman tekstiä (12.11.2026). */
+.mobile-menu__join {
+  color: #fff;
+}
+
+.mobile-menu__join-logo {
+  height: 22px;
+  width: auto;
+  color: #fff;
+}

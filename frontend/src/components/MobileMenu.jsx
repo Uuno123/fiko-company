@@ -74,8 +74,12 @@ export default function MobileMenu({ onClose, onOpenApp }) {
     ...(isAuthenticated
       ? []
       : [{ to: `/haku?q=${encodeURIComponent('Kaikki ravintolat')}`, label: 'Selaa kaikkia ravintoloita' }]),
-    { to: '/kumppanina', label: 'Lisää ravintolasi' },
-    { to: '/kumppanina/kuljettajat', label: 'Liity kuljettajaksi' },
+    // Uudet linkit vanhojen tilalle (käyttäjän pyyntö 12.11.2026): pikahaut
+    // tarjouksiin, ilmaisiin kuljetuksiin ja lähimpiin sekä asiakastuki.
+    { to: `/haku?q=${encodeURIComponent('Tarjoukset')}`, label: 'Tarjoukset' },
+    { to: `/haku?q=${encodeURIComponent('Ilmainen kuljetus')}`, label: 'Ilmainen kuljetus' },
+    { to: `/haku?q=${encodeURIComponent('Lähelläsi')}`, label: 'Lähelläsi' },
+    { href: 'mailto:tuki@bidrop.fi', label: 'Asiakastuki' },
   ]
 
   return (
@@ -131,8 +135,15 @@ export default function MobileMenu({ onClose, onOpenApp }) {
           </>
         ) : (
           <div className="mobile-menu__auth">
-            <Link to="/register" state={{ from: location.pathname }} className="mobile-menu__join" onClick={close}>
-              Liity
+            {/* Liity-napissa pelkkä Bidrop-logo (käyttäjän pyyntö 12.11.2026). */}
+            <Link
+              to="/register"
+              state={{ from: location.pathname }}
+              className="mobile-menu__join"
+              aria-label="Liity Bidropiin"
+              onClick={close}
+            >
+              <DelivoLogo className="mobile-menu__join-logo" />
             </Link>
             <Link to="/login" state={{ from: location.pathname }} className="mobile-menu__login" onClick={close}>
               Kirjaudu sisään
@@ -141,11 +152,17 @@ export default function MobileMenu({ onClose, onOpenApp }) {
         )}
 
         <ul className="mobile-menu__list">
-          {links.map(({ to, label }) => (
-            <li key={to}>
-              <Link to={to} className="mobile-menu__link" onClick={close}>
-                {label}
-              </Link>
+          {links.map(({ to, href, label }) => (
+            <li key={label}>
+              {href ? (
+                <a href={href} className="mobile-menu__link" onClick={close}>
+                  {label}
+                </a>
+              ) : (
+                <Link to={to} className="mobile-menu__link" onClick={close}>
+                  {label}
+                </Link>
+              )}
             </li>
           ))}
         </ul>
