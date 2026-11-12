@@ -16,27 +16,36 @@ const STEPS = [
   { title: 'Sinä valitset', text: 'Hyväksy paras tarjous tai ehdota omaa hintaa.', state: 'next' },
 ]
 
+// Kolmen vaiheen ohje. Seurannassa se on tarjousten alla (tarjoukset ovat
+// näkymän tärkein asia), kassan jälkeen otsikon alla.
+export function CourierBidsSteps() {
+  return (
+    <ol className="order-bids__steps">
+      {STEPS.map((step, index) => (
+        <li key={step.title} className={step.state === 'done' ? 'is-done' : step.state === 'active' ? 'is-active' : undefined}>
+          <span className="order-bids__step-no" aria-hidden="true">
+            {step.state === 'done' ? <Check size={14} strokeWidth={3} /> : index + 1}
+          </span>
+          <span>
+            <strong>{step.title}</strong>
+            <small>{step.text}</small>
+          </span>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
 // compact: tilauksen seurannassa ilman logoa ja kuvitusta (kartta on jo yläosassa).
-export default function CourierBidsIntro({ compact = false }) {
+// showSteps: false, kun vaiheet näytetään muualla (CourierBidsSteps).
+export default function CourierBidsIntro({ compact = false, showSteps = true }) {
   return (
     <div className={`order-bids__intro${compact ? ' order-bids__intro--compact' : ''}`}>
       {!compact && <DelivoLogo className="order-bids__logo" />}
       {!compact && <CourierSearchAnimation />}
       <h1 className="order-bids__title">Etsitään kuljettajaa</h1>
       <p className="order-bids__lead">Tilauksesi näkyy nyt lähellä oleville kuljettajille.</p>
-      <ol className="order-bids__steps">
-        {STEPS.map((step, index) => (
-          <li key={step.title} className={step.state === 'done' ? 'is-done' : step.state === 'active' ? 'is-active' : undefined}>
-            <span className="order-bids__step-no" aria-hidden="true">
-              {step.state === 'done' ? <Check size={14} strokeWidth={3} /> : index + 1}
-            </span>
-            <span>
-              <strong>{step.title}</strong>
-              <small>{step.text}</small>
-            </span>
-          </li>
-        ))}
-      </ol>
+      {showSteps && <CourierBidsSteps />}
     </div>
   )
 }

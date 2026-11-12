@@ -44,7 +44,9 @@ function formatClock(seconds) {
 // tarjoavat hinnan, asiakas hyväksyy yhden tai tarjoaa omaa hintaansa.
 // Ravintola saa tilauksen vasta, kun hinnasta on sovittu. Näkyy kassan
 // vahvistussivulla ja tilauksen seurannassa.
-export default function DeliveryBidPanel({ orderId, onCancelled }) {
+// illustrated: tilauksen seurannan uusi ulkoasu (11.11.2026): siisti odotusrivi
+// ilman kuvitusta (käyttäjän pyyntö) ja oma hinta + Tarjoa samalla rivillä.
+export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = false }) {
   const { order, offeredBids, acceptedBid, loaded, refresh } = useDeliveryNegotiation(orderId)
   const secondsLeft = useSecondsLeft(order?.bidding_expires_at)
   const [busy, setBusy] = useState(null)
@@ -126,7 +128,7 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
   }
 
   return (
-    <section className="bid-panel" aria-labelledby="bid-panel-title">
+    <section className={`bid-panel${illustrated ? ' bid-panel--fresh' : ''}`} aria-labelledby="bid-panel-title">
       <header className="bid-panel__head">
         <h3 id="bid-panel-title">Kuljettajien tarjoukset</h3>
         {secondsLeft != null && (
@@ -137,7 +139,18 @@ export default function DeliveryBidPanel({ orderId, onCancelled }) {
         )}
       </header>
 
-      {offeredBids.length === 0 ? (
+      {offeredBids.length === 0 && illustrated ? (
+        <div className="bid-panel__waiting">
+          <p>
+            Odotetaan tarjouksia
+            <span className="bid-panel__dots" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+          </p>
+        </div>
+      ) : offeredBids.length === 0 ? (
         <p className="bid-panel__empty">
           <span className="bid-panel__pulse" aria-hidden="true" />
           Odotetaan tarjouksia lähellä olevilta kuljettajilta…

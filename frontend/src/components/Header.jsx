@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import CartIcon from './CartIcon.jsx'
 import DelivoLogo from './DelivoLogo.jsx'
 import AccountMenu from './AccountMenu.jsx'
+import MobileMenu from './MobileMenu.jsx'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import SearchSuggest from './SearchSuggest.jsx'
 import { openAddressPicker, useDeliveryAddress } from '../lib/deliveryAddress.js'
@@ -21,6 +22,7 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
   const navigate = useNavigate()
   const deliveryAddress = useDeliveryAddress()
   const [isSearchFocused, setIsSearchFocused] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [cartBumped, setCartBumped] = useState(false)
@@ -144,8 +146,17 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
     >
       <div className="site-header__inner">
         <div className="site-header__left">
-          {onMenu && (
-            <button type="button" className="site-header__menu-btn" aria-label="Avaa valikko" onClick={onMenu}>
+          {/* Hampurilainen kaikilla sivuilla, joilla on logo (käyttäjän pyyntö
+              11.11.2026). Etusivu avaa oman valikkonsa (onMenu), muilla sivuilla
+              header avaa saman sivuvalikon itse. Ei sivuilla, joilla logon
+              tilalla on takaisin-nuoli. */}
+          {!back && (
+            <button
+              type="button"
+              className="site-header__menu-btn"
+              aria-label="Avaa valikko"
+              onClick={onMenu ?? (() => setMenuOpen(true))}
+            >
               <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path fillRule="evenodd" clipRule="evenodd" d="M23 4H1v3h22V4Zm0 7H1v3h22v-3ZM1 18h22v3H1v-3Z" fill="currentColor" />
               </svg>
@@ -483,6 +494,7 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
           {!hideAccount && <AccountMenu currentPath={location.pathname} variant={accountMenuVariant} />}
         </div>
       </div>
+      {menuOpen && <MobileMenu onClose={() => setMenuOpen(false)} />}
     </header>
   )
 }
