@@ -1,17 +1,26 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import BottomSheet from './BottomSheet.jsx'
-import { CourierAvatar, ReviewScore } from './CourierAvatar.jsx'
+import { CourierAvatar } from './CourierAvatar.jsx'
 import { ScoreSmiley } from './Smiley.jsx'
 import { formatPrice } from '../lib/format.js'
 import { VEHICLE_LABELS, fetchBidCourierProfile } from '../lib/deliveryBids.js'
 import { formatReviewScore, formatScore } from '../lib/score.js'
 import './CourierProfileSheet.css'
 
-const MONTH_FORMAT = { month: 'numeric', year: 'numeric' }
+// Arvion ikä lyhyesti: tänään, eilen, 3 pv sitten, 2 vk sitten tai päivämäärä.
+function timeAgo(value) {
+  const days = Math.floor((Date.now() - Date.parse(value)) / 86_400_000)
+  if (days <= 0) return 'Tänään'
+  if (days === 1) return 'Eilen'
+  if (days < 7) return `${days} pv sitten`
+  if (days < 35) return `${Math.floor(days / 7)} vk sitten`
+  return new Date(value).toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric', year: 'numeric' })
+}
 
 // Kuljettajan koko profiili, kun asiakas napauttaa tarjousta (käyttäjän pyyntö
-// 24.10.2026): kuva, nimi, kulkuneuvo, tähtiarvio ja jakauma, toimitukset,
-// aloitusaika ja uusimmat kirjoitetut arviot. Alhaalla hinta ja hyväksyntä.
+// 24.10.2026): kuva, nimi, kulkuneuvo, arvio ja jakauma, toimitukset ja
+// uusimmat kirjoitetut arviot. Alhaalla hinta ja hyväksyntä.
 // Puhelimella alhaalta liukuva paneeli, työpöydällä keskitetty ikkuna.
 // Tiedot tulevat bid_courier_profile-funktiosta (0063); ennen sitä näkyy se,
 // mitä tarjouksessa on (kuva, arvio, määrä).
@@ -40,8 +49,11 @@ export default function CourierProfileSheet({ bid, distance, disabled, onAccept,
   const distribution = profile?.distribution ?? {}
   const reviews = profile?.reviews ?? []
 
-  return (
+  // Portaalilla koko sivun päälle: muuten seurannan sulkunappi jäi paneelin
+  // päälle (siisti profiili 12.11.2026). compact: sisällön korkuinen paneeli.
+  return createPortal(
     <BottomSheet
+      compact
       onClose={onClose}
       labelledBy="courier-profile-title"
       footer={
@@ -90,17 +102,12 @@ export default function CourierProfileSheet({ bid, distance, disabled, onAccept,
             <dt>Arviot</dt>
             <dd>{count}</dd>
           </div>
-          {profile?.since && (
-            <>
-              <div>
-                <dt>Toimitukset</dt>
-                <dd>{profile.deliveries}</dd>
-              </div>
-              <div>
-                <dt>Kuljettajana</dt>
-                <dd>{new Date(profile.since).toLocaleDateString('fi-FI', MONTH_FORMAT)} alkaen</dd>
-              </div>
-            </>
+          {/* "Kuljettajana ... alkaen" poistettu (käyttäjän pyyntö 12.11.2026). */}
+          {profile?.deliveries != null && (
+            <div>
+              <dt>Toimitukset</dt>
+              <dd>{profile.deliveries}</dd>
+            </div>
           )}
         </dl>
 
@@ -129,14 +136,17 @@ export default function CourierProfileSheet({ bid, distance, disabled, onAccept,
           ) : reviews.length ? (
             <ul>
               {reviews.map((review) => (
+                // Arvio korttina: arvosana hymiöllä, aika ja kommentti lainauksena
+                // (hienommat arviot 12.11.2026).
                 <li key={review.created_at} className="courier-profile__review">
                   <span className="courier-profile__review-head">
-                    <ReviewScore stars={review.stars} />
-                    <time dateTime={review.created_at}>
-                      {new Date(review.created_at).toLocaleDateString('fi-FI', { day: 'numeric', month: 'numeric' })}
-                    </time>
+                    <span className="courier-profile__review-score">
+                      <ScoreSmiley rating={review.stars} size={16} />
+                      {formatReviewScore(review.stars)}
+                    </span>
+                    <time dateTime={review.created_at}>{timeAgo(review.created_at)}</time>
                   </span>
-                  <p>{review.comment}</p>
+                  <p>“{review.comment}”</p>
                 </li>
               ))}
             </ul>
@@ -151,6 +161,7 @@ export default function CourierProfileSheet({ bid, distance, disabled, onAccept,
           )}
         </section>
       </div>
-    </BottomSheet>
+    </BottomSheet>,
+    document.body,
   )
 }

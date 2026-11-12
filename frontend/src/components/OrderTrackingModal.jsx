@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronDown, ChevronRight, MessageCircle, Receipt } from 'lucide-react'
 import DeliveryBidPanel from './DeliveryBidPanel.jsx'
 import DeliveryRouteMap from './DeliveryRouteMap.jsx'
 import CourierBidsIntro from './CourierBidsIntro.jsx'
+import { restaurantThumb } from '../lib/brandLogos.js'
 import OrderCountdownRing from './OrderCountdownRing.jsx'
 import { formatPrice } from '../lib/format.js'
 import {
@@ -17,6 +18,15 @@ import {
 import { courierHasFood, useCourierPosition } from '../lib/courierTracking.js'
 import '../pages/Settings.css'
 import './OrderTrackingModal.css'
+
+// Vaiheiden nimet palkin alla (käyttäjän pyyntö 12.11.2026).
+function stepLabel(status, isDelivery) {
+  if (status === 'pending') return 'Tilattu'
+  if (status === 'confirmed') return 'Hyväksytty'
+  if (status === 'preparing') return 'Valmistus'
+  if (status === 'ready') return isDelivery ? 'Matkalla' : 'Valmis'
+  return ''
+}
 
 function formatEta(value) {
   return new Date(value).toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' })
@@ -34,6 +44,10 @@ const TRACKED_STEPS = ORDER_STATUS_FLOW.slice(0, 4)
 // aktiivisen tilauksen kuplasta avattuna (modaali alla).
 export function OrderTrackingView({ order, onClose, variant = 'modal', children }) {
   const [detailsOpen, setDetailsOpen] = useState(false)
+  // Kuljettajaa etsittäessä paneelin voi painaa kasaan vetokahvasta
+  // (napautus tai veto alas), jolloin kartta kasvaa (käyttäjän pyyntö 12.11.2026).
+  const [sheetCollapsed, setSheetCollapsed] = useState(false)
+  const grabStartY = useRef(null)
   const arrivalAt = estimatedArrivalAt(order)
   const showRing = Boolean(arrivalAt) && order.status !== 'cancelled' && isOrderInProgress(order)
   const isDelivery = order.delivery_method === 'delivery'
@@ -43,10 +57,15 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
       ? TRACKED_STEPS.length - 1
       : TRACKED_STEPS.indexOf(order.status)
   const courierPosition = useCourierPosition(order)
+  const placeThumb = restaurantThumb(order.restaurants?.name, order.restaurants?.image_url)
   const destination = isDelivery ? order.delivery_address : order.restaurants?.address
 
   return (
-    <div className={`tracking tracking--${variant}`}>
+    <div
+      className={`tracking tracking--${variant}${order.status === 'awaiting_courier' ? ' tracking--bids' : ''}${
+        order.status === 'awaiting_courier' && sheetCollapsed ? ' tracking--collapsed' : ''
+      }`}
+    >
       <div className="tracking__map">
         <DeliveryRouteMap
           restaurant={order.restaurants}
@@ -70,6 +89,34 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
       </div>
 
       <div className="tracking__sheet">
+        {order.status === 'awaiting_courier' && (
+          <button
+            type="button"
+            className="tracking__grab"
+            aria-label={sheetCollapsed ? 'Avaa paneeli' : 'Pienennä paneeli'}
+            aria-expanded={!sheetCollapsed}
+            onPointerDown={(e) => {
+              grabStartY.current = e.clientY
+            }}
+            onPointerUp={(e) => {
+              const start = grabStartY.current
+              grabStartY.current = null
+              if (start == null) return
+              const dy = e.clientY - start
+              if (dy > 30) setSheetCollapsed(true)
+              else if (dy < -30) setSheetCollapsed(false)
+              else setSheetCollapsed((value) => !value)
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setSheetCollapsed((value) => !value)
+              }
+            }}
+          >
+            <span aria-hidden="true" />
+          </button>
+        )}
         <div className="tracking__ring-row">
           <a href="mailto:tuki@bidrop.fi" className="tracking__side-btn" aria-label="Ota yhteyttä asiakastukeen">
             <MessageCircle size={20} strokeWidth={1.75} aria-hidden="true" />
@@ -82,6 +129,37 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
               deliveryMethod={order.delivery_method}
               size="lg"
             />
+          ) : order.status === 'awaiting_courier' ? (
+            // Kuljettajaa etsittäessä iso tilaympyrä toistaisi otsikon: tilalla
+            // ravintolan nimi nappien välissä (parannus 11.11.2026).
+            <span className="tracking__place">
+              <span className="tracking__place-thumb" aria-hidden="true">
+                {placeThumb ? (
+                  <img
+                    src={placeThumb.src}
+                    alt=""
+                    className={placeThumb.logo ? 'brand-thumb-logo' : undefined}
+                    style={placeThumb.style}
+                  />
+                ) : (
+                  (order.restaurants?.name ?? 'R').trim().charAt(0).toUpperCase()
+                )}
+              </span>
+              <span className="tracking__place-text">
+                <strong>{order.restaurants?.name ?? 'Ravintola'}</strong>
+                {/* Kasassa tila näkyy tässä, jolloin paneeli on yksi tiivis rivi. */}
+                {sheetCollapsed ? (
+                  <small className="tracking__place-status">
+                    Etsitään kuljettajaa
+                  </small>
+                ) : (
+                  <small>
+                    {isDelivery ? 'Kotiinkuljetus' : 'Nouto'}
+                    {order.order_number ? ` · ${order.order_number}` : ''}
+                  </small>
+                )}
+              </span>
+            </span>
           ) : (
             <div className={`tracking__state tracking__state--${order.status}`}>
               {customerStatusLabel(order)}
@@ -99,20 +177,20 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
           </button>
         </div>
 
-        <span className="tracking__restaurant">{order.restaurants?.name ?? 'Ravintola'}</span>
         {/* Kuljettajaa etsittäessä sama selkeä otsikko ja vaiheet kuin kassan
             jälkeen (käyttäjän pyyntö 10.11.2026), tarjoukset korttina. */}
         {order.status === 'awaiting_courier' ? (
           <>
-            <CourierBidsIntro compact />
+            <CourierBidsIntro compact showSteps={false} />
             {order.id && (
               <div className="tracking__bids">
-                <DeliveryBidPanel orderId={order.id} />
+                <DeliveryBidPanel orderId={order.id} illustrated />
               </div>
             )}
           </>
         ) : (
           <>
+            <span className="tracking__restaurant">{order.restaurants?.name ?? 'Ravintola'}</span>
             <h2 className="tracking__headline">{trackingHeadline(order)}</h2>
             <p className="tracking__message">{trackingMessage(order)}</p>
           </>
@@ -132,7 +210,9 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
                 className={`tracking__step${i <= stepIndex ? ' tracking__step--done' : ''}${
                   i === stepIndex ? ' tracking__step--current' : ''
                 }`}
-              />
+              >
+                <em>{stepLabel(step, isDelivery)}</em>
+              </span>
             ))}
           </div>
         )}

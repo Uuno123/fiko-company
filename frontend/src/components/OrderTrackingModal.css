@@ -605,3 +605,842 @@
   margin-top: 4px;
   line-height: 1.5;
 }
+
+/* ── Kuljettajan etsintä: parannukset 11.11.2026 ───────────────────────────
+   Matalampi kartta, ei isoa tilaympyrää, ravintolan nimi nappien välissä,
+   tarjoukset heti otsikon alla ja ohje vasta niiden jälkeen. */
+.tracking--bids .tracking__map {
+  height: 200px;
+}
+
+.tracking--bids .tracking__ring-row {
+  align-items: center;
+  margin: 14px 0 0;
+}
+
+.tracking__restaurant--inline {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tracking--bids .order-bids__intro--compact {
+  margin-top: 16px !important;
+}
+
+.tracking--bids .tracking__bids {
+  margin-top: 18px;
+}
+
+.tracking__how {
+  width: 100%;
+  margin-top: 26px;
+  text-align: left;
+}
+
+.tracking__how h3 {
+  margin: 0 0 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.tracking__how .order-bids__steps {
+  margin: 0;
+}
+
+.tracking__how .order-bids__steps li {
+  gap: 14px;
+  padding-bottom: 20px;
+}
+
+.tracking__how .order-bids__steps li:last-child {
+  padding-bottom: 0;
+}
+
+@media (max-width: 560px) {
+  .tracking--bids .tracking__map {
+    height: 26dvh;
+    min-height: 170px;
+  }
+}
+
+/* ── Kuljettajan etsintä, uusi ulkoasu (käyttäjän palaute 11.11.2026) ──────
+   Paneeli nousee kartan päälle pyöristetyin kulmin. Ravintola logoineen
+   omalla rivillään, napit oikealla. Tarjoukset ilman laatikkoa: otsikko ja
+   ajastin, kuvitettu odotustila, oma hinta ja Tarjoa samalla rivillä. */
+.tracking--bids .tracking__sheet {
+  position: relative;
+  z-index: 2;
+  margin-top: -22px;
+  padding-top: 26px;
+  border-radius: 24px 24px 0 0;
+  background: #fff;
+  box-shadow: 0 -8px 24px -12px rgba(20, 21, 15, 0.18);
+}
+
+.tracking--bids .tracking__sheet::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: #dededb;
+  transform: translateX(-50%);
+}
+
+.tracking--bids .tracking__ring-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+}
+
+.tracking--bids .tracking__place {
+  display: flex;
+  flex: 1;
+  order: 0;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  text-align: left;
+}
+
+.tracking--bids .tracking__side-btn {
+  order: 1;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #f1f2f4;
+}
+
+.tracking__place-thumb {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  overflow: hidden;
+  border: 1px solid #ececea;
+  border-radius: 14px;
+  background: #fff;
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+.tracking__place-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tracking__place-thumb img.brand-thumb-logo {
+  object-fit: contain;
+}
+
+.tracking__place-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tracking__place-text strong {
+  overflow: hidden;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--delivo-black);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tracking__place-text small {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.tracking--bids .order-bids__intro--compact {
+  margin-top: 22px !important;
+}
+
+.tracking--bids .order-bids__title {
+  font-size: 1.6rem;
+}
+
+/* Tarjoukset ilman korttireunusta */
+.tracking--bids .tracking__bids {
+  margin-top: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+}
+
+.bid-panel--fresh .bid-panel__head {
+  margin-bottom: 12px;
+}
+
+.bid-panel--fresh .bid-panel__timer {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f1f2f4;
+  font-weight: 700;
+}
+
+/* Kuvitettu odotustila */
+.bid-panel__waiting {
+  overflow: hidden;
+  border-radius: 20px;
+  background: #fff3eb;
+}
+
+.bid-panel__waiting .courier-scene {
+  border-radius: 0;
+}
+
+.bid-panel__waiting p {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 12px 16px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--delivo-black);
+}
+
+.bid-panel__dots {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.bid-panel__dots i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+  animation: bid-panel-dot 1.2s ease-in-out infinite;
+}
+
+.bid-panel__dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.bid-panel__dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes bid-panel-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+/* Oma hinta: säädin ja Tarjoa samalla rivillä */
+.bid-panel--fresh .bid-panel__offer {
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid #ececea;
+}
+
+.bid-panel--fresh .bid-panel__offer-text strong {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.bid-panel--fresh .bid-panel__offer-controls {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.bid-panel--fresh .bid-stepper {
+  flex: 1;
+  min-width: 0;
+  height: 54px;
+  margin: 0;
+  border-radius: 16px;
+  background: #f1f2f4;
+}
+
+.bid-panel--fresh .bid-panel__offer-btn {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 112px;
+  height: 54px;
+  margin: 0;
+  padding: 0 22px;
+  border-radius: 16px;
+}
+
+.bid-panel--fresh .bid-panel__note {
+  margin-top: 14px;
+  text-align: center;
+}
+
+.bid-panel--fresh .bid-panel__cancel {
+  display: block;
+  margin: 10px auto 0;
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bid-panel__dots i {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* Odotusrivi ilman kuvitusta (käyttäjän pyyntö 11.11.2026). */
+.bid-panel__waiting {
+  border-radius: 16px;
+  background: #f6f6f4;
+}
+
+.bid-panel__waiting p {
+  justify-content: flex-start;
+  padding: 18px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+/* Oma hinta -valitsin siistiksi (käyttäjän pyyntö 12.11.2026): napit tasaisesti
+   kentän sisällä, ohut reuna, sama korkeus ja pyöristys kuin Tarjoa-napissa. */
+.tracking .bid-panel--fresh .bid-panel__offer-controls {
+  display: flex !important;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tracking .bid-panel--fresh .bid-stepper {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 56px !important;
+  padding: 0 8px !important;
+  border: 1px solid #e6e6e3;
+  border-radius: 16px !important;
+  background: #f6f6f4 !important;
+  box-sizing: border-box;
+}
+
+.tracking .bid-panel--fresh .bid-stepper button {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px !important;
+  height: 40px !important;
+  margin: 0 !important;
+  padding: 0;
+  border: 1px solid #e6e6e3 !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: var(--delivo-black);
+  box-shadow: none !important;
+}
+
+.tracking .bid-panel--fresh .bid-stepper button:disabled {
+  opacity: 0.4;
+}
+
+.tracking .bid-panel--fresh .bid-stepper__value {
+  display: flex;
+  flex: 1;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tracking .bid-panel--fresh .bid-stepper__value input {
+  width: 4.2ch;
+  border: none;
+  background: none;
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-align: right;
+  color: var(--delivo-black);
+}
+
+.tracking .bid-panel--fresh .bid-stepper__value span {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--delivo-black);
+}
+
+.tracking .bid-panel--fresh .bid-panel__offer-btn {
+  width: 100% !important;
+  height: 56px !important;
+  border-radius: 16px !important;
+  font-size: 1rem;
+}
+
+/* Kasaan painettava paneeli ja väljemmät reunat (käyttäjän pyyntö 12.11.2026). */
+.tracking--bids .tracking__sheet::before {
+  display: none;
+}
+
+.tracking--bids .tracking__sheet {
+  padding: 30px 24px 32px;
+}
+
+.tracking__grab {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: none;
+  transform: translateX(-50%);
+  cursor: grab;
+  touch-action: none;
+}
+
+.tracking__grab span {
+  width: 44px;
+  height: 5px;
+  border-radius: 3px;
+  background: #d6d6d2;
+  transition: background 0.15s ease;
+}
+
+.tracking__grab:hover span {
+  background: #b9b9b4;
+}
+
+.tracking--bids .tracking__map {
+  transition: height 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Kasassa: kartta kasvaa, paneelissa vain ravintola ja otsikko. */
+.tracking--collapsed .tracking__map {
+  height: calc(100dvh - 168px) !important;
+}
+
+.tracking--collapsed .tracking__sheet > *:not(.tracking__grab):not(.tracking__ring-row):not(.order-bids__intro) {
+  display: none !important;
+}
+
+.tracking--collapsed .order-bids__intro--compact .order-bids__lead {
+  display: none;
+}
+
+.tracking--collapsed .order-bids__intro--compact {
+  margin-top: 14px !important;
+}
+
+.tracking--collapsed .order-bids__title {
+  font-size: 1.3rem;
+}
+
+@media (min-width: 561px) {
+  .tracking--collapsed .tracking__map {
+    height: 420px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tracking--bids .tracking__map {
+    transition: none;
+  }
+}
+
+/* Kasassa yksi tiivis rivi (käyttäjän palaute 12.11.2026: ei hajanainen):
+   logo, nimi ja tila sekä napit; ei erillistä otsikkoa eikä tyhjää tilaa. */
+.tracking--collapsed .tracking__sheet {
+  padding: 30px 20px 22px;
+}
+
+.tracking--collapsed .order-bids__intro {
+  display: none !important;
+}
+
+.tracking--collapsed .tracking__map {
+  height: calc(100dvh - 86px) !important;
+}
+
+.tracking__place-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--delivo-orange) !important;
+}
+
+.tracking__place-status::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+  animation: tracking-status-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes tracking-status-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (min-width: 561px) {
+  .tracking--collapsed .tracking__map {
+    height: 460px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tracking__place-status::before {
+    animation: none;
+  }
+}
+
+/* Pienemmät +/- napit (käyttäjän pyyntö 12.11.2026). */
+.tracking .bid-panel--fresh .bid-stepper {
+  height: 52px !important;
+}
+
+.tracking .bid-panel--fresh .bid-stepper button {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 10px !important;
+}
+
+.tracking .bid-panel--fresh .bid-stepper button svg {
+  width: 14px;
+  height: 14px;
+}
+
+.tracking .bid-panel--fresh .bid-stepper__value input,
+.tracking .bid-panel--fresh .bid-stepper__value span {
+  font-size: 1.25rem;
+}
+
+/* Harmaa hintakenttä isommaksi, napit pysyvät 32 px:n kokoisina
+   (käyttäjän pyyntö 12.11.2026). */
+.tracking .bid-panel--fresh .bid-stepper {
+  height: 64px !important;
+  padding: 0 14px !important;
+}
+
+.tracking .bid-panel--fresh .bid-stepper button {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.tracking .bid-panel--fresh .bid-stepper__value input,
+.tracking .bid-panel--fresh .bid-stepper__value span {
+  font-size: 1.4rem;
+}
+
+/* flex: 1 pystysuuntaisessa säiliössä ohitti korkeuden: kiinteä korkeus käyttöön. */
+.tracking .bid-panel--fresh .bid-stepper {
+  flex: none !important;
+}
+
+/* Hintakenttä hieman matalammaksi (käyttäjän palaute 12.11.2026). */
+.tracking .bid-panel--fresh .bid-stepper {
+  height: 52px !important;
+  padding: 0 10px !important;
+}
+
+/* ── Siisti seuranta kaikilla tiloilla (käyttäjän pyyntö 12.11.2026) ───────
+   Sama rakenne kuin kuljettajan etsinnässä: paneeli kartan päällä
+   vetokahvalla, ravintolarivi, aika-arvio isona tekstinä, otsikko ja viesti
+   vasemmalla sekä nimetty vaihepalkki. */
+.tracking--clean .tracking__map {
+  height: 34dvh;
+  min-height: 220px;
+  transition: height 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.tracking--clean .tracking__sheet {
+  position: relative;
+  z-index: 2;
+  align-items: stretch;
+  margin-top: -22px;
+  padding: 30px 24px 32px;
+  border-radius: 24px 24px 0 0;
+  background: #fff;
+  box-shadow: 0 -8px 24px -12px rgba(20, 21, 15, 0.18);
+}
+
+.tracking--clean .tracking__ring-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+}
+
+.tracking--clean .tracking__place {
+  display: flex;
+  flex: 1;
+  order: 0;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  text-align: left;
+}
+
+.tracking--clean .tracking__side-btn {
+  order: 1;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #f1f2f4;
+}
+
+.tracking__summary {
+  width: 100%;
+  margin-top: 22px;
+  text-align: left;
+}
+
+.tracking__eta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0 0 14px;
+}
+
+.tracking__eta strong {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--delivo-black);
+}
+
+.tracking__eta span {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.tracking--clean .tracking__headline {
+  margin: 0;
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: left;
+}
+
+.tracking--clean .tracking__message {
+  margin: 6px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  text-align: left;
+  color: var(--text-muted);
+}
+
+/* Nimetty vaihepalkki */
+.tracking--clean .tracking__steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  width: 100%;
+  margin-top: 22px;
+}
+
+.tracking--clean .tracking__step {
+  position: relative;
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: #ececea;
+}
+
+.tracking--clean .tracking__step--done {
+  background: var(--delivo-black);
+}
+
+.tracking--clean .tracking__step--current {
+  background: var(--delivo-orange);
+}
+
+.tracking--clean .tracking__step em {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.tracking--clean .tracking__step--done em {
+  color: var(--delivo-black);
+}
+
+.tracking--clean .tracking__details {
+  width: 100%;
+  margin-top: 46px;
+}
+
+@media (min-width: 561px) {
+  .tracking--clean .tracking__map {
+    height: 260px;
+  }
+}
+
+.tracking--clean .tracking__steps {
+  width: 100% !important;
+  max-width: none !important;
+  justify-content: stretch;
+}
+
+.tracking--clean .tracking__step {
+  width: auto !important;
+  flex: none;
+}
+
+.tracking--clean .tracking__step em {
+  right: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 560px) {
+  .tracking--clean:not(.tracking--collapsed) .tracking__map {
+    height: 44dvh;
+  }
+}
+
+/* ── Kolmiulotteinen aikalaskuri (käyttäjän pyyntö 12.11.2026) ─────────────
+   Ulkolevy: valosta varjoon kulkeva liukuväri, kerroksellinen varjo ja
+   kiiltävä yläreuna. Kellotaulu painunut sisään sisävarjolla. Oranssi kaari
+   liukuvärinä hehkun kanssa. */
+.tracking__clock {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 22px;
+}
+
+.tracking__summary--clock {
+  text-align: center;
+}
+
+.tracking__summary--clock .tracking__headline,
+.tracking__summary--clock .tracking__message {
+  text-align: center !important;
+}
+
+.tracking__ring-row .order-countdown-ring--lg {
+  position: relative;
+  width: 210px;
+  height: 210px;
+  background: radial-gradient(circle at 30% 22%, #ffffff 0%, #f6f5f2 45%, #e6e3dd 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -6px 14px rgba(20, 21, 15, 0.06) inset,
+    0 2px 4px rgba(20, 21, 15, 0.08),
+    0 14px 28px -10px rgba(20, 21, 15, 0.35),
+    0 30px 50px -24px rgba(244, 80, 30, 0.35);
+}
+
+/* Kellotaulu sisään painuneena */
+.tracking__ring-row .order-countdown-ring--lg::before {
+  content: '';
+  position: absolute;
+  inset: 30px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #ffffff 0%, #f7f6f3 70%, #efede8 100%);
+  box-shadow:
+    inset 0 3px 8px rgba(20, 21, 15, 0.12),
+    inset 0 -2px 4px rgba(255, 255, 255, 0.9),
+    0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.tracking__ring-row .order-countdown-ring__svg {
+  position: relative;
+  z-index: 1;
+  padding: 12px;
+  filter: drop-shadow(0 3px 6px rgba(244, 80, 30, 0.45));
+}
+
+.tracking__ring-row .order-countdown-ring__track {
+  stroke: rgba(20, 21, 15, 0.07) !important;
+}
+
+.tracking__ring-row .order-countdown-ring__progress {
+  stroke: var(--delivo-orange) !important;
+  stroke-linecap: round;
+}
+
+.tracking__ring-row .order-countdown-ring__center {
+  z-index: 2;
+}
+
+.tracking__ring-row .order-countdown-ring__number {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 2.6rem;
+  font-weight: 800;
+  text-shadow: 0 1px 0 #fff, 0 2px 4px rgba(20, 21, 15, 0.12);
+}
+
+.tracking__ring-row .order-countdown-ring__unit {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* Vaiheiden nimet palkin alla (käyttäjän pyyntö 12.11.2026). */
+.tracking__steps {
+  margin-bottom: 18px;
+}
+
+.tracking__step {
+  position: relative;
+}
+
+.tracking__step em {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 600;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+}
+
+.tracking__step--done em {
+  color: var(--delivo-black);
+}
+
+.tracking__steps {
+  width: 100% !important;
+  max-width: 360px !important;
+}

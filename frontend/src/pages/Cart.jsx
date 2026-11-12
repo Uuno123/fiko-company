@@ -892,9 +892,10 @@ function Cart() {
 
   // Kirjautumaton ohjataan tavalliseen kirjautumisnäkymään (käyttäjän pyyntö
   // 9.11.2026: ei ostoskorin omaa kirjautumisikkunaa). Kirjautumisen jälkeen
-  // palataan ostoskoriin (state.from).
+  // palataan ostoskoriin (state.from). overHome: kirjautumisen taustalla etusivu,
+  // ei ostoskori (joka ohjaisi taas tänne ja jättäisi valkoisen näkymän).
   if (authStatus !== 'loading' && !isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: '/ostoskori' }} />
+    return <Navigate to="/login" replace state={{ from: '/ostoskori', overHome: true }} />
   }
 
   // Kassalle vain tarkalla toimitusosoitteella (käyttäjän pyyntö 30.10.2026 -
