@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { ChevronDown, ChevronRight, MessageCircle, Receipt } from 'lucide-react'
 import DeliveryBidPanel from './DeliveryBidPanel.jsx'
 import DeliveryRouteMap from './DeliveryRouteMap.jsx'
-import CourierBidsIntro from './CourierBidsIntro.jsx'
 import { restaurantThumb } from '../lib/brandLogos.js'
 import OrderCountdownRing from './OrderCountdownRing.jsx'
 import { formatPrice } from '../lib/format.js'
@@ -59,6 +58,49 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
   const courierPosition = useCourierPosition(order)
   const placeThumb = restaurantThumb(order.restaurants?.name, order.restaurants?.image_url)
   const destination = isDelivery ? order.delivery_address : order.restaurants?.address
+
+  // Kuljettajaa etsittäessä sama näkymä kuin heti tilauksen jälkeen: ei
+  // karttaa, tutka keskellä ja tilauksen tiedot pienenä rivinä (käyttäjän
+  // pyyntö 12.11.2026: "korvaa tämä näkymä kokonaan sillä toisella").
+  if (order.status === 'awaiting_courier') {
+    return (
+      <div className={`tracking tracking--${variant} tracking--search`}>
+        <button type="button" className="tracking__close" aria-label="Sulje" onClick={onClose}>
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="m5 5 10 10M15 5 5 15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        </button>
+        <div className="order-radar">
+          {order.id && (
+            <div className="tracking__bids">
+              <DeliveryBidPanel
+                orderId={order.id}
+                illustrated
+                logo={
+                  placeThumb ? (
+                    <img
+                      src={placeThumb.src}
+                      alt=""
+                      className={placeThumb.logo ? 'brand-thumb-logo' : undefined}
+                      style={placeThumb.style}
+                    />
+                  ) : (
+                    (order.restaurants?.name ?? 'R').trim().charAt(0).toUpperCase()
+                  )
+                }
+              />
+            </div>
+          )}
+          <p className="order-radar__facts">
+            {order.restaurants?.name && <span>{order.restaurants.name}</span>}
+            {order.order_number && <span>{order.order_number}</span>}
+            <span>{formatPrice(order.total_cents)}</span>
+          </p>
+        </div>
+        {children}
+      </div>
+    )
+  }
 
   return (
     <div
@@ -181,10 +223,24 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
             jälkeen (käyttäjän pyyntö 10.11.2026), tarjoukset korttina. */}
         {order.status === 'awaiting_courier' ? (
           <>
-            <CourierBidsIntro compact showSteps={false} />
             {order.id && (
               <div className="tracking__bids">
-                <DeliveryBidPanel orderId={order.id} illustrated />
+                <DeliveryBidPanel
+                  orderId={order.id}
+                  illustrated
+                  logo={
+                    placeThumb ? (
+                      <img
+                        src={placeThumb.src}
+                        alt=""
+                        className={placeThumb.logo ? 'brand-thumb-logo' : undefined}
+                        style={placeThumb.style}
+                      />
+                    ) : (
+                      (order.restaurants?.name ?? 'R').trim().charAt(0).toUpperCase()
+                    )
+                  }
+                />
               </div>
             )}
           </>
@@ -224,7 +280,10 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
             aria-expanded={detailsOpen}
             onClick={() => setDetailsOpen((open) => !open)}
           >
-            <span>
+            <span className="tracking__details-icon" aria-hidden="true">
+              <Receipt size={18} strokeWidth={1.75} />
+            </span>
+            <span className="tracking__details-title">
               Tilauksen tiedot
               <span className="tracking__details-meta">
                 {order.order_number} · {formatPrice(order.total_cents)}

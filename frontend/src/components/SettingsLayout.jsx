@@ -1,6 +1,6 @@
 import { Link, Navigate, NavLink, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Bell, CreditCard, Lock, LogOut, MessageCircle, Receipt, User } from 'lucide-react'
-import Header from './Header.jsx'
+import MainHeader from './MainHeader.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { useIsMobile } from '../lib/useIsMobile.js'
 import { isSupabaseConfigured } from '../lib/supabaseClient.js'
@@ -27,7 +27,7 @@ function SettingsLayout({ title, description, children, variant, backTo }) {
   if (!isSupabaseConfigured || status === 'loading') {
     return (
       <div className="page">
-        <Header />
+        <MainHeader />
       </div>
     )
   }
@@ -59,7 +59,7 @@ function SettingsLayout({ title, description, children, variant, backTo }) {
           <span aria-hidden="true" />
         </div>
       ) : (
-        <Header />
+        <MainHeader />
       )}
 
       <div className={`account${isMobile ? ' account--mobile' : ''}${isMobile && isHub ? ' account--hub' : ''}`}>

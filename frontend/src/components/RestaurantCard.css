@@ -720,3 +720,16 @@
   background: #e3f3e6;
   color: #1d6b34;
 }
+
+/* Tarjouspillerit punaisiksi myös puhelimella, kuten työpöydällä
+   (käyttäjän pyyntö 13.11.2026). */
+.page .restaurant-card .restaurant-card__offer.restaurant-card__offer {
+  background: #e3262f !important;
+  color: #fff !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.page .restaurant-card .restaurant-card__offer.restaurant-card__offer svg {
+  color: #fff !important;
+}

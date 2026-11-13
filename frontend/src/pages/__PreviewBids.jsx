@@ -1,34 +1,26 @@
 /* TEMPORARY PREVIEW FILE - not part of the app, not linked from anywhere, safe to delete.
-   Renders the post-order courier choice view (CourierBidsIntro + facts + DeliveryBidPanel)
-   so it can be reviewed without placing a real order. Same pattern as __PreviewCart.jsx. */
-import CourierBidsIntro from '../components/CourierBidsIntro.jsx'
+   Renders the post-order courier choice view (radar + facts) so it can be
+   reviewed without placing a real order. Same pattern as __PreviewCart.jsx. */
 import DeliveryBidPanel from '../components/DeliveryBidPanel.jsx'
+import '../components/OrderTrackingModal.css'
 import './Cart.css'
 
 export default function PreviewBids() {
   return (
     <div className="page page--cart">
       <main className="cart-page">
-        <div className="cart-empty order-done order-done--bids">
-          <CourierBidsIntro />
-          <dl className="order-done__facts">
-            <div>
-              <dt>Tilausnumero</dt>
-              <dd>FIKO-0050</dd>
-            </div>
-            <div>
-              <dt>Summa</dt>
-              <dd>6,19 €</dd>
-            </div>
-          </dl>
-          <div className="order-done__bids">
-            <DeliveryBidPanel orderId="preview-order" />
+        <div className="order-radar">
+          <div className="tracking__bids">
+            <DeliveryBidPanel orderId="preview-order" illustrated logo="B" />
           </div>
-          <div className="order-done__actions">
-            <button type="button" className="order-done__home">
-              Takaisin etusivulle
-            </button>
-          </div>
+          <p className="order-radar__facts">
+            <span>Burger Talli</span>
+            <span>FIKO-0064</span>
+            <span>6,19 €</span>
+          </p>
+          <a href="/" className="order-radar__home">
+            Takaisin etusivulle
+          </a>
         </div>
       </main>
     </div>

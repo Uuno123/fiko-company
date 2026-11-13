@@ -926,13 +926,13 @@
 
 /* Oma hinta -valitsin siistiksi (käyttäjän pyyntö 12.11.2026): napit tasaisesti
    kentän sisällä, ohut reuna, sama korkeus ja pyöristys kuin Tarjoa-napissa. */
-.tracking .bid-panel--fresh .bid-panel__offer-controls {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-panel__offer-controls {
   display: flex !important;
   flex-direction: column;
   gap: 10px;
 }
 
-.tracking .bid-panel--fresh .bid-stepper {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper {
   display: flex !important;
   align-items: center;
   justify-content: space-between;
@@ -945,7 +945,7 @@
   box-sizing: border-box;
 }
 
-.tracking .bid-panel--fresh .bid-stepper button {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper button {
   display: grid;
   flex-shrink: 0;
   place-items: center;
@@ -960,11 +960,11 @@
   box-shadow: none !important;
 }
 
-.tracking .bid-panel--fresh .bid-stepper button:disabled {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper button:disabled {
   opacity: 0.4;
 }
 
-.tracking .bid-panel--fresh .bid-stepper__value {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper__value {
   display: flex;
   flex: 1;
   align-items: baseline;
@@ -973,7 +973,7 @@
   min-width: 0;
 }
 
-.tracking .bid-panel--fresh .bid-stepper__value input {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper__value input {
   width: 4.2ch;
   border: none;
   background: none;
@@ -984,14 +984,14 @@
   color: var(--delivo-black);
 }
 
-.tracking .bid-panel--fresh .bid-stepper__value span {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper__value span {
   font-family: 'Bricolage Grotesque', var(--font-display);
   font-size: 1.35rem;
   font-weight: 700;
   color: var(--delivo-black);
 }
 
-.tracking .bid-panel--fresh .bid-panel__offer-btn {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-panel__offer-btn {
   width: 100% !important;
   height: 56px !important;
   border-radius: 16px !important;
@@ -1122,50 +1122,50 @@
 }
 
 /* Pienemmät +/- napit (käyttäjän pyyntö 12.11.2026). */
-.tracking .bid-panel--fresh .bid-stepper {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper {
   height: 52px !important;
 }
 
-.tracking .bid-panel--fresh .bid-stepper button {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper button {
   width: 32px !important;
   height: 32px !important;
   border-radius: 10px !important;
 }
 
-.tracking .bid-panel--fresh .bid-stepper button svg {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper button svg {
   width: 14px;
   height: 14px;
 }
 
-.tracking .bid-panel--fresh .bid-stepper__value input,
-.tracking .bid-panel--fresh .bid-stepper__value span {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper__value input,
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper__value span {
   font-size: 1.25rem;
 }
 
 /* Harmaa hintakenttä isommaksi, napit pysyvät 32 px:n kokoisina
    (käyttäjän pyyntö 12.11.2026). */
-.tracking .bid-panel--fresh .bid-stepper {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper {
   height: 64px !important;
   padding: 0 14px !important;
 }
 
-.tracking .bid-panel--fresh .bid-stepper button {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper button {
   width: 32px !important;
   height: 32px !important;
 }
 
-.tracking .bid-panel--fresh .bid-stepper__value input,
-.tracking .bid-panel--fresh .bid-stepper__value span {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper__value input,
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper__value span {
   font-size: 1.4rem;
 }
 
 /* flex: 1 pystysuuntaisessa säiliössä ohitti korkeuden: kiinteä korkeus käyttöön. */
-.tracking .bid-panel--fresh .bid-stepper {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper {
   flex: none !important;
 }
 
 /* Hintakenttä hieman matalammaksi (käyttäjän palaute 12.11.2026). */
-.tracking .bid-panel--fresh .bid-stepper {
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-stepper {
   height: 52px !important;
   padding: 0 10px !important;
 }
@@ -1443,4 +1443,852 @@
 .tracking__steps {
   width: 100% !important;
   max-width: 360px !important;
+}
+
+/* ── Tutka keskellä (käyttäjän valinta 12.11.2026) ──────────────────────────
+   Ravintolan logo ja sen ympärillä laajenevat oranssit renkaat, keskitetty
+   otsikko ja jäljellä oleva aika, tarjoukset alla ja oma hinta linkin takana. */
+.bid-radar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 6px 0 18px;
+  text-align: center;
+}
+
+.bid-radar__pulse {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 180px;
+  height: 180px;
+}
+
+.bid-radar__pulse > span {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(244, 80, 30, 0.16);
+  transform: translate(-50%, -50%) scale(1);
+  animation: bid-radar-ring 2.7s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+}
+
+.bid-radar__pulse > span:nth-child(2) {
+  animation-delay: 0.9s;
+}
+
+.bid-radar__pulse > span:nth-child(3) {
+  animation-delay: 1.8s;
+}
+
+@keyframes bid-radar-ring {
+  0% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(2.5);
+  }
+}
+
+.bid-radar__logo {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  overflow: hidden;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 8px 20px -8px rgba(20, 21, 15, 0.35), 0 0 0 1px #f0d9cf;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--delivo-black);
+}
+
+.bid-radar__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bid-radar__logo img.brand-thumb-logo {
+  padding: 10px;
+  object-fit: contain;
+  box-sizing: border-box;
+}
+
+.bid-radar__title {
+  margin: 4px 0 0;
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--delivo-black);
+}
+
+.bid-radar__title::after {
+  content: '';
+  display: inline-block;
+  width: 0.26em;
+  height: 0.26em;
+  margin-left: 0.12em;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+}
+
+.bid-radar__sub {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+.bid-radar__hint {
+  margin: 0 0 6px;
+  font-size: 0.86rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.bid-radar__offer-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid #e6e6e3;
+  border-radius: 14px;
+  background: #fff;
+  color: var(--delivo-black);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bid-radar__offer-link:hover {
+  background: #f7f7f6;
+}
+
+/* Tutkanäkymässä otsikko on tutkan alla, joten ylimääräinen tila pois. */
+.tracking--bids .tracking__bids {
+  margin-top: 8px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bid-radar__pulse > span {
+    animation: none;
+    opacity: 0.4;
+  }
+}
+
+/* Kun tarjouksia on, tutka pienenee, jotta tarjoukset näkyvät heti. */
+.bid-radar--compact {
+  margin-bottom: 14px;
+}
+
+.bid-radar--compact .bid-radar__pulse {
+  width: 112px;
+  height: 112px;
+}
+
+.bid-radar--compact .bid-radar__pulse > span {
+  width: 52px;
+  height: 52px;
+}
+
+.bid-radar--compact .bid-radar__logo {
+  width: 56px;
+  height: 56px;
+  font-size: 1.2rem;
+}
+
+.bid-radar--compact .bid-radar__title {
+  font-size: 1.3rem;
+}
+
+/* Oman hinnan otsikkorivi sulkunapilla (12.11.2026). */
+.bid-panel__offer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.bid-panel__offer-close {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #f1f2f4;
+  color: var(--delivo-black);
+  cursor: pointer;
+}
+
+.bid-panel__offer-close:hover {
+  background: #e7e8eb;
+}
+
+.bid-panel--fresh .bid-panel__offer {
+  animation: bid-offer-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@keyframes bid-offer-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bid-panel--fresh .bid-panel__offer {
+    animation: none;
+  }
+}
+
+/* ── Hienommat tilauksen tiedot (käyttäjän pyyntö 12.11.2026) ──────────────
+   Sama korttityyli kuin tarjouskorteissa: pehmeä varjo, ikoniruutu,
+   pyöreä nuolinappi, faktat riveinä ja selkeä yhteissumma. */
+.tracking .tracking__details {
+  overflow: hidden;
+  border: 1px solid #f0f0ee;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 6px 18px -12px rgba(20, 21, 15, 0.25);
+}
+
+.tracking .tracking__details-toggle {
+  justify-content: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.tracking .tracking__details-toggle > .tracking__details-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: #f4f4f2;
+  color: var(--delivo-black);
+}
+
+.tracking .tracking__details-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.tracking .tracking__details-meta {
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.tracking .tracking__details-chevron {
+  box-sizing: content-box;
+  padding: 6px;
+  border-radius: 50%;
+  background: #f4f4f2;
+  color: var(--delivo-black);
+}
+
+.tracking .tracking__details-body {
+  gap: 0;
+  padding: 0 16px 18px;
+  animation: bid-offer-in 0.22s ease both;
+}
+
+/* Faktat omina riveinään: nimi pienenä harmaana, arvo alla. */
+.tracking .tracking__facts {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 4px 0 0;
+  border-top: 1px solid #f0f0ee;
+}
+
+.tracking .tracking__fact {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+}
+
+.tracking .tracking__fact + .tracking__fact {
+  border-top: 1px dashed #ececea;
+}
+
+.tracking .tracking__fact dt {
+  flex: none;
+  font-size: 0.84rem;
+}
+
+.tracking .tracking__fact dd {
+  font-size: 0.86rem;
+  text-align: right;
+}
+
+.tracking .tracking__lines {
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid #f0f0ee;
+}
+
+.tracking .tracking__lines li {
+  align-items: center;
+}
+
+.tracking .tracking__line-qty {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: #f4f4f2;
+  box-sizing: border-box;
+}
+
+.tracking .tracking__line-name {
+  font-weight: 500;
+}
+
+.tracking .tracking__sums {
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid #f0f0ee;
+}
+
+.tracking .tracking__total {
+  align-items: baseline;
+  margin-top: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f7f7f5;
+  font-size: 1rem;
+}
+
+.tracking .tracking__total span:last-child {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.tracking .tracking__all-link {
+  margin-top: 14px;
+}
+
+/* ── Applen tyylinen oma hinta (käyttäjän pyyntö 12.11.2026) ────────────────
+   Kuten Apple Pay / Wallet: iso keskitetty summa, pyöreät harmaat +/- napit
+   sen sivuilla ilman laatikkoa, hintahaarukka pienenä alla, musta pillerinappi
+   summalla ja selitys alaviitteenä. Linkki on harmaa luettelorivi. */
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-radar__offer-link,
+.bid-radar__offer-link {
+  justify-content: space-between;
+  margin-top: 20px;
+  padding: 15px 16px;
+  border: none;
+  border-radius: 14px;
+  background: #f2f2f7;
+  font-size: 0.97rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.bid-radar__offer-link svg {
+  color: #a1a1a6;
+}
+
+.bid-radar__offer-link:hover {
+  background: #e9e9ee;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple {
+  display: flex !important;
+  flex-direction: column;
+  margin-top: 20px !important;
+  padding: 18px 18px 16px !important;
+  border: none !important;
+  border-radius: 20px;
+  background: #f2f2f7;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-text {
+  display: contents;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-head {
+  order: 0;
+  position: relative;
+  justify-content: center;
+  min-height: 30px;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-head strong {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif;
+  font-size: 1rem !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  background: #e3e3e8;
+  color: #6e6e73;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-controls {
+  order: 1;
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0 !important;
+  margin-top: 10px;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper {
+  height: auto !important;
+  padding: 6px 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: none !important;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper button {
+  width: 44px !important;
+  height: 44px !important;
+  border: none !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  color: var(--delivo-black);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+  transition: transform 0.12s ease;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper button:active:not(:disabled) {
+  transform: scale(0.92);
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper button svg {
+  width: 18px;
+  height: 18px;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper__value input,
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper__value span {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', Inter, system-ui, sans-serif;
+  font-size: 2.6rem !important;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper__value input {
+  width: 3.4ch;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper__value span {
+  font-size: 1.9rem !important;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper__value.is-invalid input {
+  color: #ff3b30;
+}
+
+.bid-offer-apple__range {
+  margin: 2px 0 16px;
+  font-size: 0.8rem;
+  text-align: center;
+  color: #8e8e93;
+  font-variant-numeric: tabular-nums;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-btn {
+  height: 50px !important;
+  border-radius: 14px !important;
+  background: var(--delivo-black) !important;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', Inter, system-ui, sans-serif;
+  font-size: 1.02rem !important;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-btn:disabled {
+  background: #d1d1d6 !important;
+  color: #fff;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__note {
+  order: 2;
+  display: block;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  text-align: center;
+  color: #8e8e93;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__link {
+  order: 3;
+  align-self: center;
+  margin-top: 8px;
+  color: #ff3b30;
+}
+
+/* ── Rento oma hinta (käyttäjän pyyntö 12.11.2026: persoonallinen, pienempi,
+   nonchalant). Ei korttia eikä ympyröitä: kysymys, pieni summa harmailla
+   +/- merkeillä ja pieni Tarjoa-nappi samalla rivillä. */
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple {
+  margin-top: 18px !important;
+  padding: 16px 0 0 !important;
+  border-top: 1px solid #f0f0ee !important;
+  border-radius: 0;
+  background: none;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-head {
+  justify-content: flex-start;
+  min-height: 0;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-head strong {
+  font-family: inherit;
+  font-size: 0.92rem !important;
+  font-weight: 600;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-close {
+  top: -4px;
+  width: 26px;
+  height: 26px;
+  background: none;
+  color: #a1a1a6;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-close:hover {
+  background: none;
+  color: var(--delivo-black);
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-controls {
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  align-items: center !important;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper {
+  width: auto !important;
+  gap: 2px;
+  padding: 0 !important;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper button {
+  width: 28px !important;
+  height: 28px !important;
+  background: none !important;
+  box-shadow: none !important;
+  color: #8e8e93;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper button:hover:not(:disabled) {
+  color: var(--delivo-black);
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper button:disabled {
+  opacity: 0.3;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper button svg {
+  width: 15px;
+  height: 15px;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper__value {
+  flex: none !important;
+  gap: 3px;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper__value input,
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper__value span {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-size: 1.5rem !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper__value input {
+  width: 3.3ch;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper__value span {
+  font-size: 1.1rem !important;
+  color: #8e8e93;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__range {
+  display: none;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-btn {
+  width: auto !important;
+  height: 36px !important;
+  padding: 0 16px !important;
+  border-radius: 999px !important;
+  font-family: inherit;
+  font-size: 0.86rem !important;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__note {
+  margin-top: 8px;
+  font-size: 0.76rem;
+  text-align: left;
+}
+
+/* ── Bidropin oma hinnan asetus (käyttäjän pyyntö 12.11.2026) ───────────────
+   Rento ja pieni, mutta Bidropin näköinen: otsikko Bricolage-fontilla
+   oranssilla pisteellä, oranssi €-merkki, ohut oranssi haarukkapalkki ja
+   Tarjoa-napissa oranssi pisara. */
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-head strong {
+  font-family: 'Bricolage Grotesque', var(--font-display) !important;
+  font-size: 1rem !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-head strong::after {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-left: 3px;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper__value span {
+  color: var(--delivo-orange) !important;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-stepper button:hover:not(:disabled) {
+  color: var(--delivo-orange);
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__range {
+  display: flex;
+  order: 5;
+  flex-basis: 100%;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  font-size: 0.7rem;
+  color: #a1a1a6;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__track {
+  position: relative;
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: #f0ece9;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__track i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 2px;
+  background: var(--delivo-orange);
+  transition: width 0.2s ease;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__track i::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -5px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+  box-shadow: 0 1px 3px rgba(20, 21, 15, 0.2);
+  transform: translateY(-50%);
+  box-sizing: border-box;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-btn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 7px;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-panel__offer-btn::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--delivo-orange);
+  transform: rotate(-45deg);
+}
+
+/* Vedettävä hintapalkki (12.11.2026): ohut oranssi täyttö ja valkoreunainen
+   oranssi nuppi, isompi kosketusalue. */
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__slider {
+  flex: 1;
+  height: 22px;
+  margin: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  touch-action: pan-y;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--delivo-orange) var(--pct), #f0ece9 var(--pct));
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__slider::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--delivo-orange) var(--pct), #f0ece9 var(--pct));
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__slider::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+  box-shadow: 0 1px 4px rgba(20, 21, 15, 0.25);
+  -webkit-appearance: none;
+  appearance: none;
+  transition: transform 0.12s ease;
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--delivo-orange);
+  box-shadow: 0 1px 4px rgba(20, 21, 15, 0.25);
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__slider:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+
+:is(.tracking, .order-radar) .bid-panel--fresh .bid-offer-apple .bid-offer-apple__slider:focus-visible {
+  outline: 2px solid var(--delivo-black);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* ── Kuljettajan etsintä tilauksen jälkeen (12.11.2026) ─────────────────────
+   Sama tutka kuin seurannassa: ei laatikoita, kaikki keskitettynä yhteen
+   sarakkeeseen, tilauksen tiedot pienenä rivinä alla. */
+.order-radar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 28px 20px 40px;
+  box-sizing: border-box;
+}
+
+.order-radar .tracking__bids {
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+}
+
+.order-radar__facts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 0;
+  margin: 26px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid #f0f0ee;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.order-radar__facts span + span::before {
+  content: '·';
+  margin: 0 8px;
+}
+
+.order-radar__facts span:first-child {
+  font-weight: 600;
+  color: var(--delivo-black);
+}
+
+.order-radar .order-success__more {
+  margin-top: 20px;
+}
+
+.order-radar__home {
+  align-self: center;
+  margin-top: 18px;
+  color: var(--delivo-black);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Seurannan kuljettajan etsintä ilman karttaa: sulkunappi oikeassa
+   yläkulmassa, tutka keskellä. */
+.tracking--search {
+  position: relative;
+  background: #fff;
+}
+
+.tracking--search .tracking__close {
+  top: 12px;
+  right: 12px;
+  background: #f2f2f0;
+  box-shadow: none;
+}
+
+.tracking--search .order-radar {
+  padding-top: 40px;
 }

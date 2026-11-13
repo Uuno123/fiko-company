@@ -3,15 +3,13 @@ import { Check, ListFilter } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import BottomSheet from '../components/BottomSheet.jsx'
 import Footer from '../components/Footer.jsx'
-import Header from '../components/Header.jsx'
+import MainHeader from '../components/MainHeader.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import Skeleton from '../components/Skeleton.jsx'
 import { getRestaurants } from '../lib/api.js'
 import { CATEGORY_NAMES, categorySlug, padWithFillers } from '../lib/categories.js'
 import { restaurantDistanceKm, useDeliveryAddress } from '../lib/deliveryAddress.js'
 import { SORT_COMPARATORS, rankRestaurants, useRankingSignals } from '../lib/ranking.js'
-import { useCart } from '../lib/CartContext.jsx'
-import { formatPrice } from '../lib/format.js'
 import { useFavorites } from '../lib/useFavorites.js'
 import './CategoryPage.css'
 
@@ -27,7 +25,6 @@ const SORT_OPTIONS = [
 function CategoryPage() {
   const { slug } = useParams()
   const navigate = useNavigate()
-  const cart = useCart()
   const [searchValue, setSearchValue] = useState('')
   const [restaurants, setRestaurants] = useState([])
   const [status, setStatus] = useState('loading')
@@ -102,21 +99,8 @@ function CategoryPage() {
     <div className="page page--category">
       {/* Työpöydällä sama header kuin etusivulla (logo, osoite, haku, tili, kori).
           Mobiilissa kevyt topbar - CSS näyttää oikean, sama tapa kuin SearchResults.jsx:ssä. */}
-      <Header
-        showAddress
+      <MainHeader
         search={{ value: searchValue, onChange: setSearchValue, placeholder: 'Hae ravintoloita...' }}
-        cart={
-          cart.count > 0
-            ? {
-                count: cart.count,
-                totalCents: cart.totalCents,
-                groups: cart.groups,
-                onClear: cart.clear,
-                onClearRestaurant: cart.clearRestaurant,
-                formatPrice,
-              }
-            : null
-        }
       />
 
       {/* Puhelimen yläpalkki (käyttäjän pyyntö 29.10.2026: siistimpi, ei tilin

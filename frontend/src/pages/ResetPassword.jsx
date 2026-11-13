@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Header from '../components/Header.jsx'
+import MainHeader from '../components/MainHeader.jsx'
 import { supabase, isSupabaseConfigured } from '../lib/supabaseClient.js'
 import { translateAuthError } from '../lib/authErrors.js'
 import './AuthForm.css'
@@ -46,7 +46,7 @@ function ResetPassword() {
   if (!isSupabaseConfigured) {
     return (
       <div className="page">
-        <Header />
+        <MainHeader />
         <main className="auth-page">
           <div className="auth-card">
             <h1>Salasanan palautus ei ole käytössä</h1>
@@ -59,7 +59,7 @@ function ResetPassword() {
 
   return (
     <div className="page">
-      <Header />
+      <MainHeader />
       <main className="auth-page">
         <div className="auth-card">
           <h1>Aseta uusi salasana</h1>

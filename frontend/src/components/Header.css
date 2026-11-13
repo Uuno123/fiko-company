@@ -2056,3 +2056,28 @@
     margin-right: 2px !important;
   }
 }
+
+/* Pienillä tietokonenäytöillä ei hakupalkkia headerissa (käyttäjän pyyntö
+   13.11.2026). Tilalla hakunappi. */
+@media (min-width: 781px) and (max-width: 1199px) {
+  .page .site-header .site-header__center {
+    display: none !important;
+  }
+}
+
+/* Kun hakupalkki on piilossa, ruudukko ei varaa sille tilaa: logo ja osoite
+   vasemmalla yhdellä rivillä, napit oikealla. */
+@media (min-width: 781px) and (max-width: 1199px) {
+  .page .site-header .site-header__inner {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+
+  .page .site-header .site-header__left {
+    flex-wrap: nowrap !important;
+  }
+
+  .page .site-header .site-header__right {
+    justify-self: end;
+  }
+}
+

@@ -2190,3 +2190,24 @@
   background: var(--delivo-black);
   color: #fff;
 }
+
+/* "Tilauksesi"-paneeli poistettu ravintolasivulta (käyttäjän pyyntö
+   13.11.2026): ruokalista koko leveydelle. */
+@media (min-width: 1000px) {
+  .restaurant-detail {
+    grid-template-areas:
+      'banner banner'
+      'head tools'
+      'featured featured'
+      'tabs tabs'
+      'menu menu';
+  }
+}
+
+/* Isolla näytöllä kolme tuotetta vierekkäin (käyttäjän pyyntö 13.11.2026). */
+@media (min-width: 1000px) {
+  .restaurant-detail .menu-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 32px;
+  }
+}

@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { SlidersHorizontal } from 'lucide-react'
-import Header from '../components/Header.jsx'
+import MainHeader from '../components/MainHeader.jsx'
 import Footer from '../components/Footer.jsx'
 import RestaurantCard from '../components/RestaurantCard.jsx'
 import Skeleton from '../components/Skeleton.jsx'
-import { useCart } from '../lib/CartContext.jsx'
-import { formatPrice } from '../lib/format.js'
 import { allFillerRestaurants, dealsFillerRestaurants, isDealsQuery, searchFillerRestaurants } from '../lib/categories.js'
 import { getRestaurants } from '../lib/api.js'
 import { QUICK_FILTERS, quickFilterForQuery } from '../lib/quickFilters.js'
@@ -60,7 +58,6 @@ function SearchResults() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
-  const cart = useCart()
   const navigate = useNavigate()
   const deliveryAddress = useDeliveryAddress()
   const { popularity } = useRankingSignals()
@@ -193,26 +190,13 @@ function SearchResults() {
           etusivulla. Mobiilissa kevyt search-topbar riittää; kumpikin renderöityy
           aina, CSS näyttää oikean leveyden mukaan (sama tapa kuin Home.jsx:n
           home-mobile-top / restaurant-grid--desktop). */}
-      <Header
-        showAddress
+      <MainHeader
         flatUntilScroll
         search={{
           value: inputValue,
           onChange: setInputValue,
           placeholder: 'Hae Bidropista...',
         }}
-        cart={
-          cart.count > 0
-            ? {
-                count: cart.count,
-                totalCents: cart.totalCents,
-                groups: cart.groups,
-                onClear: cart.clear,
-                onClearRestaurant: cart.clearRestaurant,
-                formatPrice,
-              }
-            : null
-        }
       />
 
       <div className={`search-topbar${topbarCompact ? ' search-topbar--compact' : ''}`}>

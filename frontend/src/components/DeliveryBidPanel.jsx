@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Check, ChevronRight, Minus, Plus, Timer } from 'lucide-react'
+import { Check, ChevronRight, Minus, Plus, Timer, X } from 'lucide-react'
 import { CourierAvatar } from './CourierAvatar.jsx'
 import { ScoreSmiley } from './Smiley.jsx'
 import CourierProfileSheet from './CourierProfileSheet.jsx'
@@ -46,7 +46,9 @@ function formatClock(seconds) {
 // vahvistussivulla ja tilauksen seurannassa.
 // illustrated: tilauksen seurannan uusi ulkoasu (11.11.2026): siisti odotusrivi
 // ilman kuvitusta (käyttäjän pyyntö) ja oma hinta + Tarjoa samalla rivillä.
-export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = false }) {
+// logo: ravintolan logo tutkan keskelle (illustrated-tila, käyttäjän valinta
+// 12.11.2026 "Tutka keskellä").
+export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = false, logo = null }) {
   const { order, offeredBids, acceptedBid, loaded, refresh } = useDeliveryNegotiation(orderId)
   const secondsLeft = useSecondsLeft(order?.bidding_expires_at)
   const [busy, setBusy] = useState(null)
@@ -56,6 +58,8 @@ export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = f
   const [confirmCancel, setConfirmCancel] = useState(false)
   // Tarjous, jonka kuljettajan profiili on auki (napautus kortista).
   const [profileBid, setProfileBid] = useState(null)
+  // Oma hinta piilossa linkin takana tutkanäkymässä, kunnes asiakas avaa sen.
+  const [offerOpen, setOfferOpen] = useState(false)
 
   if (!orderId || !loaded || !order) {
     return (
@@ -129,6 +133,27 @@ export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = f
 
   return (
     <section className={`bid-panel${illustrated ? ' bid-panel--fresh' : ''}`} aria-labelledby="bid-panel-title">
+      {illustrated ? (
+        // Tutka: ravintolan logo keskellä, sen ympärillä sykkivät renkaat.
+        <header className={`bid-radar${offeredBids.length > 0 ? ' bid-radar--compact' : ''}`}>
+          <div className="bid-radar__pulse" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+            <div className="bid-radar__logo">{logo}</div>
+          </div>
+          <h3 id="bid-panel-title" className="bid-radar__title">
+            {offeredBids.length > 0 ? 'Valitse kuljettaja' : 'Etsitään kuljettajaa'}
+          </h3>
+          <p className="bid-radar__sub">
+            {expired
+              ? 'Tarjousaika päättyi'
+              : secondsLeft != null
+                ? `Tarjouksia vielä ${formatClock(secondsLeft)}`
+                : 'Tarjouksia tulossa'}
+          </p>
+        </header>
+      ) : (
       <header className="bid-panel__head">
         <h3 id="bid-panel-title">Kuljettajien tarjoukset</h3>
         {secondsLeft != null && (
@@ -138,18 +163,10 @@ export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = f
           </span>
         )}
       </header>
+      )}
 
       {offeredBids.length === 0 && illustrated ? (
-        <div className="bid-panel__waiting">
-          <p>
-            Odotetaan tarjouksia
-            <span className="bid-panel__dots" aria-hidden="true">
-              <i />
-              <i />
-              <i />
-            </span>
-          </p>
-        </div>
+        <p className="bid-radar__hint">Lähellä olevien kuljettajien tarjoukset ilmestyvät tähän.</p>
       ) : offeredBids.length === 0 ? (
         <p className="bid-panel__empty">
           <span className="bid-panel__pulse" aria-hidden="true" />
@@ -157,11 +174,13 @@ export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = f
         </p>
       ) : (
         <ul className="bid-panel__list" aria-live="polite">
-          {offeredBids.map((bid) => {
+          {offeredBids.map((bid, index) => {
             const distance = formatKm(bid.distance_km)
+            // Edullisin tarjous merkitään, kun valittavaa on useampi (lista on hinnan mukaan).
+            const cheapest = index === 0 && offeredBids.length > 1
             const reviewCount = bid.courier_review_count ?? 0
             return (
-              <li key={bid.id} className="bid-card">
+              <li key={bid.id} className={`bid-card${cheapest ? ' bid-card--cheapest' : ''}`}>
                 {/* Kuva, nimi ja tähdet: napautus avaa kuljettajan koko profiilin. */}
                 <button
                   type="button"
@@ -190,7 +209,10 @@ export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = f
                     </span>
                   </span>
                 </button>
-                <span className="bid-card__price">{formatPrice(bid.price_cents)}</span>
+                <span className="bid-card__price">
+                  {cheapest && <small className="bid-card__tag">Edullisin</small>}
+                  {formatPrice(bid.price_cents)}
+                </span>
                 <button
                   type="button"
                   className="bid-card__accept"
@@ -219,15 +241,39 @@ export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = f
         />
       )}
 
-      <div className="bid-panel__offer">
+      {illustrated && !offerOpen && activeOffer == null ? (
+        <button type="button" className="bid-radar__offer-link" onClick={() => setOfferOpen(true)}>
+          Tarjoa omaa hintaa
+          <ChevronRight size={16} strokeWidth={2.2} aria-hidden="true" />
+        </button>
+      ) : (
+      <div className={`bid-panel__offer${illustrated ? ' bid-offer-apple' : ''}`}>
         <div className="bid-panel__offer-text">
-          <strong>{activeOffer ? 'Oma tarjouksesi' : 'Kirjoita oma hintasi'}</strong>
-          <span>
-            {activeOffer
-              ? `${formatPrice(activeOffer)} näkyy kuljettajille. Ensimmäinen sen hyväksyvä valitaan heti.`
-              : 'Kuljettaja, joka hyväksyy hintasi, valitaan heti.'}{' '}
-            Kirjoita tarkka summa {formatPrice(DELIVERY_BID.minCents)}–{formatPrice(DELIVERY_BID.maxCents)}.
+          <span className="bid-panel__offer-head">
+            <strong>{activeOffer ? 'Oma tarjouksesi' : illustrated ? 'Mitä maksaisit kuljetuksesta?' : 'Kirjoita oma hintasi'}</strong>
+            {/* Avatun oman hinnan voi sulkea takaisin linkiksi (käyttäjän pyyntö 12.11.2026). */}
+            {illustrated && offerOpen && activeOffer == null && (
+              <button
+                type="button"
+                className="bid-panel__offer-close"
+                aria-label="Sulje oma hinta"
+                onClick={() => {
+                  setOfferOpen(false)
+                  setDraftText(null)
+                }}
+              >
+                <X size={16} strokeWidth={2.2} aria-hidden="true" />
+              </button>
+            )}
           </span>
+          {illustrated ? null : (
+            <span>
+              {activeOffer
+                ? `${formatPrice(activeOffer)} näkyy kuljettajille. Ensimmäinen sen hyväksyvä valitaan heti.`
+                : 'Kuljettaja, joka hyväksyy hintasi, valitaan heti.'}{' '}
+              Kirjoita tarkka summa {formatPrice(DELIVERY_BID.minCents)}–{formatPrice(DELIVERY_BID.maxCents)}.
+            </span>
+          )}
         </div>
         <div className="bid-panel__offer-controls">
           <div className="bid-stepper">
@@ -263,6 +309,27 @@ export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = f
               <Plus size={16} strokeWidth={2.4} />
             </button>
           </div>
+          {illustrated && (
+            // Vedettävä oranssi palkki hinnan valintaan (käyttäjän pyyntö 12.11.2026).
+            <span className="bid-offer-apple__range">
+              <small>{formatPrice(DELIVERY_BID.minCents)}</small>
+              <input
+                type="range"
+                className="bid-offer-apple__slider"
+                min={DELIVERY_BID.minCents}
+                max={DELIVERY_BID.maxCents}
+                step={10}
+                value={baseCents}
+                disabled={expired}
+                aria-label="Vedä hintaa"
+                style={{
+                  '--pct': `${((baseCents - DELIVERY_BID.minCents) / (DELIVERY_BID.maxCents - DELIVERY_BID.minCents)) * 100}%`,
+                }}
+                onChange={(e) => setDraftText(bidInputText(clampBidCents(Number(e.target.value))))}
+              />
+              <small>{formatPrice(DELIVERY_BID.maxCents)}</small>
+            </span>
+          )}
           <button
             type="button"
             className="bid-panel__offer-btn"
@@ -271,10 +338,11 @@ export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = f
           >
             {busy === 'offer' ? (
               <span className="bid-panel__spinner" aria-hidden="true" />
-            ) : activeOffer ? (
-              'Päivitä'
             ) : (
-              'Tarjoa'
+              <>
+                {activeOffer ? 'Päivitä' : 'Tarjoa'}
+                {illustrated && draftCents != null ? ` ${formatPrice(draftCents)}` : ''}
+              </>
             )}
           </button>
         </div>
@@ -289,6 +357,8 @@ export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = f
           </button>
         )}
       </div>
+
+      )}
 
       {error && (
         <p className="bid-panel__error" role="alert">
