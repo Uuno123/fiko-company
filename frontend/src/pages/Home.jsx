@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Bell, ChevronDown, Search, SlidersHorizontal, Sm
 import MobileMenu from '../components/MobileMenu.jsx'
 import HomeDesktopGrid from '../components/HomeDesktopGrid.jsx'
 import SearchStart from '../components/SearchStart.jsx'
+import SearchDialog from '../components/SearchDialog.jsx'
 import { rememberSearch } from '../lib/recentSearches.js'
 import { OPEN_TRACKING_EVENT } from '../components/ActiveOrderBubble.jsx'
 import PromoCarousel from '../components/PromoCarousel.jsx'
@@ -159,15 +160,6 @@ const PROMO_ITEMS = [
 // Hakupalkissa yksi selkeä teksti (käyttäjän pyyntö 4.11.2026, aiemmin
 // vaihtuva vihje).
 const SEARCH_PLACEHOLDER = 'Hae ravintoloita ja ruokia'
-
-// Tervehdys vuorokaudenajan mukaan (työpöydän otsikko, 10.11.2026).
-function greeting() {
-  const hour = new Date().getHours()
-  if (hour < 5) return 'Hyvää yötä'
-  if (hour < 10) return 'Hyvää huomenta'
-  if (hour < 17) return 'Hyvää päivää'
-  return 'Hyvää iltaa'
-}
 
 // Tasainen mutta sekoitettu järjestys "Kokeile jotain uutta" -riville.
 function nameHash(name) {
@@ -337,6 +329,7 @@ function Home() {
   const [adIndex, setAdIndex] = useState(0)
   const { favoriteIds, toggleFavorite } = useFavorites()
   const [searchOpen, setSearchOpen] = useState(false)
+  const [desktopSearchOpen, setDesktopSearchOpen] = useState(false)
   // "Avaa sovellus" -napin paneeli (käyttäjän pyyntö 3.11.2026).
   const [appSheetOpen, setAppSheetOpen] = useState(false)
   // Työpöydän kategoriarivin vierityspainike.
@@ -677,6 +670,14 @@ function Home() {
 
   return (
     <div className={`page page--home${isAuthenticated ? '' : ' is-guest'}`}>
+      {desktopSearchOpen && (
+        <SearchDialog
+          restaurants={allRowRestaurants}
+          categories={[...new Set([...popularSearches, ...searchCategories])].slice(0, 8)}
+          onClose={() => setDesktopSearchOpen(false)}
+        />
+      )}
+
       {/* Mobiilin koko ruudun hakunäkymä. Ehdotukset tulevat samasta
           SearchSuggest-komponentista kuin headerin pudotusvalikossa. */}
       {searchOpen && (
@@ -752,7 +753,8 @@ function Home() {
               type="button"
               className="home-header-search"
               aria-label="Hae ravintoloita ja ruokia"
-              onClick={() => setSearchOpen(true)}
+              // Leveällä näytöllä hakuikkuna, puhelimella koko ruudun haku.
+              onClick={() => (window.matchMedia('(min-width: 781px)').matches ? setDesktopSearchOpen(true) : setSearchOpen(true))}
             >
               <Search size={20} strokeWidth={2.2} aria-hidden="true" />
             </button>
@@ -959,11 +961,10 @@ function Home() {
 
           {/* Työpöydällä teksti kategorioiden jälkeen (käyttäjän pyyntö 29.10.2026). */}
           <div className="home-intro">
-            {/* Uusi työpöytä (10.11.2026): tervehdys vuorokaudenajan mukaan ja
-                Bidropin oma lupaus. */}
+            {/* Sama otsikko kuin työpöydän herossa tervehdyksen tilalla
+                (käyttäjän pyyntö 13.11.2026). */}
             <h1>
-              {greeting()}
-              {customer?.name ? `, ${customer.name.split(' ')[0]}` : ''}
+              Nälkä? <span>Hoidetaan.</span>
             </h1>
             <p>Kuopion ravintolat ovelle. Kuljettajat tarjoavat hinnan, sinä valitset.</p>
           </div>

@@ -6399,3 +6399,58 @@
     margin-left: calc(var(--wrap-gutter) + 24px + 170px + 56px) !important;
   }
 }
+
+/* Pienillä tietokonenäytöillä ei sivupalkkia (käyttäjän pyyntö 13.11.2026):
+   sisältö ja footer koko leveydelle. */
+@media (min-width: 1100px) and (max-width: 1199px) {
+  .page.page--home .home-sidebar {
+    display: none !important;
+  }
+
+  .page.page--home .home-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding-left: 40px !important;
+  }
+
+  .page.page--home .site-footer {
+    margin-left: 0 !important;
+  }
+
+  .page.page--home .site-footer__inner {
+    padding-left: 40px !important;
+  }
+}
+
+/* "Nälkä? Hoidetaan." samaan tyyliin kuin työpöydän herossa (13.11.2026). */
+.page--home .home-intro h1 {
+  font-family: 'Bricolage Grotesque', var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.page--home .home-intro h1 span {
+  color: var(--delivo-orange);
+}
+
+/* Kun hakupalkki ei mahdu (781-1199 px), headerissa hakunappi
+   (käyttäjän pyyntö 13.11.2026): pelkkä suurennuslasi kuten kori-ikoni. */
+@media (min-width: 781px) and (max-width: 1199px) {
+  .page .page--home .site-header .home-header-search,
+  .page.page--home .site-header .home-header-search {
+    display: grid !important;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: var(--delivo-black);
+    cursor: pointer;
+  }
+
+  .page--home .site-header .home-header-search:hover {
+    background: #f2f2f0;
+  }
+}

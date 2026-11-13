@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { BadgePercent, Bike, ChevronRight, Clock, Heart, Minus, Plus, Search, X } from 'lucide-react'
+import { BadgePercent, Bike, ChevronRight, Clock, Heart, Plus, Search, X } from 'lucide-react'
 import { ScoreSmiley } from '../components/Smiley.jsx'
 import { formatScore } from '../lib/score.js'
 import { brandLogoFor } from '../lib/brandLogos.js'
-import CartIcon from '../components/CartIcon.jsx'
 import { categorySlug } from '../lib/categories.js'
 import Header from '../components/Header.jsx'
+import MainHeader from '../components/MainHeader.jsx'
 import Footer from '../components/Footer.jsx'
 import Skeleton from '../components/Skeleton.jsx'
 import RestaurantAvatarPlaceholder from '../components/RestaurantAvatarPlaceholder.jsx'
@@ -103,89 +103,6 @@ function useCompactLayout() {
     return () => mql.removeEventListener('change', update)
   }, [])
   return compact
-}
-
-// Työpöydän oikean reunan oma tilaus (käyttäjän valinta 30.10.2026): tämän
-// ravintolan rivit ostoskorista, määrän muutos ja siirtyminen kassalle.
-// Näkyy vain leveällä näytöllä (RestaurantPage.css).
-function RestaurantCartPanel({ restaurant, cart }) {
-  const navigate = useNavigate()
-  const group = cart.groups.find((g) => g.restaurantId === restaurant.id)
-  const lines = group?.lines ?? []
-  const subtotal = lines.reduce((sum, line) => sum + line.quantity * (line.unitPriceCents ?? line.item.price_cents), 0)
-  const otherRestaurants = cart.groups.filter((g) => g.restaurantId !== restaurant.id).length
-
-  return (
-    <aside className="restaurant-cart" aria-labelledby="restaurant-cart-title">
-      <h2 id="restaurant-cart-title" className="restaurant-cart__title">
-        Tilauksesi
-      </h2>
-      {lines.length === 0 ? (
-        <p className="restaurant-cart__empty">
-          <CartIcon size={24} strokeWidth={1.7} />
-          Lisää tuotteita, niin ne näkyvät tässä.
-        </p>
-      ) : (
-        <>
-          <ul className="restaurant-cart__lines">
-            {lines.map((line) => {
-              const key = `${line.item.id}|${line.optionsKey ?? ''}`
-              const unit = line.unitPriceCents ?? line.item.price_cents
-              return (
-                <li key={key} className="restaurant-cart__line">
-                  {/* Tuotekuva rivillä (käyttäjän pyyntö 30.10.2026). */}
-                  <span className="restaurant-cart__thumb" aria-hidden="true">
-                    {line.item.image_url ? (
-                      <img src={line.item.image_url} alt="" />
-                    ) : (
-                      <RestaurantAvatarPlaceholder name={line.item.name} size="thumb" />
-                    )}
-                  </span>
-                  <span className="restaurant-cart__name">
-                    {line.item.name}
-                    {line.selectedOptions?.length > 0 && (
-                      <small>{line.selectedOptions.map((o) => o.name).join(', ')}</small>
-                    )}
-                  </span>
-                  <span className="restaurant-cart__qty">
-                    <button
-                      type="button"
-                      aria-label={`Vähennä: ${line.item.name}`}
-                      onClick={() => cart.setQuantity(restaurant.id, line.item.id, line.quantity - 1, line.optionsKey ?? null)}
-                    >
-                      <Minus size={14} strokeWidth={2.4} aria-hidden="true" />
-                    </button>
-                    <span>{line.quantity}</span>
-                    <button
-                      type="button"
-                      aria-label={`Lisää: ${line.item.name}`}
-                      onClick={() => cart.setQuantity(restaurant.id, line.item.id, line.quantity + 1, line.optionsKey ?? null)}
-                    >
-                      <Plus size={14} strokeWidth={2.4} aria-hidden="true" />
-                    </button>
-                  </span>
-                  <span className="restaurant-cart__price">{formatPrice(unit * line.quantity)}</span>
-                </li>
-              )
-            })}
-          </ul>
-          <p className="restaurant-cart__total">
-            <span>Välisumma</span>
-            <strong>{formatPrice(subtotal)}</strong>
-          </p>
-          <p className="restaurant-cart__note">Kuljetuksen hinta {DELIVERY_PRICE_RANGE} sovitaan tilauksen jälkeen.</p>
-          <button type="button" className="restaurant-cart__checkout" onClick={() => navigate('/ostoskori')}>
-            Siirry kassalle
-          </button>
-        </>
-      )}
-      {otherRestaurants > 0 && (
-        <p className="restaurant-cart__note">
-          Ostoskorissa myös {otherRestaurants} {otherRestaurants === 1 ? 'muu ravintola' : 'muuta ravintolaa'}.
-        </p>
-      )}
-    </aside>
-  )
 }
 
 // Aika päivän tarjousten loppuun (keskiyö Suomen aikaa), päivittyy sekunnin välein.
@@ -528,45 +445,51 @@ function RestaurantPage() {
 
   return (
     <div className="page page--restaurant">
-      <Header
-        // Takaisin-nuoli vain kapealla näytöllä. Työpöydällä headerissa on Bidrop-logo
-        // kuten muillakin sivuilla (käyttäjän pyyntö 28.10.2026) - logo vie
-        // etusivulle, ja selaimen oma takaisin-nappi riittää.
-        back={compactLayout}
-        showAddress
-        variant={compactLayout ? 'overlay' : undefined}
-        // Kapealla näytöllä sydän ja haku headerissa tilivalikon tilalla (Woltin
-        // malli). Työpöydällä ne ovat ravintolan tietojen tasolla oikealla
-        // (hakukenttä + sydän), ja headerissa on tilivalikko.
-        actions={
-          compactLayout && restaurant ? (
-            <div className="site-header__round-actions">
-              {favoriteButton}
-              <button
-                type="button"
-                className="site-header__round-btn"
-                aria-label="Hae ruokalistasta"
-                onClick={() => setMenuSearchOpen(true)}
-              >
-                <Search size={18} strokeWidth={2} aria-hidden="true" />
-              </button>
-            </div>
-          ) : undefined
-        }
-        hideAccount={compactLayout}
-        cart={
-          cart.count > 0
-            ? {
-                count: cart.count,
-                totalCents: cart.totalCents,
-                groups: cart.groups,
-                onClear: cart.clear,
-                onClearRestaurant: cart.clearRestaurant,
-                formatPrice,
-              }
-            : null
-        }
-      />
+      {/* Isolla näytöllä sama header kuin etusivulla (käyttäjän pyyntö
+          13.11.2026), puhelimella entinen kuvan päällä oleva header. */}
+      {compactLayout ? (
+        <Header
+          // Takaisin-nuoli vain kapealla näytöllä. Työpöydällä headerissa on Bidrop-logo
+          // kuten muillakin sivuilla (käyttäjän pyyntö 28.10.2026) - logo vie
+          // etusivulle, ja selaimen oma takaisin-nappi riittää.
+          back={compactLayout}
+          showAddress
+          variant={compactLayout ? 'overlay' : undefined}
+          // Kapealla näytöllä sydän ja haku headerissa tilivalikon tilalla (Woltin
+          // malli). Työpöydällä ne ovat ravintolan tietojen tasolla oikealla
+          // (hakukenttä + sydän), ja headerissa on tilivalikko.
+          actions={
+            compactLayout && restaurant ? (
+              <div className="site-header__round-actions">
+                {favoriteButton}
+                <button
+                  type="button"
+                  className="site-header__round-btn"
+                  aria-label="Hae ruokalistasta"
+                  onClick={() => setMenuSearchOpen(true)}
+                >
+                  <Search size={18} strokeWidth={2} aria-hidden="true" />
+                </button>
+              </div>
+            ) : undefined
+          }
+          hideAccount={compactLayout}
+          cart={
+            cart.count > 0
+              ? {
+                  count: cart.count,
+                  totalCents: cart.totalCents,
+                  groups: cart.groups,
+                  onClear: cart.clear,
+                  onClearRestaurant: cart.clearRestaurant,
+                  formatPrice,
+                }
+              : null
+          }
+        />
+      ) : (
+        <MainHeader />
+      )}
 
       <main className="restaurant-page">
         {status === 'loading' && <Skeleton variant="restaurant" label="Ladataan ravintolaa" />}
@@ -856,7 +779,6 @@ function RestaurantPage() {
                 </div>
                 </div>
 
-                {!compactLayout && <RestaurantCartPanel restaurant={restaurant} cart={cart} />}
               </>
             ) : (
               <div className="coming-soon">

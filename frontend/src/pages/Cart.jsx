@@ -26,7 +26,7 @@ import AddressPickerModal from '../components/AddressPickerModal.jsx'
 import DeliveryAddressForm from '../components/DeliveryAddressForm.jsx'
 import DeliveryBidPanel from '../components/DeliveryBidPanel.jsx'
 import DeliveryRouteMap from '../components/DeliveryRouteMap.jsx'
-import CourierBidsIntro from '../components/CourierBidsIntro.jsx'
+import '../components/OrderTrackingModal.css'
 import { geocodeAddress, haversineKm } from '../lib/geocode.js'
 import { getDeliveryAddress } from '../lib/deliveryAddress.js'
 import { DELIVERY_PRICE_RANGE } from '../lib/delivery.js'
@@ -700,6 +700,7 @@ function Cart() {
         lat: restaurant?.lat,
         lng: restaurant?.lng,
         address: restaurant?.address,
+        image_url: restaurant?.image_url,
       },
       order_items: group.lines.map((line) => ({
         id: line.item.id + (line.optionsKey ?? ''),
@@ -1653,11 +1654,61 @@ function Cart() {
 
         {/* Tilauksen jälkeen pelkkä vahvistus (käyttäjän toive) - seuranta
             löytyy etusivun "Seuraa tilausta" -kuplasta. */}
-        {step === 'success' && order && (
-          <div className={`cart-empty order-done${order.status === 'awaiting_courier' ? ' order-done--bids' : ''}`}>
-            {order.status === 'awaiting_courier' ? (
-              <CourierBidsIntro />
-            ) : (
+        {step === 'success' && order && order.status === 'awaiting_courier' && (
+          // Kuljettajan etsintä samalla tutkalla kuin seurannassa (käyttäjän
+          // pyyntö 12.11.2026: vanha kuvitus + vaihelista + laatikot pois).
+          <div className="order-radar">
+            <div className="tracking__bids">
+              <DeliveryBidPanel
+                orderId={order.id}
+                illustrated
+                logo={(() => {
+                  const thumb = restaurantThumb(order.restaurants?.name, order.restaurants?.image_url)
+                  return thumb ? (
+                    <img
+                      src={thumb.src}
+                      alt=""
+                      className={thumb.logo ? 'brand-thumb-logo' : undefined}
+                      style={thumb.style}
+                    />
+                  ) : (
+                    (order.restaurants?.name ?? 'R').trim().charAt(0).toUpperCase()
+                  )
+                })()}
+              />
+            </div>
+
+            <p className="order-radar__facts">
+              <span>{order.restaurants?.name}</span>
+              <span>{order.order_number}</span>
+              <span>{formatPrice(order.total_cents)}</span>
+            </p>
+
+            {remainingGroups.length > 0 && (
+              <div className="order-success__more">
+                <p>Korissasi on vielä tilaamattomia tuotteita:</p>
+                {remainingGroups.map((group) => (
+                  <button
+                    key={group.restaurantId}
+                    type="button"
+                    className="order-success__more-btn"
+                    onClick={() => resumeCheckout(group.restaurantId)}
+                  >
+                    Tilaa {group.restaurantName} ({groupCount(group)} tuotetta) →
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <Link to="/" className="order-radar__home">
+              Takaisin etusivulle
+            </Link>
+          </div>
+        )}
+
+        {step === 'success' && order && order.status !== 'awaiting_courier' && (
+          <div className="cart-empty order-done">
+            {(
               <>
                 <div className="cart-empty__icon order-done__icon">
                   <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -1692,12 +1743,6 @@ function Cart() {
                 </div>
               )}
             </dl>
-
-            {order.status === 'awaiting_courier' && order.id && (
-              <div className="order-done__bids">
-                <DeliveryBidPanel orderId={order.id} />
-              </div>
-            )}
 
             {remainingGroups.length > 0 && (
               <div className="order-success__more">
