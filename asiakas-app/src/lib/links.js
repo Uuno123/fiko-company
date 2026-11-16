@@ -3,6 +3,5 @@
 // "Unohditko salasanan?"). Vaihdetaan, kun Bidropilla on oma verkkotunnus.
 export const WEBSITE_URL = 'https://delivo1.onrender.com'
 
-// Kirjautuneen etusivu. Ravintolalistaa ei ole vielä tehty, joten polku vie
-// toistaiseksi "Tulossa pian" -näkymään (app/+not-found.jsx).
+// Kirjautuneen etusivu: Koti-välilehti (app/(tabs)/ravintolat.jsx).
 export const HOME_PATH = '/ravintolat'

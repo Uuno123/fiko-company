@@ -9,6 +9,8 @@ export const colors = {
   textMuted: '#6c7066',
   open: '#2fae4e',
   danger: '#e0455b',
+  // Tarjouspillerit: sama punainen kuin verkkosivulla (sovellus kuten web 15.11.2026).
+  offerRed: '#e3262f',
   // Neutraalit harmaat pinnoille, reunoille ja painalluksille - ei verkkosivun
   // kellertäviä surface-muted- ja border-sävyjä (käyttäjä halusi valkoista ja
   // harmaata, ei kellertävää).
@@ -29,4 +31,7 @@ export const fonts = {
   medium: 'Inter_500Medium',
   semibold: 'Inter_600SemiBold',
   bold: 'Inter_700Bold',
+  // Isot otsikot kuten verkkosivulla nykyään (Bricolage Grotesque, 15.11.2026).
+  heading: 'BricolageGrotesque_800ExtraBold',
+  headingBold: 'BricolageGrotesque_700Bold',
 }

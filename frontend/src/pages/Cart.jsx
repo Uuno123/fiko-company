@@ -19,12 +19,12 @@ import {
 } from 'lucide-react'
 import { Elements, PaymentElement, useElements, useStripe } from '@stripe/react-stripe-js'
 import AccountMenu from '../components/AccountMenu.jsx'
-import CartIcon from '../components/CartIcon.jsx'
 import DelivoLogo from '../components/DelivoLogo.jsx'
 import { estimatedArrivalAt } from '../lib/orderStatus.js'
 import AddressPickerModal from '../components/AddressPickerModal.jsx'
 import DeliveryAddressForm from '../components/DeliveryAddressForm.jsx'
 import DeliveryBidPanel from '../components/DeliveryBidPanel.jsx'
+import PaySuccessOverlay from '../components/PaySuccessOverlay.jsx'
 import DeliveryRouteMap from '../components/DeliveryRouteMap.jsx'
 import '../components/OrderTrackingModal.css'
 import { geocodeAddress, haversineKm } from '../lib/geocode.js'
@@ -442,6 +442,8 @@ function Cart() {
   const [paymentIntent, setPaymentIntent] = useState(null)
   const [creatingIntent, setCreatingIntent] = useState(false)
   const [placingOrder, setPlacingOrder] = useState(false)
+  // Pikamaksun animaatio: { phase: 'processing' | 'done', method, amountCents }.
+  const [payAnim, setPayAnim] = useState(null)
   const paymentElementRef = useRef(null)
   const [quickPayMethod, setQuickPayMethod] = useState('visa')
   const fetchedRestaurantIds = useRef(new Set())
@@ -794,9 +796,15 @@ function Cart() {
     setPayError('')
     const { restaurantId, lines } = activeGroup
     const estimatedReadyAt = new Date(Date.now() + activePickupMinutes * 60 * 1000)
+    // Maksuanimaatio: ensin "Maksetaan…", onnistuessa "Maksu onnistui" (15.11.2026).
+    const animStarted = Date.now()
+    setPayAnim({ phase: 'processing', method: quickPayMethod, amountCents: totalNow })
     try {
       const deliveryCoords = await locateDeliveryAddress()
-      if (!deliveryCoords) return
+      if (!deliveryCoords) {
+        setPayAnim(null)
+        return
+      }
       const orderRow = await saveOrderRows({
         restaurantId,
         lines,
@@ -811,6 +819,11 @@ function Cart() {
           totalCents: totalNow,
         },
       })
+      // Käsittely näkyy vähintään hetken, sitten onnistuminen ennen vahvistusta.
+      await new Promise((resolve) => setTimeout(resolve, Math.max(0, 900 - (Date.now() - animStarted))))
+      setPayAnim((current) => current && { ...current, phase: 'done' })
+      await new Promise((resolve) => setTimeout(resolve, 1900))
+      setPayAnim(null)
       setOrder(
         buildTrackingOrder({
           orderRow,
@@ -833,6 +846,7 @@ function Cart() {
       console.error('[delivo-frontend] Tilauksen tallennus epäonnistui:', err?.message ?? err)
       setPayError('Tilauksen tallennus epäonnistui. Yritä uudelleen.')
     } finally {
+      setPayAnim((current) => (current?.phase === 'done' ? current : null))
       setPlacingOrder(false)
     }
   }
@@ -968,13 +982,12 @@ function Cart() {
       >
         {step === 'review' && cart.count === 0 && (
           <div className="cart-empty">
-            {/* Sama ostoskärry-ikoni kuin headerissa (käyttäjän pyyntö 9.11.2026). */}
-            <div className="cart-empty__icon">
-              <CartIcon size={22} strokeWidth={1.8} />
-            </div>
-            {/* Persoonallisempi teksti (käyttäjän pyyntö 3.11.2026). */}
-            <h1>Kori on vielä tyhjä</h1>
-            <p>Nälkä ei lähe odottamalla. Valitse ravintola ja lisää koriin jotain hyvvee.</p>
+            {/* 3D-kassi ja sama teksti kuin sovelluksessa (käyttäjän pyyntö 16.11.2026). */}
+            <img className="cart-empty__bag" src="/empty-cart-bag.webp" alt="" width="180" height="180" />
+            <h1>
+              Kassi huutaa tyhjyyttään<span className="cart-empty__dot">.</span>
+            </h1>
+            <p>Nälkä? Hoidetaan. Valitse lähiravintola, niin täytetään tämä yhdessä.</p>
             <Link to="/" className="cart-empty__cta">
               Selaa ravintoloita
             </Link>
@@ -1765,6 +1778,7 @@ function Cart() {
             </Link>
           </div>
         )}
+        {payAnim && <PaySuccessOverlay phase={payAnim.phase} method={payAnim.method} amountCents={payAnim.amountCents} />}
       </main>
     </div>
   )
