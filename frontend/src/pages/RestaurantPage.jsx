@@ -158,6 +158,7 @@ function RestaurantPage() {
   const [quantity, setQuantity] = useState(1)
   const [optionSelections, setOptionSelections] = useState({})
   const [justAdded, setJustAdded] = useState(false)
+  const [addPulse, setAddPulse] = useState(false)
   const { customer } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -420,7 +421,13 @@ function RestaurantPage() {
     // Päivän tarjous alentaa perushintaa; backend laskee saman (payments.js).
     const unitPriceCents = dealPriceCents(selectedItem) + optionsDeltaCents
     cart.addItem(restaurant, selectedItem, quantity, { selectedOptions, unitPriceCents })
-    setJustAdded(true)
+    // Ei "Lisätty ostoskoriin" -tekstiä (15.11.2026): nappi tekee pienen
+    // painalluksen ja kiillon, teksti pysyy samana, ja ikkuna sulkeutuu.
+    setAddPulse(true)
+    setTimeout(() => {
+      setAddPulse(false)
+      closeModal()
+    }, 380)
   }
 
   function handleCardKeyDown(e, item) {
@@ -946,9 +953,9 @@ function RestaurantPage() {
 
                   <button
                     type="button"
-                    className={`item-modal__add${justAdded ? ' item-modal__add--added' : ''}`}
+                    className={`item-modal__add${justAdded ? ' item-modal__add--added' : ''}${addPulse ? ' item-modal__add--pulse' : ''}`}
                     onClick={addSelectedToCart}
-                    disabled={justAdded || !optionsValid}
+                    disabled={justAdded || addPulse || !optionsValid}
                   >
                     {justAdded ? (
                       <>

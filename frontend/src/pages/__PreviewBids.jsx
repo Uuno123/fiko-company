@@ -3,11 +3,14 @@
    reviewed without placing a real order. Same pattern as __PreviewCart.jsx. */
 import DeliveryBidPanel from '../components/DeliveryBidPanel.jsx'
 import '../components/OrderTrackingModal.css'
+import PaySuccessOverlay from '../components/PaySuccessOverlay.jsx'
 import './Cart.css'
 
 export default function PreviewBids() {
+  const pay = new URLSearchParams(window.location.search).get('pay')
   return (
     <div className="page page--cart">
+      {pay && <PaySuccessOverlay phase={pay} method="apple" amountCents={1153} />}
       <main className="cart-page">
         <div className="order-radar">
           <div className="tracking__bids">
