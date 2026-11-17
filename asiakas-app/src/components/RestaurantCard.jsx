@@ -4,6 +4,7 @@ import { Bike } from 'lucide-react-native'
 import { DELIVERY_PRICE_RANGE, formatEtaRange } from '../../../frontend/src/lib/delivery'
 import { formatScore } from '../../../frontend/src/lib/score'
 import { offerBadge } from '../../../frontend/src/lib/offers'
+import { formatDistance } from '../../../frontend/src/lib/distance'
 import { ScoreSmiley } from './Smiley'
 import { imageUri } from '../lib/restaurants'
 import { colors, fonts } from '../theme'
@@ -26,7 +27,8 @@ export function FadeImage({ uri, style, resizeMode = 'cover' }) {
 // Ravintolakortti täsmälleen kuten verkkosivun puhelinnäkymässä (mitattu
 // 390 px leveänä): kuva 2,15:1, nimi 13,5 px lihava, tietorivi 11,5 px ja
 // punainen tarjouspilleri tietorivin alla. large: tarjouspaneelien isompi kortti.
-export default function RestaurantCard({ restaurant, width, onPress, large = false }) {
+// showDistance: etäisyys tietorivillä (suodatetut listat, 17.11.2026).
+export default function RestaurantCard({ restaurant, width, onPress, large = false, imageAspect, showDistance = false }) {
   const { name, rating, free_delivery: freeDelivery, sponsored } = restaurant
   const eta = formatEtaRange(restaurant.pickup_estimate_minutes)
   const badge = offerBadge(restaurant)
@@ -41,7 +43,7 @@ export default function RestaurantCard({ restaurant, width, onPress, large = fal
       accessibilityRole="button"
       accessibilityLabel={badge ? `${name}, ${badge.text}` : name}
     >
-      <View style={[styles.imageWrap, large && styles.imageLarge]}>
+      <View style={[styles.imageWrap, large && styles.imageLarge, imageAspect && { aspectRatio: imageAspect }]}>
         {uri ? <FadeImage uri={uri} style={styles.image} /> : null}
       </View>
 
@@ -59,9 +61,15 @@ export default function RestaurantCard({ restaurant, width, onPress, large = fal
             <Text style={styles.metaText}>{formatScore(rating)}</Text>
           </View>
         ) : null}
-        {eta ? (
+        {showDistance && restaurant.distance_km != null ? (
           <View style={styles.metaItem}>
             {rating != null ? <Text style={styles.sep}>·</Text> : null}
+            <Text style={styles.metaText}>{formatDistance(restaurant.distance_km)}</Text>
+          </View>
+        ) : null}
+        {eta ? (
+          <View style={styles.metaItem}>
+            {rating != null || (showDistance && restaurant.distance_km != null) ? <Text style={styles.sep}>·</Text> : null}
             <Text style={styles.metaText}>{eta}</Text>
           </View>
         ) : null}

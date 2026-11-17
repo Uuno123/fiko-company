@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, FlatList, Image, RefreshControl, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, FlatList, Image, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useRouter } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 import { ReceiptText } from 'lucide-react-native'
 import { Button } from '../../components/ui'
 import TopBack, { TOP_BACK_SPACE } from '../../components/TopBack'
@@ -44,6 +44,12 @@ export default function OrdersScreen() {
     // Ensimmäinen haku seuraavassa mikrotehtävässä (ei synkronista tilapäivitystä efektissä).
     Promise.resolve().then(load)
   }, [load])
+  // Lista päivittyy, kun välilehdelle palataan (esim. seurannasta).
+  useFocusEffect(
+    useCallback(() => {
+      Promise.resolve().then(load)
+    }, [load]),
+  )
 
   if (!session) {
     return (
@@ -86,19 +92,20 @@ export default function OrdersScreen() {
               {status === 'error' ? 'Tilausten haku epäonnistui.' : 'Ei vielä tilauksia. Nälkä? Hoidetaan.'}
             </Text>
           }
-          renderItem={({ item }) => <OrderRow order={item} />}
+          renderItem={({ item }) => <OrderRow order={item} onPress={() => router.push(`/tilaus/${item.id}`)} />}
         />
       )}
     </View>
   )
 }
 
-function OrderRow({ order }) {
+// Rivi avaa tilauksen seurannan (app/tilaus/[id].jsx, 17.11.2026).
+function OrderRow({ order, onPress }) {
   const active = ACTIVE.includes(order.status)
   const thumb = restaurantThumb(order.restaurants?.name, order.restaurants?.image_url)
   const uri = imageUri(thumb?.src)
   return (
-    <View style={styles.row}>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]} accessibilityRole="button">
       <View style={styles.thumb}>
         {uri ? (
           <Image source={{ uri }} style={styles.thumbImage} resizeMode={thumb?.logo ? 'contain' : 'cover'} />
@@ -117,7 +124,7 @@ function OrderRow({ order }) {
       <Text style={[styles.status, active && styles.statusActive]}>
         {active ? customerStatusLabel(order) : order.status === 'cancelled' ? 'Peruttu' : 'Toimitettu'}
       </Text>
-    </View>
+    </Pressable>
   )
 }
 

@@ -36,7 +36,9 @@ export default function HomeScreen() {
   )
   const sections = useMemo(() => buildHomeSections(restaurants, address), [restaurants, address])
   const openRestaurant = (restaurant) => router.push(`/ravintola/${restaurant.id}`)
-  const searchFor =(q) => router.push({ pathname: '/haku', params: { q } })
+  // Tarjoukset avaa oman tarjoussivun (app/tarjoukset.jsx, 17.11.2026), muut haun.
+  const searchFor = (q) =>
+    q === 'Tarjoukset' ? router.push('/tarjoukset') : router.push({ pathname: '/haku', params: { q, t: String(Date.now()) } })
 
   return (
     <View style={styles.screen}>
@@ -94,7 +96,7 @@ export default function HomeScreen() {
             painallus avaa Haun kursori valmiiksi kentässä. Kategoriat poistettu
             (components/CategoryTiles.jsx talteen). */}
         <Pressable
-          onPress={() => router.push({ pathname: '/haku', params: { focus: '1' } })}
+          onPress={() => router.push({ pathname: '/haku', params: { focus: '1', t: String(Date.now()) } })}
           style={({ pressed }) => [styles.searchBar, pressed && styles.searchBarPressed]}
           accessibilityRole="search"
           accessibilityLabel="Hae ravintoloita ja ruokia"

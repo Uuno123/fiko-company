@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router'
 import { House, ReceiptText, Search, ShoppingCart } from 'lucide-react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useCart } from '../../lib/cart'
 import { colors, fonts } from '../../theme'
 
 // Perinteinen alapalkki koko leveydeltä näytön alareunassa (käyttäjän pyyntö
@@ -11,6 +12,7 @@ const hidden = { tabBarButton: () => null, tabBarItemStyle: { display: 'none' } 
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets()
+  const { count } = useCart()
   return (
     <Tabs
       screenOptions={{
@@ -43,6 +45,9 @@ export default function TabsLayout() {
         options={{
           title: 'Ostoskori',
           tabBarIcon: ({ color }) => <ShoppingCart size={23} strokeWidth={2} color={color} />,
+          // Korin tuotemäärä (17.11.2026).
+          tabBarBadge: count > 0 ? count : undefined,
+          tabBarBadgeStyle: { backgroundColor: colors.orange, color: '#ffffff', fontFamily: fonts.bold, fontSize: 11 },
         }}
       />
       <Tabs.Screen
