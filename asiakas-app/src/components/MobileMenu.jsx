@@ -33,7 +33,7 @@ export default function MobileMenu({ open, onClose }) {
     })
   }
   const go = (path) => close(() => router.push(path))
-  const search = (q) => go({ pathname: '/haku', params: { q } })
+  const search = (q) => go({ pathname: '/haku', params: { q, t: String(Date.now()) } })
 
   const firstName = customer?.name ? String(customer.name).split(' ')[0] : null
   const accountLinks = [

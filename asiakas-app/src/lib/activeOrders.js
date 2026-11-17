@@ -41,8 +41,11 @@ export function useHasActiveOrder() {
 
   useEffect(() => {
     if (!supabase || !userId) return undefined
+    // Yksilöllinen kanavan nimi: sama nimi kahdesti (sivu avautuu uudelleen
+    // ennen kuin vanha kanava on suljettu) antoi virheen "cannot add
+    // postgres_changes callbacks ... after subscribe()" (17.11.2026).
     const channel = supabase
-      .channel(`active-orders-${userId}`)
+      .channel(`active-orders-${userId}-${Math.random().toString(36).slice(2, 10)}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders', filter: `customer_id=eq.${userId}` },

@@ -35,6 +35,8 @@ const CATEGORIES = [
 ].map((category) => ({
   ...category,
   source: category.source ?? { uri: imageUri(CATEGORY_TILE_META[category.key]?.icon) },
+  // Kaikille laatoille oranssi tausta (käyttäjän pyyntö 17.11.2026).
+  tile: colors.orange,
 }))
 
 export default function CategoryTiles({ onSelect }) {
