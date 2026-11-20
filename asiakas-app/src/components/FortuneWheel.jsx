@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import Svg, { Circle, G, Path, Polygon, Text as SvgText } from 'react-native-svg'
-import BidropLogo from './BidropLogo'
 import {
   WHEEL_SEGMENTS,
   drawSegmentIndex,
@@ -16,9 +15,12 @@ const C = 150 // keskipiste viewBoxissa 0 0 300 300
 const R = 138
 const STEP = 360 / WHEEL_SEGMENTS.length
 
-// Lohkojen värit vuorotellen: oranssi, kerma, musta, kerma.
-const FILLS = [colors.orange, '#fff3ec', colors.black, '#fff3ec']
-const INKS = ['#ffffff', colors.black, '#ffffff', colors.black]
+// Kaksi väriä vuorotellen (20.11.2026). light: pyöräytyssivun valkoisella
+// pohjalla oranssi/kerma, dark: etusivun oranssissa bannerissa musta/kerma.
+const PALETTES = {
+  light: { fills: [colors.orange, '#fff3ec'], inks: ['#ffffff', colors.black], rim: colors.black },
+  dark: { fills: [colors.black, '#fff3ec'], inks: ['#ffffff', colors.black], rim: colors.black },
+}
 
 function point(angle, radius) {
   const rad = (angle * Math.PI) / 180
@@ -32,20 +34,22 @@ function segmentPath(index) {
 }
 
 // Pyörän kuva ilman toimintoja: käytössä myös etusivun bannerissa.
-export function WheelFace({ size }) {
+// labels=false: pieni kuvake ilman lohkojen tekstejä (etusivun rivi).
+export function WheelFace({ size, palette = 'dark', labels = true }) {
+  const { fills, inks, rim } = PALETTES[palette] ?? PALETTES.dark
   return (
     <Svg width={size} height={size} viewBox="0 0 300 300">
-      <Circle cx={C} cy={C} r={R + 8} fill={colors.black} />
+      <Circle cx={C} cy={C} r={R + 5} fill={rim} />
       {WHEEL_SEGMENTS.map((segment, i) => (
         <G key={segment.key}>
-          <Path d={segmentPath(i)} fill={FILLS[i % 4]} />
+          <Path d={segmentPath(i)} fill={fills[i % 2]} />
           <G rotation={i * STEP + STEP / 2} origin={`${C}, ${C}`}>
-            {segment.lines.map((line, row) => (
+            {(labels ? segment.lines : []).map((line, row) => (
               <SvgText
                 key={line}
                 x={C}
                 y={C - 100 + row * 14 - (segment.lines.length - 1) * 7}
-                fill={INKS[i % 4]}
+                fill={inks[i % 2]}
                 fontSize={segment.lines.length > 1 ? 11.5 : 15}
                 fontFamily={fonts.bold}
                 fontWeight="700"
@@ -57,11 +61,6 @@ export function WheelFace({ size }) {
           </G>
         </G>
       ))}
-      {/* Valot reunalla */}
-      {Array.from({ length: 16 }, (_, i) => {
-        const [x, y] = point(i * 22.5, R + 4)
-        return <Circle key={i} cx={x} cy={y} r={2.6} fill={i % 2 ? colors.orange : '#ffffff'} />
-      })}
     </Svg>
   )
 }
@@ -73,7 +72,6 @@ function msUntilMidnight(now = new Date()) {
   return next - now
 }
 
-const pad = (n) => String(n).padStart(2, '0')
 
 // Pyöräyttäneelle (käyttäjän pyyntö 16.11.2026): milloin voi pyöräyttää
 // seuraavan kerran ja laskuri sekunnin tarkkuudella.
@@ -96,16 +94,13 @@ function NextSpin({ onReady }) {
     return () => clearInterval(timer)
   }, [])
 
-  const total = Math.floor(left / 1000)
-  const h = Math.floor(total / 3600)
-  const m = Math.floor((total % 3600) / 60)
-  const sec = total % 60
+  const minutes = Math.ceil(left / 60000)
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
   return (
-    <View style={styles.next}>
-      <Text style={styles.nextLabel}>Voit pyöräyttää seuraavan kerran</Text>
-      <Text style={styles.nextTime}>{`${pad(h)}:${pad(m)}:${pad(sec)}`}</Text>
-      <Text style={styles.nextSub}>huomenna klo 00.00</Text>
-    </View>
+    <Text style={styles.next}>
+      Uusi pyöräytys {h > 0 ? `${h} h ${m} min` : `${m} min`} päästä.
+    </Text>
   )
 }
 
@@ -170,139 +165,102 @@ export default function FortuneWheel({ userId, onLogin, style }) {
   const won = Boolean(result?.prize)
 
   return (
-    <View style={[styles.card, style]}>
-      {/* Oranssi kortti (käyttäjän pyyntö 16.11.2026): valkoinen otsikko, musta piste. */}
-      {/* Otsikko keskitettynä pyörän kanssa: pieni musta merkki, iso otsikko. */}
-      <View style={styles.eyebrow}>
-        <Text style={styles.eyebrowText}>KERRAN PÄIVÄSSÄ</Text>
-      </View>
+    <View style={[styles.wrap, style]}>
+      {/* Tavallinen sivu (20.11.2026, vähemmän tekoälymäinen): vasemmalle
+          tasattu otsikko, pyörä, tulos tekstinä ja palkinnot listana. */}
       <Text style={styles.title} accessibilityRole="header">
-        Päivän onnenpyörä<Text style={styles.titleDot}>.</Text>
+        Onnenpyörä
       </Text>
-      <Text style={styles.text}>Voita ilmainen ruoka, kuljetus tai alennus.</Text>
+      <Text style={styles.text}>Pyöräytä kerran päivässä. Voitto tulee tilillesi seuraavaa tilausta varten.</Text>
 
       <View style={styles.wheelWrap}>
         <Animated.View style={{ width: SIZE, height: SIZE, transform: [{ rotate }] }}>
-          <WheelFace size={SIZE} />
+          <WheelFace size={SIZE} palette="light" />
         </Animated.View>
 
         {/* Osoitin ylhäällä */}
-        <Svg width={34} height={30} viewBox="0 0 34 30" style={styles.pointer}>
-          <Polygon points="17,28 3,4 31,4" fill={colors.black} stroke="#ffffff" strokeWidth={3} strokeLinejoin="round" />
+        <Svg width={22} height={20} viewBox="0 0 22 20" style={styles.pointer}>
+          <Polygon points="11,19 2,2 20,2" fill={colors.black} />
         </Svg>
 
         {/* Keskinappi */}
         <Pressable
           onPress={spin}
           disabled={phase === 'spinning' || phase === 'loading' || phase === 'done'}
-          style={({ pressed }) => [styles.hub, pressed && { transform: [{ scale: 0.95 }] }]}
+          style={({ pressed }) => [styles.hub, phase === 'done' && styles.hubDone, pressed && { opacity: 0.85 }]}
           accessibilityRole="button"
           accessibilityLabel={userId ? 'Pyöritä onnenpyörää' : 'Kirjaudu pyöräyttääksesi'}
         >
-          {phase === 'done' ? (
-            <BidropLogo size={11} dark style={{ alignSelf: 'center' }} />
-          ) : (
-            <Text style={styles.hubText}>{userId ? 'PYÖRITÄ' : 'KIRJAUDU'}</Text>
-          )}
+          <Text style={[styles.hubText, phase === 'done' && styles.hubTextDone]}>
+            {phase === 'done' ? 'Huomenna' : userId ? 'Pyöritä' : 'Kirjaudu'}
+          </Text>
         </Pressable>
       </View>
 
       {phase === 'done' && result ? (
-        <View style={[styles.result, won && styles.resultWon]}>
-          <Text style={[styles.resultTitle, won && styles.resultTitleWon]}>
-            {won ? `Voitit: ${result.prize}!` : 'Ei tällä kertaa.'}
-          </Text>
-          <Text style={[styles.resultText, won && styles.resultTextWon]}>
-            {won ? 'Etu tallentui tilillesi seuraavaa tilausta varten.' : 'Onni kääntyy vielä.'}
-          </Text>
+        <View style={styles.result}>
+          <Text style={styles.resultTitle}>{won ? `Voitit: ${result.prize}.` : 'Ei voittoa tänään.'}</Text>
+          {won ? <Text style={styles.resultText}>Etu on tililläsi ja näkyy kassalla.</Text> : null}
+          <NextSpin
+            onReady={() => {
+              rotation.setValue(0)
+              setResult(null)
+              setPhase('ready')
+            }}
+          />
         </View>
-      ) : null}
-      {phase === 'done' && result ? (
-        <NextSpin
-          onReady={() => {
-            rotation.setValue(0)
-            setResult(null)
-            setPhase('ready')
-          }}
-        />
       ) : (
-        <Text style={styles.hint}>
-          {userId ? 'Paina keskeltä ja jännitä.' : 'Kirjaudu sisään, niin voitot tallentuvat tilillesi.'}
-        </Text>
+        <Text style={styles.hint}>{userId ? 'Paina keskeltä.' : 'Kirjaudu sisään pyöräyttääksesi.'}</Text>
       )}
+
+      <Text style={styles.prizesTitle}>Palkinnot</Text>
+      {PRIZES.map((prize) => (
+        <View key={prize} style={styles.prizeRow}>
+          <View style={styles.prizeDot} />
+          <Text style={styles.prizeText}>{prize}</Text>
+        </View>
+      ))}
     </View>
   )
 }
 
+// Palkinnot listana (sama järjestys kuin arvon todennäköisyys, harvinaisin ensin).
+const PRIZES = [
+  'Ilmainen ruoka, enintään 15 €',
+  'Ilmainen kuljetus',
+  '−15 % seuraavasta tilauksesta',
+  '−2 € seuraavasta tilauksesta',
+]
+
 const styles = StyleSheet.create({
-  card: {
-    marginTop: 34,
-    marginHorizontal: 16,
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 18,
-    borderRadius: 24,
-    backgroundColor: colors.orange,
-  },
-  eyebrow: {
-    alignSelf: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: colors.black,
-  },
-  eyebrowText: { fontFamily: fonts.bold, fontSize: 10.5, letterSpacing: 1.4, color: '#ffffff' },
-  title: {
-    marginTop: 10,
-    textAlign: 'center',
-    fontFamily: fonts.headingBold,
-    fontSize: 28,
-    lineHeight: 32,
-    letterSpacing: -0.6,
-    color: '#ffffff',
-  },
-  titleDot: { color: colors.black },
-  text: {
-    marginTop: 6,
-    textAlign: 'center',
-    fontFamily: fonts.medium,
-    fontSize: 14,
-    lineHeight: 19,
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  wheelWrap: { alignSelf: 'center', width: SIZE, height: SIZE, marginTop: 22 },
-  pointer: { position: 'absolute', top: -12, left: SIZE / 2 - 17 },
+  wrap: { paddingHorizontal: 16 },
+  title: { fontFamily: fonts.headingBold, fontSize: 28, letterSpacing: -0.6, color: colors.black },
+  text: { marginTop: 4, fontFamily: fonts.regular, fontSize: 14.5, lineHeight: 20, color: colors.textMuted },
+  wheelWrap: { alignSelf: 'center', width: SIZE, height: SIZE, marginTop: 30 },
+  pointer: { position: 'absolute', top: -6, left: SIZE / 2 - 11 },
   hub: {
     position: 'absolute',
-    top: SIZE / 2 - 36,
-    left: SIZE / 2 - 36,
-    width: 72,
-    height: 72,
+    top: SIZE / 2 - 34,
+    left: SIZE / 2 - 34,
+    width: 68,
+    height: 68,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 4,
+    borderWidth: 3,
     borderColor: '#ffffff',
-    borderRadius: 36,
+    borderRadius: 34,
     backgroundColor: colors.black,
-    boxShadow: '0 4px 14px rgba(20, 21, 15, 0.35)',
   },
-  hubText: { fontFamily: fonts.bold, fontSize: 11, letterSpacing: 0.8, color: '#ffffff' },
-  next: { marginTop: 18, alignItems: 'center' },
-  nextLabel: { fontFamily: fonts.medium, fontSize: 13, color: 'rgba(255, 255, 255, 0.9)' },
-  nextTime: {
-    marginTop: 2,
-    fontFamily: fonts.headingBold,
-    fontSize: 34,
-    letterSpacing: 1,
-    color: '#ffffff',
-    fontVariant: ['tabular-nums'],
-  },
-  nextSub: { marginTop: 1, fontFamily: fonts.medium, fontSize: 12.5, color: 'rgba(255, 255, 255, 0.75)' },
-  hint: { marginTop: 16, textAlign: 'center', fontFamily: fonts.medium, fontSize: 13, color: '#ffffff' },
-  result: { marginTop: 16, padding: 14, borderRadius: 16, backgroundColor: colors.surface },
-  resultWon: { backgroundColor: colors.black },
-  resultTitle: { textAlign: 'center', fontFamily: fonts.heading, fontSize: 19, color: colors.black },
-  resultTitleWon: { color: '#ffffff' },
-  resultText: { marginTop: 3, textAlign: 'center', fontFamily: fonts.regular, fontSize: 13, color: colors.textMuted },
-  resultTextWon: { color: 'rgba(255, 255, 255, 0.9)' },
+  hubDone: { backgroundColor: '#ffffff', borderColor: colors.black },
+  hubText: { fontFamily: fonts.semibold, fontSize: 13, color: '#ffffff' },
+  hubTextDone: { fontSize: 10, color: colors.textMuted },
+  hint: { marginTop: 20, textAlign: 'center', fontFamily: fonts.regular, fontSize: 14, color: colors.textMuted },
+  result: { marginTop: 22, alignItems: 'center' },
+  resultTitle: { fontFamily: fonts.semibold, fontSize: 17, color: colors.black, textAlign: 'center' },
+  resultText: { marginTop: 2, fontFamily: fonts.regular, fontSize: 14, color: colors.textMuted, textAlign: 'center' },
+  next: { marginTop: 6, fontFamily: fonts.regular, fontSize: 14, color: colors.textMuted, textAlign: 'center' },
+  prizesTitle: { marginTop: 34, marginBottom: 6, fontFamily: fonts.semibold, fontSize: 15, color: colors.black },
+  prizeRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7 },
+  prizeDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.orange },
+  prizeText: { fontFamily: fonts.regular, fontSize: 14.5, color: colors.black },
 })

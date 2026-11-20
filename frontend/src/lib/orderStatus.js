@@ -1,4 +1,5 @@
 import { coordinate, deliveryLegMinutes, hasCoords } from './deliveryTime.js'
+import { cancelReasonText } from './cancelReasons.js'
 
 export const ORDER_STATUS_FLOW = ['pending', 'confirmed', 'preparing', 'ready', 'completed']
 
@@ -240,7 +241,8 @@ export function trackingMessage(order) {
     case 'completed':
       return 'Tilaus on noudettu. Kiitos tilauksesta!'
     case 'cancelled':
-      return 'Tilaus on peruttu.'
+      // Syy selkokielellä (lib/cancelReasons.js, 18.11.2026).
+      return cancelReasonText(order)
     default:
       return ''
   }

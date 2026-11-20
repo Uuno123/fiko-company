@@ -4,7 +4,7 @@ import { etaUpperMinutes } from './delivery.js'
 // hakusanalla query, ja hakusivu tunnistaa sanan (quickFilterForQuery) ja näyttää
 // kaikki ehdon täyttävät ravintolat - samaan tapaan kuin "Tarjoukset"
 // (isDealsQuery, lib/categories.js).
-// "Alle 30 min" = kortin toimitusaika-arvion yläraja alle 30 min; arvio 9+ =
+// "Alle 30 min" = kortin toimitusaika-arvion yläraja alle 30 min; arvio 4,5+ =
 // vähintään 4,5 tietokannan 1–5-asteikolla (näytetään 0–10, lib/score.js).
 export const QUICK_FILTERS = [
   {
@@ -13,7 +13,7 @@ export const QUICK_FILTERS = [
     test: (r) => (etaUpperMinutes(r.pickup_estimate_minutes) ?? Infinity) < 30,
   },
   { id: 'free', query: 'Ilmainen kuljetus', test: (r) => Boolean(r.free_delivery) },
-  { id: 'top', query: 'Arvio 9+', test: (r) => Number(r.rating) >= 4.5 },
+  { id: 'top', query: 'Arvio 4,5+', test: (r) => Number(r.rating) >= 4.5 },
 ]
 
 // Etusivun "Aivan nurkan takana" -rivin "Näytä kaikki" (käyttäjän pyyntö

@@ -78,7 +78,7 @@ const ROW_TITLES = { [NEARBY_ROW]: 'Aivan nurkan takana', ...CATEGORY_SLOGANS }
 const THEME_ROWS = [
   // Otsikot Bidropin omalla, vähän savolaisella äänellä (käyttäjän pyyntö
   // 3.11.2026: persoonaa).
-  { id: 'Suosikit', title: 'Kuopiolaisten suosikit', compare: SORT_COMPARATORS.rating, seeAll: 'Arvio 9+' },
+  { id: 'Suosikit', title: 'Kuopiolaisten suosikit', compare: SORT_COMPARATORS.rating, seeAll: 'Arvio 4,5+' },
   { id: 'Nopeat', title: 'Tulloo vauhilla', compare: SORT_COMPARATORS.eta, seeAll: 'Alle 30 min' },
   // McDonald'sin tilalla Hesburger (käyttäjän pyyntö 3.11.2026): exclude pois
   // riviltä, first rivin ensimmäiseksi.

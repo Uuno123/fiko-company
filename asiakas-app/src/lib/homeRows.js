@@ -31,7 +31,7 @@ function byNameHash(a, b) {
 
 // Sama teemalista kuin verkkosivulla (Home.jsx THEME_ROWS).
 const THEME_ROWS = [
-  { id: 'Suosikit', title: 'Kuopiolaisten suosikit', compare: SORT_COMPARATORS.rating, seeAll: 'Arvio 9+' },
+  { id: 'Suosikit', title: 'Kuopiolaisten suosikit', compare: SORT_COMPARATORS.rating, seeAll: 'Arvio 4,5+' },
   { id: 'Nopeat', title: 'Tulloo vauhilla', compare: SORT_COMPARATORS.eta, seeAll: 'Alle 30 min' },
   {
     id: 'Uutta',

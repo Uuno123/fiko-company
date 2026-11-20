@@ -1,94 +1,87 @@
-import { useEffect, useRef } from 'react'
-import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { useCallback, useEffect, useState } from 'react'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useFocusEffect } from 'expo-router'
 import { ChevronRight } from 'lucide-react-native'
 import { WheelFace } from './FortuneWheel'
+import { loadTodaysSpin } from '../lib/fortuneWheel'
 import { colors, fonts } from '../theme'
 
-const WHEEL = 190
+function msUntilMidnight(now = new Date()) {
+  const next = new Date(now)
+  next.setHours(24, 0, 0, 0)
+  return next - now
+}
 
-// Etusivun banneri päivän onnenpyörälle (käyttäjän pyyntö 16.11.2026):
-// vie omalle pyöräytyssivulle (app/onnenpyora.jsx). Pyörä pyörii hitaasti
-// bannerin oikeassa reunassa puoliksi piilossa.
-export default function WheelBanner({ onPress }) {
-  const spin = useRef(new Animated.Value(0)).current
+function leftText(ms) {
+  const minutes = Math.ceil(ms / 60000)
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return h > 0 ? `${h} h ${m} min` : `${m} min`
+}
+
+// Etusivun onnenpyörärivi (20.11.2026, vähemmän tekoälymäinen): hillitty
+// harmaa rivi kuten sovelluksen muut linkit - pieni pyörä, otsikko, yksi rivi
+// ja nuoli. Pyöräyttäneelle rivillä aika seuraavaan pyöräytykseen.
+export default function WheelBanner({ onPress, userId }) {
+  const [spunToday, setSpunToday] = useState(false)
+  const [left, setLeft] = useState(() => msUntilMidnight())
+
+  // Tila tarkistetaan aina kun etusivu tulee esiin (esim. pyöräytyssivulta palatessa).
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false
+      if (!userId) {
+        Promise.resolve().then(() => !cancelled && setSpunToday(false))
+      } else {
+        loadTodaysSpin(userId).then((saved) => !cancelled && setSpunToday(Boolean(saved)))
+      }
+      return () => {
+        cancelled = true
+      }
+    }, [userId]),
+  )
 
   useEffect(() => {
-    const loop = Animated.loop(
-      Animated.timing(spin, {
-        toValue: 1,
-        duration: 24000,
-        easing: Easing.linear,
-        useNativeDriver: Platform.OS !== 'web',
-      }),
-    )
-    loop.start()
-    return () => loop.stop()
-  }, [spin])
-
-  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] })
+    if (!spunToday) return undefined
+    const timer = setInterval(() => {
+      const ms = msUntilMidnight()
+      if (ms > 23.99 * 3600 * 1000) setSpunToday(false)
+      setLeft(ms)
+    }, 30_000)
+    return () => clearInterval(timer)
+  }, [spunToday])
 
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.banner, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.row, pressed && { backgroundColor: colors.gray200 }]}
       accessibilityRole="button"
-      accessibilityLabel="Päivän onnenpyörä, pyöräytä kerran päivässä"
+      accessibilityLabel={spunToday ? `Onnenpyörä, uusi pyöräytys ${leftText(left)} päästä` : 'Onnenpyörä, pyöräytä kerran päivässä'}
     >
-      <Animated.View style={[styles.wheel, { transform: [{ rotate }] }]} pointerEvents="none">
-        <WheelFace size={WHEEL} />
-      </Animated.View>
-
-      <View style={styles.texts}>
-        <View style={styles.eyebrow}>
-          <Text style={styles.eyebrowText}>KERRAN PÄIVÄSSÄ</Text>
-        </View>
-        <Text style={styles.title}>
-          Päivän{'\n'}onnenpyörä<Text style={styles.titleDot}>.</Text>
+      <WheelFace size={46} palette="light" labels={false} />
+      <View style={{ flex: 1 }}>
+        <Text style={styles.title}>Onnenpyörä</Text>
+        <Text style={styles.text}>
+          {spunToday ? `Uusi pyöräytys ${leftText(left)} päästä` : 'Pyöräytä kerran päivässä'}
         </Text>
-        <Text style={styles.text}>Voita vaikka ilmainen ruoka.</Text>
-        <View style={styles.button}>
-          <Text style={styles.buttonText}>Pyöräytä</Text>
-          <ChevronRight size={15} strokeWidth={2.6} color="#ffffff" />
-        </View>
       </View>
+      <ChevronRight size={18} strokeWidth={2.2} color={colors.textMuted} />
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
-  banner: {
-    marginTop: 34,
-    marginHorizontal: 16,
-    height: 176,
-    overflow: 'hidden',
-    borderRadius: 20,
-    backgroundColor: colors.orange,
-  },
-  pressed: { opacity: 0.9, transform: [{ scale: 0.99 }] },
-  wheel: { position: 'absolute', right: -58, top: (176 - WHEEL) / 2 },
-  texts: { flex: 1, justifyContent: 'center', paddingHorizontal: 18, alignItems: 'flex-start' },
-  eyebrow: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 999, backgroundColor: colors.black },
-  eyebrowText: { fontFamily: fonts.bold, fontSize: 9.5, letterSpacing: 1.2, color: '#ffffff' },
-  title: {
-    marginTop: 8,
-    fontFamily: fonts.headingBold,
-    fontSize: 23,
-    lineHeight: 25,
-    letterSpacing: -0.5,
-    color: '#ffffff',
-  },
-  titleDot: { color: colors.black },
-  text: { marginTop: 4, fontFamily: fonts.medium, fontSize: 13, color: 'rgba(255, 255, 255, 0.9)' },
-  button: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
-    marginTop: 10,
-    paddingLeft: 12,
-    paddingRight: 8,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.black,
+    gap: 14,
+    marginTop: 34,
+    marginHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    backgroundColor: colors.gray100,
   },
-  buttonText: { fontFamily: fonts.semibold, fontSize: 12.5, color: '#ffffff' },
+  title: { fontFamily: fonts.semibold, fontSize: 15.5, color: colors.black },
+  text: { marginTop: 1, fontFamily: fonts.regular, fontSize: 13.5, color: colors.textMuted },
 })

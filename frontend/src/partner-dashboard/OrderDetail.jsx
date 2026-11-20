@@ -22,6 +22,7 @@ import {
   restaurantShareCents,
 } from './utils.js'
 import { printOrderTicket } from './print.js'
+import { RESTAURANT_MIDWAY_REASONS, RESTAURANT_REJECT_REASONS } from '../lib/cancelReasons.js'
 
 export const STATUS_TONE = {
   pending: 'accent',
@@ -36,14 +37,10 @@ const READY_OPTIONS = [5, 10, 15, 20, 25, 30, 40, 45, 60]
 const DELAY_OPTIONS = [5, 10, 15]
 
 // Hylkäyksen syy tallentuu tilaukselle koodina (orders.cancel_reason, 0057), ja
-// asiakkaan ilmoitus kertoo sen selkokielellä (OrderChangeNotice).
-const REJECT_REASONS = [
-  { key: 'sold_out', label: 'Tuote on loppunut' },
-  { key: 'too_busy', label: 'Keittiössä on liian kiire' },
-  { key: 'closing', label: 'Ravintola on sulkemassa' },
-  { key: 'customer_request', label: 'Asiakas pyysi perumaan' },
-  { key: 'other', label: 'Muu syy' },
-]
+// asiakas näkee sen selkokielellä (lib/cancelReasons.js: verkkosivu, sovellus,
+// seuranta). Hyväksytyn tilauksen voi perua kesken valmistuksen omilla syillä
+// (käyttäjän pyyntö 18.11.2026); maksu palautuu backendin settlement.js:ssä.
+const REJECT_REASONS = RESTAURANT_REJECT_REASONS
 
 export function PendingCountdown({ createdAt, compact = false }) {
   const now = useNow(1000)
@@ -187,11 +184,13 @@ function PickupCode({ order }) {
   )
 }
 
-function RejectModal({ order, onConfirm, onClose, busy }) {
-  const [reason, setReason] = useState(REJECT_REASONS[0])
+// midway: tilaus on jo hyväksytty - perutaan kesken valmistuksen omilla syillä.
+function RejectModal({ order, onConfirm, onClose, busy, midway = false }) {
+  const reasons = midway ? RESTAURANT_MIDWAY_REASONS : REJECT_REASONS
+  const [reason, setReason] = useState(reasons[0])
   return (
     <Modal
-      title={`Hylkää tilaus ${order.order_number}`}
+      title={`${midway ? 'Peru' : 'Hylkää'} tilaus ${order.order_number}`}
       onClose={onClose}
       footer={
         <>
@@ -199,14 +198,18 @@ function RejectModal({ order, onConfirm, onClose, busy }) {
             Takaisin
           </button>
           <button type="button" className="pd-btn pd-btn--danger" onClick={() => onConfirm(reason)} disabled={busy}>
-            {busy ? 'Hylätään...' : 'Hylkää tilaus'}
+            {busy ? (midway ? 'Perutaan...' : 'Hylätään...') : midway ? 'Peru tilaus' : 'Hylkää tilaus'}
           </button>
         </>
       }
     >
-      <p className="pd-muted">Asiakkaalle ilmoitetaan, ettei tilausta voida toimittaa. Valitse syy:</p>
+      <p className="pd-muted">
+        {midway
+          ? 'Asiakas näkee syyn tilauksensa seurannassa, ja maksu palautetaan hänelle. Valitse syy:'
+          : 'Asiakkaalle ilmoitetaan, ettei tilausta voida toimittaa. Valitse syy:'}
+      </p>
       <div className="pd-radio-list">
-        {REJECT_REASONS.map((option) => (
+        {reasons.map((option) => (
           <label key={option.key} className={`pd-radio${reason.key === option.key ? ' is-checked' : ''}`}>
             <input type="radio" name="reject-reason" checked={reason.key === option.key} onChange={() => setReason(option)} />
             {option.label}
@@ -279,7 +282,7 @@ export default function OrderDetail({ order, onClose }) {
       setShowReject(false)
       return
     }
-    toast(`Tilaus hylätty: ${reason.label.toLowerCase()}`)
+    toast(`Tilaus ${order.status === 'pending' ? 'hylätty' : 'peruttu'}: ${reason.label.toLowerCase()}`)
     setShowReject(false)
     onClose()
   }
@@ -307,6 +310,12 @@ export default function OrderDetail({ order, onClose }) {
             {busy ? 'Hyväksytään...' : `Hyväksy · valmis ${readyMinutes} min`}
           </button>
         </>
+      )}
+      {/* Hyväksytyn tilauksen peruutus kesken valmistuksen (18.11.2026). */}
+      {active && (
+        <button type="button" className="pd-btn pd-btn--ghost" disabled={busy} onClick={() => setShowReject(true)}>
+          Peru
+        </button>
       )}
       {active && actionLabel && (
         <button
@@ -463,7 +472,15 @@ export default function OrderDetail({ order, onClose }) {
         </div>
       </div>
 
-      {showReject && <RejectModal order={order} busy={busy} onConfirm={reject} onClose={() => setShowReject(false)} />}
+      {showReject && (
+        <RejectModal
+          order={order}
+          busy={busy}
+          midway={order.status !== 'pending'}
+          onConfirm={reject}
+          onClose={() => setShowReject(false)}
+        />
+      )}
     </Drawer>
   )
 }

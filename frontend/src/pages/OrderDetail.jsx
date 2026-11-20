@@ -7,6 +7,7 @@ import { useAuth } from '../lib/AuthContext.jsx'
 import { supabase } from '../lib/supabaseClient.js'
 import { formatPrice } from '../lib/format.js'
 import { customerStatusLabel } from '../lib/orderStatus.js'
+import { cancelReasonText } from '../lib/cancelReasons.js'
 import { restaurantThumb } from '../lib/brandLogos.js'
 import { VEHICLE_LABELS } from '../lib/deliveryBids.js'
 import './AuthForm.css'
@@ -121,9 +122,8 @@ export default function OrderDetail() {
             </div>
           </header>
 
-          {order.status === 'cancelled' && order.cancel_reason && (
-            <p className="order-detail__note">Peruutuksen syy: {order.cancel_reason}</p>
-          )}
+          {/* Syy selkokielellä eikä koodina (18.11.2026). */}
+          {order.status === 'cancelled' && <p className="order-detail__note">{cancelReasonText(order)}</p>}
 
           <section className="order-detail__section">
             <h2>Tilauksen tiedot</h2>

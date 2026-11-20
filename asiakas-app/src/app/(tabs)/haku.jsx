@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { FlatList, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Bike, Clock, Flame, Search, SearchX, SlidersHorizontal, X } from 'lucide-react-native'
+import { Clock, Flame, HandCoins, Search, SearchX, SlidersHorizontal, X } from 'lucide-react-native'
 import CategoryTiles from '../../components/CategoryTiles'
 import RestaurantCard, { FadeImage } from '../../components/RestaurantCard'
 import { ScoreSmiley } from '../../components/Smiley'
@@ -11,8 +11,10 @@ import FilterSheet from '../../components/FilterSheet'
 import { CATEGORY_NAMES, allFillerRestaurants, dealsFillerRestaurants, isDealsQuery } from '../../../../frontend/src/lib/categories'
 import { quickFilterForQuery } from '../../../../frontend/src/lib/quickFilters'
 import { searchRestaurants } from '../../../../frontend/src/lib/searchEngine'
-import { DELIVERY_PRICE_RANGE, formatEtaRange } from '../../../../frontend/src/lib/delivery'
-import { formatScore } from '../../../../frontend/src/lib/score'
+import { formatEtaRange } from '../../../../frontend/src/lib/delivery'
+import { DELIVERY_BID } from '../../../../frontend/src/lib/deliveryTime'
+import { formatPrice } from '../../../../frontend/src/lib/format'
+import { formatStars } from '../../../../frontend/src/lib/score'
 import { offerBadge } from '../../../../frontend/src/lib/offers'
 import { imageUri, useRestaurants } from '../../lib/restaurants'
 import { clearSearches, forgetSearch, rememberSearch, useRecentSearches } from '../../lib/recentSearches'
@@ -25,7 +27,7 @@ const SIDE = 16
 const webOutline = Platform.select({ web: { outlineStyle: 'none' }, default: null })
 
 // Suositut haut -pillerit: tunnetut hakusanat (kategoriat ja pikasuodattimet).
-const POPULAR = ['Tarjoukset', 'Ilmainen kuljetus', 'Burgerit', 'Kebab', 'Aasialainen', 'Alle 30 min', 'Arvio 9+', 'Lähelläsi']
+const POPULAR = ['Tarjoukset', 'Ilmainen kuljetus', 'Burgerit', 'Kebab', 'Aasialainen', 'Alle 30 min', 'Arvio 4,5+', 'Lähelläsi']
 
 // Hakusivu (uudistus 17.11.2026): iso otsikko ja hakukenttä, tyhjänä
 // viimeisimmät haut, kategoriat, suositut haut ja Kuopion suosituimmat
@@ -176,7 +178,7 @@ export default function SearchScreen() {
 
       <View style={styles.fieldRow}>
       <View style={[styles.field, focused && styles.fieldFocused]}>
-        <Search size={19} strokeWidth={2.3} color={colors.black} />
+        <Search size={17} strokeWidth={2.3} color={colors.black} />
         <TextInput
           ref={inputRef}
           value={query}
@@ -204,7 +206,7 @@ export default function SearchScreen() {
         accessibilityRole="button"
         accessibilityLabel={activeCount ? `Suodata, ${activeCount} valittu` : 'Suodata'}
       >
-        <SlidersHorizontal size={19} strokeWidth={2.3} color={colors.black} />
+        <SlidersHorizontal size={17} strokeWidth={2.3} color={colors.black} />
         {activeCount ? (
           <View style={styles.filterDot}>
             <Text style={styles.filterDotText}>{activeCount}</Text>
@@ -294,7 +296,7 @@ function ResultRow({ restaurant, onPress }) {
           {restaurant.rating != null ? (
             <>
               <ScoreSmiley rating={restaurant.rating} size={13} color={colors.textMuted} />
-              <Text style={styles.metaText}>{formatScore(restaurant.rating)}</Text>
+              <Text style={styles.metaText}>{formatStars(restaurant.rating)}</Text>
             </>
           ) : null}
           {eta ? <Text style={styles.metaText}>· {eta}</Text> : null}
@@ -303,8 +305,8 @@ function ResultRow({ restaurant, onPress }) {
           ) : (
             <>
               <Text style={styles.metaText}>·</Text>
-              <Bike size={12} strokeWidth={2} color={colors.textMuted} />
-              <Text style={styles.metaText}>{DELIVERY_PRICE_RANGE}</Text>
+              <HandCoins size={12} strokeWidth={2} color={colors.textMuted} />
+              <Text style={styles.metaText}>Kuljetus alk. {formatPrice(DELIVERY_BID.minCents)}</Text>
             </>
           )}
         </View>
@@ -332,17 +334,17 @@ const styles = StyleSheet.create({
   },
   fieldRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12, marginHorizontal: SIDE, marginBottom: 6 },
   filterButton: {
-    width: 50,
-    height: 50,
+    width: 42,
+    height: 42,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 25,
+    borderRadius: 21,
     backgroundColor: colors.gray100,
   },
   filterDot: {
     position: 'absolute',
-    top: 4,
-    right: 4,
+    top: 0,
+    right: 0,
     minWidth: 18,
     height: 18,
     alignItems: 'center',
@@ -359,15 +361,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    height: 50,
+    height: 42,
     paddingHorizontal: 16,
     borderWidth: 1.5,
     borderColor: 'transparent',
-    borderRadius: 25,
+    borderRadius: 21,
     backgroundColor: colors.gray100,
   },
   fieldFocused: { borderColor: colors.black, backgroundColor: colors.surface },
-  input: { flex: 1, height: '100%', fontFamily: fonts.medium, fontSize: 16, color: colors.black },
+  input: { flex: 1, height: '100%', fontFamily: fonts.medium, fontSize: 15, color: colors.black },
   clear: {
     width: 22,
     height: 22,

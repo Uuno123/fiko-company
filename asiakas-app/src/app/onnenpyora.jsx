@@ -2,60 +2,50 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import { X } from 'lucide-react-native'
+import { ArrowLeft } from 'lucide-react-native'
 import FortuneWheel from '../components/FortuneWheel'
 import { useAuth } from '../lib/auth'
 import { colors } from '../theme'
 
-// Pyöräytyssivu (16.11.2026): koko näytön oranssi sivu ilman headeria,
-// vain sulkunappi vasemmassa yläkulmassa. Etusivun banneri tuo tänne.
+// Pyöräytyssivu: etusivun banneri tuo tänne. Tavallinen valkoinen sivu
+// takaisin-napilla kuten muut sovelluksen sivut (20.11.2026, aiemmin koko
+// näytön oranssi).
 export default function WheelScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { session } = useAuth()
-  const close = () => (router.canGoBack() ? router.back() : router.navigate('/ravintolat'))
+  const back = () => (router.canGoBack() ? router.back() : router.navigate('/ravintolat'))
 
   return (
     <View style={styles.screen}>
-      <StatusBar style="light" />
-      <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          { paddingTop: insets.top + 56, paddingBottom: insets.bottom + 32 },
-        ]}
-      >
-        <FortuneWheel
-          userId={session?.user?.id ?? null}
-          onLogin={() => router.push('/kirjautuminen')}
-          style={styles.wheel}
-        />
+      <StatusBar style="dark" />
+      <View style={[styles.top, { paddingTop: insets.top + 8 }]}>
+        <Pressable
+          onPress={back}
+          hitSlop={8}
+          style={({ pressed }) => [styles.back, pressed && { opacity: 0.6 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Takaisin"
+        >
+          <ArrowLeft size={20} strokeWidth={2.2} color={colors.black} />
+        </Pressable>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingTop: 8, paddingBottom: insets.bottom + 32 }}>
+        <FortuneWheel userId={session?.user?.id ?? null} onLogin={() => router.push('/kirjautuminen')} />
       </ScrollView>
-
-      <Pressable
-        onPress={close}
-        hitSlop={8}
-        style={({ pressed }) => [styles.close, { top: insets.top + 10 }, pressed && { opacity: 0.6 }]}
-        accessibilityRole="button"
-        accessibilityLabel="Sulje"
-      >
-        <X size={20} strokeWidth={2.4} color="#ffffff" />
-      </Pressable>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.orange },
-  content: { flexGrow: 1, justifyContent: 'center' },
-  wheel: { marginTop: 0, marginHorizontal: 0, borderRadius: 0, paddingHorizontal: 20 },
-  close: {
-    position: 'absolute',
-    left: 16,
-    width: 38,
-    height: 38,
+  screen: { flex: 1, backgroundColor: colors.surface },
+  top: { paddingHorizontal: 16, paddingBottom: 6 },
+  back: {
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 19,
-    backgroundColor: 'rgba(0, 0, 0, 0.18)',
+    borderRadius: 18,
+    backgroundColor: colors.gray100,
   },
 })

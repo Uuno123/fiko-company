@@ -195,7 +195,7 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
               >
                 {/* Kuten puhelimen etusivulla (käyttäjän pyyntö 29.10.2026): ei
                     ikonia, pieni harmaa otsikko ja osoite nuolen kanssa. */}
-                <span className="city-select__label">Toimitusosoite</span>
+                <span className="city-select__label">{deliveryAddress ? 'Tuodaan heti' : 'Toimitusosoite'}</span>
                 <span className="city-select__row">
                   {/* Pieni oranssi neula kuten puhelimen etusivulla (29.10.2026). */}
                   <svg className="city-select__pin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -244,7 +244,8 @@ function Header({ search, showAddress, cart, variant, back, actions, hideAccount
                   </svg>
                 </span>
                 <span className="header-address-pill__text">
-                  <span className="header-address-pill__label">{deliveryAddress ? 'Toimitetaan' : 'Toimitusosoite'}</span>
+                  {/* Sama sanoitus kuin puhelimella (käyttäjän pyyntö 18.11.2026). */}
+                  <span className="header-address-pill__label">{deliveryAddress ? 'Tuodaan heti' : 'Toimitusosoite'}</span>
                   <span className="header-address-pill__value">
                     {deliveryAddress
                       ? formatDisplayAddress(deliveryAddress.full)?.split(',')[0] || deliveryAddress.label

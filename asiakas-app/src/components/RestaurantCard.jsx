@@ -1,8 +1,10 @@
 import { useRef } from 'react'
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
-import { Bike } from 'lucide-react-native'
-import { DELIVERY_PRICE_RANGE, formatEtaRange } from '../../../frontend/src/lib/delivery'
-import { formatScore } from '../../../frontend/src/lib/score'
+import { HandCoins } from 'lucide-react-native'
+import { formatEtaRange } from '../../../frontend/src/lib/delivery'
+import { DELIVERY_BID } from '../../../frontend/src/lib/deliveryTime'
+import { formatPrice } from '../../../frontend/src/lib/format'
+import { formatStars } from '../../../frontend/src/lib/score'
 import { offerBadge } from '../../../frontend/src/lib/offers'
 import { formatDistance } from '../../../frontend/src/lib/distance'
 import { ScoreSmiley } from './Smiley'
@@ -58,7 +60,7 @@ export default function RestaurantCard({ restaurant, width, onPress, large = fal
         {rating != null ? (
           <View style={styles.metaItem}>
             <ScoreSmiley rating={rating} size={13} color={colors.textMuted} />
-            <Text style={styles.metaText}>{formatScore(rating)}</Text>
+            <Text style={styles.metaText}>{formatStars(rating)}</Text>
           </View>
         ) : null}
         {showDistance && restaurant.distance_km != null ? (
@@ -78,8 +80,9 @@ export default function RestaurantCard({ restaurant, width, onPress, large = fal
         ) : (
           <View style={styles.metaItem}>
             <Text style={styles.sep}>·</Text>
-            <Bike size={12} strokeWidth={2} color={colors.textMuted} />
-            <Text style={styles.metaText}>{DELIVERY_PRICE_RANGE}</Text>
+            {/* Tarjouskilpailu näkyviin (20.11.2026): "Kuljetus alk. 1,99 €". */}
+            <HandCoins size={12} strokeWidth={2} color={colors.textMuted} />
+            <Text style={styles.metaText}>Kuljetus alk. {formatPrice(DELIVERY_BID.minCents)}</Text>
           </View>
         )}
       </View>

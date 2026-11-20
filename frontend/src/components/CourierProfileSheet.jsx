@@ -5,7 +5,7 @@ import { CourierAvatar } from './CourierAvatar.jsx'
 import { ScoreSmiley } from './Smiley.jsx'
 import { formatPrice } from '../lib/format.js'
 import { VEHICLE_LABELS, fetchBidCourierProfile } from '../lib/deliveryBids.js'
-import { formatReviewScore, formatScore } from '../lib/score.js'
+import { formatReviewStars, formatStars } from '../lib/score.js'
 import './CourierProfileSheet.css'
 
 // Arvion ikä lyhyesti: tänään, eilen, 3 pv sitten, 2 vk sitten tai päivämäärä.
@@ -91,7 +91,7 @@ export default function CourierProfileSheet({ bid, distance, disabled, onAccept,
               {hasRating ? (
                 <>
                   <ScoreSmiley rating={rating} size={18} />
-                  {formatScore(rating)}
+                  {formatStars(rating)}
                 </>
               ) : (
                 '–'
@@ -117,7 +117,7 @@ export default function CourierProfileSheet({ bid, distance, disabled, onAccept,
               const n = distribution[stars] ?? 0
               return (
                 <li key={stars}>
-                  <span>{formatReviewScore(stars)}</span>
+                  <span>{formatReviewStars(stars)}</span>
                   <ScoreSmiley rating={stars} size={14} />
                   <span className="courier-profile__bar">
                     <span style={{ width: `${(n / count) * 100}%` }} />
@@ -142,7 +142,7 @@ export default function CourierProfileSheet({ bid, distance, disabled, onAccept,
                   <span className="courier-profile__review-head">
                     <span className="courier-profile__review-score">
                       <ScoreSmiley rating={review.stars} size={16} />
-                      {formatReviewScore(review.stars)}
+                      {formatReviewStars(review.stars)}
                     </span>
                     <time dateTime={review.created_at}>{timeAgo(review.created_at)}</time>
                   </span>

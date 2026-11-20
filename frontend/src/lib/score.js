@@ -56,3 +56,20 @@ export const FACE_MOUTHS = {
   bad: { d: 'M8.5 16.4 Q12 13.7 15.5 16.4' },
   awful: { d: 'M8 17.2 Q12 12.6 16 17.2' },
 }
+
+// Asiakkaalle näytettävä tähtiarvosana 1–5 (käyttäjän pyyntö 20.11.2026:
+// vähemmän Woltin näköinen kuin hymiö ja 0–10). Kuljettaja-app käyttää yhä
+// formatScore-funktiota (0–10). Keskiarvo yhdellä desimaalilla: "4,9".
+export function formatStars(rating) {
+  if (rating == null || rating === '') return ''
+  const value = Number(rating)
+  return Number.isFinite(value) ? value.toFixed(1).replace('.', ',') : ''
+}
+
+// Yksittäinen arvio on kokonaisluku 1–5: "4" eikä "4,0".
+export function formatReviewStars(rating) {
+  if (rating == null || rating === '') return ''
+  const value = Number(rating)
+  if (!Number.isFinite(value)) return ''
+  return Number.isInteger(value) ? String(value) : formatStars(value)
+}

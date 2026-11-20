@@ -15,11 +15,11 @@ export const WHEEL_SEGMENTS = [
   { key: 'free_delivery', lines: ['Ilmainen', 'kuljetus'], prize: 'Ilmainen kuljetus' },
   { key: 'none_1', lines: ['Ei', 'voittoa'], prize: null },
   { key: 'percent_15', lines: ['−15 %'], prize: '−15 % seuraavasta tilauksesta' },
-  { key: 'none_2', lines: ['Melkein!'], prize: null },
+  { key: 'none_2', lines: ['Ei', 'voittoa'], prize: null },
   { key: 'free_food', lines: ['Ilmainen', 'ruoka'], prize: 'Ilmainen ruoka (max 15 €)' },
   { key: 'none_3', lines: ['Ei', 'voittoa'], prize: null },
   { key: 'euro_2', lines: ['−2 €'], prize: '−2 € seuraavasta tilauksesta' },
-  { key: 'none_4', lines: ['Huomenna', 'uusiksi'], prize: null },
+  { key: 'none_4', lines: ['Ei', 'voittoa'], prize: null },
 ]
 
 // Todennäköisyydet (yhteensä 1). Ei-voitot jaetaan tasan "tyhjiin" lohkoihin.

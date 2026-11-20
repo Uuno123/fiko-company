@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight, ChevronRight, Clock, X } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { formatEtaRange } from '../lib/delivery.js'
-import { formatScore } from '../lib/score.js'
+import { formatStars } from '../lib/score.js'
 import { loadRecentSearches, saveRecentSearches } from '../lib/recentSearches.js'
 import './SearchStart.css'
 
@@ -87,7 +87,7 @@ export default function SearchStart({ restaurants, categories, onNavigate }) {
                       {[
                         r.category,
                         formatEtaRange(r.pickup_estimate_minutes),
-                        r.rating != null ? `${formatScore(r.rating)} / 10` : null,
+                        r.rating != null ? `${formatStars(r.rating)} / 5` : null,
                       ]
                         .filter(Boolean)
                         .join(' · ')}

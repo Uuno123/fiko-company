@@ -3,7 +3,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native'
 import { Heart } from 'lucide-react-native'
 import { SettingsSection } from './SettingsUI'
 import { ScoreSmiley } from './Smiley'
-import { formatScore } from '../../../frontend/src/lib/score'
+import { formatStars } from '../../../frontend/src/lib/score'
 import { formatEtaRange } from '../../../frontend/src/lib/delivery'
 import { restaurantThumb } from '../../../frontend/src/lib/brandLogos'
 import { loadFavoriteRestaurants, removeFavorite } from '../lib/favorites'
@@ -78,7 +78,7 @@ export default function FavoritesSection({ customerId, onOpen }) {
                     {restaurant.rating != null ? (
                       <>
                         <ScoreSmiley rating={restaurant.rating} size={13} color={colors.textMuted} />
-                        <Text style={styles.metaText}>{formatScore(restaurant.rating)}</Text>
+                        <Text style={styles.metaText}>{formatStars(restaurant.rating)}</Text>
                         {meta ? <Text style={styles.metaText}>·</Text> : null}
                       </>
                     ) : null}
