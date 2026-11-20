@@ -110,3 +110,35 @@ export function setDeliveryOffer(orderId, priceCents) {
 export function cancelNegotiation(orderId) {
   return rpc('customer_cancel_order', { p_order_id: orderId })
 }
+
+// Kuljettajan profiili (kuten verkkosivun fetchBidCourierProfile, migraatio 0063):
+// arvio, jakauma, toimitukset ja uusimmat kirjoitetut arviot.
+export async function fetchBidCourierProfile(bidId) {
+  const { data, error } = await supabase.rpc('bid_courier_profile', { p_bid_id: bidId })
+  if (!error) return data
+  if (!['PGRST202', '42883'].includes(error.code)) throw error
+  return { reviews: (await rpc('bid_courier_reviews', { p_bid_id: bidId })) ?? [] }
+}
+
+// Kuljettajan puhelinnumero seurantaan (migraatio 0068): vain oman tilauksen
+// kuljettaja ja vain toimituksen aikana. null, jos numeroa ei ole tai
+// funktiota ei vielä ole tietokannassa.
+export function useCourierPhone(order) {
+  const orderId = order?.id ?? null
+  const active = Boolean(order?.courier_id) && ['assigned', 'at_restaurant', 'picked_up'].includes(order?.courier_status)
+  const [phone, setPhone] = useState(null)
+  useEffect(() => {
+    if (!active || !orderId || !supabase) {
+      setPhone(null)
+      return undefined
+    }
+    let cancelled = false
+    supabase.rpc('order_courier_phone', { p_order_id: orderId }).then(({ data, error }) => {
+      if (!cancelled) setPhone(!error && typeof data === 'string' && data.trim() ? data.trim() : null)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [active, orderId])
+  return active ? phone : null
+}

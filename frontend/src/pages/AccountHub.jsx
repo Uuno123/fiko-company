@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { Bell, CreditCard, Lock, MessageCircle, Receipt, User } from 'lucide-react'
+import { Bell, CreditCard, Lock, MessageCircle, ReceiptText, User } from 'lucide-react'
 import SettingsLayout from '../components/SettingsLayout.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { formatDisplayAddress } from '../lib/format.js'
@@ -18,7 +18,7 @@ const GROUPS = [
     { to: '/asetukset/ilmoitukset', label: 'Ilmoitukset', hint: 'Tilausten tila ja sähköpostit', Icon: Bell },
   ],
   [
-    { to: '/omat-tilaukset', label: 'Tilaukset', hint: 'Käynnissä olevat ja aiemmat tilaukset', Icon: Receipt },
+    { to: '/omat-tilaukset', label: 'Tilaukset', hint: 'Käynnissä olevat ja aiemmat tilaukset', Icon: ReceiptText },
     { to: '/asetukset/maksutavat', label: 'Maksutavat', hint: 'Kortit ja muut maksutavat', Icon: CreditCard },
   ],
   [{ href: 'mailto:tuki@bidrop.fi', label: 'Ota yhteyttä', hint: 'tuki@bidrop.fi', Icon: MessageCircle }],

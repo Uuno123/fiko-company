@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { FlatList, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { Clock, Flame, HandCoins, Search, SearchX, SlidersHorizontal, X } from 'lucide-react-native'
+import { Clock, Flame, Bike, Search, SearchX, SlidersHorizontal, X } from 'lucide-react-native'
 import CategoryTiles from '../../components/CategoryTiles'
 import RestaurantCard, { FadeImage } from '../../components/RestaurantCard'
 import { ScoreSmiley } from '../../components/Smiley'
@@ -305,7 +305,7 @@ function ResultRow({ restaurant, onPress }) {
           ) : (
             <>
               <Text style={styles.metaText}>·</Text>
-              <HandCoins size={12} strokeWidth={2} color={colors.textMuted} />
+              <Bike size={12} strokeWidth={2} color={colors.textMuted} />
               <Text style={styles.metaText}>Kuljetus alk. {formatPrice(DELIVERY_BID.minCents)}</Text>
             </>
           )}

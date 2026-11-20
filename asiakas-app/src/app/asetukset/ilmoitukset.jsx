@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { Megaphone, Receipt } from 'lucide-react-native'
+import { Megaphone, ReceiptText } from 'lucide-react-native'
 import { Notice, SettingsRow, SettingsSection, SettingsTopBar, Toggle, settingsStyles } from '../../components/SettingsUI'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../lib/auth'
@@ -41,7 +41,7 @@ export default function NotificationsScreen() {
         <SettingsSection title="Sähköposti-ilmoitukset">
           <SettingsRow
             first
-            icon={Receipt}
+            icon={ReceiptText}
             label="Tilausvahvistukset ja -päivitykset"
             trailing={<Text style={styles.fixed}>Aina päällä</Text>}
           />

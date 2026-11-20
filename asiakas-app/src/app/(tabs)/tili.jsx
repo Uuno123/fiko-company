@@ -1,7 +1,7 @@
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { ArrowLeft, Bell, CreditCard, Lock, MessageCircle, Receipt, User } from 'lucide-react-native'
+import { ArrowLeft, Bell, CreditCard, Lock, MessageCircle, ReceiptText, User } from 'lucide-react-native'
 import { Button } from '../../components/ui'
 import { formatDisplayAddress } from '../../../../frontend/src/lib/format'
 import { useAuth } from '../../lib/auth'
@@ -22,7 +22,7 @@ const GROUPS = [
     { key: 'ilmoitukset', label: 'Ilmoitukset', hint: 'Tilausten tila ja sähköpostit', Icon: Bell, to: '/asetukset/ilmoitukset' },
   ],
   [
-    { key: 'tilaukset', label: 'Tilaukset', hint: 'Käynnissä olevat ja aiemmat tilaukset', Icon: Receipt, to: '/tilaukset' },
+    { key: 'tilaukset', label: 'Tilaukset', hint: 'Käynnissä olevat ja aiemmat tilaukset', Icon: ReceiptText, to: '/tilaukset' },
     { key: 'maksutavat', label: 'Maksutavat', hint: 'Kortit ja muut maksutavat', Icon: CreditCard, to: '/asetukset/maksutavat' },
   ],
   [{ key: 'tuki', label: 'Ota yhteyttä', hint: 'tuki@bidrop.fi', Icon: MessageCircle, href: SUPPORT }],

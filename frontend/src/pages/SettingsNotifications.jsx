@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Megaphone, Receipt } from 'lucide-react'
+import { Megaphone, ReceiptText } from 'lucide-react'
 import SettingsLayout from '../components/SettingsLayout.jsx'
 import { SettingsRow } from '../components/SettingsRow.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
@@ -44,7 +44,7 @@ function SettingsNotifications() {
         </div>
         <div className="settings-panel">
           <SettingsRow
-            icon={Receipt}
+            icon={ReceiptText}
             label="Tilausvahvistukset ja -päivitykset"
             trailing={<span className="toggle-row__fixed">Aina päällä</span>}
           />

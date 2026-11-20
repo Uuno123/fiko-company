@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ChevronRight, MessageCircle, Receipt } from 'lucide-react'
+import { ChevronDown, ChevronRight, MessageCircle, ReceiptText } from 'lucide-react'
 import DeliveryBidPanel from './DeliveryBidPanel.jsx'
 import DeliveryRouteMap from './DeliveryRouteMap.jsx'
 import { restaurantThumb } from '../lib/brandLogos.js'
@@ -215,7 +215,7 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
             aria-expanded={detailsOpen}
             onClick={() => setDetailsOpen((open) => !open)}
           >
-            <Receipt size={20} strokeWidth={1.75} aria-hidden="true" />
+            <ReceiptText size={20} strokeWidth={1.75} aria-hidden="true" />
           </button>
         </div>
 
@@ -281,7 +281,7 @@ export function OrderTrackingView({ order, onClose, variant = 'modal', children 
             onClick={() => setDetailsOpen((open) => !open)}
           >
             <span className="tracking__details-icon" aria-hidden="true">
-              <Receipt size={18} strokeWidth={1.75} />
+              <ReceiptText size={18} strokeWidth={1.75} />
             </span>
             <span className="tracking__details-title">
               Tilauksen tiedot
