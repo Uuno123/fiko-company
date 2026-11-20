@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Heart } from 'lucide-react'
 import { ScoreSmiley } from './Smiley.jsx'
-import { formatScore } from '../lib/score.js'
+import { formatStars } from '../lib/score.js'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { getRestaurants } from '../lib/api.js'
 import { formatEtaRange } from '../lib/delivery.js'
@@ -51,7 +51,7 @@ function FavoriteRow({ restaurant, onRemove }) {
             {restaurant.rating != null && (
               <span className="favorite-row__rating">
                 <ScoreSmiley rating={restaurant.rating} size={14} />
-                {formatScore(restaurant.rating)}
+                {formatStars(restaurant.rating)}
               </span>
             )}
             {restaurant.rating != null && meta && <span aria-hidden="true">·</span>}

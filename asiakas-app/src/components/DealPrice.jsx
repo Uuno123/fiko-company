@@ -9,13 +9,14 @@ import { fonts, colors } from '../theme'
 // Tuotteen hinta päivän tarjouksella kuten verkkosivun DealPrice
 // (RestaurantPage.jsx, 4.11.2026): alennettu hinta, yliviivattu vanha hinta,
 // prosenttipilleri ja ajastin tarjouksen loppuun. Ilman tarjousta pelkkä hinta.
-export default function DealPrice({ item, size = 14.5, style }) {
+// hideWas: ilman yliviivattua vanhaa hintaa (ravintolasivun Suosituimmat).
+export default function DealPrice({ item, size = 14.5, style, hideWas = false }) {
   const percent = dealPercent(item.id)
   if (!percent) return <Text style={[styles.price, { fontSize: size }, style]}>{formatPrice(item.price_cents)}</Text>
   return (
     <View style={[styles.row, style]}>
       <Text style={[styles.now, { fontSize: size }]}>{formatPrice(dealPriceCents(item))}</Text>
-      <StrikePrice size={size * 0.86}>{formatPrice(item.price_cents)}</StrikePrice>
+      {hideWas ? null : <StrikePrice size={size * 0.86}>{formatPrice(item.price_cents)}</StrikePrice>}
       <View style={styles.tag}>
         <Text style={styles.tagText}>−{percent} %</Text>
       </View>

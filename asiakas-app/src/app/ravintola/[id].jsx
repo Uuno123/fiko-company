@@ -15,7 +15,7 @@ import { brandLogoFor } from '../../../../frontend/src/lib/brandLogos'
 import { DELIVERY_PRICE_RANGE, formatEtaRange } from '../../../../frontend/src/lib/delivery'
 import { formatDistance, restaurantDistanceKm } from '../../../../frontend/src/lib/distance'
 import { formatDisplayAddress, formatPrice } from '../../../../frontend/src/lib/format'
-import { formatScore } from '../../../../frontend/src/lib/score'
+import { formatStars } from '../../../../frontend/src/lib/score'
 import { offerBadge } from '../../../../frontend/src/lib/offers'
 import { useRestaurant } from '../../lib/restaurant'
 import { imageUri } from '../../lib/restaurants'
@@ -164,14 +164,14 @@ export default function RestaurantScreen() {
               accessibilityRole="button"
               accessibilityLabel={
                 shownRating != null
-                  ? `Arvostelut: ${formatScore(shownRating)} / 10, ${reviewCountLabel}`
+                  ? `Arvostelut: ${formatStars(shownRating)} / 5, ${reviewCountLabel}`
                   : 'Arvostelut: ei vielä arvosteluja'
               }
             >
               <ScoreSmiley rating={shownRating} size={15} color={colors.black} />
               {shownRating != null ? (
                 <>
-                  <Text style={styles.metaStrong}>{formatScore(shownRating)}</Text>
+                  <Text style={styles.metaStrong}>{formatStars(shownRating)}</Text>
                   <Text style={styles.metaText}>({reviewCountShort})</Text>
                 </>
               ) : (
@@ -265,7 +265,8 @@ export default function RestaurantScreen() {
                       <Text style={styles.featuredName} numberOfLines={2}>
                         {item.name}
                       </Text>
-                      <Price item={item} />
+                      {/* Suosituimmissa ei vanhaa hintaa (20.11.2026). */}
+                      <Price item={item} hideWas />
                     </Pressable>
                   ))}
                 </ScrollView>
@@ -375,8 +376,8 @@ function matches(item, query) {
 }
 
 // Hinta päivän tarjouksella: pilleri ja ajastin kuten verkkosivulla.
-function Price({ item, style }) {
-  return <DealPrice item={item} style={[{ marginTop: 6 }, style]} />
+function Price({ item, style, hideWas }) {
+  return <DealPrice item={item} hideWas={hideWas} style={[{ marginTop: 6 }, style]} />
 }
 
 function MenuRow({ item, onPress }) {

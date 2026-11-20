@@ -9,7 +9,7 @@ import { colors, fonts } from '../theme'
 export const QUICK_PILLS = [
   { id: 'deals', label: 'Tarjoukset', query: 'Tarjoukset', Icon: Tag },
   { id: 'fast', label: 'Alle 30 min', query: 'Alle 30 min', Icon: Clock },
-  { id: 'top', label: 'Parhaat arviot', query: 'Arvio 9+', Icon: SmileyIcon },
+  { id: 'top', label: 'Parhaat arviot', query: 'Arvio 4,5+', Icon: SmileyIcon },
   { id: 'free', label: 'Ilmainen kuljetus', query: 'Ilmainen kuljetus', Icon: Bike },
 ]
 

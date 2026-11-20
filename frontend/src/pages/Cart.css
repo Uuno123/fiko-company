@@ -932,6 +932,11 @@
   box-shadow: none;
 }
 
+/* Tyhjä kori ilman laatikon ääriviivoja (käyttäjän pyyntö 18.11.2026). */
+.page--cart .cart-empty:not(.order-done) {
+  border: none;
+}
+
 /* ══════════════════════════════════════════════════════════════════════
    Kassa (ostoskori-vaihe): vasemmalla osiot järjestyksessä, oikealla
    kiinnittyvä yhteenveto. Osiot ovat kevyitä reunallisia laatikoita

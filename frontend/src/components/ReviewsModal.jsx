@@ -12,15 +12,15 @@ import {
 } from '../lib/reviews.js'
 import ReviewForm from './ReviewForm.jsx'
 import { ScoreSmiley } from './Smiley.jsx'
-import { formatReviewScore, formatScore } from '../lib/score.js'
+import { formatReviewStars, formatStars } from '../lib/score.js'
 import './ReviewsModal.css'
 
 // Yksittäisen arvostelun hymiö ja arvosana 0–10 (tallennettu 1–5, lib/score.js).
 function Score({ value }) {
   return (
-    <span className="reviews-modal__score" role="img" aria-label={`${formatReviewScore(value)} / 10`}>
+    <span className="reviews-modal__score" role="img" aria-label={`${formatReviewStars(value)} / 5`}>
       <ScoreSmiley rating={value} size={18} />
-      <b>{formatReviewScore(value)}</b>
+      <b>{formatReviewStars(value)}</b>
     </span>
   )
 }
@@ -93,7 +93,7 @@ function ReviewsModal({ restaurantId, restaurantName, rating, reviewCount, demoR
     // Oikealle ravintolalle arvosana ja määrä sivun yläosaan heti.
     if (demoReviews.length === 0 && list.length > 0) {
       const average = list.reduce((sum, review) => sum + review.rating, 0) / list.length
-      onSummaryChange?.({ rating: Math.round(average * 10) / 10, count: list.length })
+      onSummaryChange?.({ rating: Math.round(average * 10) / 5, count: list.length })
     }
   }
 
@@ -170,9 +170,9 @@ function ReviewsModal({ restaurantId, restaurantName, rating, reviewCount, demoR
           {rating != null && (
             <div className="reviews-modal__summary">
               <ScoreSmiley rating={rating} size={40} />
-              <strong>{formatScore(rating)}</strong>
+              <strong>{formatStars(rating)}</strong>
               <span className="reviews-modal__summary-side">
-                <span className="reviews-modal__summary-scale">/ 10</span>
+                <span className="reviews-modal__summary-scale">/ 5</span>
                 <span>{reviewCount}</span>
               </span>
             </div>

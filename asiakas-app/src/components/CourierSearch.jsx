@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Animated, Easing, Image, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { ActivityIndicator, Animated, Easing, Image, PanResponder, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { Check, ChevronRight, Minus, Plus, X } from 'lucide-react-native'
 import RestaurantLogo from './RestaurantLogo'
 import { ScoreSmiley } from './Smiley'
 import { formatPrice } from '../../../frontend/src/lib/format'
-import { formatScore } from '../../../frontend/src/lib/score'
+import { formatStars } from '../../../frontend/src/lib/score'
 import { DELIVERY_BID, bidInputText, clampBidCents, isBidInRange, parseBidInput } from '../../../frontend/src/lib/deliveryTime'
 import {
   VEHICLE_LABELS,
@@ -35,7 +35,7 @@ function useSecondsLeft(expiresAt) {
     const timer = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(timer)
   }, [target])
-  return Number.isFinite(target) ? Math.max(0, Math.ceil((target - now) / 1000)) : null
+  return Number.isFinite(target) ? Math.max(0, Math.ceil((target - now) / 500)) : null
 }
 
 const clockText = (seconds) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
@@ -156,7 +156,7 @@ export default function CourierSearch({ orderId, restaurant, onCancelled, onChan
                   {reviews > 0 && bid.courier_rating != null ? (
                     <View style={styles.bidRating}>
                       <ScoreSmiley rating={bid.courier_rating} size={13} color={colors.black} />
-                      <Text style={styles.bidMetaStrong}>{formatScore(bid.courier_rating)}</Text>
+                      <Text style={styles.bidMetaStrong}>{formatStars(bid.courier_rating)}</Text>
                       <Text style={styles.bidMeta}>
                         · {reviews} {reviews === 1 ? 'arvio' : 'arviota'}
                       </Text>
@@ -188,30 +188,51 @@ export default function CourierSearch({ orderId, restaurant, onCancelled, onChan
         </View>
       )}
 
+      {/* Oma hinta kuten verkkosivulla (12.11.2026 malli): harmaa rivi
+          linkkinä, avattuna kysymys oranssilla pisteellä, kevyet -/+ ja summa
+          oranssilla eurolla, musta Tarjoa-pilleri oranssilla pisaralla ja
+          vedettävä oranssi hintapalkki 1,99-7,99 €. */}
       {!offerOpen && activeOffer == null ? (
-        <Pressable onPress={() => setOfferOpen(true)} style={styles.offerLink} hitSlop={8} accessibilityRole="button">
+        <Pressable
+          onPress={() => setOfferOpen(true)}
+          style={({ pressed }) => [styles.offerLink, pressed && { backgroundColor: '#e9e9ee' }]}
+          accessibilityRole="button"
+        >
           <Text style={styles.offerLinkText}>Tarjoa omaa hintaa</Text>
-          <ChevronRight size={16} strokeWidth={2.2} color={colors.black} />
+          <ChevronRight size={18} strokeWidth={2.2} color="#a1a1a6" />
         </Pressable>
       ) : (
         <View style={styles.offer}>
           <View style={styles.offerHead}>
-            <Text style={styles.offerTitle}>{activeOffer ? 'Oma tarjouksesi' : 'Mitä maksaisit kuljetuksesta?'}</Text>
+            <Text style={styles.offerTitle}>
+              {activeOffer ? 'Oma tarjouksesi' : 'Mitä maksaisit kuljetuksesta?'}
+            </Text>
+            <View style={styles.offerDot} />
+            <View style={{ flex: 1 }} />
             {activeOffer == null ? (
-              <Pressable onPress={() => { setOfferOpen(false); setDraftText(null) }} hitSlop={8} accessibilityLabel="Sulje oma hinta">
-                <X size={16} strokeWidth={2.2} color={colors.textMuted} />
+              <Pressable
+                onPress={() => {
+                  setOfferOpen(false)
+                  setDraftText(null)
+                }}
+                hitSlop={8}
+                accessibilityLabel="Sulje oma hinta"
+              >
+                <X size={16} strokeWidth={2.2} color="#a1a1a6" />
               </Pressable>
             ) : null}
           </View>
+
           <View style={styles.offerRow}>
             <View style={styles.stepper}>
               <Pressable
                 onPress={() => setDraftText(bidInputText(clampBidCents(base - OFFER_STEP_CENTS)))}
                 disabled={base <= DELIVERY_BID.minCents || expired}
-                style={styles.stepButton}
+                hitSlop={6}
+                style={[styles.stepButton, (base <= DELIVERY_BID.minCents || expired) && { opacity: 0.3 }]}
                 accessibilityLabel="Pienennä hintaa"
               >
-                <Minus size={16} strokeWidth={2.4} color={colors.black} />
+                <Minus size={15} strokeWidth={2.4} color="#8e8e93" />
               </Pressable>
               <TextInput
                 value={draftValue}
@@ -220,17 +241,19 @@ export default function CourierSearch({ orderId, restaurant, onCancelled, onChan
                 keyboardType="decimal-pad"
                 maxLength={5}
                 editable={!expired}
-                style={[styles.stepInput, draftCents == null && { color: colors.offerRed }, webOutline]}
+                selectTextOnFocus
+                style={[styles.stepInput, draftCents == null && { color: '#ff3b30' }, webOutline]}
                 accessibilityLabel="Oma hintasi euroina"
               />
               <Text style={styles.euro}>€</Text>
               <Pressable
                 onPress={() => setDraftText(bidInputText(clampBidCents(base + OFFER_STEP_CENTS)))}
                 disabled={base >= DELIVERY_BID.maxCents || expired}
-                style={styles.stepButton}
+                hitSlop={6}
+                style={[styles.stepButton, (base >= DELIVERY_BID.maxCents || expired) && { opacity: 0.3 }]}
                 accessibilityLabel="Suurenna hintaa"
               >
-                <Plus size={16} strokeWidth={2.4} color={colors.black} />
+                <Plus size={15} strokeWidth={2.4} color="#8e8e93" />
               </Pressable>
             </View>
             <Pressable
@@ -238,28 +261,43 @@ export default function CourierSearch({ orderId, restaurant, onCancelled, onChan
               disabled={Boolean(busy) || expired || draftCents == null || draftCents === activeOffer}
               style={({ pressed }) => [
                 styles.offerButton,
-                (busy || expired || draftCents == null || draftCents === activeOffer) && { opacity: 0.45 },
-                pressed && { opacity: 0.8 },
+                (busy || expired || draftCents == null || draftCents === activeOffer) && styles.offerButtonDisabled,
+                pressed && { opacity: 0.85 },
               ]}
+              accessibilityRole="button"
             >
               {busy === 'offer' ? (
                 <ActivityIndicator size="small" color="#ffffff" />
               ) : (
-                <Text style={styles.acceptText}>
-                  {activeOffer ? 'Päivitä' : 'Tarjoa'}
-                  {draftCents != null ? ` ${formatPrice(draftCents)}` : ''}
-                </Text>
+                <>
+                  <View style={styles.drop} />
+                  <Text style={styles.offerButtonText}>
+                    {activeOffer ? 'Päivitä' : 'Tarjoa'}
+                    {draftCents != null ? ` ${formatPrice(draftCents)}` : ''}
+                  </Text>
+                </>
               )}
             </Pressable>
           </View>
-          <Text style={styles.offerNote}>
-            {activeOffer
-              ? `${formatPrice(activeOffer)} näkyy kuljettajille. Ensimmäinen sen hyväksyvä valitaan heti.`
-              : `Kirjoita summa ${formatPrice(DELIVERY_BID.minCents)}–${formatPrice(DELIVERY_BID.maxCents)}.`}
-          </Text>
+
+          <View style={styles.range}>
+            <Text style={styles.rangeText}>{formatPrice(DELIVERY_BID.minCents)}</Text>
+            <PriceSlider
+              value={base}
+              disabled={expired}
+              onChange={(cents) => setDraftText(bidInputText(clampBidCents(cents)))}
+            />
+            <Text style={styles.rangeText}>{formatPrice(DELIVERY_BID.maxCents)}</Text>
+          </View>
+
           {activeOffer != null ? (
-            <Pressable onPress={() => run('offer', () => setDeliveryOffer(orderId, null))} disabled={Boolean(busy)} hitSlop={8}>
-              <Text style={styles.link}>Poista oma tarjous</Text>
+            <Pressable
+              onPress={() => run('offer', () => setDeliveryOffer(orderId, null))}
+              disabled={Boolean(busy)}
+              hitSlop={8}
+              style={{ alignSelf: 'center', marginTop: 12 }}
+            >
+              <Text style={styles.removeOffer}>Poista oma tarjous</Text>
             </Pressable>
           ) : null}
         </View>
@@ -292,6 +330,59 @@ export default function CourierSearch({ orderId, restaurant, onCancelled, onChan
           <Text style={styles.link}>Peru tilaus</Text>
         </Pressable>
       )}
+    </View>
+  )
+}
+
+// Vedettävä hintapalkki 10 sentin tarkkuudella (kuten verkkosivun range-
+// kenttä): ohut oranssi täyttö ja valkoreunainen oranssi nuppi.
+function PriceSlider({ value, onChange, disabled }) {
+  const [width, setWidth] = useState(0)
+  const trackRef = useRef(null)
+  const x0 = useRef(0)
+  const widthRef = useRef(0)
+  const changeRef = useRef(onChange)
+  changeRef.current = onChange
+  const disabledRef = useRef(disabled)
+  disabledRef.current = disabled
+  const span = DELIVERY_BID.maxCents - DELIVERY_BID.minCents
+  const pick = (pageX) => {
+    if (!widthRef.current) return
+    const ratio = Math.min(1, Math.max(0, (pageX - x0.current) / widthRef.current))
+    changeRef.current(Math.round((DELIVERY_BID.minCents + ratio * span) / 5) * 10)
+  }
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => !disabledRef.current,
+      onMoveShouldSetPanResponder: () => !disabledRef.current,
+      onPanResponderTerminationRequest: () => false,
+      onPanResponderGrant: (e) => {
+        const pageX = e.nativeEvent.pageX
+        trackRef.current?.measureInWindow?.((x) => {
+          x0.current = x
+          pick(pageX)
+        })
+      },
+      onPanResponderMove: (e) => pick(e.nativeEvent.pageX),
+    }),
+  ).current
+  const pct = Math.min(1, Math.max(0, (value - DELIVERY_BID.minCents) / span))
+  return (
+    <View
+      ref={trackRef}
+      {...pan.panHandlers}
+      onLayout={(e) => {
+        setWidth(e.nativeEvent.layout.width)
+        widthRef.current = e.nativeEvent.layout.width
+        trackRef.current?.measureInWindow?.((x) => (x0.current = x))
+      }}
+      style={[styles.slider, disabled && { opacity: 0.4 }]}
+      accessibilityRole="adjustable"
+      accessibilityLabel="Vedä hintaa"
+    >
+      <View style={styles.sliderTrack} />
+      <View style={[styles.sliderFill, { width: pct * width }]} />
+      {width ? <View style={[styles.sliderThumb, { left: pct * width - 9 }]} /> : null}
     </View>
   )
 }
@@ -393,18 +484,71 @@ const styles = StyleSheet.create({
   bidPrice: { fontFamily: fonts.bold, fontSize: 16, color: colors.black },
   accept: { height: 34, minWidth: 84, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, borderRadius: 10, backgroundColor: colors.black },
   acceptText: { fontFamily: fonts.semibold, fontSize: 13.5, color: '#ffffff' },
-  offerLink: { flexDirection: 'row', alignItems: 'center', alignSelf: 'center', gap: 2, marginTop: 20 },
-  offerLinkText: { fontFamily: fonts.semibold, fontSize: 14.5, color: colors.black, textDecorationLine: 'underline' },
-  offer: { marginTop: 20, padding: 14, borderRadius: 16, backgroundColor: colors.gray100 },
-  offerHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  offerTitle: { fontFamily: fonts.semibold, fontSize: 15, color: colors.black },
-  offerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 12 },
-  stepper: { flexDirection: 'row', alignItems: 'center', height: 44, borderRadius: 12, backgroundColor: '#ffffff' },
-  stepButton: { width: 38, height: 44, alignItems: 'center', justifyContent: 'center' },
-  stepInput: { width: 50, textAlign: 'right', fontFamily: fonts.bold, fontSize: 16, color: colors.black },
-  euro: { marginLeft: 3, fontFamily: fonts.bold, fontSize: 16, color: colors.black },
-  offerButton: { flex: 1, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: colors.black },
-  offerNote: { marginTop: 8, fontFamily: fonts.regular, fontSize: 12.5, color: colors.textMuted },
+  offerLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    paddingVertical: 15,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    backgroundColor: '#f2f2f7',
+  },
+  offerLinkText: { fontFamily: fonts.semibold, fontSize: 15, color: colors.black },
+  offer: { marginTop: 18, paddingTop: 16, borderTopWidth: 1, borderTopColor: '#f0f0ee' },
+  offerHead: { flexDirection: 'row', alignItems: 'center' },
+  offerTitle: { fontFamily: fonts.headingBold, fontSize: 16, letterSpacing: -0.2, color: colors.black },
+  offerDot: { width: 5, height: 5, marginLeft: 3, marginTop: 6, borderRadius: 3, backgroundColor: colors.orange },
+  offerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  stepButton: { width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
+  stepInput: {
+    width: 62,
+    paddingVertical: 0,
+    textAlign: 'right',
+    fontFamily: fonts.headingBold,
+    fontSize: 24,
+    letterSpacing: -0.4,
+    color: colors.black,
+    fontVariant: ['tabular-nums'],
+  },
+  euro: { marginLeft: 3, marginRight: 2, fontFamily: fonts.headingBold, fontSize: 17, color: colors.orange },
+  offerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    height: 36,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+    backgroundColor: colors.black,
+  },
+  offerButtonDisabled: { backgroundColor: '#d1d1d6' },
+  drop: {
+    width: 7,
+    height: 7,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+    borderBottomRightRadius: 4,
+    backgroundColor: colors.orange,
+    transform: [{ rotate: '-45deg' }],
+  },
+  offerButtonText: { fontFamily: fonts.semibold, fontSize: 13.5, color: '#ffffff', fontVariant: ['tabular-nums'] },
+  range: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 10 },
+  rangeText: { fontFamily: fonts.medium, fontSize: 11, color: '#a1a1a6', fontVariant: ['tabular-nums'] },
+  slider: { flex: 1, height: 28, justifyContent: 'center' },
+  sliderTrack: { height: 4, borderRadius: 2, backgroundColor: '#f0ece9' },
+  sliderFill: { position: 'absolute', left: 0, height: 4, borderRadius: 2, backgroundColor: colors.orange },
+  sliderThumb: {
+    position: 'absolute',
+    width: 18,
+    height: 18,
+    borderWidth: 3,
+    borderColor: '#ffffff',
+    borderRadius: 9,
+    backgroundColor: colors.orange,
+    boxShadow: '0 1px 4px rgba(20, 21, 15, 0.25)',
+  },
+  removeOffer: { fontFamily: fonts.semibold, fontSize: 13.5, color: '#ff3b30' },
   link: { fontFamily: fonts.semibold, fontSize: 13.5, color: colors.textMuted, textDecorationLine: 'underline' },
   error: { marginTop: 12, textAlign: 'center', fontFamily: fonts.medium, fontSize: 13.5, color: colors.offerRed },
   note: { marginTop: 16, textAlign: 'center', fontFamily: fonts.regular, fontSize: 12.5, color: colors.textMuted },

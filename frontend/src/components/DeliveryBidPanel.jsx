@@ -5,7 +5,7 @@ import { ScoreSmiley } from './Smiley.jsx'
 import CourierProfileSheet from './CourierProfileSheet.jsx'
 import { formatPrice } from '../lib/format.js'
 import { DELIVERY_BID, bidInputText, clampBidCents, isBidInRange, parseBidInput } from '../lib/deliveryTime.js'
-import { formatScore } from '../lib/score.js'
+import { formatStars } from '../lib/score.js'
 import {
   VEHICLE_LABELS,
   acceptBid,
@@ -33,7 +33,7 @@ function useSecondsLeft(expiresAt) {
     const timer = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(timer)
   }, [target])
-  return Number.isFinite(target) ? Math.max(0, Math.ceil((target - now) / 1000)) : null
+  return Number.isFinite(target) ? Math.max(0, Math.ceil((target - now) / 500)) : null
 }
 
 function formatClock(seconds) {
@@ -197,7 +197,7 @@ export default function DeliveryBidPanel({ orderId, onCancelled, illustrated = f
                     {reviewCount > 0 && bid.courier_rating != null ? (
                       <span className="bid-card__rating">
                         <ScoreSmiley rating={bid.courier_rating} size={15} />
-                        <b>{formatScore(bid.courier_rating)}</b> · {reviewCount}{' '}
+                        <b>{formatStars(bid.courier_rating)}</b> · {reviewCount}{' '}
                         {reviewCount === 1 ? 'arvio' : 'arviota'}
                       </span>
                     ) : (

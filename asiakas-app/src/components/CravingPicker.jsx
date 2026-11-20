@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Animated, Easing, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { Dices } from 'lucide-react-native'
 import { formatEtaRange } from '../../../frontend/src/lib/delivery'
-import { formatScore } from '../../../frontend/src/lib/score'
+import { formatStars } from '../../../frontend/src/lib/score'
 import { FadeImage } from './RestaurantCard'
 import { ScoreSmiley } from './Smiley'
 import { SectionTitle } from './HomeSection'
@@ -78,7 +78,7 @@ export default function CravingPicker({ restaurants, onOpen }) {
                 {shown.rating != null ? (
                   <>
                     <ScoreSmiley rating={shown.rating} size={13} color={colors.textMuted} />
-                    <Text style={styles.metaText}>{formatScore(shown.rating)}</Text>
+                    <Text style={styles.metaText}>{formatStars(shown.rating)}</Text>
                   </>
                 ) : null}
                 {eta ? <Text style={styles.metaText}>{shown.rating != null ? '· ' : ''}{eta}</Text> : null}

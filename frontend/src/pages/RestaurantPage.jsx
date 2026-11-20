@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { BadgePercent, Bike, ChevronRight, Clock, Heart, Plus, Search, X } from 'lucide-react'
 import { ScoreSmiley } from '../components/Smiley.jsx'
-import { formatScore } from '../lib/score.js'
+import { formatStars } from '../lib/score.js'
 import { brandLogoFor } from '../lib/brandLogos.js'
 import { categorySlug } from '../lib/categories.js'
 import Header from '../components/Header.jsx'
@@ -538,14 +538,14 @@ function RestaurantPage() {
                     onClick={() => setReviewsOpen(true)}
                     aria-label={
                       shownRating != null
-                        ? `Arvostelut: ${formatScore(shownRating)} / 10, ${reviewCountLabel}`
+                        ? `Arvostelut: ${formatStars(shownRating)} / 5, ${reviewCountLabel}`
                         : 'Arvostelut: ei vielä arvosteluja'
                     }
                   >
                     <ScoreSmiley rating={shownRating} size={15} />
                     {shownRating != null ? (
                       <>
-                        <strong>{formatScore(shownRating)}</strong>
+                        <strong>{formatStars(shownRating)}</strong>
                         <span>({reviewCountShort})</span>
                       </>
                     ) : (

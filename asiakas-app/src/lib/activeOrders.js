@@ -6,31 +6,36 @@ import { useAuth } from './auth'
 // Käynnissä olevat tilaukset (sama lista kuin verkkosivun Omat tilaukset -sivulla).
 export const ACTIVE_ORDER_STATUSES = ['awaiting_courier', 'pending', 'confirmed', 'preparing', 'ready']
 
-async function countActiveOrders(userId) {
-  if (!supabase || !userId) return 0
-  const { count, error } = await supabase
+// Uusin käynnissä oleva tilaus (id) tai null.
+async function latestActiveOrderId(userId) {
+  if (!supabase || !userId) return null
+  const { data, error } = await supabase
     .from('orders')
-    .select('id', { count: 'exact', head: true })
+    .select('id')
     .eq('customer_id', userId)
     .in('status', ACTIVE_ORDER_STATUSES)
-  if (error) return 0
-  return count ?? 0
+    .order('created_at', { ascending: false })
+    .limit(1)
+  if (error) return null
+  return data?.[0]?.id ?? null
 }
 
 // Onko kirjautuneella asiakkaalla käynnissä tilaus (kellon oranssi pallo,
 // käyttäjän pyyntö 15.11.2026). Päivittyy, kun näkymä tulee taas esiin, ja
 // tilausten muuttuessa (Supabase realtime).
-export function useHasActiveOrder() {
+// Palauttaa uusimman käynnissä olevan tilauksen id:n (tai null): kello vie
+// suoraan sen seurantaan (käyttäjän pyyntö 18.11.2026).
+export function useActiveOrderId() {
   const { session } = useAuth()
   const userId = session?.user?.id ?? null
-  const [hasActive, setHasActive] = useState(false)
+  const [activeId, setActiveId] = useState(null)
 
   const refresh = useCallback(() => {
     if (!userId) {
-      setHasActive(false)
+      setActiveId(null)
       return
     }
-    countActiveOrders(userId).then((count) => setHasActive(count > 0))
+    latestActiveOrderId(userId).then(setActiveId)
   }, [userId])
 
   useFocusEffect(
@@ -57,5 +62,10 @@ export function useHasActiveOrder() {
     }
   }, [userId, refresh])
 
-  return hasActive
+  return activeId
+}
+
+// Vanha nimi: onko tilaus käynnissä.
+export function useHasActiveOrder() {
+  return Boolean(useActiveOrderId())
 }

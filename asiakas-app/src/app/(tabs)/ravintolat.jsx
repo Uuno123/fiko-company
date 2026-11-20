@@ -12,7 +12,7 @@ import { FeedEnd, HomeSkeleton } from '../../components/HomeExtras'
 import { buildHomeSections } from '../../lib/homeRows'
 import { useRestaurants } from '../../lib/restaurants'
 import { useAuth } from '../../lib/auth'
-import { useHasActiveOrder } from '../../lib/activeOrders'
+import { useActiveOrderId } from '../../lib/activeOrders'
 import { addAddress, removeAddress, selectAddress, updateAddress, useDeliveryAddresses } from '../../lib/deliveryAddresses'
 import { colors, fonts } from '../../theme'
 
@@ -23,7 +23,9 @@ export default function HomeScreen() {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { session, customer } = useAuth()
-  const hasActiveOrder = useHasActiveOrder()
+  // Kello: käynnissä olevan tilauksen seurantaan, muuten kaikkiin tilauksiin (18.11.2026).
+  const activeOrderId = useActiveOrderId()
+  const hasActiveOrder = Boolean(activeOrderId)
   const { restaurants, status, refreshing, refresh } = useRestaurants()
 
   // Valittu toimitusosoite (tilin osoite tai laitteelle lisätty, lib/deliveryAddresses.js):
@@ -44,44 +46,44 @@ export default function HomeScreen() {
     <View style={styles.screen}>
       {/* Header (käyttäjän pyyntö 15.11.2026): vain osoite, kello ja käyttäjä. */}
       <View style={[styles.siteHeader, { paddingTop: insets.top }]}>
-        {/* Vasemmalla käyttäjä, keskellä osoite, oikealla kello (15.11.2026). */}
+        {/* Oma asettelu (20.11.2026, ei Woltin käyttäjä-osoite-kello -keskitystä):
+            vasemmalla "Tuodaan heti" ja osoite, oikealla kello ja käyttäjä
+            ilman harmaita ympyröitä. */}
         <View style={styles.siteHeaderRow}>
-          <Pressable
-            onPress={() => router.push(session ? '/tili' : '/kirjautuminen')}
-            hitSlop={6}
-            style={({ pressed }) => [styles.userButton, pressed && styles.pressed]}
-            accessibilityRole="button"
-            accessibilityLabel={session ? 'Tili' : 'Kirjaudu sisään'}
-          >
-            <UserRound size={19} strokeWidth={2} color={colors.black} />
-          </Pressable>
-
           <Pressable
             onPress={() => setAddressSheetOpen(true)}
             style={({ pressed }) => [styles.address, pressed && styles.pressed]}
             accessibilityRole="button"
             accessibilityLabel="Vaihda toimitusosoite"
           >
+            <Text style={styles.addressLabel}>Tuodaan heti</Text>
             <View style={styles.addressRow}>
-              {/* Nuolen levyinen tyhjä tila: teksti tarkalleen keskellä. */}
-              <View style={{ width: 14 }} />
               <Text style={styles.addressValue} numberOfLines={1}>
                 {selected ? shortAddress(selected.full) : 'Lisää osoite'}
               </Text>
-              <ChevronDown size={14} strokeWidth={2.6} color={colors.orange} />
+              <ChevronDown size={16} strokeWidth={2.6} color={colors.orange} />
             </View>
           </Pressable>
 
           <Pressable
-            hitSlop={6}
-            style={({ pressed }) => [styles.userButton, pressed && styles.pressed]}
+            hitSlop={8}
+            style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
             accessibilityRole="button"
-            onPress={() => router.push('/tilaukset')}
+            onPress={() => router.push(activeOrderId ? `/tilaus/${activeOrderId}` : '/tilaukset')}
             accessibilityLabel={hasActiveOrder ? 'Tilaukset ja ilmoitukset, tilaus käynnissä' : 'Tilaukset ja ilmoitukset'}
           >
-            <Bell size={18} strokeWidth={2} color={colors.black} />
+            <Bell size={22} strokeWidth={1.9} color={colors.black} />
             {/* Oranssi pallo vain, kun on ilmoitettavaa: käynnissä oleva tilaus. */}
             {hasActiveOrder ? <View style={styles.bellDot} /> : null}
+          </Pressable>
+          <Pressable
+            onPress={() => router.push(session ? '/tili' : '/kirjautuminen')}
+            hitSlop={8}
+            style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
+            accessibilityRole="button"
+            accessibilityLabel={session ? 'Tili' : 'Kirjaudu sisään'}
+          >
+            <UserRound size={22} strokeWidth={1.9} color={colors.black} />
           </Pressable>
         </View>
       </View>
@@ -105,13 +107,14 @@ export default function HomeScreen() {
           <Text style={styles.searchText}>Hae ravintoloita ja ruokia</Text>
         </Pressable>
 
-        {/* Ketjulogot ylhäällä (palautettu käyttäjän pyynnöstä 16.11.2026). */}
-        <View style={{ marginTop: 16 }}>
-          <BrandStrip onSelect={searchFor} />
+        {/* Banneri ensin, ketjulogot sen alla pyöreinä (20.11.2026: eri järjestys
+            ja muoto kuin Woltin laattarivi). */}
+        <View style={{ marginTop: 22 }}>
+          <PromoCarousel />
         </View>
 
-        <View style={{ marginTop: 18 }}>
-          <PromoCarousel />
+        <View style={{ marginTop: 24 }}>
+          <BrandStrip onSelect={searchFor} />
         </View>
 
         {status === 'loading' ? (
@@ -132,7 +135,7 @@ export default function HomeScreen() {
                   />
                 )}
                 {/* Onnenpyörän banneri ensimmäisen rivin jälkeen: vie pyöräytyssivulle (16.11.2026). */}
-                {index === 0 ? <WheelBanner onPress={() => router.push('/onnenpyora')} /> : null}
+                {index === 0 ? <WheelBanner userId={session?.user?.id ?? null} onPress={() => router.push('/onnenpyora')} /> : null}
               </Fragment>
             ))}
             {/* Loppu: ravintolat päättyvät tähän (15.11.2026). */}
@@ -187,29 +190,23 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#e6e6e3',
   },
-  siteHeaderRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
+  siteHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10 },
   bellDot: {
     position: 'absolute',
-    top: 8,
-    right: 9,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: colors.gray100,
+    top: 6,
+    right: 7,
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: colors.surface,
     backgroundColor: colors.orange,
   },
-  userButton: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 18,
-    backgroundColor: colors.gray100,
-  },
-  address: { flex: 1, alignItems: 'center', marginHorizontal: 12 },
-  addressRow: { flexDirection: 'row', alignItems: 'center', gap: 4, maxWidth: '100%' },
-  addressValue: { flexShrink: 1, fontFamily: fonts.bold, fontSize: 14.75, color: colors.black },
+  iconButton: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
+  address: { flex: 1, alignItems: 'flex-start', marginRight: 6 },
+  addressLabel: { fontFamily: fonts.medium, fontSize: 12, color: colors.textMuted },
+  addressRow: { flexDirection: 'row', alignItems: 'center', gap: 3, maxWidth: '100%' },
+  addressValue: { flexShrink: 1, fontFamily: fonts.headingBold, fontSize: 17, letterSpacing: -0.2, color: colors.black },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
-import { Bike, Heart } from 'lucide-react'
+import { Heart, HandCoins } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { ScoreSmiley } from './Smiley.jsx'
-import { DELIVERY_PRICE_RANGE, formatEtaRange } from '../lib/delivery.js'
-import { formatScore } from '../lib/score.js'
+import { formatEtaRange } from '../lib/delivery.js'
+import { DELIVERY_BID } from '../lib/deliveryTime.js'
+import { formatPrice } from '../lib/format.js'
+import { formatStars } from '../lib/score.js'
 import { offerBadge } from '../lib/offers.js'
 import './RestaurantCard.css'
 
@@ -39,7 +41,7 @@ function RestaurantCard({
       <span key="rating" className="restaurant-card__stat restaurant-card__stat--rating">
         {/* Hymiö ja arvosana 0–10 (tähtien tilalle 28.10.2026, lib/score.js). */}
         <ScoreSmiley rating={rating} />
-        {formatScore(rating)}
+        {formatStars(rating)}
       </span>
     ),
     etaRange && (
@@ -59,9 +61,10 @@ function RestaurantCard({
         className="restaurant-card__stat restaurant-card__bid"
         title="Kuljettajat tarjoavat hintaa, sinä valitset"
       >
-        {/* Pyöräikoni ja kuljetushinta (käyttäjän mallikuva 8.11.2026). */}
-        <Bike className="restaurant-card__bike" size={15} strokeWidth={2} aria-hidden="true" />
-        {DELIVERY_PRICE_RANGE}
+        {/* Tarjouskilpailu näkyviin (20.11.2026, vähemmän Woltin näköinen):
+            kolikkoikoni ja "Kuljetus alk." halvimmasta mahdollisesta hinnasta. */}
+        <HandCoins className="restaurant-card__bike" size={15} strokeWidth={2} aria-hidden="true" />
+        Kuljetus alk. {formatPrice(DELIVERY_BID.minCents)}
       </span>
     ),
   ].filter(Boolean)

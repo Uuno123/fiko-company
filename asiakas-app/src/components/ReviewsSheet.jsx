@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
 import BottomSheet from './BottomSheet'
 import { ScoreSmiley } from './Smiley'
-import { formatReviewScore, formatScore } from '../../../frontend/src/lib/score'
+import { formatReviewStars, formatStars } from '../../../frontend/src/lib/score'
 import { formatReviewAge, getDemoReviews } from '../../../frontend/src/lib/demoReviews'
 import { supabase } from '../lib/supabase'
 import { colors, fonts } from '../theme'
@@ -47,9 +47,9 @@ export default function ReviewsSheet({ visible, onClose, restaurant, rating, cou
         {rating != null ? (
           <View style={styles.summary}>
             <ScoreSmiley rating={rating} size={40} color={colors.black} />
-            <Text style={styles.score}>{formatScore(rating)}</Text>
+            <Text style={styles.score}>{formatStars(rating)}</Text>
             <View>
-              <Text style={styles.scale}>/ 10</Text>
+              <Text style={styles.scale}>/ 5</Text>
               <Text style={styles.count}>{countLabel}</Text>
             </View>
           </View>
@@ -72,7 +72,7 @@ export default function ReviewsSheet({ visible, onClose, restaurant, rating, cou
                 </View>
                 <View style={styles.itemScore}>
                   <ScoreSmiley rating={review.rating} size={14} color={colors.black} />
-                  <Text style={styles.itemScoreText}>{formatReviewScore(review.rating)}</Text>
+                  <Text style={styles.itemScoreText}>{formatReviewStars(review.rating)}</Text>
                 </View>
               </View>
               {review.text ? <Text style={styles.text}>{review.text}</Text> : null}

@@ -1,6 +1,5 @@
 import { formatDistance, withDistance } from '../../../frontend/src/lib/distance'
 import { etaUpperMinutes } from '../../../frontend/src/lib/delivery'
-import { scoreFromRating } from '../../../frontend/src/lib/score'
 import { offerBadge } from '../../../frontend/src/lib/offers'
 import { SORT_COMPARATORS } from '../../../frontend/src/lib/rankingCore'
 
@@ -14,8 +13,9 @@ import { SORT_COMPARATORS } from '../../../frontend/src/lib/rankingCore'
 export const DISTANCE_STEPS = [0.5, 1, 2, 3, 5, null]
 // Toimitusajan yläraja minuutteina (arvion haarukan yläpää).
 export const ETA_OPTIONS = [null, 20, 30, 45]
-// Arvosanan alaraja asteikolla 0-10.
-export const SCORE_OPTIONS = [null, 8, 9]
+// Arvosanan alaraja tähtinä 1-5 (20.11.2026, aiemmin 0-10).
+export const SCORE_OPTIONS = [null, 4, 4.5]
+export const scoreLabel = (value) => `${String(value).replace('.', ',')}+`
 
 export const SORTS = [
   { key: 'recommended', label: 'Suositellut' },
@@ -54,7 +54,7 @@ export function activeFilterChips(filters) {
   }
   if (filters.maxKm != null) chips.push({ key: 'km', label: `Alle ${distanceLabel(filters.maxKm)}`, clear: { maxKm: null } })
   if (filters.maxEta != null) chips.push({ key: 'eta', label: `Alle ${filters.maxEta} min`, clear: { maxEta: null } })
-  if (filters.minScore != null) chips.push({ key: 'score', label: `Arvio ${filters.minScore}+`, clear: { minScore: null } })
+  if (filters.minScore != null) chips.push({ key: 'score', label: `Arvio ${scoreLabel(filters.minScore)}`, clear: { minScore: null } })
   if (filters.openNow) chips.push({ key: 'open', label: 'Avoinna nyt', clear: { openNow: false } })
   if (filters.freeDelivery) chips.push({ key: 'free', label: 'Ilmainen kuljetus', clear: { freeDelivery: false } })
   for (const value of filters.offers) {
@@ -92,7 +92,7 @@ export function applyFilters(restaurants, filters, address) {
       const upper = etaUpperMinutes(r.pickup_estimate_minutes)
       if (!(upper != null && upper <= filters.maxEta)) return false
     }
-    if (filters.minScore != null && !((scoreFromRating(r.rating) ?? 0) >= filters.minScore)) return false
+    if (filters.minScore != null && !(Number(r.rating ?? 0) >= filters.minScore)) return false
     if (filters.openNow && r.is_open === false) return false
     if (filters.freeDelivery && !r.free_delivery) return false
     if (filters.offers.length && !filters.offers.includes(offerBadge(r)?.value)) return false

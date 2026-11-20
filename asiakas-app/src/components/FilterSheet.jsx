@@ -9,6 +9,7 @@ import {
   ETA_OPTIONS,
   OFFER_OPTIONS,
   SCORE_OPTIONS,
+  scoreLabel,
   SORTS,
   distanceLabel,
 } from '../lib/restaurantFilters'
@@ -95,7 +96,7 @@ export default function FilterSheet({ visible, onClose, value, onChange, resultC
 
         <Section title="Arvio">
           <Chips
-            options={SCORE_OPTIONS.map((s) => ({ key: String(s), label: s == null ? 'Kaikki' : `${s}+`, on: value.minScore === s }))}
+            options={SCORE_OPTIONS.map((s) => ({ key: String(s), label: s == null ? 'Kaikki' : `★ ${scoreLabel(s)}`, on: value.minScore === s }))}
             onPress={(key) => set({ minScore: key === 'null' ? null : Number(key) })}
           />
         </Section>

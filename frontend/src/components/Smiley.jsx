@@ -1,4 +1,4 @@
-import { FACE_MOUTHS, faceForScore, scoreFromRating } from '../lib/score.js'
+import { FACE_MOUTHS, scoreFromRating } from '../lib/score.js'
 
 // Arvosanan hymiö (tähtien tilalle 28.10.2026): siisti viivapiirros samassa
 // värissä kuin viereinen teksti (currentColor, ei oranssia - käyttäjän
@@ -28,8 +28,24 @@ export function Smiley({ face = 'good', size = 16, muted = false, className }) {
   )
 }
 
-// Hymiö keskiarvosta (1–5 tietokannassa): ilme näytettävän 0–10-arvosanan mukaan.
+// Arvosanan merkki asiakkaan näkymissä: oranssi tähti (20.11.2026, hymiön
+// tilalla - vähemmän Woltin näköinen). Ilman arvosanaa harmaa. Nimi pidetty,
+// jotta kaikki käyttöpaikat vaihtuivat kerralla.
 export function ScoreSmiley({ rating, size = 16, className }) {
   const score = scoreFromRating(rating)
-  return <Smiley face={faceForScore(score)} size={size} muted={score == null} className={className} />
+  return (
+    <svg
+      className={`rating-star${className ? ` ${className}` : ''}`}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      style={{ flexShrink: 0 }}
+    >
+      <path
+        d="M12 2.6l2.85 5.95 6.55.85-4.8 4.55 1.2 6.5L12 17.3l-5.8 3.15 1.2-6.5L2.6 9.4l6.55-.85L12 2.6z"
+        fill={score == null ? '#c9c9c5' : 'var(--delivo-orange, #f4501e)'}
+      />
+    </svg>
+  )
 }
