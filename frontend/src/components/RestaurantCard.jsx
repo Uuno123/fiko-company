@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Heart, HandCoins } from 'lucide-react'
+import { Bike, Heart } from 'lucide-react'
 import RestaurantAvatarPlaceholder from './RestaurantAvatarPlaceholder.jsx'
 import { ScoreSmiley } from './Smiley.jsx'
 import { formatEtaRange } from '../lib/delivery.js'
@@ -63,7 +63,7 @@ function RestaurantCard({
       >
         {/* Tarjouskilpailu näkyviin (20.11.2026, vähemmän Woltin näköinen):
             kolikkoikoni ja "Kuljetus alk." halvimmasta mahdollisesta hinnasta. */}
-        <HandCoins className="restaurant-card__bike" size={15} strokeWidth={2} aria-hidden="true" />
+        <Bike className="restaurant-card__bike" size={15} strokeWidth={2} aria-hidden="true" />
         Kuljetus alk. {formatPrice(DELIVERY_BID.minCents)}
       </span>
     ),

@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Bike, Check, Clock, Percent, Receipt, Tag, Users, Wallet } from 'lucide-react'
+import { ArrowRight, Bike, Check, Clock, Percent, ReceiptText, Tag, Users, Wallet } from 'lucide-react'
 
 // Kumppanisivujen pienet rakennuspalat: osion otsikko, tarkistuslista,
 // selainkehys ja puhelinkehys kuvakaappauksille sekä hyötykortit.
 
-const ICONS = { percent: Percent, bike: Bike, users: Users, wallet: Wallet, clock: Clock, tag: Tag, receipt: Receipt }
+const ICONS = { percent: Percent, bike: Bike, users: Users, wallet: Wallet, clock: Clock, tag: Tag, receipt: ReceiptText }
 
 export function SectionHead({ kicker, title, lead, center = false }) {
   return (

@@ -1,5 +1,5 @@
 import { Link, Navigate, NavLink, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Bell, CreditCard, Lock, LogOut, MessageCircle, Receipt, User } from 'lucide-react'
+import { ArrowLeft, Bell, CreditCard, Lock, LogOut, MessageCircle, ReceiptText, User } from 'lucide-react'
 import MainHeader from './MainHeader.jsx'
 import { useAuth } from '../lib/AuthContext.jsx'
 import { useIsMobile } from '../lib/useIsMobile.js'
@@ -8,7 +8,7 @@ import './SettingsLayout.css'
 
 const NAV = [
   { to: '/asetukset/tiedot', label: 'Omat tiedot', Icon: User },
-  { to: '/omat-tilaukset', label: 'Tilaukset', Icon: Receipt },
+  { to: '/omat-tilaukset', label: 'Tilaukset', Icon: ReceiptText },
   { to: '/asetukset/maksutavat', label: 'Maksutavat', Icon: CreditCard },
   { to: '/asetukset/ilmoitukset', label: 'Ilmoitukset', Icon: Bell },
   { to: '/asetukset/salasana', label: 'Salasana', Icon: Lock },

@@ -6,7 +6,7 @@ import { ReceiptText } from 'lucide-react-native'
 import { Button } from '../../components/ui'
 import { SectionTitle } from '../../components/HomeSection'
 import RestaurantLogo from '../../components/RestaurantLogo'
-import { customerStatusLabel } from '../../../../frontend/src/lib/orderStatus'
+import { COURIER_ACTIVE_STATUSES, customerStatusLabel } from '../../../../frontend/src/lib/orderStatus'
 import { cancelReasonShort } from '../../../../frontend/src/lib/cancelReasons'
 import { formatPrice } from '../../../../frontend/src/lib/format'
 import { supabase } from '../../lib/supabase'
@@ -14,6 +14,11 @@ import { useAuth } from '../../lib/auth'
 import { colors, fonts } from '../../theme'
 
 const ACTIVE = ['awaiting_courier', 'pending', 'confirmed', 'preparing', 'ready']
+// Käynnissä myös, kun ravintola on jo luovuttanut ruoan mutta kuljettaja on
+// vielä matkalla (status completed, courier_status picked_up) - ei Toimitettu
+// ennen kuin kuljettaja on vienyt perille (20.11.2026).
+const isActive = (o) =>
+  o.status !== 'cancelled' && (ACTIVE.includes(o.status) || COURIER_ACTIVE_STATUSES.includes(o.courier_status))
 
 // Tilaukset-välilehti: käynnissä olevat ylimpänä, sitten aiemmat. Kirjautumaton
 // näkee kehotuksen kirjautua.
@@ -127,10 +132,10 @@ function bucketOf(iso, now = new Date()) {
 
 function groupOrders(orders) {
   const sections = []
-  const active = orders.filter((o) => ACTIVE.includes(o.status))
+  const active = orders.filter(isActive)
   if (active.length) sections.push({ title: 'Käynnissä', data: active })
   for (const order of orders) {
-    if (ACTIVE.includes(order.status)) continue
+    if (isActive(order)) continue
     const title = bucketOf(order.created_at)
     const last = sections[sections.length - 1]
     if (last && last.title === title) last.data.push(order)
@@ -155,7 +160,7 @@ function whenLabel(iso) {
 
 // Rivi avaa tilauksen seurannan (app/tilaus/[id].jsx, 17.11.2026).
 function OrderRow({ order, onPress }) {
-  const active = ACTIVE.includes(order.status)
+  const active = isActive(order)
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && { opacity: 0.6 }]} accessibilityRole="button">
       {/* Ketjun logo myös SVG:nä (puhelimen Image ei näytä SVG:tä, 18.11.2026). */}

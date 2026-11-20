@@ -13,7 +13,9 @@ async function latestActiveOrderId(userId) {
     .from('orders')
     .select('id')
     .eq('customer_id', userId)
-    .in('status', ACTIVE_ORDER_STATUSES)
+    // Myös ravintolan jo luovuttama tilaus, jota kuljettaja vielä vie (20.11.2026).
+    .neq('status', 'cancelled')
+    .or(`status.in.(${ACTIVE_ORDER_STATUSES.join(',')}),courier_status.in.(assigned,at_restaurant,picked_up)`)
     .order('created_at', { ascending: false })
     .limit(1)
   if (error) return null

@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
-import { HandCoins } from 'lucide-react-native'
+import { Bike } from 'lucide-react-native'
 import { formatEtaRange } from '../../../frontend/src/lib/delivery'
 import { DELIVERY_BID } from '../../../frontend/src/lib/deliveryTime'
 import { formatPrice } from '../../../frontend/src/lib/format'
@@ -81,7 +81,7 @@ export default function RestaurantCard({ restaurant, width, onPress, large = fal
           <View style={styles.metaItem}>
             <Text style={styles.sep}>·</Text>
             {/* Tarjouskilpailu näkyviin (20.11.2026): "Kuljetus alk. 1,99 €". */}
-            <HandCoins size={12} strokeWidth={2} color={colors.textMuted} />
+            <Bike size={12} strokeWidth={2} color={colors.textMuted} />
             <Text style={styles.metaText}>Kuljetus alk. {formatPrice(DELIVERY_BID.minCents)}</Text>
           </View>
         )}
